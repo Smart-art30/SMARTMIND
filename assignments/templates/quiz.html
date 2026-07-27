@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>{{ assignment.title }}</h2>
+
+<div class="quiz-header">
+  <div>Time Left: <span id="timer"></span></div>
+</div>
+
+<form id="quiz-form" method="POST" action="{% url 'submit_quiz' assignment.id %}">
+  {% csrf_token %}
+
+  {% for q in questions %}
+    <div class="question-card">
+      <p><strong>{{ forloop.counter }}. {{ q.text }}</strong></p>
+
+      <label><input type="radio" name="{{ q.id }}" value="A"> {{ q.option_a }}</label>
+      <label><input type="radio" name="{{ q.id }}" value="B"> {{ q.option_b }}</label>
+      <label><input type="radio" name="{{ q.id }}" value="C"> {{ q.option_c }}</label>
+      <label><input type="radio" name="{{ q.id }}" value="D"> {{ q.option_d }}</label>
+    </div>
+  {% endfor %}
+
+  <button type="submit">Submit Quiz</button>
+</form>
+
+<style>
+.quiz-header {
+  margin-bottom: 20px;
+  font-weight: bold;
+}
+
+.question-card {
+  background: white;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 10px;
+}
+
+label {
+  display: block;
+  margin: 5px 0;
+}
+
+button {
+  padding: 10px 20px;
+  background: #16a34a;
+  color: white;
+  border: none;
+  border-radius: 6px;
+}
+</style>
+
+<script>
+let time = {{ assignment.duration_minutes|default:10 }} * 60;
+
+function formatTime(t){
+  let m = Math.floor(t/60);
+  let s = t % 60;
+  return m + ":" + (s < 10 ? "0"+s : s);
+}
+
+const timer = setInterval(() => {
+  time--;
+  document.getElementById("timer").innerText = formatTime(time);
+
+  if (time <= 0){
+    clearInterval(timer);
+    document.getElementById("quiz-form").submit();
+  }
+}, 1000);
+</script>
+
+{% endblock %}

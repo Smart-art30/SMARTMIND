@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Learning Blog – Home{% endblock %}
+
+{% block content %}
+    <header>
+        <h1>Welcome to the Learners Blog</h1>
+        <p>Explore posts, ideas, and classroom projects.</p>
+        {% if user.is_authenticated %}
+            <p>Logged in as <strong>{{ user.username }}</strong></p>
+        {% endif %}
+    </header>
+
+    <main>
+        {% if posts %}
+            {% for post in posts %}
+                <article class="post">
+                    <h2><a href="{{ post.get_absolute_url }}">{{ post.title }}</a></h2>
+                    <p class="excerpt">{{ post.excerpt | truncatewords:30  }}</p>
+                    <div class="meta">
+                        By {{ post.author }} | {{ post.created_at|date:"M d, Y H:i" }}
+                    </div>
+                </article>
+            {% endfor %}
+        {% else %}
+            <div class="empty">
+                <p>No posts yet.</p>
+            </div>
+        {% endif %}
+    </main>
+
+    <footer>
+        <p>© {{ "now"|date:"Y" }} Learning Blog. All rights reserved.</p>
+    </footer>
+{% endblock %}

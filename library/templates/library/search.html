@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Search Results
+{% endblock %}
+
+{% block content %}
+
+<div class="container py-4">
+
+    <h2 class="mb-4">
+        Search Results
+    </h2>
+
+    {% if query %}
+    <div class="alert alert-light border">
+        Results for:
+        <strong>"{{ query }}"</strong>
+    </div>
+    {% endif %}
+
+    <!-- TOPICS -->
+    <h4 class="mt-4 mb-3">
+        Topics
+    </h4>
+
+    {% for topic in topics %}
+
+    <div class="card shadow-sm mb-3">
+        <div class="card-body">
+
+            <h5 class="card-title">
+                {{ topic.title }}
+            </h5>
+
+            {% if topic.description %}
+            <p class="text-muted">
+                {{ topic.description|truncatewords:20 }}
+            </p>
+            {% endif %}
+
+            <a
+                href="{% url 'library:topic_detail' topic.id %}"
+                class="btn btn-primary"
+            >
+                View Subtopics
+            </a>
+
+        </div>
+    </div>
+
+    {% empty %}
+    <p class="text-muted">
+        No topics found.
+    </p>
+    {% endfor %}
+
+
+    <hr class="my-5">
+
+
+    <!-- SUBTOPICS -->
+    <h4 class="mb-3">
+        SubTopics
+    </h4>
+
+    {% for subtopic in subtopics %}
+
+    <div class="card shadow-sm mb-3">
+        <div class="card-body">
+
+            <h5 class="card-title">
+                {{ subtopic.title }}
+            </h5>
+
+            <p class="text-muted small">
+
+                {{ subtopic.topic.subject.name }}
+                →
+                {{ subtopic.topic.title }}
+
+            </p>
+
+            {% if subtopic.description %}
+            <p>
+                {{ subtopic.description|truncatewords:20 }}
+            </p>
+            {% endif %}
+
+            <a
+                href="{% url 'library:subtopic_detail' subtopic.id %}"
+                class="btn btn-info text-white"
+            >
+                Study SubTopic
+            </a>
+
+        </div>
+    </div>
+
+    {% empty %}
+    <p class="text-muted">
+        No subtopics found.
+    </p>
+    {% endfor %}
+
+
+    <hr class="my-5">
+
+
+    <!-- RESOURCES -->
+    <h4 class="mb-3">
+        Resources
+    </h4>
+
+    {% for resource in resources %}
+
+    <div class="card shadow-sm mb-3">
+
+        <div class="card-body">
+
+            <h5 class="card-title">
+                {{ resource.title }}
+            </h5>
+
+            <p class="text-muted small">
+
+                {{ resource.subject.name }}
+                →
+                {{ resource.topic.title }}
+                →
+                {{ resource.subtopic.title }}
+
+            </p>
+
+            <span class="badge bg-secondary">
+                {{ resource.get_resource_type_display }}
+            </span>
+
+            <br><br>
+
+            <a
+                href="{% url 'library:resource_detail' resource.id %}"
+                class="btn btn-success"
+            >
+                Open Resource
+            </a>
+
+        </div>
+
+    </div>
+
+    {% empty %}
+    <p class="text-muted">
+        No resources found.
+    </p>
+    {% endfor %}
+
+</div>
+
+{% endblock %}

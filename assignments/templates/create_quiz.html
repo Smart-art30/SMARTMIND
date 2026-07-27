@@ -1,0 +1,174 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Create Quiz</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+
+body{
+    margin:0;
+    background:#f4f7fb;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+}
+
+.container{
+    max-width:950px;
+    margin:40px auto;
+    padding:20px;
+}
+
+.card{
+    background:white;
+    padding:30px;
+    border-radius:16px;
+    box-shadow:0 10px 25px rgba(0,0,0,.08);
+}
+
+h1{
+    margin-top:0;
+    color:#1f2937;
+}
+
+.form-group{
+    margin-bottom:20px;
+}
+
+label{
+    display:block;
+    margin-bottom:8px;
+    font-weight:bold;
+    color:#374151;
+}
+
+input,
+select,
+textarea{
+    width:100%;
+    padding:12px;
+    border:1px solid #d1d5db;
+    border-radius:8px;
+    font-size:15px;
+    box-sizing:border-box;
+}
+
+textarea{
+    min-height:160px;
+}
+
+.helptext{
+    font-size:13px;
+    color:#6b7280;
+    margin-top:5px;
+}
+
+.errorlist{
+    color:#dc2626;
+    margin-top:5px;
+}
+
+.buttons{
+    margin-top:30px;
+}
+
+.btn{
+    display:inline-block;
+    padding:12px 20px;
+    border:none;
+    border-radius:8px;
+    text-decoration:none;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.save{
+    background:#2563eb;
+    color:white;
+}
+
+.save:hover{
+    background:#1d4ed8;
+}
+
+.cancel{
+    background:#6b7280;
+    color:white;
+}
+
+.cancel:hover{
+    background:#4b5563;
+}
+
+.info{
+    background:#eff6ff;
+    border-left:5px solid #2563eb;
+    padding:15px;
+    border-radius:8px;
+    margin-bottom:25px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="card">
+
+<h1>❓ Create Quiz</h1>
+
+<div class="info">
+After creating the quiz, you can add questions, correct answers, marks and time limits.
+</div>
+
+<form method="post" enctype="multipart/form-data">
+
+{% csrf_token %}
+
+{% for field in form %}
+
+<div class="form-group">
+
+<label for="{{ field.id_for_label }}">
+{{ field.label }}
+</label>
+
+{{ field }}
+
+{% if field.help_text %}
+<div class="helptext">
+{{ field.help_text }}
+</div>
+{% endif %}
+
+{{ field.errors }}
+
+</div>
+
+{% endfor %}
+
+<div class="buttons">
+
+<button type="submit" class="btn save">
+💾 Save Quiz
+</button>
+
+<a href="{% url 'manage_quizzes' %}" class="btn cancel">
+← Back
+</a>
+
+</div>
+
+</form>
+
+</div>
+
+</div>
+
+</body>
+</html>

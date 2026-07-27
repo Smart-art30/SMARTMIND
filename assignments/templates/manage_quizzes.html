@@ -1,0 +1,269 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Manage Quizzes</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+
+body{
+    margin:0;
+    background:#f4f7fb;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+}
+
+.container{
+    width:95%;
+    max-width:1400px;
+    margin:auto;
+    padding:30px;
+}
+
+.header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    margin-bottom:25px;
+}
+
+.btn{
+    background:#2563eb;
+    color:white;
+    text-decoration:none;
+    padding:12px 20px;
+    border-radius:8px;
+    font-weight:bold;
+}
+
+.btn:hover{
+    background:#1d4ed8;
+}
+
+.search{
+    margin-bottom:20px;
+}
+
+.search input{
+    width:100%;
+    padding:12px;
+    border-radius:8px;
+    border:1px solid #ccc;
+    font-size:15px;
+}
+
+.card{
+    background:white;
+    border-radius:15px;
+    padding:20px;
+    box-shadow:0 10px 25px rgba(0,0,0,.08);
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+th{
+    background:#1e3a8a;
+    color:white;
+    padding:14px;
+    text-align:left;
+}
+
+td{
+    padding:14px;
+    border-bottom:1px solid #eee;
+}
+
+tr:hover{
+    background:#f8fafc;
+}
+
+.badge{
+    background:#f59e0b;
+    color:white;
+    padding:5px 12px;
+    border-radius:20px;
+    font-size:13px;
+}
+
+.action{
+    display:inline-block;
+    text-decoration:none;
+    color:white;
+    padding:8px 12px;
+    border-radius:6px;
+    margin-right:5px;
+}
+
+.view{background:#16a34a;}
+.edit{background:#2563eb;}
+.delete{background:#dc2626;}
+
+@media(max-width:900px){
+
+table,thead,tbody,tr,td,th{
+display:block;
+}
+
+thead{
+display:none;
+}
+
+tr{
+margin-bottom:20px;
+padding:15px;
+background:white;
+border-radius:12px;
+}
+
+td{
+border:none;
+padding:6px 0;
+}
+
+td:before{
+display:block;
+font-weight:bold;
+margin-bottom:4px;
+}
+
+td:nth-child(1):before{content:"Quiz";}
+td:nth-child(2):before{content:"Subject";}
+td:nth-child(3):before{content:"Class";}
+td:nth-child(4):before{content:"Duration";}
+td:nth-child(5):before{content:"Questions";}
+td:nth-child(6):before{content:"Actions";}
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="header">
+
+<div>
+<h1>❓ Manage Quizzes</h1>
+<p>Create, edit and monitor quizzes.</p>
+</div>
+
+<a href="{% url 'create_quiz' %}" class="btn">
+➕ Create Quiz
+</a>
+
+</div>
+
+<div class="search">
+
+<input
+type="text"
+id="search"
+placeholder="Search quizzes...">
+
+</div>
+
+<div class="card">
+
+<table id="quizTable">
+
+<thead>
+
+<tr>
+
+<th>Quiz</th>
+<th>Subject</th>
+<th>Class</th>
+<th>Duration</th>
+<th>Questions</th>
+<th>Actions</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for quiz in quizzes %}
+
+<tr>
+
+<td>{{ quiz.title }}</td>
+
+<td>{{ quiz.subject }}</td>
+
+<td>{{ quiz.school_class }}</td>
+
+<td>{{ quiz.duration_minutes }} mins</td>
+
+<td>
+<span class="badge">
+{{ quiz.questions.count }}
+</span>
+</td>
+
+<td>
+
+<a href="#" class="action view">
+View
+</a>
+
+<a href="#" class="action edit">
+Edit
+</a>
+
+<a href="#" class="action delete">
+Delete
+</a>
+
+</td>
+
+</tr>
+
+{% empty %}
+
+<tr>
+
+<td colspan="6">
+<center>No quizzes available.</center>
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+<script>
+
+const search=document.getElementById("search");
+
+search.addEventListener("keyup",function(){
+
+let value=this.value.toLowerCase();
+
+document.querySelectorAll("#quizTable tbody tr").forEach(function(row){
+
+row.style.display=row.innerText.toLowerCase().includes(value)?"":"none";
+
+});
+
+});
+
+</script>
+
+</body>
+</html>

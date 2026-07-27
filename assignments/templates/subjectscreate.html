@@ -1,0 +1,109 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Add Learning Area</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui;
+      background: #eef2f8;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: auto;
+      padding: 30px;
+    }
+
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: 20px;
+    }
+
+    label {
+      font-size: 13px;
+      color: #444;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0 15px 0;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #2f6fed;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .error {
+      background: #ffe5e5;
+      color: #b00020;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      font-size: 13px;
+    }
+
+    .back {
+      display: inline-block;
+      margin-bottom: 10px;
+      text-decoration: none;
+      color: #2f6fed;
+      font-size: 14px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <a class="back" href="{% url 'school_subjects' school.id %}">
+    ← Back to Learning Areas
+  </a>
+
+  <div class="card">
+
+    <h2>➕ Add Learning Area</h2>
+
+    {% if error %}
+      <div class="error">{{ error }}</div>
+    {% endif %}
+
+    <form method="POST">
+      {% csrf_token %}
+
+      <label>Learning Area Name</label>
+      <input type="text" name="name" placeholder="e.g. Mathematics" required>
+
+      <label>Code (optional)</label>
+      <input type="text" name="code" placeholder="e.g. MATH">
+
+      <button type="submit">Create Learning Area</button>
+    </form>
+
+  </div>
+
+</div>
+
+</body>
+</html>

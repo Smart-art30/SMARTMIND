@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container">
+
+<h2>Teachers</h2>
+
+<a href="{% url 'teacher_create' %}"
+class="btn btn-primary">
+
+Add Teacher
+
+</a>
+
+<table class="table">
+
+<thead>
+
+<tr>
+
+<th>Name</th>
+
+<th>Role</th>
+
+<th>Employee No</th>
+
+<th>Phone</th>
+
+<th></th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for teacher in teachers %}
+
+<tr>
+
+<td>
+
+{{ teacher.full_name }}
+
+</td>
+
+<td>
+
+{{ teacher.teacher_role }}
+
+</td>
+
+<td>
+
+{{ teacher.employee_number }}
+
+</td>
+
+<td>
+
+{{ teacher.phone_number }}
+
+</td>
+
+<td>
+
+<a href="{% url 'teacher_update' teacher.id %}">
+
+Edit
+
+</a>
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+{% endblock %}

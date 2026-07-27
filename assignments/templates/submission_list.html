@@ -1,0 +1,298 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Student Submissions</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+
+body{
+    margin:0;
+    background:#f4f7fb;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+}
+
+.container{
+    width:95%;
+    max-width:1400px;
+    margin:auto;
+    padding:30px;
+}
+
+.header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:25px;
+    flex-wrap:wrap;
+}
+
+.header h1{
+    margin:0;
+}
+
+.search{
+    margin-bottom:20px;
+}
+
+.search input{
+    width:100%;
+    padding:12px;
+    border:1px solid #ccc;
+    border-radius:8px;
+    font-size:15px;
+}
+
+.card{
+    background:white;
+    border-radius:15px;
+    padding:20px;
+    box-shadow:0 8px 20px rgba(0,0,0,.08);
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+th{
+    background:#2563eb;
+    color:white;
+    padding:14px;
+    text-align:left;
+}
+
+td{
+    padding:14px;
+    border-bottom:1px solid #eee;
+}
+
+tr:hover{
+    background:#f8fafc;
+}
+
+.badge{
+    padding:5px 12px;
+    border-radius:20px;
+    color:white;
+    font-size:13px;
+}
+
+.pending{
+    background:#f59e0b;
+}
+
+.graded{
+    background:#16a34a;
+}
+
+.btn{
+    display:inline-block;
+    padding:8px 12px;
+    color:white;
+    text-decoration:none;
+    border-radius:6px;
+    margin-right:5px;
+}
+
+.view{
+    background:#2563eb;
+}
+
+.download{
+    background:#0891b2;
+}
+
+.grade{
+    background:#16a34a;
+}
+
+@media(max-width:900px){
+
+table,thead,tbody,tr,td,th{
+display:block;
+}
+
+thead{
+display:none;
+}
+
+tr{
+margin-bottom:20px;
+padding:15px;
+border-radius:12px;
+background:white;
+}
+
+td{
+border:none;
+padding:6px 0;
+}
+
+td:before{
+display:block;
+font-weight:bold;
+margin-bottom:4px;
+}
+
+td:nth-child(1):before{content:"Student";}
+td:nth-child(2):before{content:"Assignment";}
+td:nth-child(3):before{content:"Submitted";}
+td:nth-child(4):before{content:"Status";}
+td:nth-child(5):before{content:"Actions";}
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="header">
+
+<div>
+
+<h1>📥 Student Submissions</h1>
+
+<p>Review and grade submitted assignments.</p>
+
+</div>
+
+</div>
+
+<div class="search">
+
+<input
+type="text"
+id="search"
+placeholder="Search student or assignment...">
+
+</div>
+
+<div class="card">
+
+<table id="submissionTable">
+
+<thead>
+
+<tr>
+
+<th>Student</th>
+
+<th>Assignment</th>
+
+<th>Submitted On</th>
+
+<th>Status</th>
+
+<th>Actions</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for submission in submissions %}
+
+<tr>
+
+<td>{{ submission.student.get_full_name|default:submission.student.username }}</td>
+
+<td>{{ submission.assignment.title }}</td>
+
+<td>{{ submission.submitted_at|date:"d M Y H:i" }}</td>
+
+<td>
+
+{% if submission.graded %}
+
+<span class="badge graded">
+
+Graded
+
+</span>
+
+{% else %}
+
+<span class="badge pending">
+
+Pending
+
+</span>
+
+{% endif %}
+
+</td>
+
+<td>
+
+<a href="{% url 'submission_detail' submission.id %}" class="btn view">
+View
+</a>
+
+{% if submission.file %}
+<a href="{{ submission.file.url }}" class="btn download">
+Download
+</a>
+{% endif %}
+
+<a href="{% url 'grade_submission' submission.id %}" class="btn grade">
+Grade
+</a>
+
+</td>
+
+</tr>
+
+{% empty %}
+
+<tr>
+
+<td colspan="5">
+
+<center>
+
+No submissions available.
+
+</center>
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+<script>
+
+const search=document.getElementById("search");
+
+search.addEventListener("keyup",function(){
+
+const value=this.value.toLowerCase();
+
+document.querySelectorAll("#submissionTable tbody tr").forEach(function(row){
+
+row.style.display=row.innerText.toLowerCase().includes(value)?"":"none";
+
+});
+
+});
+
+</script>
+
+</body>
+</html>

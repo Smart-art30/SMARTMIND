@@ -1,0 +1,659 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<style>
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
+    background: #f1f5f9;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 16px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.header h2 {
+    margin: 0;
+    color: #1e3a8a;
+    font-size: 1.3rem;
+}
+
+.header p {
+    margin-top: 4px;
+    color: #64748b;
+    font-size: 0.9rem;
+}
+
+.badge {
+    padding: 8px 14px;
+    border-radius: 999px;
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+
+.pending { background: #f59e0b; }
+.graded  { background: #16a34a; }
+.overdue { background: #dc2626; }
+
+.two-column-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    align-items: stretch;
+}
+
+.card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 6px 18px rgba(0,0,0,.06);
+}
+
+.card h3 {
+    margin-top: 0;
+    color: #1e3a8a;
+    font-size: 1rem;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    background: #eff6ff;
+    border-radius: 10px;
+    font-weight: 700;
+    color: #1e3a8a;
+    margin-bottom: 12px;
+}
+
+.toggle-text {
+    font-size: 0.75rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.assignment-content {
+    line-height: 1.7;
+    overflow-x: auto;
+    font-size: 0.95rem;
+}
+
+.assignment-content img {
+    max-width: 100%;
+    height: auto;
+}
+
+.assignment-content table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.assignment-content iframe {
+    max-width: 100%;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.info {
+    background: #f8fafc;
+    padding: 12px;
+    border-radius: 10px;
+}
+
+.info h4 {
+    margin: 0 0 4px;
+    color: #475569;
+    font-size: 0.85rem;
+}
+
+.info p {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.download,
+button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    text-decoration: none;
+    padding: 10px 16px;
+    border-radius: 10px;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color .2s, transform .1s;
+    font-size: 0.9rem;
+    width: 100%;
+}
+
+.download {
+    background: #0891b2;
+    margin-top: 12px;
+}
+
+.download:hover {
+    background: #0e7490;
+    transform: translateY(-1px);
+}
+
+button {
+    background: #2563eb;
+    border: none;
+    margin-top: 16px;
+}
+
+button:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+}
+
+.form-group {
+    margin-bottom: 14px;
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    display: block;
+    margin-bottom: 4px;
+    font-weight: 600;
+    color: #475569;
+    font-size: 0.85rem;
+}
+
+textarea {
+    width: 100%;
+    min-height: 520px;
+    height: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
+    font-size: 0.95rem;
+    font-family: inherit;
+    box-sizing: border-box;
+}
+
+input[type=file] {
+    width: 100%;
+    font-size: 0.85rem;
+}
+
+.feedback {
+    background: #ecfeff;
+    border-left: 4px solid #0891b2;
+    padding: 12px;
+    border-radius: 10px;
+    white-space: pre-wrap;
+    font-size: 0.9rem;
+}
+
+.score {
+    font-size: 1.6rem;
+    font-weight: bold;
+    color: #16a34a;
+    margin-bottom: 8px;
+}
+
+.question-wrapper {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    margin-top: 12px;
+}
+
+.question-track {
+    display: flex;
+    transition: transform .3s ease;
+    width: 100%;
+}
+
+.question-slide {
+    flex: 0 0 100%;
+    padding-right: 4px;
+}
+
+.question-slide h4 {
+    margin: 0 0 6px;
+    font-size: 0.95rem;
+    color: #1e293b;
+}
+
+.question-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 10px;
+    font-size: 0.85rem;
+}
+
+.question-controls button {
+    flex: 0 0 auto;
+    min-width: 90px;
+    padding: 8px 12px;
+}
+
+@media (min-width: 640px) {
+    .container {
+        padding: 24px;
+        margin-top: 16px;
+    }
+
+    .header {
+        align-items: center;
+    }
+
+    .header h2 {
+        font-size: 1.6rem;
+    }
+
+    .badge {
+        font-size: 0.85rem;
+        padding: 10px 18px;
+    }
+
+    .card {
+        padding: 20px;
+    }
+
+    .info-grid {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+
+    .download,
+    button {
+        width: auto;
+    }
+
+    .score {
+        font-size: 2rem;
+    }
+}
+
+.two-column-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    align-items: stretch;
+}
+
+
+@media (min-width: 992px) {
+    .two-column-layout > .card:last-child {
+        min-height: 760px;
+    }
+}
+
+@media (min-width: 992px) {
+    .two-column-layout {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: stretch;
+    }
+
+    .two-column-layout > .card {
+        display: flex;
+        flex-direction: column;
+        min-height: 100%;
+    }
+
+    .two-column-layout > .card:last-child {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .two-column-layout > .card:last-child form {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-height: 0;
+    }
+
+    .two-column-layout > .card:last-child .form-group:first-of-type {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+    }
+
+    .two-column-layout > .card:last-child textarea {
+        flex: 1;
+        width: 100%;
+        min-height: 100%;
+        height: 100%;
+        resize: none;
+    }
+}
+
+@media (min-width: 1024px) {
+    .container {
+        margin-top: 24px;
+    }
+}
+</style>
+
+<div class="container">
+
+    <div class="header">
+        <div>
+            <h2>{{ assignment.title }}</h2>
+            <p>{{ assignment.subject.name }}</p>
+        </div>
+
+        {% if submission and submission.is_submitted %}
+            {% if submission.graded %}
+                <span class="badge graded">✔ Graded</span>
+            {% else %}
+                <span class="badge pending">⏳ Submitted</span>
+            {% endif %}
+        {% else %}
+            {% if assignment.due_date < now %}
+                <span class="badge overdue">Assignment Closed</span>
+            {% else %}
+                <span class="badge pending">Awaiting Submission</span>
+            {% endif %}
+        {% endif %}
+    </div>
+
+    <div class="two-column-layout">
+
+        <div class="card">
+            <div class="card-header">
+                <span>📝 Assignment Instructions</span>
+                <span class="toggle-text">Always visible</span>
+            </div>
+
+            {% if assignment.description %}
+                <div class="assignment-content" style="margin-bottom:10px;">
+                    {{ assignment.description|safe }}
+                </div>
+            {% endif %}
+
+            {% if assignment.questions.all %}
+                <div class="question-wrapper">
+                    <div class="question-track" id="questionTrack">
+                        {% for q in assignment.questions.all %}
+                            <section class="question-slide" data-index="{{ forloop.counter0 }}">
+                                <h4>Question {{ forloop.counter }} of {{ assignment.questions.count }}</h4>
+                               <div class="assignment-content">
+                                    {{ submission.content|safe }}
+                                </div>
+                            </section>
+                        {% endfor %}
+                    </div>
+
+                    <div class="question-controls">
+                        <button type="button" id="prevQuestion" disabled>Previous</button>
+                        <span id="questionProgress">1 / {{ assignment.questions.count }}</span>
+                        <button type="button" id="nextQuestion" {% if assignment.questions.count <= 1 %}disabled{% endif %}>
+                            Next
+                        </button>
+                    </div>
+                </div>
+            {% endif %}
+
+            {% if assignment.attachment %}
+                <a href="{{ assignment.attachment.url }}" class="download" download>
+                    📥 Download assignment file
+                </a>
+            {% endif %}
+
+            <div class="info-grid">
+                <div class="info">
+                    <h4>Due date</h4>
+                    <p>{{ assignment.due_date|date:"d M Y H:i" }}</p>
+                </div>
+
+                <div class="info">
+                    <h4>Total marks</h4>
+                    <p>{{ assignment.total_marks }}</p>
+                </div>
+
+                {% if assignment.is_timed %}
+                    <div class="info">
+                        <h4>Duration</h4>
+                        <p>{{ assignment.duration_minutes }} minutes</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card">
+            {% if submission and submission.is_submitted %}
+                <div class="card-header">
+                    <span>📤 Your Submission</span>
+                    <span class="toggle-text">Always visible</span>
+                </div>
+
+                <h3>Your submission</h3>
+                <hr>
+
+                <div class="form-group">
+                    <label>Your answer</label>
+                    <div class="assignment-content">
+                        {{ submission.content|safe }}
+                    </div>
+                </div>
+
+                {% if submission.file %}
+                    <a href="{{ submission.file.url }}" class="download" target="_blank" rel="noopener">
+                        📄 Download your uploaded file
+                    </a>
+                {% endif %}
+
+                <hr style="margin:16px 0;">
+
+                {% if submission.graded %}
+                    <h3>Your results</h3>
+                    <div class="score">
+                        {{ submission.marks }} / {{ assignment.total_marks }}
+                    </div>
+
+                    <h4 style="margin-top:8px;">Teacher feedback</h4>
+                    <div class="feedback">
+                        {{ submission.feedback|default:"No feedback provided."|safe }}
+                    </div>
+                {% else %}
+                    <h3>⏳ Submission successful</h3>
+                    <p style="font-size:0.9rem;">
+                        Your teacher is reviewing your work. Marks and feedback will appear once grading is complete.
+                    </p>
+                {% endif %}
+            {% else %}
+                <div class="card-header">
+                    <span>📤 Submit Assignment</span>
+                    <span class="toggle-text">Always visible</span>
+                </div>
+
+                <h3>Submit assignment</h3>
+
+                {% if assignment.due_date < now %}
+                    <p style="font-size:0.9rem;">
+                        This assignment is closed. You can no longer submit answers.
+                    </p>
+                {% else %}
+
+                <p id="autosave-status"
+                    style="color:green;font-size:14px;">
+                    </p>
+                <form method="POST"
+                    enctype="multipart/form-data"
+                    action="{% url 'submit_assignment' assignment.id %}">
+
+                    {% csrf_token %}
+                    {{ form.media }}
+
+                    <div class="form-group">
+                        {{ form.content.label_tag }}
+                        {{ form.content }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.file.label_tag }}
+                        {{ form.file }}
+                    </div>
+
+                    <button type="submit">
+                        📨 Submit Assignment
+                    </button>
+
+                </form>
+                {% endif %}
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+
+<script>
+(function() {
+    const track = document.getElementById('questionTrack');
+    if (!track) return;
+
+    const slides = track.querySelectorAll('.question-slide');
+    const prevBtn = document.getElementById('prevQuestion');
+    const nextBtn = document.getElementById('nextQuestion');
+    const progress = document.getElementById('questionProgress');
+    const total = slides.length;
+    let current = 0;
+
+    function updateView() {
+        const offset = -current * 100;
+        track.style.transform = 'translateX(' + offset + '%)';
+        if (progress) progress.textContent = (current + 1) + ' / ' + total;
+        if (prevBtn) prevBtn.disabled = (current === 0);
+        if (nextBtn) nextBtn.disabled = (current === total - 1);
+    }
+
+    if (prevBtn) {
+        prevBtn.addEventListener('click', function() {
+            if (current > 0) {
+                current -= 1;
+                updateView();
+            }
+        });
+    }
+
+    if (nextBtn) {
+        nextBtn.addEventListener('click', function() {
+            if (current < total - 1) {
+                current += 1;
+                updateView();
+            }
+        });
+    }
+
+    updateView();
+})();
+
+const textarea = document.querySelector("textarea");
+
+setInterval(function () {
+
+    if (!textarea) return;
+
+    const data = textarea.value;
+
+    fetch("{% url 'autosave_submission' assignment.id %}", {
+        method: "POST",
+        headers: {
+            "X-CSRFToken": getCookie("csrftoken")
+        },
+        body: new URLSearchParams({
+            content: data
+        })
+    });
+
+}, 5000);
+
+function getCookie(name) {
+
+    let cookieValue = null;
+
+    if (document.cookie && document.cookie !== "") {
+
+        const cookies = document.cookie.split(";");
+
+        for (let cookie of cookies) {
+
+            cookie = cookie.trim();
+
+            if (cookie.startsWith(name + "=")) {
+
+                cookieValue = decodeURIComponent(
+                    cookie.substring(name.length + 1)
+                );
+
+            }
+
+        }
+
+    }
+
+    return cookieValue;
+
+}
+
+function saveDraft() {
+
+    const data = new FormData();
+
+    data.append(
+        "content",
+        editor.innerHTML
+    );
+
+    fetch("{% url 'autosave_submission' assignment.id %}", {
+
+        method: "POST",
+
+        headers: {
+            "X-CSRFToken": getCookie("csrftoken")
+        },
+
+        body: data
+
+    })
+
+    .then(response => response.json())
+
+    .then(data => {
+
+        document.getElementById("autosave-status").innerHTML =
+            "✔ Draft saved at " + data.saved_at;
+
+    });
+
+}
+</script>
+
+{% endblock %}

@@ -1,0 +1,324 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Teacher Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: #f4f7fb;
+    }
+
+    .layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: 250px;
+      background: #111827;
+      color: white;
+      padding: 20px;
+    }
+
+    .sidebar h2 {
+      margin-bottom: 30px;
+    }
+
+    .sidebar a {
+      display: block;
+      color: #cbd5e1;
+      text-decoration: none;
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 8px;
+    }
+
+    .sidebar a:hover {
+      background: #1f2937;
+      color: white;
+    }
+
+    .logout-btn {
+      display: block;
+      width: 100%;
+      background: none;
+      border: none;
+      color: #cbd5e1;
+      text-align: left;
+      padding: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font: inherit;
+    }
+
+    .logout-btn:hover {
+      background: #1f2937;
+      color: white;
+    }
+
+    /* MAIN */
+    .main {
+      flex: 1;
+      padding: 30px;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    }
+
+    .card h3 {
+      margin: 0 0 10px;
+    }
+
+    .card p {
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .section {
+      margin-top: 40px;
+      background: white;
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        display: none;
+      }
+    }
+
+  .btn{
+    display:inline-block;
+    padding:12px 18px;
+    margin-right:10px;
+    background:#2563eb;
+    color:white;
+    text-decoration:none;
+    border-radius:8px;
+    font-weight:600;
+}
+
+.btn:hover{
+    background:#1d4ed8;
+}
+  </style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+<div class="sidebar">
+    <h2>SmartCoach</h2>
+
+    <a href="{% url 'teacher_dashboard' %}">🏠 Dashboard</a>
+
+    <a href="{% url 'manage_assignments' %}">
+        📝 Assignments
+    </a>
+
+    <a href="{% url 'manage_quizzes' %}">
+        ❓ Quizzes
+    </a>
+
+    <a href="{% url 'submission_list' %}">
+        📥 Student Submissions
+    </a>
+
+    <a href="{% url 'gradebook' %}">
+        📊 Results
+    </a>
+
+    <a href="{% url 'school_subjects' request.user.school.id %}">
+        📚 Subjects
+    </a>
+
+    <a href="#">
+        👨‍🎓 Students
+    </a>
+
+    <a href="#">
+        💬 Messages
+    </a>
+
+    <form method="post" action="{% url 'logout' %}" style="margin-top:20px;">
+        {% csrf_token %}
+        <button type="submit" class="logout-btn">
+            🚪 Logout
+        </button>
+    </form>
+</div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <div class="header">
+      <h1>Welcome, {{ request.user.username }}</h1>
+      <span>Teacher</span>
+    </div>
+
+    <!-- STATS -->
+ <div class="cards">
+
+    <div class="card">
+        <h3>📝 Assignments</h3>
+        <p>{{ assignment_count }}</p>
+    </div>
+
+    <div class="card">
+        <h3>❓ Quizzes</h3>
+        <p>{{ quiz_count }}</p>
+    </div>
+<div class="section">
+
+    <h2>Quick Actions</h2>
+
+    <p>
+
+        <a href="{% url 'create_assignment' %}" class="btn">
+            ➕ New Assignment
+        </a>
+
+        <a href="{% url 'create_quiz' %}" class="btn">
+            ❓ New Quiz
+        </a>
+
+    </p>
+
+</div>
+    <div class="card">
+        <h3>👨‍🎓 Students</h3>
+        <p>{{ student_count }}</p>
+    </div>
+
+    <div class="card">
+        <h3>📥 Pending Essays</h3>
+        <p>{{ pending_submissions }}</p>
+    </div>
+
+</div>
+
+    <!-- TEACHER SECTION -->
+    <div class="section">
+      <h2>Teaching Overview</h2>
+      <p>Manage your classes, upload assignments, and track student performance.</p>
+
+      <ul>
+        <li>Upload new assignments</li>
+        <li>Review student submissions</li>
+        <li>Mark attendance</li>
+        <li>Send announcements</li>
+      </ul>
+    </div>
+    <div class="section">
+
+<h2>Recent Assignments</h2>
+
+{% for assignment in assignments %}
+
+<div style="padding:12px;border-bottom:1px solid #eee;">
+
+<strong>{{ assignment.title }}</strong><br>
+
+{{ assignment.subject }}
+
+|
+
+{{ assignment.school_class }}
+
+|
+
+{{ assignment.get_assignment_type_display }}
+
+<br>
+
+<small>
+Due:
+{{ assignment.due_date|date:"d M Y H:i" }}
+</small>
+
+</div>
+
+{% empty %}
+
+<p>No assignments created.</p>
+
+{% endfor %}
+
+</div>
+<div class="section">
+<a href="{% url 'create_assignment' %}">
+    ➕ Create Assignment
+</a>
+
+<a href="{% url 'create_quiz' %}">
+    📝 Create Quiz
+</a>
+
+<a href="{% url 'manage_assignments' %}">
+    📂 Manage Assignments
+</a>
+
+<a href="{% url 'manage_quizzes' %}">
+    📚 Manage Quizzes
+</a>
+    <h2>📚 Latest Blog Posts</h2>
+
+    {% for post in posts %}
+
+        <div class="assignment-item">
+
+            <h3>
+                <a href="{{ post.get_absolute_url }}">
+                    {{ post.title }}
+                </a>
+            </h3>
+
+            <p>
+                {{ post.excerpt|truncatewords:20 }}
+            </p>
+
+            <small>
+                {{ post.author }}
+                •
+                {{ post.created_at|date:"M d, Y" }}
+            </small>
+
+        </div>
+
+    {% empty %}
+
+        <p>No blog posts available.</p>
+
+    {% endfor %}
+
+</div>
+  </div>
+</div>
+
+</body>
+</html>

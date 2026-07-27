@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Assignments</h3>
+
+    <a href="{% url 'create_assignment' %}"
+       class="btn btn-primary">
+        + New Assignment
+    </a>
+</div>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Class</th>
+            <th>Subject</th>
+            <th>Due Date</th>
+            <th></th>
+        </tr>
+    </thead>
+
+    <tbody>
+    {% for assignment in assignments %}
+        <tr>
+            <td>{{ assignment.title }}</td>
+            <td>{{ assignment.school_class }}</td>
+            <td>{{ assignment.subject }}</td>
+            <td>{{ assignment.due_date }}</td>
+            <td>
+                <a href="">Edit</a> |
+                <a href="">Delete</a>
+            </td>
+        </tr>
+    {% empty %}
+        <tr>
+            <td colspan="5">No assignments found.</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+
+</table>
+
+</div>
+{% endblock %}

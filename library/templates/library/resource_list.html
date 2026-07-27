@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Library Resources
+{% endblock %}
+
+{% block content %}
+
+<div class="container py-4">
+
+    <div class="d-flex justify-content-between mb-4">
+        <h2>📚 Library Resources</h2>
+
+        <a href="{% url 'library:add_resource' %}"
+           class="btn btn-primary">
+            ➕ Add Resource
+        </a>
+    </div>
+
+    {% for resource in resources %}
+    <div class="card mb-3 shadow-sm">
+        <div class="card-body">
+
+            <h5>{{ resource.title }}</h5>
+
+            <p class="text-muted">
+                {{ resource.subject }}
+                |
+                {{ resource.topic }}
+                {% if resource.subtopic %}
+                    | {{ resource.subtopic.title }}
+                {% endif %}
+            </p>
+
+            <p>
+                {{ resource.description|truncatewords:20 }}
+            </p>
+
+            <a href="{% url 'library:resource_detail' resource.pk %}"
+               class="btn btn-success btn-sm">
+                Open
+            </a>
+
+            <a href="{% url 'library:edit_resource' resource.pk %}"
+               class="btn btn-warning btn-sm">
+                Edit
+            </a>
+
+            <a href="{% url 'library:delete_resource' resource.pk %}"
+               class="btn btn-danger btn-sm">
+                Delete
+            </a>
+
+        </div>
+    </div>
+
+    {% empty %}
+    <div class="alert alert-info">
+        No resources added yet.
+    </div>
+    {% endfor %}
+
+</div>
+
+{% endblock %}

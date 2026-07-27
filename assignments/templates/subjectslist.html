@@ -1,0 +1,107 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ school.name }} - Learning Areas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: #f4f7fb;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+      padding: 20px;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .title {
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .btn {
+      padding: 10px 14px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 14px;
+      display: inline-block;
+    }
+
+    .btn-primary {
+      background: #2f6fed;
+      color: white;
+    }
+
+    .card {
+      background: white;
+      padding: 15px;
+      border-radius: 12px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .subject-name {
+      font-weight: 600;
+    }
+
+    .code {
+      color: gray;
+      font-size: 13px;
+    }
+
+    .empty {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+      color: gray;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="title">📘 {{ school.name }} Learning Areas</div>
+
+    <a href="{% url 'create_subject' school.id %}" class="btn btn-primary">
+      + Add Learning Area
+    </a>
+  </div>
+
+  <!-- SUBJECT LIST -->
+  {% for subject in subjects %}
+    <div class="card">
+      <div>
+        <div class="subject-name">{{ subject.name }}</div>
+        <div class="code">{{ subject.code }}</div>
+      </div>
+    </div>
+  {% empty %}
+    <div class="empty">
+      No learning areas added yet.
+    </div>
+  {% endfor %}
+
+</div>
+
+</body>
+</html>

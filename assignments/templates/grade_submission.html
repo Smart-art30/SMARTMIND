@@ -1,0 +1,30 @@
+<h2>Grade Submission</h2>
+
+<h3>{{ submission.student }}</h3>
+
+<p>{{ submission.content }}</p>
+
+<form method="post">
+    {% csrf_token %}
+
+    <label>Marks</label>
+    <input
+        type="number"
+        name="marks"
+        value="{{ submission.marks }}"
+    >
+
+    <br><br>
+
+    <label>Feedback</label>
+
+    <textarea name="feedback">
+{{ submission.feedback }}
+    </textarea>
+
+    <br><br>
+
+    <button type="submit">
+        Save Grade
+    </button>
+</form>

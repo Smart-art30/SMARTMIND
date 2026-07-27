@@ -1,0 +1,390 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ post.title }}{% endblock %}
+
+{% block content %}
+<style>
+body {
+    background: linear-gradient(180deg, #f8f9fa 0%, #eef2f7 100%);
+}
+
+.reading-shell {
+    max-width: 860px;
+}
+
+/* Post card */
+.post-article,
+.comment-section {
+    border: 0;
+    border-radius: 1.25rem;
+    overflow: hidden;
+    box-shadow: 0 .5rem 1.5rem rgba(0, 0, 0, .06);
+}
+
+/* Hero media */
+.hero-media {
+    position: relative;
+    width: 100%;
+    max-height: 460px;
+}
+
+.hero-media img,
+.hero-media video,
+.hero-media iframe {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 0.5rem 0.5rem 0 0;
+}
+
+/* Text styles */
+.post-title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.post-meta {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.post-content {
+    font-size: 1.05rem;
+    line-height: 1.8;
+}
+
+/* Avatar */
+.avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* Comment avatar (Facebook‑style) */
+.comment-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* Comment lines */
+.comment-section [id^="comment-"] {
+    transition: background-color 0.2s ease;
+}
+
+.comment-section [id^="comment-"]:hover {
+    background: #f8f9fa;
+}
+
+/* Separator between comments */
+.comment-section hr {
+    margin: 0;
+    border-top: 1px solid #eee;
+}
+
+/* Like and Reply row (Facebook style) */
+.like-text,
+.text-muted small {
+    font-size: 0.8rem;
+    color: #65676b;
+    cursor: pointer;
+}
+
+.like-text:hover,
+.text-muted small:hover {
+    color: #1877f2;
+}
+
+/* Comment form */
+.comment-form {
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    background: #f0f2f5;
+}
+
+/* Like button */
+.like-btn {
+    border-radius: 999px;
+    padding: 6px 12px;
+    border: none;
+    background: #f1f1f1;
+    font-size: 0.875rem;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.like-btn:hover:not(:disabled) {
+    background: #e2e2e2;
+}
+
+.like-btn.liked {
+    background: #dc3545;
+    color: #fff;
+}
+</style>
+
+<div class="container py-4">
+    <div class="reading-shell mx-auto">
+
+        <!-- POST ARTICLE -->
+        <article class="card post-article mb-4">
+            <div class="hero-media">
+                {% if post.image %}
+                    <img src="{{ post.image.url }}" alt="{{ post.title }}">
+                {% elif post.video %}
+                    <video controls>
+                        <source src="{{ post.video.url }}" type="{{ post.video.content_type }}">
+                        Your browser does not support the video tag.
+                    </video>
+                {% elif post.youtube_url %}
+                    <iframe
+                        src="{{ post.youtube_url }}"
+                        frameborder="0"
+                        allowfullscreen
+                        loading="lazy"
+                    ></iframe>
+                {% endif %}
+            </div>
+
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="d-flex gap-2 align-items-center">
+                        <img
+                            src="{{ post.author.profile.avatar.url|default:'/static/default-avatar.png' }}"
+                            class="avatar"
+                            alt="{{ post.author.username }} avatar"
+                        >
+                        <div>
+                            <strong>{{ post.author.username }}</strong><br>
+                            <small class="text-muted post-meta">
+                                {{ post.created_at|date:"M d, Y" }} • 👁 {{ post.view_count }}
+                            </small>
+                        </div>
+                    </div>
+
+                    <button
+                        id="like-btn"
+                        class="like-btn {% if is_liked %}liked{% endif %}"
+                        data-url="{% url 'blog:like_toggle' post.slug %}"
+                        aria-label="Like this post"
+                    >
+                        ❤️ <span id="like-count">{{ post.likes.count }}</span>
+                    </button>
+                </div>
+
+                <h1 class="post-title">{{ post.title }}</h1>
+
+                <hr class="my-3">
+
+                <div class="post-content">
+                    {{ post.content|safe }}
+                </div>
+            </div>
+        </article>
+
+        <!-- COMMENTS SECTION (Facebook‑style) -->
+        <section class="comment-section">
+            <div class="card-body">
+
+                <h5 class="mb-3 px-3 pt-3">
+                    Comments ({{ total_comments }})
+                </h5>
+
+                {% if user.is_authenticated %}
+                    <form
+                        id="comment-form"
+                        method="POST"
+                        action="{% url 'blog:add_comment' post.slug %}"
+                        class="mb-3 px-3 comment-form"
+                    >
+                        {% csrf_token %}
+                        {{ form.text }}
+
+                        <button type="submit" class="btn btn-primary btn-sm mt-2">
+                            Post Comment
+                        </button>
+                    </form>
+                {% else %}
+                    <p class="text-muted px-3 mb-3">
+                        Please <a href="{% url 'login' %}">login</a> to comment.
+                    </p>
+                {% endif %}
+
+                <hr class="my-0">
+
+                <div id="comments-container" class="py-0">
+
+                    {% for comment in comments %}
+                        <div
+                            id="comment-{{ comment.id }}"
+                            class="d-flex gap-2 align-items-start px-3 py-2"
+                            data-comment-id="{{ comment.id }}"
+                        >
+                            <img
+                                src="{{ comment.author.profile.avatar.url|default:'/static/default-avatar.png' }}"
+                                class="comment-avatar mt-1"
+                                alt="{{ comment.author.username }} avatar"
+                                loading="lazy"
+                            >
+
+                            <div class="flex-grow-1">
+                                <div class="d-flex gap-1 align-items-baseline">
+                                    <strong>{{ comment.author.username }}</strong>
+                                    <small class="text-muted post-meta fst-italic">
+                                        {{ comment.created_at|date:"M d, Y H:i" }}
+                                    </small>
+                                </div>
+
+                                <div class="mt-1" style="word-break: break‑word;">
+                                    {{ comment.text|linebreaksbr }}
+                                </div>
+
+                                <!-- Like and Reply row (Facebook style) -->
+                                <div class="mt-1 d-flex gap-3 align-items-center">
+                                    <small class="text-muted">
+                                        <span class="like-text">
+                                            {% if comment.liked_by_current_user %}
+                                                You
+                                            {% else %}
+                                                Like
+                                            {% endif %}
+                                        </span>
+                                    </small>
+
+                                    <small class="text-muted">
+                                        Reply
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-0 mx-3">
+                    {% endfor %}
+
+                </div>
+
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+    function getCSRFToken() {
+        return document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+    }
+
+    /* LIKE BUTTON (post) */
+    const likeBtn = document.getElementById('like-btn');
+    if (likeBtn) {
+        likeBtn.addEventListener('click', async function(e) {
+            e.preventDefault();
+
+            const res = await fetch(this.dataset.url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCSRFToken(),
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            const data = await res.json();
+
+            this.classList.toggle('liked');
+            document.getElementById('like-count').innerText = data.like_count;
+        });
+    }
+
+    /* COMMENTS AJAX (post comment) */
+    const form = document.getElementById('comment-form');
+    const container = document.getElementById('comments-container');
+    const textarea = form?.querySelector('textarea');
+
+    if (form) {
+        // Enter to submit (without shift)
+        if (textarea) {
+            textarea.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    form.requestSubmit();
+                }
+            });
+        }
+
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+
+            const res = await fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': getCSRFToken(),
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+                // Insert new comment at top
+                container.insertAdjacentHTML('afterbegin', data.html);
+                this.reset();
+
+                // Update count
+                const countEl = document.querySelector('h5');
+                const countMatch = countEl.innerText.match(/\d+/);
+                if (countMatch) {
+                    const newCount = parseInt(countMatch[0]) + 1;
+                    countEl.innerText = `Comments (${newCount})`;
+                }
+
+                // Success message
+                const msg = document.createElement('div');
+                msg.className = 'alert alert-success mt-3';
+                msg.innerText = 'Comment added successfully!';
+                container.prepend(msg);
+
+                setTimeout(() => msg.remove(), 3000);
+
+                // Scroll + highlight
+                const firstComment = container.firstElementChild;
+                if (firstComment) {
+                    firstComment.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    firstComment.classList.add('comment-highlight');
+
+                    setTimeout(() => {
+                        firstComment.classList.remove('comment-highlight');
+                    }, 3000);
+                }
+            } else {
+                alert('Error submitting comment');
+            }
+        });
+    }
+
+    /* Optional: Hook up comment‑like / reply clicks */
+    document.querySelectorAll('.like-text').forEach(el => {
+        el.addEventListener('click', function() {
+            // Add your AJAX like‑toggle for the comment here
+            console.log('Like clicked on comment');
+        });
+    });
+
+    document.querySelectorAll('small:contains("Reply")').forEach(el => {
+        el.addEventListener('click', function() {
+            // Open a reply textarea or modal
+            console.log('Reply clicked');
+        });
+    });
+});
+</script>
+{% endblock %}

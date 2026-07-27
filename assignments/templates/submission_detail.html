@@ -1,0 +1,21 @@
+<h2>{{ submission.assignment.title }}</h2>
+
+<h3>Student</h3>
+<p>{{ submission.student.get_full_name|default:submission.student.username }}</p>
+
+<h3>Answer</h3>
+<p>{{ submission.content }}</p>
+
+{% if submission.file %}
+<p>
+    <a href="{{ submission.file.url }}" target="_blank">
+        Download Attachment
+    </a>
+</p>
+<a
+    href="{% url 'download_submission_pdf' submission.id %}"
+    class="download"
+>
+    📄 Download Student Submission
+</a>
+{% endif %}

@@ -1,0 +1,323 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<style>
+/* ========== Base & Layout ========== */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+.post-container {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+.post-card {
+    border: none;
+    border-radius: 20px;
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+    transition: box-shadow 0.3s ease;
+}
+
+.post-card:hover {
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.12);
+}
+
+/* ========== Header Section ========== */
+.post-header {
+    background: linear-gradient(135deg, #0d6efd 0%, #2563eb 100%);
+    color: #ffffff;
+    padding: 2rem;
+}
+
+.post-header h3 {
+    margin: 0;
+    font-weight: 700;
+    font-size: 1.75rem;
+    letter-spacing: -0.02em;
+}
+
+/* ========== Form Body ========== */
+.post-body {
+    padding: 2.5rem;
+}
+
+.form-group {
+    margin-bottom: 1.75rem;
+}
+
+.form-label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.6rem;
+    color: #1f2937;
+    font-size: 0.95rem;
+}
+
+/* ========== Form Controls ========== */
+.form-control,
+.form-select,
+select,
+textarea,
+input[type="text"],
+input[type="url"],
+input[type="file"],
+input[type="email"] {
+    width: 100% !important;
+    border-radius: 12px;
+    border: 1.5px solid #e5e7eb;
+    padding: 0.85rem 1rem;
+    font-size: 1rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-control:focus,
+.form-select:focus,
+select:focus,
+textarea:focus,
+input[type="text"]:focus,
+input[type="url"]:focus,
+input[type="file"]:focus,
+input[type="email"]:focus {
+    outline: none;
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
+}
+
+textarea {
+    min-height: 160px;
+    resize: vertical;
+}
+
+/* ========== CKEditor - Responsive Content Field ========== */
+.ck-editor__editable {
+    width: 100% !important;
+    min-height: 320px !important;
+    border-radius: 12px;
+}
+
+.cke {
+    width: 100% !important;
+    max-width: 100%;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.cke_inner,
+.cke_wysiwyg_frame,
+.cke_contents {
+    width: 100% !important;
+    border-radius: 12px;
+}
+
+/* Ensure CKEditor toolbar wraps nicely on small screens */
+.cke_top {
+    white-space: normal !important;
+    padding: 0.5rem !important;
+}
+
+.cke_toolbar {
+    float: none !important;
+    display: inline-block !important;
+    margin: 0.15rem !important;
+}
+
+/* ========== Errors & Help Text ========== */
+.errorlist,
+.text-danger {
+    list-style: none;
+    padding: 0;
+    margin-top: 0.5rem;
+    color: #dc3545;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.form-text {
+    font-size: 0.825rem;
+    color: #6b7280;
+    margin-top: 0.4rem;
+}
+
+/* ========== Button Area ========== */
+.button-area {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+.save-btn {
+    min-width: 220px;
+    padding: 0.9rem 2rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #0d6efd 0%, #2563eb 100%);
+    border: none;
+    color: #ffffff;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+}
+
+.save-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(13, 110, 253, 0.35);
+}
+
+.save-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.25);
+}
+
+/* ========== Images ========== */
+img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+}
+
+/* ========== Responsive Design ========== */
+@media (max-width: 992px) {
+    .post-body {
+        padding: 2rem;
+    }
+    
+    .save-btn {
+        width: 100%;
+    }
+    
+    .button-area {
+        justify-content: stretch;
+    }
+    
+    /* Slightly smaller editor on tablets */
+    .ck-editor__editable {
+        min-height: 300px !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .post-container {
+        padding: 1rem;
+    }
+    
+    .post-header {
+        padding: 1.5rem;
+        text-align: center;
+    }
+    
+    .post-header h3 {
+        font-size: 1.5rem;
+    }
+    
+    .post-body {
+        padding: 1.5rem;
+    }
+    
+    .form-label {
+        font-size: 0.925rem;
+    }
+    
+    .save-btn {
+        width: 100%;
+        font-size: 0.975rem;
+        padding: 0.85rem 1.5rem;
+    }
+    
+    /* Adjust editor height for mobile */
+    .ck-editor__editable {
+        min-height: 280px !important;
+    }
+    
+    /* Ensure toolbar buttons wrap better */
+    .cke_toolbar {
+        margin: 0.1rem !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .post-header h3 {
+        font-size: 1.35rem;
+    }
+    
+    .post-body {
+        padding: 1.25rem;
+    }
+    
+    .form-control,
+    .form-select {
+        font-size: 0.95rem;
+        padding: 0.75rem 0.9rem;
+    }
+    
+    .save-btn {
+        padding: 0.8rem 1.25rem;
+    }
+    
+    /* Compact editor on very small screens */
+    .ck-editor__editable {
+        min-height: 260px !important;
+    }
+    
+    .cke_top {
+        padding: 0.4rem !important;
+    }
+}
+</style>
+
+<div class="container-fluid px-2 px-sm-3 px-md-4 px-lg-5">
+    <div class="post-container">
+        <div class="card post-card">
+            <div class="post-header">
+                <h3>📝 Create New Post</h3>
+            </div>
+            
+            <div class="post-body">
+                {{ form.media }}
+                
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    {% for field in form %}
+                    <div class="form-group">
+                        <label class="form-label" for="{{ field.id_for_label }}">
+                            {{ field.label }}
+                        </label>
+                        
+                        {{ field }}
+                        
+                        {% if field.help_text %}
+                        <div class="form-text">
+                            <small>{{ field.help_text }}</small>
+                        </div>
+                        {% endif %}
+                        
+                        {% for error in field.errors %}
+                        <div class="text-danger">
+                            <small>{{ error }}</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+                    
+                    <div class="button-area">
+                        <button type="submit" class="btn btn-primary save-btn">
+                            💾 Save Post
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

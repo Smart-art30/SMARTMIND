@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}
+{{ topic.title }}
+{% endblock %}
+
+{% block content %}
+
+<div class="container py-4">
+
+    <!-- Topic Information -->
+    <div class="mb-4">
+        <h2>{{ topic.title }}</h2>
+
+        {% if topic.description %}
+        <p class="text-muted">
+            {{ topic.description }}
+        </p>
+        {% endif %}
+    </div>
+
+    <hr>
+
+    <!-- Subtopics -->
+    <h4 class="mb-4">
+        Subtopics
+    </h4>
+
+    <div class="row">
+
+        {% for subtopic in subtopics %}
+
+        <div class="col-md-6 col-lg-4 mb-4">
+
+            <div class="card shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <h5 class="card-title">
+                        {{ subtopic.title }}
+                    </h5>
+
+                    {% if subtopic.description %}
+                    <p class="text-muted small">
+                        {{ subtopic.description|truncatewords:20 }}
+                    </p>
+                    {% endif %}
+
+                </div>
+
+                <div class="card-footer bg-white border-0">
+
+                    <a
+                        href="{% url 'library:subtopic_detail' subtopic.id %}"
+                        class="btn btn-primary w-100"
+                    >
+                        Study Subtopic
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        {% empty %}
+
+        <div class="col-12">
+            <div class="alert alert-info">
+                No subtopics available for this topic yet.
+            </div>
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+</div>
+
+{% endblock %}

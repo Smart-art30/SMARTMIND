@@ -1,0 +1,965 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartCoach Student Dashboard</title>
+
+    <link rel="stylesheet" href="{% static 'smartmind_ai/chatbot.css' %}">
+
+    <style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    background:#f4f7fb;
+    color:#333;
+}
+
+/* NAVBAR */
+
+.navbar{
+    position:sticky;
+    top:0;
+    z-index:1000;
+
+    height:65px;
+
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+
+    padding:0 30px;
+
+    background:#fff;
+
+    box-shadow:0 2px 12px rgba(0,0,0,.08);
+}
+
+.logo{
+    font-size:24px;
+    font-weight:700;
+    color:#2563eb;
+}
+
+.nav-links{
+    display:flex;
+    gap:25px;
+}
+
+.nav-links a{
+    color:#374151;
+    text-decoration:none;
+    font-weight:600;
+}
+
+.nav-links a:hover{
+    color:#2563eb;
+}
+
+.user-box{
+    display:flex;
+    align-items:center;
+    gap:20px;
+}
+
+.logout{
+    border:none;
+    background:none;
+    color:#2563eb;
+    cursor:pointer;
+    font-weight:600;
+}
+
+/* LAYOUT */
+
+.layout{
+    display:flex;
+    min-height:calc(100vh - 65px);
+}
+
+/* SIDEBAR */
+
+.sidebar{
+    width:250px;
+    background:#111827;
+    color:#fff;
+    padding:25px;
+}
+
+.sidebar h2{
+    margin-bottom:30px;
+}
+
+.sidebar a{
+    display:block;
+    padding:12px;
+    margin-bottom:8px;
+
+    color:#cbd5e1;
+
+    text-decoration:none;
+
+    border-radius:8px;
+
+    transition:.3s;
+}
+
+.sidebar a:hover{
+    background:#1f2937;
+    color:#fff;
+}
+
+.logout-btn{
+    width:100%;
+    margin-top:30px;
+    padding:12px;
+
+    border:none;
+
+    border-radius:8px;
+
+    background:#ef4444;
+
+    color:#fff;
+
+    cursor:pointer;
+}
+
+.logout-btn:hover{
+    background:#dc2626;
+}
+
+/* MAIN */
+
+.main{
+    flex:1;
+    padding:35px;
+}
+
+.header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+
+    margin-bottom:30px;
+}
+
+.cards{
+    display:grid;
+
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+
+    gap:20px;
+}
+
+.card{
+    background:#fff;
+
+    border-radius:15px;
+
+    padding:25px;
+
+    box-shadow:0 10px 25px rgba(0,0,0,.06);
+}
+
+.card h3{
+    margin-bottom:10px;
+    color:#6b7280;
+}
+
+.card p{
+    font-size:34px;
+    font-weight:700;
+    color:#2563eb;
+}
+
+.section{
+
+    margin-top:35px;
+
+    background:#fff;
+
+    border-radius:15px;
+
+    padding:25px;
+
+    box-shadow:0 10px 25px rgba(0,0,0,.05);
+
+}
+
+.assignment{
+
+    padding:18px;
+
+    border:1px solid #eee;
+
+    border-radius:10px;
+
+    margin-bottom:15px;
+
+}
+
+.assignment:last-child{
+    margin-bottom:0;
+}
+
+.btn{
+
+    display:inline-block;
+
+    margin-top:12px;
+
+    padding:10px 18px;
+
+    border-radius:8px;
+
+    background:#2563eb;
+
+    color:#fff;
+
+    text-decoration:none;
+
+    font-weight:600;
+
+}
+
+.btn:hover{
+    background:#1d4ed8;
+}
+
+.progress{
+
+    width:100%;
+
+    height:12px;
+
+    background:#e5e7eb;
+
+    border-radius:10px;
+
+    overflow:hidden;
+
+    margin-top:15px;
+
+}
+
+.progress-bar{
+
+    height:100%;
+
+    background:#22c55e;
+
+}
+
+.blog-post{
+
+    border-bottom:1px solid #eee;
+
+    padding:15px 0;
+
+}
+
+.blog-post:last-child{
+
+    border-bottom:none;
+
+}
+
+.blog-post img{
+
+    width:100%;
+
+    height:220px;
+
+    object-fit:cover;
+
+    border-radius:10px;
+
+    margin-bottom:10px;
+
+}
+/* ==========================
+   RESPONSIVE DESIGN
+========================== */
+
+/* Large screens */
+@media (max-width:1200px){
+
+    .main{
+        padding:28px;
+    }
+
+    .sidebar{
+        width:220px;
+    }
+
+}
+
+/* Tablets */
+
+@media (max-width:992px){
+
+    .navbar{
+
+        padding:0 18px;
+
+    }
+
+    .nav-links{
+
+        gap:14px;
+
+    }
+
+    .nav-links a{
+
+        font-size:.9rem;
+
+    }
+
+    .sidebar{
+
+        width:210px;
+
+        padding:18px;
+
+    }
+
+    .main{
+
+        padding:22px;
+
+    }
+
+    .header{
+
+        flex-wrap:wrap;
+
+        gap:12px;
+
+    }
+
+    .cards{
+
+        grid-template-columns:repeat(2,minmax(220px,1fr));
+
+    }
+
+}
+
+/* Mobile */
+
+@media (max-width:768px){
+
+    .navbar{
+
+        flex-wrap:wrap;
+
+        justify-content:center;
+
+        gap:12px;
+
+        height:auto;
+
+        padding:15px;
+
+    }
+
+    .logo{
+
+        width:100%;
+
+        text-align:center;
+
+    }
+
+    .nav-links{
+
+        width:100%;
+
+        justify-content:center;
+
+        flex-wrap:wrap;
+
+        gap:10px;
+
+    }
+
+    .nav-links a{
+
+        padding:8px 12px;
+
+        border-radius:8px;
+
+        background:#eef4ff;
+
+    }
+
+    .user-box{
+
+        width:100%;
+
+        justify-content:center;
+
+        flex-wrap:wrap;
+
+    }
+
+    .layout{
+
+        flex-direction:column;
+
+    }
+
+    .sidebar{
+
+        width:100%;
+
+        display:flex;
+
+        overflow-x:auto;
+
+        white-space:nowrap;
+
+        padding:12px;
+
+        gap:10px;
+
+    }
+
+    .sidebar h2{
+
+        display:none;
+
+    }
+
+    .sidebar a{
+
+        flex-shrink:0;
+
+        margin:0;
+
+        background:#1f2937;
+
+        padding:10px 16px;
+
+    }
+
+    .logout-btn{
+
+        display:none;
+
+    }
+
+    .main{
+
+        padding:16px;
+
+    }
+
+    .header{
+
+        flex-direction:column;
+
+        align-items:flex-start;
+
+        gap:10px;
+
+    }
+
+    .header h1{
+
+        font-size:1.6rem;
+
+    }
+
+    .cards{
+
+        grid-template-columns:1fr;
+
+    }
+
+    .section{
+
+        padding:18px;
+
+        margin-top:20px;
+
+    }
+
+    .assignment{
+
+        padding:16px;
+
+    }
+
+    .btn{
+
+        display:block;
+
+        width:100%;
+
+        text-align:center;
+
+        margin-top:10px;
+
+    }
+
+    .blog-post img{
+
+        height:180px;
+
+    }
+
+}
+
+/* Small phones */
+
+@media (max-width:480px){
+
+    .logo{
+
+        font-size:20px;
+
+    }
+
+    .header h1{
+
+        font-size:1.35rem;
+
+    }
+
+    .card{
+
+        padding:18px;
+
+    }
+
+    .card p{
+
+        font-size:28px;
+
+    }
+
+    .section h2{
+
+        font-size:1.2rem;
+
+    }
+
+    .blog-post img{
+
+        height:150px;
+
+    }
+
+    .progress{
+
+        height:10px;
+
+    }
+
+}
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="navbar">
+
+<div class="logo">
+🎓 SmartCoach
+</div>
+
+<div class="nav-links">
+
+<a href="{% url 'dashboard' %}">Dashboard</a>
+
+<a href="{% url 'assignment_list' %}">Assignments</a>
+
+<a href="{% url 'quiz_home' %}">Quizzes</a>
+
+<a href="{% url 'library:home' %}">Library</a>
+
+</div>
+
+<div class="user-box">
+
+<span>Hi, {{ request.user.username }}</span>
+
+<form method="post" action="{% url 'logout' %}">
+{% csrf_token %}
+<button class="logout">Logout</button>
+</form>
+
+</div>
+
+</div>
+
+<div class="layout">
+
+<div class="sidebar">
+
+<h2>SmartCoach</h2>
+
+<a href="{% url 'dashboard' %}">🏠 Dashboard</a>
+
+<a href="{% url 'assignment_list' %}">📝 Assignments</a>
+
+<a href="{% url 'quiz_home' %}">❓ Quizzes</a>
+
+<a href="{% url 'library:home' %}">📚 Library</a>
+
+<a href="#">💬 Messages</a>
+
+<form method="post" action="{% url 'logout' %}">
+{% csrf_token %}
+<button class="logout-btn">Logout</button>
+</form>
+
+</div>
+
+<div class="main">
+
+<div class="header">
+
+<div>
+
+<h1>Welcome {{ request.user.first_name|default:request.user.username }}</h1>
+
+<p>Ready to learn today?</p>
+
+</div>
+
+<div>
+
+<strong>{{ request.user.role|title }}</strong>
+
+</div>
+
+</div>
+
+<div class="cards">
+
+<div class="card">
+
+<h3>Assignments</h3>
+
+<p>{{ assignment_count }}</p>
+
+</div>
+
+<div class="card">
+
+<h3>Quizzes</h3>
+
+<p>{{ quiz_count }}</p>
+
+</div>
+
+<div class="card">
+
+<h3>Performance</h3>
+
+<p>{{ performance|default:0 }}%</p>
+
+<div class="progress">
+
+<div class="progress-bar" style="width:{{ performance|default:0 }}%;"></div>
+
+</div>
+
+</div>
+</div>
+
+<!-- QUICK ACTIONS -->
+<div class="section">
+
+    <h2>⚡ Quick Actions</h2>
+
+    <br>
+
+    <a class="btn" href="{% url 'assignment_list' %}">
+        📖 View Assignments
+    </a>
+
+    <a class="btn" href="{% url 'quiz_home' %}">
+        📝 Take Quizzes
+    </a>
+
+    <a class="btn" href="{% url 'library:home' %}">
+        📚 Open Library
+    </a>
+
+</div>
+
+<!-- RECENT ASSIGNMENTS -->
+
+<div class="section">
+
+<h2>📚 Recent Assignments</h2>
+
+<br>
+
+{% if assignments %}
+
+    {% for a in assignments %}
+
+    <div class="assignment">
+
+        <h3>{{ a.title }}</h3>
+
+        <br>
+
+        <p>
+
+            <strong>Subject:</strong>
+            {{ a.subject.name }}
+
+            <br><br>
+
+            <strong>Type:</strong>
+            {{ a.get_assignment_type_display }}
+
+            <br><br>
+
+            <strong>Due Date:</strong>
+
+            {{ a.due_date|date:"d M Y H:i" }}
+
+        </p>
+
+        <br>
+
+        <a
+            class="btn"
+            href="{% url 'assignment_detail' a.id %}"
+        >
+            📖 Open Assignment
+        </a>
+
+        {% if a.assignment_type == "quiz" %}
+
+            <a
+                class="btn"
+                href="{% url 'start_quiz' a.id %}"
+            >
+                🚀 Start Quiz
+            </a>
+
+        {% endif %}
+
+    </div>
+
+    {% endfor %}
+
+{% else %}
+
+<div class="assignment">
+
+<h3>No assignments available.</h3>
+
+<p>
+Your teacher has not posted any assignments yet.
+</p>
+
+</div>
+
+{% endif %}
+
+</div>
+
+<!-- PERFORMANCE -->
+
+<div class="section">
+
+<h2>📈 Academic Performance</h2>
+
+<br>
+
+<h3>Overall Score</h3>
+
+<p style="font-size:45px;font-weight:bold;color:#2563eb;">
+
+{{ performance|default:0 }}%
+
+</p>
+
+<div class="progress">
+
+<div
+class="progress-bar"
+style="width:{{ performance|default:0 }}%;">
+</div>
+
+</div>
+
+<br>
+
+<p>
+
+Complete assignments and quizzes to improve your performance.
+
+</p>
+
+</div>
+
+<!-- UPCOMING QUIZZES -->
+
+<div class="section">
+
+<h2>📝 Quiz Centre</h2>
+
+<br>
+
+<p>
+
+Access all your available quizzes from one place.
+
+</p>
+
+<br>
+
+<a
+class="btn"
+href="{% url 'quiz_home' %}"
+>
+
+Open Quiz Centre
+
+</a>
+
+</div>
+<!-- LATEST BLOG POSTS -->
+
+<div class="section">
+
+    <h2>📰 Latest Blog Posts</h2>
+
+    <br>
+
+    {% if posts %}
+
+        {% for post in posts %}
+
+        <div class="blog-post">
+
+            {% if post.image %}
+                <img src="{{ post.image.url }}" alt="{{ post.title }}">
+            {% endif %}
+
+            <h3>
+
+                <a
+                    href="{{ post.get_absolute_url }}"
+                    style="text-decoration:none;color:#2563eb;"
+                >
+                    {{ post.title }}
+                </a>
+
+            </h3>
+
+            <br>
+
+            <p>
+
+                {{ post.excerpt|truncatewords:30 }}
+
+            </p>
+
+            <br>
+
+            <small>
+
+                By
+
+                <strong>{{ post.author }}</strong>
+
+                •
+
+                {{ post.created_at|date:"d M Y" }}
+
+            </small>
+
+        </div>
+
+        {% endfor %}
+
+    {% else %}
+
+        <p>No blog posts available.</p>
+
+    {% endif %}
+
+</div>
+
+<!-- STUDY TIPS -->
+
+<div class="section">
+
+    <h2>💡 Daily Study Tips</h2>
+
+    <ul style="line-height:2;">
+
+        <li>📖 Revise at least 30 minutes every day.</li>
+
+        <li>📝 Complete assignments before the deadline.</li>
+
+        <li>❓ Attempt every quiz to monitor your progress.</li>
+
+        <li>📚 Read library resources every week.</li>
+
+        <li>🤖 Ask SmartMind AI whenever you need help.</li>
+
+    </ul>
+
+</div>
+
+<!-- FOOTER -->
+
+<div
+style="
+margin-top:40px;
+text-align:center;
+color:#6b7280;
+font-size:14px;
+"
+>
+
+<hr style="margin-bottom:20px;">
+
+<p>
+
+© {% now "Y" %} SmartCoach Learning Management System
+
+</p>
+
+<p>
+
+Empowering learners through technology.
+
+</p>
+
+</div>
+
+</div>
+
+</div>
+
+<!-- SMARTMIND AI -->
+
+{% include "smartmind_ai/chatbot.html" %}
+
+<script src="{% static 'smartmind_ai/chatbot.js' %}"></script>
+
+</body>
+</html>

@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {{ category.name }} - Learning Blog
+{% endblock %}
+
+{% block content %}
+
+<h1 style="margin-bottom: 15px;">
+    Category: {{ category.name }}
+</h1>
+
+<p style="color: #6c757d; margin-bottom: 20px;">
+    {{ posts|length }} post(s) found in this category
+</p>
+
+{% if posts %}
+    <div class="posts-grid">
+        {% for post in posts %}
+            <div class="post-card">
+                <h2>{{ post.title }}</h2>
+
+                <p style="color: #6c757d;">
+                    {{ post.created_at|date:"M d, Y" }}
+                </p>
+
+                <p>
+                    {{ post.content|truncatewords:25|safe }}
+                </p>
+
+                <a href="{% url 'blog:post_detail' post.id %}">
+                    Read More →
+                </a>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <p>No posts available in this category yet.</p>
+{% endif %}
+
+<style>
+    .posts-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 15px;
+    }
+
+    .post-card {
+        background: #fff;
+        padding: 15px;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .post-card h2 {
+        font-size: 1.2rem;
+        margin-bottom: 8px;
+    }
+
+    .post-card a {
+        display: inline-block;
+        margin-top: 10px;
+        color: #0d6efd;
+        text-decoration: none;
+    }
+
+    .post-card a:hover {
+        text-decoration: underline;
+    }
+</style>
+
+{% endblock %}

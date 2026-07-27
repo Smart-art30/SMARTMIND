@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>Quiz Result</h2>
+
+<div class="card">
+  <h3>Score: {{ attempt.score }} / {{ attempt.total }}</h3>
+
+  {% if attempt.total %}
+    <p>
+      Percentage:
+      {{ attempt.score|floatformat:2 }}%
+    </p>
+  {% endif %}
+
+  <a href="{% url 'assignment_list' %}">Back to Assignments</a>
+</div>
+
+<style>
+.card {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  text-align: center;
+}
+a {
+  display: inline-block;
+  margin-top: 20px;
+  color: #2563eb;
+}
+</style>
+
+{% endblock %}

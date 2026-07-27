@@ -1,0 +1,177 @@
+<!-- Floating Button -->
+<div id="smartmind-chat-button">
+    🤖
+</div>
+
+<!-- Chat Window -->
+<div id="smartmind-chat-window">
+
+    <div id="smartmind-header">
+        <div class="header-info">
+            <span class="logo">🤖</span>
+            <div>
+                <strong>SmartMind AI</strong><br>
+                <small>Always ready to help</small>
+            </div>
+        </div>
+
+        <button id="smartmind-close">&times;</button>
+    </div>
+
+    <div id="smartmind-messages">
+
+        <div class="welcome-card">
+            <h3>👋 Welcome!</h3>
+            <p>Ask me anything about:</p>
+
+            <div class="chips">
+                <span>📘 Mathematics</span>
+                <span>🧪 Science</span>
+                <span>📚 English</span>
+                <span>🌍 Geography</span>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div id="smartmind-input-area">
+
+        <input
+            type="text"
+            id="smartmind-input"
+            placeholder="Ask SmartMind anything..."
+            autocomplete="off"
+        >
+
+        <button id="smartmind-send">
+            ➤
+        </button>
+
+        <input
+            type="hidden"
+            id="csrf-token"
+            value="{{ csrf_token }}"
+        >
+
+    </div>
+
+</div>
+<style>
+#smartmind-chat-button{
+    position:fixed;
+    right:25px;
+    bottom:25px;
+    width:65px;
+    height:65px;
+    border-radius:50%;
+    background:#2563eb;
+    color:white;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:30px;
+    cursor:pointer;
+    box-shadow:0 10px 30px rgba(0,0,0,.25);
+    z-index:9999;
+}
+
+#smartmind-chat-window{
+    position:fixed;
+    right:25px;
+    bottom:100px;
+    width:380px;
+    height:600px;
+    background:white;
+    border-radius:20px;
+    overflow:hidden;
+    display:none;
+    flex-direction:column;
+    box-shadow:0 20px 60px rgba(0,0,0,.25);
+    z-index:9999;
+}
+
+#smartmind-header{
+    background:#2563eb;
+    color:white;
+    padding:15px 20px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.header-info{
+    display:flex;
+    gap:12px;
+    align-items:center;
+}
+
+.logo{
+    font-size:32px;
+}
+
+#smartmind-close{
+    border:none;
+    background:none;
+    color:white;
+    font-size:24px;
+    cursor:pointer;
+}
+
+#smartmind-messages{
+    flex:1;
+    overflow-y:auto;
+    padding:20px;
+    background:#f5f7fb;
+}
+
+.welcome-card{
+    background:white;
+    padding:20px;
+    border-radius:15px;
+    box-shadow:0 5px 15px rgba(0,0,0,.08);
+}
+
+.chips{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-top:10px;
+}
+
+.chips span{
+    background:#e8f0ff;
+    color:#2563eb;
+    padding:8px 14px;
+    border-radius:30px;
+    font-size:13px;
+}
+
+#smartmind-input-area{
+    display:flex;
+    gap:10px;
+    padding:15px;
+    border-top:1px solid #ddd;
+    background:white;
+}
+
+#smartmind-input{
+    flex:1;
+    border:1px solid #ddd;
+    border-radius:30px;
+    padding:12px 18px;
+    outline:none;
+    font-size:15px;
+}
+
+#smartmind-send{
+    width:48px;
+    border:none;
+    border-radius:50%;
+    background:#2563eb;
+    color:white;
+    cursor:pointer;
+    font-size:18px;
+}
+
+</style>

@@ -1,0 +1,10 @@
+<div class="comment-item mb-3 p-3 border-bottom">
+    <div class="d-flex">
+        <img src="{{ comment.author.profile.avatar.url|default:'/static/default-avatar.png' }}" class="rounded-circle me-3" width="40" height="40" alt="{{ comment.author.username }}">
+        <div class="flex-grow-1">
+            <strong>{{ comment.author.username }}</strong>
+            <small class="text-muted ms-2">{{ comment.created_at|date:"M d, Y H:i" }}</small>
+            <p class="mb-0 mt-1">{{ comment.text|safe }}</p>
+        </div>
+    </div>
+</div>

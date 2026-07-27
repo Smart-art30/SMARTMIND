@@ -1,0 +1,462 @@
+<!-- smartmind/templates/accounts/login.html -->
+{% load static %}
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+html{
+    font-size:16px;
+    scroll-behavior:smooth;
+}
+
+body{
+    background:#eef2f8;
+    font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    overflow-x:hidden;
+}
+
+/* ===========================
+   OUTER WRAPPER
+=========================== */
+
+.auth-wrapper{
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:20px;
+}
+
+/* ===========================
+   CARD
+=========================== */
+
+.auth-card{
+    width:100%;
+    max-width:1300px;
+    min-height:700px;
+
+    display:flex;
+    flex-direction:row;
+
+    background:#fff;
+    border-radius:24px;
+    overflow:hidden;
+
+    box-shadow:0 20px 60px rgba(0,0,0,.12);
+}
+
+/* ===========================
+   PANELS
+=========================== */
+
+.left-panel,
+.right-panel{
+    flex:1;
+    padding:clamp(25px,4vw,60px);
+}
+
+/* ===========================
+   LEFT PANEL
+=========================== */
+
+.left-panel{
+    background:linear-gradient(135deg,#0b1c36,#1b2b4a,#25497f);
+    color:white;
+
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    position:relative;
+    overflow:hidden;
+}
+
+.left-panel::before{
+    content:"";
+    position:absolute;
+    width:420px;
+    height:420px;
+    right:-120px;
+    top:-120px;
+    border-radius:50%;
+    background:rgba(255,255,255,.06);
+}
+
+.left-panel h4{
+    font-size:clamp(1.1rem,2vw,1.4rem);
+}
+
+.left-panel h1{
+    font-size:clamp(2rem,4vw,3.2rem);
+    margin-top:20px;
+    line-height:1.2;
+}
+
+.left-panel p{
+    margin-top:15px;
+    color:rgba(255,255,255,.8);
+    line-height:1.7;
+}
+
+.login-image{
+    width:100%;
+    max-width:300px;
+    height:220px;
+    object-fit:cover;
+
+    border-radius:20px;
+
+    border:4px solid rgba(255,255,255,.15);
+
+    box-shadow:0 20px 40px rgba(0,0,0,.25);
+}
+
+blockquote{
+    margin-top:30px;
+    font-size:0.95rem;
+    color:rgba(255,255,255,.75);
+}
+
+/* ===========================
+   RIGHT PANEL
+=========================== */
+
+.right-panel{
+    background:white;
+    position:relative;
+}
+
+.right-panel h2{
+    font-size:clamp(1.8rem,3vw,2.5rem);
+    font-weight:700;
+}
+
+.right-panel p{
+    color:#64748b;
+}
+
+/* ===========================
+   TOGGLE
+=========================== */
+
+.theme-toggle{
+    position:absolute;
+    right:20px;
+    top:20px;
+
+    display:flex;
+    gap:6px;
+
+    background:#f5f7fb;
+    border-radius:30px;
+    padding:5px;
+}
+
+.theme-toggle button{
+    border:none;
+    background:transparent;
+    width:40px;
+    height:40px;
+    border-radius:50%;
+    cursor:pointer;
+}
+
+.theme-toggle button:hover{
+    background:white;
+}
+
+/* ===========================
+   FORM
+=========================== */
+
+label{
+    display:block;
+    margin-top:18px;
+    margin-bottom:8px;
+    font-weight:600;
+}
+
+.form-control{
+    width:100%;
+    padding:14px;
+
+    border-radius:12px;
+    border:1px solid #dbe3ef;
+
+    background:#f8fafc;
+    transition:.25s;
+}
+
+.form-control:focus{
+    border-color:#2563eb;
+    outline:none;
+    background:white;
+}
+
+.btn-login{
+    width:100%;
+    margin-top:20px;
+    padding:15px;
+
+    border:none;
+    border-radius:12px;
+
+    background:linear-gradient(90deg,#2563eb,#3b82f6);
+
+    color:white;
+    font-weight:700;
+
+    cursor:pointer;
+
+    transition:.3s;
+}
+
+.btn-login:hover{
+    transform:translateY(-2px);
+}
+
+.btn-social{
+    width:100%;
+    padding:14px;
+
+    border-radius:12px;
+    border:1px solid #dbe3ef;
+
+    background:white;
+
+    margin-bottom:12px;
+
+    cursor:pointer;
+}
+
+.btn-social:hover{
+    background:#f8fafc;
+}
+
+.divider{
+    text-align:center;
+    margin:28px 0;
+    color:#94a3b8;
+}
+
+/* ===========================
+   TABLETS
+=========================== */
+
+@media(max-width:992px){
+
+.auth-card{
+    flex-direction:column;
+    max-width:700px;
+}
+
+.left-panel{
+    text-align:center;
+}
+
+.left-panel img{
+    max-width:260px;
+}
+
+.theme-toggle{
+    position:static;
+    margin-bottom:25px;
+    width:max-content;
+}
+
+}
+
+/* ===========================
+   PHONES
+=========================== */
+
+@media(max-width:576px){
+
+.auth-wrapper{
+    padding:10px;
+}
+
+.auth-card{
+    border-radius:16px;
+}
+
+.left-panel,
+.right-panel{
+    padding:25px;
+}
+
+.left-panel img{
+    max-width:200px;
+   
+    
+}
+
+blockquote{
+    font-size:.85rem;
+}
+
+.d-flex{
+    flex-direction:column;
+    align-items:flex-start !important;
+    gap:8px;
+}
+
+}
+
+/* ===========================
+   LARGE MONITORS
+=========================== */
+
+@media(min-width:1800px){
+
+html{
+    font-size:18px;
+}
+
+.auth-card{
+    max-width:1800px;
+    min-height:900px;
+}
+
+.left-panel,
+.right-panel{
+    padding:80px;
+}
+
+}
+
+/* ===========================
+   4K / TVs
+=========================== */
+
+@media(min-width:2500px){
+
+html{
+    font-size:22px;
+}
+
+.auth-card{
+    max-width:2400px;
+    min-height:1100px;
+}
+
+.left-panel,
+.right-panel{
+    padding:100px;
+}
+
+.left-panel img{
+    max-width:650px;
+    max-height: fit-content;
+}
+
+}
+
+.illustration{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    margin:30px 0;
+}
+
+.login-image{
+    width:100%;
+    max-width:3200px;      /* Smaller image */
+    height:530px;         /* Prevents it from becoming too tall */
+    object-fit:cover;
+
+    border-radius:24px;   /* Rounded corners */
+
+    box-shadow:0 15px 35px rgba(0,0,0,.25);
+
+    transition:.3s ease;
+}
+
+.login-image:hover{
+    transform:scale(1.03);
+    box-shadow:0 20px 40px rgba(0,0,0,.35);
+}
+</style>
+
+<div class="auth-wrapper">
+
+  <div class="auth-card">
+
+    <!-- LEFT SIDE -->
+    <div class="left-panel">
+      
+      <div>
+        <h4>📘 SmartCoach</h4>
+
+        <h1 class="mt-4">Welcome Back!</h1>
+
+        <p class="mt-3">
+          Login to continue your learning journey with SmartCoach.
+        </p>
+      </div>
+
+      <!-- illustration block (placeholder like your design) -->
+        <div class="illustration">
+            <img src="{% static 'images/login-illustration.png' %}"
+                alt="Login Illustration"
+                class="login-image">
+        </div>
+
+      <blockquote style="font-size: 13px; color: rgba(255,255,255,0.7);">
+        “The beautiful thing about learning is that no one can take it away from you.” <br>
+        <strong>- B.B. King</strong>
+      </blockquote>
+    </div>
+
+    <!-- RIGHT SIDE -->
+    <div class="right-panel">
+
+      <!-- theme toggle -->
+      <div class="theme-toggle">
+        <button>☀️</button>
+        <button>🌙</button>
+      </div>
+
+      <h2 style="font-weight:700;">Login</h2>
+      <p style="color:#64748b;">Enter your credentials to access your account</p>
+
+      <form method="post">
+        {% csrf_token %}
+
+        <label>Username or Email</label>
+        <input type="text" name="username" class="form-control mb-3"
+               placeholder="Enter your username or email">
+<br>
+        <label>Password</label>
+        <input type="password" name="password" class="form-control mb-2"
+               placeholder="Enter your password">
+
+        <div class="d-flex justify-content-between mb-3">
+          <small><input type="checkbox"> Remember me</small>
+          <a href="#" style="font-size:12px;">Forgot?</a>
+        </div>
+
+        <button class="btn-login">Login</button>
+      </form>
+
+      <div class="divider">or continue with</div>
+
+      <button class="btn-social mb-2">
+        🔵 Continue with Google
+      </button>
+
+      <button class="btn-social">
+        🟦 Continue with Microsoft
+      </button>
+
+      <p class="mt-4 text-center" style="font-size: 13px;">
+        Don't have an account? <a href="{% url 'register' %}">Sign up</a>
+      </p>
+
+    </div>
+  </div>
+
+</div>
