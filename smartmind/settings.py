@@ -30,9 +30,9 @@ SECRET_KEY = config("SECRET_KEY")
 
 DEBUG = config("DEBUG", default=False, cast=bool)
 
-ALLOWED_HOSTS = config(
-    "ALLOWED_HOSTS",
-    default="127.0.0.1,localhost",
+CSRF_TRUSTED_ORIGINS = config(
+    "CSRF_TRUSTED_ORIGINS",
+    default="https://*.onrender.com",
     cast=lambda v: [s.strip() for s in v.split(",")],
 )
 
