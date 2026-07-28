@@ -15,7 +15,7 @@ User = get_user_model()
 
 
 class CustomUserCreationForm(UserCreationForm):
-    # 🔥 FIX: Explicit FK fields (CRITICAL for your error)
+  
     school = forms.ModelChoiceField(
         queryset=School.objects.all(),
         required=False
@@ -36,6 +36,9 @@ class CustomUserCreationForm(UserCreationForm):
     )
 
     tsc_number = forms.CharField(required=False)
+    admission_number = forms.CharField(
+        required=False
+    )
 
     class Meta:
         model = User
@@ -45,6 +48,7 @@ class CustomUserCreationForm(UserCreationForm):
             "role",
             "school",
             "school_class",
+            "admission_number",
             "tsc_number",
             "password1",
             "password2",
@@ -54,6 +58,7 @@ class CustomUserCreationForm(UserCreationForm):
         super().__init__(*args, **kwargs)
 
         placeholders = {
+            "admission_number": "Enter admission number",
             "username": "Enter username",
             "email": "Enter email address",
             "role": "Select role",
@@ -125,11 +130,28 @@ class CustomUserCreationForm(UserCreationForm):
         # STUDENT RULES
         # ======================
         elif role == "student":
+
+
+
+            admission = cleaned_data.get("admission_number")
+
+            if not admission:
+                self.add_error(
+                    "admission_number",
+                    "Students must provide an admission number."
+                )
+
             if not school:
-                self.add_error("school", "Students must select a school.")
+                self.add_error(
+                    "school",
+                    "Students must select a school."
+                )
 
             if not school_class:
-                self.add_error("school_class", "Students must select a class.")
+                self.add_error(
+                    "school_class",
+                    "Students must select a class."
+                )
 
             cleaned_data["tsc_number"] = None
 

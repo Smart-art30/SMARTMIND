@@ -1,12 +1,13 @@
-from django.contrib.auth.models import AbstractUser
-from django.db import models
-from schools.models import SchoolClass
-from academics.models import Subject
 from django.conf import settings
+from django.contrib.auth.models import AbstractUser
+from django.core.exceptions import ValidationError
+from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from django.core.exceptions import ValidationError
 from django.utils import timezone
+
+from academics.models import Subject
+from schools.models import SchoolClass
 
 
 class User(AbstractUser):
@@ -71,68 +72,42 @@ class User(AbstractUser):
     )
 
     phone_number = models.CharField(max_length=20, blank=True)
-    profile_picture = models.ImageField(
-        upload_to="profiles/",
-        blank=True,
-        null=True,
-    )
+    profile_picture = models.ImageField(upload_to="profiles/", blank=True, null=True)
     date_of_birth = models.DateField(blank=True, null=True)
-
     is_verified = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 
-    # Convenience permission helpers
-    def can_create_assignments(self):
-        return (
-            self.is_teacher
-            and self.teacher_permissions
-            and self.teacher_permissions.can_create_assignments
-        )
-
-    def can_add_resources(self):
-        return (
-            self.is_teacher
-            and self.teacher_permissions
-            and self.teacher_permissions.can_add_resources
-        )
-
-    def can_enter_marks(self):
-        return (
-            self.is_teacher
-            and self.teacher_permissions
-            and self.teacher_permissions.can_enter_marks
-        )
-
-    def save(self, *args, **kwargs):
-        if kwargs.get("update_fields"):
-            return super().save(*args, **kwargs)
-
-        self.full_clean()
-        return super().save(*args, **kwargs)
-
     def clean(self):
         super().clean()
 
+        if self.is_superuser:
+            return
+
         if self.role == "teacher":
             if not self.employee_number:
-                raise ValidationError({
-                    "employee_number": "Teachers must have an employee number."
-                })
-
+                raise ValidationError({"employee_number": "Teachers must have an employee number."})
             if not self.teacher_role:
-                raise ValidationError({
-                    "teacher_role": "Teachers must have a teacher role."
-                })
+                raise ValidationError({"teacher_role": "Teachers must have a teacher role."})
 
-        if self.role == "student":
-            if not self.admission_number:
-                raise ValidationError({
-                    "admission_number": "Students must have an admission number."
-                })
+        if self.role == "student" and not self.admission_number:
+            raise ValidationError({"admission_number": "Students must have an admission number."})
 
         if self.role != "teacher":
             self.teacher_role = None
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    def can_create_assignments(self):
+        return bool(self.is_teacher and self.teacher_permissions and self.teacher_permissions.can_create_assignments)
+
+    def can_add_resources(self):
+        return bool(self.is_teacher and self.teacher_permissions and self.teacher_permissions.can_add_resources)
+
+    def can_enter_marks(self):
+        return bool(self.is_teacher and self.teacher_permissions and self.teacher_permissions.can_enter_marks)
 
     @property
     def full_name(self):
@@ -164,12 +139,12 @@ class User(AbstractUser):
 
 class TeachingAssignment(models.Model):
     school = models.ForeignKey(
-    "schools.School",
-    on_delete=models.CASCADE,
-    related_name="teaching_assignments",
-    null=True,
-    blank=True,
-)
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="teaching_assignments",
+        null=True,
+        blank=True,
+    )
 
     teacher = models.ForeignKey(
         User,
@@ -194,37 +169,27 @@ class TeachingAssignment(models.Model):
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 
-    def save(self, *args, **kwargs):
-        self.full_clean()  # [web:14]
-        super().save(*args, **kwargs)
-
     def clean(self):
-        super().clean()  # [web:12]
+        super().clean()
 
-        if self.teacher.school != self.school:
+        if self.teacher and self.school and self.teacher.school != self.school:
             raise ValidationError("Teacher does not belong to this school.")
 
-        if self.school_class.school != self.school:
+        if self.school_class and self.school and self.school_class.school != self.school:
             raise ValidationError("Class does not belong to this school.")
 
-    class Meta:
-        ordering = [
-            "school_class",
-            "subject",
-            "teacher",
-        ]  # default ordering for queries [web:11]
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
 
+    class Meta:
+        ordering = ["school_class", "subject", "teacher"]
         constraints = [
             models.UniqueConstraint(
-                fields=[
-                    "school",
-                    "teacher",
-                    "school_class",
-                    "subject",
-                ],
+                fields=["school", "teacher", "school_class", "subject"],
                 name="unique_teacher_assignment",
             )
-        ]  # [web:13]
+        ]
 
     def __str__(self):
         return f"{self.teacher.full_name} • {self.school_class} • {self.subject}"
@@ -278,14 +243,13 @@ class TeacherRole(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ["name"]  # [web:11]
-
+        ordering = ["name"]
         constraints = [
             models.UniqueConstraint(
                 fields=["school", "name"],
                 name="unique_teacher_role_per_school",
             )
-        ]  # [web:13]
+        ]
 
     def __str__(self):
         return self.name
@@ -324,7 +288,7 @@ class ParentStudent(models.Model):
                 fields=["parent", "student"],
                 name="unique_parent_student",
             )
-        ]  # [web:13]
+        ]
 
     def __str__(self):
         return f"{self.parent} → {self.student}"
@@ -333,4 +297,4 @@ class ParentStudent(models.Model):
 @receiver(post_save, sender=User)
 def create_teacher_permissions(sender, instance, created, **kwargs):
     if instance.role == "teacher":
-        TeacherPermission.objects.get_or_create(teacher=instance)  # [web:14]
+        TeacherPermission.objects.get_or_create(teacher=instance)

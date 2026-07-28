@@ -85,22 +85,64 @@ def quiz_list(request, class_id, subject_id):
 
 @login_required
 def assignment_list(request):
-    enrollment = get_object_or_404(
-        Enrollment.objects.select_related("school_class"),
-        student=request.user
-    )
 
-    assignments = Assignment.objects.filter(
-        school_class=enrollment.school_class
-    ).select_related(
+    user = request.user
+
+    # =========================
+    # STUDENT VIEW
+    # =========================
+    if user.role == "student":
+
+        enrollment = get_object_or_404(
+            Enrollment.objects.select_related("school_class"),
+            student=user
+        )
+
+        assignments = Assignment.objects.filter(
+            school_class=enrollment.school_class
+        )
+
+
+    # =========================
+    # TEACHER VIEW
+    # =========================
+    elif user.role == "teacher":
+
+        assignments = Assignment.objects.filter(
+            teacher=user
+        )
+
+
+    # =========================
+    # SCHOOL ADMIN VIEW
+    # =========================
+    elif user.role == "school_admin":
+
+        assignments = Assignment.objects.filter(
+            school_class__school=user.school
+        )
+
+
+    else:
+        return HttpResponseForbidden(
+            "You do not have permission to view assignments."
+        )
+
+
+    assignments = assignments.select_related(
         "teacher",
         "subject",
         "school_class"
     )
 
-    return render(request, "assignment_list.html", {
-        "assignments": assignments
-    })
+
+    return render(
+        request,
+        "assignment_list.html",
+        {
+            "assignments": assignments
+        }
+    )
 
 
 

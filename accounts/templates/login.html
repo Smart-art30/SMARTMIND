@@ -379,6 +379,46 @@ html{
     transform:scale(1.03);
     box-shadow:0 20px 40px rgba(0,0,0,.35);
 }
+
+/* ===========================
+   LOGIN ALERT MESSAGES
+=========================== */
+
+.alert-message{
+    padding:14px 18px;
+    border-radius:12px;
+    margin:20px 0;
+    font-size:14px;
+    font-weight:600;
+}
+
+/* success message */
+.alert-message.success{
+    background:#dcfce7;
+    color:#166534;
+    border:1px solid #86efac;
+}
+
+/* error message */
+.alert-message.error{
+    background:#fee2e2;
+    color:#991b1b;
+    border:1px solid #fca5a5;
+}
+
+/* warning message */
+.alert-message.warning{
+    background:#fef3c7;
+    color:#92400e;
+    border:1px solid #fcd34d;
+}
+
+/* info message */
+.alert-message.info{
+    background:#dbeafe;
+    color:#1e40af;
+    border:1px solid #93c5fd;
+}
 </style>
 
 <div class="auth-wrapper">
@@ -421,9 +461,20 @@ html{
       </div>
 
       <h2 style="font-weight:700;">Login</h2>
-      <p style="color:#64748b;">Enter your credentials to access your account</p>
+     <p style="color:#64748b;">Enter your credentials to access your account</p>
 
-      <form method="post">
+
+            <!-- Django Messages -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert-message {{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+
+            <form method="post">
         {% csrf_token %}
 
         <label>Username or Email</label>
