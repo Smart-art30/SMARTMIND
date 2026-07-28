@@ -1,6 +1,16 @@
 import os
 import numpy as np
-from sentence_transformers import SentenceTransformer
+
+_MODEL = None
+
+def get_model():
+    global _MODEL
+
+    if _MODEL is None:
+        from sentence_transformers import SentenceTransformer
+        _MODEL = SentenceTransformer("all-MiniLM-L6-v2")
+
+    return _MODEL
 
 # Load once when Django starts
 _MODEL = None
