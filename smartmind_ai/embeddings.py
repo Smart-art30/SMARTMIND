@@ -1,7 +1,7 @@
-import os
 import numpy as np
 
 _MODEL = None
+
 
 def get_model():
     global _MODEL
@@ -12,13 +12,6 @@ def get_model():
 
     return _MODEL
 
-# Load once when Django starts
-_MODEL = None
-def get_model():
-    global _MODEL
-    if _MODEL is None:
-        _MODEL = SentenceTransformer("all-MiniLM-L6-v2")
-    return _MODEL
 
 def build_resource_text(resource):
     """
@@ -42,7 +35,6 @@ def build_resource_text(resource):
     if resource.description:
         parts.append(f"Description: {resource.description}")
 
-    # Most important
     if resource.content:
         parts.append(f"Content: {resource.content}")
 
@@ -59,6 +51,7 @@ def create_embedding(text):
     )
 
     return np.asarray(vector, dtype="float32")
+
 
 def embed_resource(resource):
     """
