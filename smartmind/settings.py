@@ -37,6 +37,12 @@ CSRF_TRUSTED_ORIGINS = config(
 )
 
 
+ALLOWED_HOSTS = config(
+    "ALLOWED_HOSTS",
+    default="127.0.0.1,localhost",
+    cast=lambda v: [s.strip() for s in v.split(",")],
+)
+
 
 # Application definition
 
