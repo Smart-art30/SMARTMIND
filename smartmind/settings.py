@@ -32,7 +32,7 @@ DEBUG = config("DEBUG", default=False, cast=bool)
 
 CSRF_TRUSTED_ORIGINS = config(
     "CSRF_TRUSTED_ORIGINS",
-    default="https://*.onrender.com",
+    default="https://smartmind-v351.onrender.com",
     cast=lambda v: [s.strip() for s in v.split(",")],
 )
 
