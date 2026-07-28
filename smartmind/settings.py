@@ -57,7 +57,7 @@ INSTALLED_APPS = [
     'schools',
     'dashboard',
     'library',
-    # 'smartmind_ai',
+    'smartmind_ai',
 ]
 
 AUTH_USER_MODEL = 'accounts.User'

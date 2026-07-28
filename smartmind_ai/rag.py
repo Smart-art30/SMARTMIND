@@ -1,5 +1,5 @@
 from .search import search_resources, build_context
-from .vector_search import vector_search
+
 from .adaptive import build_adaptive_context
 from .quiz import build_quiz_context
 from .recommendations import (
@@ -42,26 +42,29 @@ def retrieve_context(question, user, learner_class, intent):
     # Lesson Retrieval
     # ---------------------------------------
 
-    else:
+    # ---------------------------------------
+# Lesson Retrieval
+# ---------------------------------------
 
-        # Step 1: Fast keyword search
-        resources = search_resources(
+else:
+
+    # Step 1: Fast keyword search
+    resources = search_resources(
+        question=question,
+        learner_class=learner_class,
+    )[:3]
+
+    # Step 2: Fall back to vector search only if needed
+    if not resources:
+        from .vector_search import vector_search
+
+        resources = vector_search(
             question=question,
-            learner_class=learner_class,
-        )[:3]
+            limit=3,
+        )
 
-        # Step 2: Fall back to vector search only if needed
-        if not resources:
-
-            print("No keyword match. Falling back to vector search...")
-
-            resources = vector_search(
-                question=question,
-                limit=3,
-            )
-
-        # Step 3: Build lesson context
-        lesson_context = build_context(resources)
+    # Step 3: Build lesson context
+    lesson_context = build_context(resources)
 
     # ---------------------------------------
     # Personalisation (only for logged-in users)

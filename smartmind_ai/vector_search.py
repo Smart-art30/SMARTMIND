@@ -5,7 +5,6 @@ import faiss
 import numpy as np
 
 from library.models import Resource
-from .embeddings import create_embedding
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
