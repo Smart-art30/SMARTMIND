@@ -32,5 +32,6 @@ urlpatterns = [
     path("classes/",views.class_list,name="class_list",),
     path("",views.attendance_dashboard,name="attendance_dashboard",),
     path("parents/",views.parent_list,name="parent_list",),
+    path("ajax/load-teacher-roles/",views.load_teacher_roles,name="ajax_load_teacher_roles",),
   
 ]

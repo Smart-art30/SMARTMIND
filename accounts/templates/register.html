@@ -1,9 +1,6 @@
 {% load static %}
 
-
-
 {% block extra_css %}
-
 <style>
   body {
     background: #eef2f8;
@@ -18,102 +15,100 @@
     padding: 16px;
   }
 
-.auth-card{
-    width:min(96vw, 1600px);
-    min-height:calc(100vh - 40px);
+  .auth-card {
+    width: min(96vw, 1600px);
+    min-height: calc(100vh - 40px);
+    display: flex;
+    flex-direction: row;
+    background: #fff;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,.12);
+  }
 
-    display:flex;
-    flex-direction:row;
+  .left-panel {
+    flex: 1;
+    background: linear-gradient(135deg, #0b1c36, #1b2b4a, #25497f);
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: clamp(25px, 4vw, 60px);
+    position: relative;
+    overflow: hidden;
+  }
 
-    background:#fff;
-    border-radius:24px;
-    overflow:hidden;
+  .left-panel::before {
+    content: "";
+    position: absolute;
+    width: 420px;
+    height: 420px;
+    right: -120px;
+    top: -120px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.06);
+  }
 
-    box-shadow:0 20px 60px rgba(0,0,0,.12);
-}
+  .illustration {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 35px 0;
+  }
 
+  .illustration img {
+    width: 100%;
+    max-width: 320px;
+    height: auto;
+    object-fit: cover;
+    border-radius: 24px;
+    border: 4px solid rgba(255,255,255,.15);
+    box-shadow: 0 20px 40px rgba(0,0,0,.25);
+    transition: .3s;
+  }
 
-.left-panel{
-    flex:1;
-    background:linear-gradient(135deg,#0b1c36,#1b2b4a,#25497f);
+  .illustration img:hover {
+    transform: scale(1.03);
+  }
 
-    color:#fff;
+  .right-panel {
+    flex: 1;
+    background: #fff;
+    position: relative;
+    padding: clamp(25px, 4vw, 60px);
+    overflow-y: auto;
+  }
 
-    display:flex;
-    flex-direction:column;
-    justify-content:space-between;
+  .form-group {
+    margin-bottom: 16px;
+  }
 
-    padding:clamp(25px,4vw,60px);
-
-    position:relative;
-    overflow:hidden;
-}
-
-.left-panel::before{
-    content:"";
-    position:absolute;
-    width:420px;
-    height:420px;
-
-    right:-120px;
-    top:-120px;
-
-    border-radius:50%;
-    background:rgba(255,255,255,.06);
-}
-
-/* ===========================
-   ILLUSTRATION
-=========================== */
-
-.illustration{
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    margin:35px 0;
-}
-.illustration img{
-    width:100%;
-    max-width:3200px;
-    height:510px;
-
-    object-fit:cover;
-
-    border-radius:24px;
-
-    border:4px solid rgba(255,255,255,.15);
-
-    box-shadow:0 20px 40px rgba(0,0,0,.25);
-
-    transition:.3s;
-}
-
-.illustration img:hover{
-    transform:scale(1.03);
-}
-
-.right-panel{
-    flex:1;
-    background:#fff;
-    position:relative;
-
-    padding:clamp(25px,4vw,60px);
-
-    overflow-y:auto;
-}
+  .form-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 500;
+    color: #374151;
+    font-size: 14px;
+  }
 
   .form-control {
     width: 100%;
     background: #f6f8fc;
     border: 1px solid #e6eaf2;
     border-radius: 10px;
-    padding: 10px;
-    margin-bottom: 10px;
+    padding: 10px 12px;
     outline: none;
+    transition: border-color 0.2s;
   }
 
   .form-control:focus {
     border-color: #3b82f6;
+  }
+
+  .error-text {
+    color: #dc2626;
+    font-size: 12px;
+    margin-top: 4px;
   }
 
   .btn-primary {
@@ -125,141 +120,168 @@
     color: white;
     width: 100%;
     cursor: pointer;
+    transition: opacity 0.2s;
   }
 
-  .error-text {
-    color: #dc2626;
-    font-size: 12px;
-    margin-bottom: 6px;
+  .btn-primary:hover {
+    opacity: 0.9;
   }
 
   .link-text {
     text-align: center;
-    font-size: 12px;
+    font-size: 13px;
     margin-top: 16px;
+    color: #64748b;
   }
-@media (max-width:992px){
 
-    .auth-card{
-        flex-direction:column;
-        max-width:700px;
-        min-height:auto;
+  .link-text a {
+    color: #3b82f6;
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .link-text a:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 992px) {
+    .auth-card {
+      flex-direction: column;
+      max-width: 700px;
+      min-height: auto;
     }
 
     .left-panel,
-    .right-panel{
-        padding:30px;
+    .right-panel {
+      padding: 30px;
     }
 
-    .illustration img{
-        max-width:240px;
-        height:180px;
+    .illustration img {
+      max-width: 240px;
+      height: auto;
     }
-}
+  }
 
-@media (max-width:576px){
+  @media (max-width: 576px) {
+    .auth-wrapper {
+      padding: 20px;
+    }
 
-  .auth-wrapper{
-    width:100%;
-    min-height:100vh;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    padding:20px;
-}
-
-    .auth-card{
-        border-radius:16px;
+    .auth-card {
+      border-radius: 16px;
     }
 
     .left-panel,
-    .right-panel{
-        padding:25px;
+    .right-panel {
+      padding: 25px;
     }
 
-    .illustration img{
-        max-width:200px;
-        height:150px;
+    .illustration img {
+      max-width: 200px;
     }
-}
-
-
+  }
 </style>
-
 {% endblock %}
 
 {% block content %}
-
 <div class="auth-wrapper">
   <div class="auth-card">
-
     <!-- LEFT PANEL -->
     <div class="left-panel">
       <div>
-        <h4>📘 SmartMInd</h4>
+        <h4>📘 SmartMind</h4>
         <h1>Create Your Account</h1>
-        <p>Join SmartMInd and start your learning journey today.</p>
+        <p>Join SmartMind and start your learning journey today.</p>
       </div>
 
-<div class="illustration">
-    <img src="{% static 'images/login-illustration.png' %}"
-         alt="Register Illustration">
-</div>
-      <p style="font-size:12px; opacity:0.7;">
+      <div class="illustration">
+        <img src="{% static 'images/login-illustration.png' %}" alt="Register Illustration">
+      </div>
+
+      <p style="font-size: 12px; opacity: 0.7;">
         Learn smarter, not harder.
       </p>
     </div>
 
     <!-- RIGHT PANEL -->
     <div class="right-panel">
+      <h2 style="margin-bottom: 8px;">Sign Up</h2>
+      <p style="color: #64748b; margin-bottom: 24px;">Create your account to continue</p>
 
-      <h2>Sign Up</h2>
-      <p style="color:#64748b;">Create your account to continue</p>
-
-      <form method="post">
+      <form method="post" novalidate>
         {% csrf_token %}
 
         {{ form.non_field_errors }}
 
         <!-- Username -->
-        {{ form.username.errors }}
-        {{ form.username }}
+        <div class="form-group">
+          {{ form.username.label_tag }}
+          {{ form.username.errors }}
+          {{ form.username }}
+        </div>
 
         <!-- Email -->
-        {{ form.email.errors }}
-        {{ form.email }}
+        <div class="form-group">
+          {{ form.email.label_tag }}
+          {{ form.email.errors }}
+          {{ form.email }}
+        </div>
 
         <!-- Role -->
-        {{ form.role.errors }}
-        {{ form.role }}
+        <div class="form-group">
+          {{ form.role.label_tag }}
+          {{ form.role.errors }}
+          {{ form.role }}
+        </div>
 
         <!-- School -->
-        <div id="school-field">
+        <div id="school-field" class="form-group">
+          {{ form.school.label_tag }}
           {{ form.school.errors }}
           {{ form.school }}
         </div>
 
-        <!-- Class (FIXED MISSING FIELD) -->
-        <div id="class-field">
+        <!-- Class -->
+        <div id="class-field" class="form-group">
+          {{ form.school_class.label_tag }}
           {{ form.school_class.errors }}
           {{ form.school_class }}
         </div>
-            <div id="admission-field">
-            {{ form.admission_number.errors }}
-            {{ form.admission_number }}
-            </div>
-                    <!-- TSC Number -->
-        <div id="tsc-field">
+
+        <!-- Admission Number -->
+        <div id="admission-field" class="form-group">
+          {{ form.admission_number.label_tag }}
+          {{ form.admission_number.errors }}
+          {{ form.admission_number }}
+        </div>
+
+        <!-- TSC Number -->
+        <div id="tsc-field" class="form-group">
+          {{ form.tsc_number.label_tag }}
           {{ form.tsc_number.errors }}
           {{ form.tsc_number }}
         </div>
 
-        <!-- Password -->
-        {{ form.password1.errors }}
-        {{ form.password1 }}
+        <!-- Teacher Role -->
+        <div id="teacher-role-field" class="form-group">
+          {{ form.teacher_role.label_tag }}
+          {{ form.teacher_role.errors }}
+          {{ form.teacher_role }}
+        </div>
 
-        {{ form.password2.errors }}
-        {{ form.password2 }}
+        <!-- Password 1 -->
+        <div class="form-group">
+          {{ form.password1.label_tag }}
+          {{ form.password1.errors }}
+          {{ form.password1 }}
+        </div>
+
+        <!-- Password 2 -->
+        <div class="form-group">
+          {{ form.password2.label_tag }}
+          {{ form.password2.errors }}
+          {{ form.password2 }}
+        </div>
 
         <button type="submit" class="btn-primary">Sign Up</button>
       </form>
@@ -268,121 +290,116 @@
         Already have an account?
         <a href="{% url 'login' %}">Login here</a>
       </div>
-
     </div>
-
   </div>
 </div>
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
     const role = document.getElementById("id_role");
-
+    const teacherRole = document.getElementById("teacher-role-field");
     const tsc = document.getElementById("tsc-field");
     const admission = document.getElementById("admission-field");
     const school = document.getElementById("school-field");
     const schoolClass = document.getElementById("class-field");
 
- function toggleFields() {
+    function toggleFields() {
+        const value = role.value;
 
-    const value = role.value;
-
-
-    if (value === "teacher") {
-
-        tsc.style.display = "block";
-        admission.style.display = "none";
-
-        school.style.display = "block";
-        schoolClass.style.display = "none";
-
-    } 
-
-
-    else if (value === "student") {
-
-        tsc.style.display = "none";
-        admission.style.display = "block";
-
-        school.style.display = "block";
-        schoolClass.style.display = "block";
-
-    } 
-
-
-    else if (value === "school_admin") {
-
-        tsc.style.display = "none";
-        admission.style.display = "none";
-
-        school.style.display = "block";
-        schoolClass.style.display = "none";
-
+        if (value === "teacher") {
+            tsc.style.display = "block";
+            teacherRole.style.display = "block";
+            admission.style.display = "none";
+            school.style.display = "block";
+            schoolClass.style.display = "none";
+        } else if (value === "student") {
+            tsc.style.display = "none";
+            teacherRole.style.display = "none";
+            admission.style.display = "block";
+            school.style.display = "block";
+            schoolClass.style.display = "block";
+        } else if (value === "school_admin") {
+            tsc.style.display = "none";
+            teacherRole.style.display = "none";
+            admission.style.display = "none";
+            school.style.display = "none";
+            schoolClass.style.display = "none";
+        } else {
+            // Parent or default
+            tsc.style.display = "none";
+            teacherRole.style.display = "none";
+            admission.style.display = "none";
+            school.style.display = "none";
+            schoolClass.style.display = "none";
+        }
     }
-
-
-    else {
-
-        tsc.style.display = "none";
-        admission.style.display = "none";
-
-        school.style.display = "none";
-        schoolClass.style.display = "none";
-
-    }
-}
 
     role.addEventListener("change", toggleFields);
     toggleFields();
 });
 
 document.addEventListener("DOMContentLoaded", function () {
-
     const schoolSelect = document.getElementById("id_school");
     const classSelect = document.getElementById("id_school_class");
+    const teacherRoleSelect = document.getElementById("id_teacher_role");
 
-    if (!schoolSelect || !classSelect) return;
+    if (!schoolSelect) return;
 
     schoolSelect.addEventListener("change", function () {
-
         const schoolId = this.value;
 
-        classSelect.innerHTML =
-            '<option value="">Loading...</option>';
+        // Load classes
+        if (classSelect) {
+            classSelect.disabled = true;
+            classSelect.innerHTML = '<option value="">⏳ Loading...</option>';
 
-        if (!schoolId) {
-            classSelect.innerHTML =
-                '<option value="">Select Class</option>';
-            return;
+            if (!schoolId) {
+                classSelect.innerHTML = '<option value="">Select Class</option>';
+                classSelect.disabled = false;
+            } else {
+                fetch(`/accounts/ajax/load-classes/?school_id=${schoolId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        classSelect.innerHTML = '<option value="">Select Class</option>';
+                        data.forEach(function(item) {
+                            classSelect.innerHTML += `<option value="${item.id}">${item.name}</option>`;
+                        });
+                        classSelect.disabled = false;
+                    })
+                    .catch(error => {
+                        console.error('Error loading classes:', error);
+                        classSelect.innerHTML = '<option value="">❌ Error loading</option>';
+                        classSelect.disabled = false;
+                    });
+            }
         }
 
-        fetch(`/accounts/ajax/load-classes/?school_id=${schoolId}`)
-            .then(response => response.json())
-            .then(data => {
+        // Load teacher roles
+        if (teacherRoleSelect) {
+            teacherRoleSelect.disabled = true;
+            teacherRoleSelect.innerHTML = '<option value="">⏳ Loading...</option>';
 
-                classSelect.innerHTML =
-                    '<option value="">Select Class</option>';
-
-                data.forEach(function(item) {
-                    classSelect.innerHTML += `
-                        <option value="${item.id}">
-                            ${item.name}
-                        </option>
-                    `;
-                });
-
-            })
-            .catch(error => {
-                console.error(error);
-
-                classSelect.innerHTML =
-                    '<option value="">No classes found</option>';
-            });
-
+            if (!schoolId) {
+                teacherRoleSelect.innerHTML = '<option value="">Select Teacher Role</option>';
+                teacherRoleSelect.disabled = false;
+            } else {
+                fetch(`/accounts/ajax/load-teacher-roles/?school_id=${schoolId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        teacherRoleSelect.innerHTML = '<option value="">Select Teacher Role</option>';
+                        data.forEach(function(item) {
+                            teacherRoleSelect.innerHTML += `<option value="${item.id}">${item.name}</option>`;
+                        });
+                        teacherRoleSelect.disabled = false;
+                    })
+                    .catch(error => {
+                        console.error('Error loading teacher roles:', error);
+                        teacherRoleSelect.innerHTML = '<option value="">❌ Error loading</option>';
+                        teacherRoleSelect.disabled = false;
+                    });
+            }
+        }
     });
-
 });
-
 </script>
-
 {% endblock %}

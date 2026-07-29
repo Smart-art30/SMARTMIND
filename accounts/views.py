@@ -5,7 +5,7 @@ from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.db.models import Avg
-
+from .models import (TeacherPermission,TeachingAssignment,TeacherRole,)
 from blog.models import Post
 from assignments.models import Assignment, Enrollment, QuizAttempt, Submission
 from schools.models import SchoolClass
@@ -408,3 +408,13 @@ def parent_list(request):
     ).order_by("first_name", "last_name")
 
     return render(request, "accounts/parent_list.html", {"parents": parents})
+
+
+def load_teacher_roles(request):
+    school_id = request.GET.get("school_id")
+
+    roles = TeacherRole.objects.filter(
+        school_id=school_id
+    ).values("id", "name")
+
+    return JsonResponse(list(roles), safe=False)
