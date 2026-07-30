@@ -239,7 +239,7 @@ def teacher_create(request):
         messages.success(request, "Teacher added successfully.")
         return redirect("teacher_list")
 
-    return render(request, "accounts/teacher_form.html", {"form": form})
+    return render(request, "teacher_form.html", {"form": form})
 
 
 @login_required
@@ -255,7 +255,7 @@ def teacher_update(request, pk):
     else:
         form = TeacherForm(instance=teacher, school=request.user.school)
 
-    return render(request, "accounts/teacher_form.html", {"form": form, "teacher": teacher})
+    return render(request, "teacher_form.html", {"form": form, "teacher": teacher})
 
 
 @login_required
@@ -274,7 +274,7 @@ def teacher_list(request):
         school=request.user.school,
     ).select_related("teacher_role")
 
-    return render(request, "accounts/teacher_list.html", {"teachers": teachers})
+    return render(request, "teacher_list.html", {"teachers": teachers})
 
 
 @login_required
