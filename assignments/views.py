@@ -7,7 +7,7 @@ from django.db.models import Avg, Max, Min
 from .forms import SubmissionForm
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
-
+from .forms import AssignmentForm
 from .models import (
     Assignment,
     Enrollment,
@@ -173,9 +173,6 @@ def assignment_detail(request, pk):
         "form": form,
         "now": timezone.now(),
     })
-
-
-
 
 
 @login_required
@@ -455,7 +452,20 @@ def gradebook(request):
 
 @login_required
 def create_assignment(request):
-    return render(request, "create_assignment.html")
+    if request.method == "POST":
+        form = AssignmentForm(request.POST, request.FILES)
+
+        if form.is_valid():
+            assignment = form.save(commit=False)
+            assignment.teacher = request.user
+            assignment.save()
+            return redirect("manage_assignments")
+    else:
+        form = AssignmentForm()
+
+    return render(request, "create_assignment.html", {
+        "form": form,
+    })
 
 
 @login_required
