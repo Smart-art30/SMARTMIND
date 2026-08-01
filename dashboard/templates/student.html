@@ -48,6 +48,16 @@ body{
     color:#2563eb;
 }
 
+.logo-link {
+    text-decoration: none;
+    color: inherit;
+    font-weight: inherit;
+}
+
+.logo-link:hover {
+    color: #2563eb;
+}
+
 .nav-links{
     display:flex;
     gap:25px;
@@ -577,7 +587,9 @@ body{
 <div class="navbar">
 
 <div class="logo">
-🎓 SmartMInd
+    <a href="{% url 'dashboard' %}" class="logo-link">
+        🎓 SmartMind
+    </a>
 </div>
 
 <div class="nav-links">
@@ -609,7 +621,7 @@ body{
 
 <div class="sidebar">
 
-<h2>SmartMind</h2>
+<a href="{% url 'dashboard' %}"><h2>SmartMind</h2></a>
 
 <a href="{% url 'dashboard' %}">🏠 Dashboard</a>
 

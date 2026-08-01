@@ -44,6 +44,7 @@ class Post(models.Model):
     target_classes = models.ManyToManyField("schools.SchoolClass",blank=True,related_name="posts")
     author = models.ForeignKey(User,on_delete=models.CASCADE,related_name='posts')
     approved = models.BooleanField(default=False)
+    is_featured = models.BooleanField(default=False)
     image = models.ImageField(upload_to='posts/', blank=True, null=True)
     video = models.FileField(upload_to='videos/', blank=True, null=True)
     youtube_url = models.URLField(blank=True, null=True)

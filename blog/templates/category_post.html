@@ -28,7 +28,7 @@
                     {{ post.content|truncatewords:25|safe }}
                 </p>
 
-                <a href="{% url 'blog:post_detail' post.id %}">
+              <a href="{% url 'blog:post_detail' post.slug %}">
                     Read More →
                 </a>
             </div>
