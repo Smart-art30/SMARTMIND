@@ -6,7 +6,7 @@ from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.db.models import Avg
 from .models import (TeacherPermission,TeachingAssignment,TeacherRole,)
-from blog.models import Post
+from blog.models import Post, Category
 from assignments.models import Assignment, Enrollment, QuizAttempt, Submission
 from schools.models import SchoolClass
 
@@ -123,7 +123,8 @@ def dashboard(request):
 
         attempts = QuizAttempt.objects.filter(student=user)
         posts = Post.objects.filter(status="published").select_related("author", "category").order_by("-created_at")[:5]
-
+        categories = Category.objects.filter(
+    post__status="published").distinct().order_by("name")
         performance = 0
         if attempts.exists():
             total_score = sum(a.score for a in attempts)
@@ -137,6 +138,7 @@ def dashboard(request):
             "quiz_count": quiz_count,
             "performance": performance,
             "posts": posts,
+            "categories": categories,
         })
 
     if user.role == "parent":
