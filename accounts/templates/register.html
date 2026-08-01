@@ -254,7 +254,11 @@
           {{ form.admission_number.errors }}
           {{ form.admission_number }}
         </div>
-
+          <div id="employee-field" class="form-group">
+            {{ form.employee_number.label_tag }}
+            {{ form.employee_number.errors }}
+            {{ form.employee_number }}
+        </div>
         <!-- TSC Number -->
         <div id="tsc-field" class="form-group">
           {{ form.tsc_number.label_tag }}
@@ -302,37 +306,48 @@ document.addEventListener("DOMContentLoaded", function () {
     const admission = document.getElementById("admission-field");
     const school = document.getElementById("school-field");
     const schoolClass = document.getElementById("class-field");
+    const employee = document.getElementById("employee-field");
 
     function toggleFields() {
-        const value = role.value;
+    const value = role.value;
 
-        if (value === "teacher") {
-            tsc.style.display = "block";
-            teacherRole.style.display = "block";
-            admission.style.display = "none";
-            school.style.display = "block";
-            schoolClass.style.display = "none";
-        } else if (value === "student") {
-            tsc.style.display = "none";
-            teacherRole.style.display = "none";
-            admission.style.display = "block";
-            school.style.display = "block";
-            schoolClass.style.display = "block";
-        } else if (value === "school_admin") {
-            tsc.style.display = "none";
-            teacherRole.style.display = "none";
-            admission.style.display = "none";
-            school.style.display = "none";
-            schoolClass.style.display = "none";
-        } else {
-            // Parent or default
-            tsc.style.display = "none";
-            teacherRole.style.display = "none";
-            admission.style.display = "none";
-            school.style.display = "none";
-            schoolClass.style.display = "none";
-        }
+    if (value === "teacher") {
+        tsc.style.display = "block";
+        teacherRole.style.display = "block";
+        employee.style.display = "block";   // Show
+
+        admission.style.display = "none";
+        school.style.display = "block";
+        schoolClass.style.display = "none";
+
+    } else if (value === "student") {
+        tsc.style.display = "none";
+        teacherRole.style.display = "none";
+        employee.style.display = "none";    
+
+        admission.style.display = "block";
+        school.style.display = "block";
+        schoolClass.style.display = "block";
+
+    } else if (value === "school_admin") {
+        tsc.style.display = "none";
+        teacherRole.style.display = "none";
+        employee.style.display = "none";   
+
+        admission.style.display = "none";
+        school.style.display = "none";
+        schoolClass.style.display = "none";
+
+    } else { // Parent
+        tsc.style.display = "none";
+        teacherRole.style.display = "none";
+        employee.style.display = "none";   
+
+        admission.style.display = "none";
+        school.style.display = "none";
+        schoolClass.style.display = "none";
     }
+}
 
     role.addEventListener("change", toggleFields);
     toggleFields();
