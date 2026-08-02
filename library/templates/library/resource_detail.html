@@ -1,382 +1,393 @@
-{% extends 'base.html' %}
-
-{% block title %}
-{{ resource.title }}
-{% endblock %}
+{% extends "base.html" %}
+{% load video_filters %}
+{% block title %}{{ resource.title }}{% endblock %}
 
 {% block content %}
+
 <style>
-.resource-content{
-    line-height:1.8;
-    font-size:1.08rem;
-    color:#333;
+.hero{
+    background:linear-gradient(135deg,#2563eb,#1d4ed8);
+    color:#fff;
+    padding:45px;
+    border-radius:22px;
+    margin-bottom:35px;
 }
 
-.resource-content h1,
-.resource-content h2,
-.resource-content h3,
-.resource-content h4{
-    margin-top:2rem;
-    margin-bottom:1rem;
+.hero h2{
     font-weight:700;
 }
 
-.resource-content p{
-    margin-bottom:1rem;
+.info-card{
+    border:none;
+    border-radius:18px;
+    box-shadow:0 10px 25px rgba(0,0,0,.08);
+}
+
+.meta-box{
+    background:#f8f9fa;
+    border-radius:15px;
+    padding:18px;
+    height:100%;
+}
+
+.resource-content{
+    line-height:1.9;
+    font-size:1.05rem;
 }
 
 .resource-content img{
     max-width:100%;
-    height:auto;
-    border-radius:8px;
-    display:block;
-    margin:1rem auto;
+    border-radius:10px;
 }
 
 .resource-content table{
     width:100%;
-    border-collapse:collapse;
-    margin:1.5rem 0;
-}
-
-.resource-content table th,
-.resource-content table td{
-    border:1px solid #ddd;
-    padding:10px;
-}
-
-.resource-content ul,
-.resource-content ol{
-    padding-left:2rem;
-}
-
-.resource-content pre{
-    overflow-x:auto;
 }
 
 .resource-content iframe{
     max-width:100%;
 }
+
+.resource-content pre{
+    overflow:auto;
+}
+
+.badge-custom{
+    padding:8px 15px;
+    border-radius:30px;
+    font-size:.9rem;
+}
+
+.action-buttons .btn{
+    min-width:160px;
+}
+
+.related-card{
+    border:none;
+    border-radius:15px;
+    transition:.3s;
+    box-shadow:0 5px 18px rgba(0,0,0,.08);
+}
+
+.related-card:hover{
+    transform:translateY(-4px);
+}
 </style>
 
-<div class="container-fluid py-4 px-3 px-lg-5">
+<div class="container py-5">
 
     <!-- Breadcrumb -->
-    <nav aria-label="breadcrumb" class="mb-4">
-        <ol class="breadcrumb shadow-sm p-3 bg-white rounded">
 
-            <li class="breadcrumb-item">
-                {{ resource.level.name }}
-            </li>
+    <nav class="mb-4">
 
-            <li class="breadcrumb-item">
-                {{ resource.subject.name }}
-            </li>
+        <a href="{% url 'library:home' %}">Library</a>
 
-            <li class="breadcrumb-item">
-                {{ resource.topic.title }}
-            </li>
+        /
 
-            {% if resource.subtopic %}
-            <li class="breadcrumb-item">
-                {{ resource.subtopic.title }}
-            </li>
-            {% endif %}
+        <a href="{% url 'library:level_detail' resource.lesson.subtopic.topic.subject.curriculum_class.level.id %}">
+            {{ resource.lesson.subtopic.topic.subject.curriculum_class.level.name }}
+        </a>
 
-            <li class="breadcrumb-item active">
-                {{ resource.title }}
-            </li>
+        /
 
-        </ol>
+        <a href="{% url 'library:class_detail' resource.lesson.subtopic.topic.subject.curriculum_class.id %}">
+            {{ resource.lesson.subtopic.topic.subject.curriculum_class.name }}
+        </a>
+
+        /
+
+        <a href="{% url 'library:subject_detail' resource.lesson.subtopic.topic.subject.id %}">
+            {{ resource.lesson.subtopic.topic.subject.name }}
+        </a>
+
+        /
+
+        <a href="{% url 'library:topic_detail' resource.lesson.subtopic.topic.id %}">
+            {{ resource.lesson.subtopic.topic.title }}
+        </a>
+
+        /
+
+        <a href="{% url 'library:subtopic_detail' resource.lesson.subtopic.id %}">
+            {{ resource.lesson.subtopic.title }}
+        </a>
+
+        /
+
+        <strong>{{ resource.title }}</strong>
+
     </nav>
 
 
-    <div class="card shadow border-0">
+    <!-- Hero -->
 
-        <!-- Header -->
-        <div class="card-header bg-primary text-white py-4">
+    <div class="hero">
 
-            <h2 class="mb-2">
-                {{ resource.title }}
-            </h2>
+        <h2>{{ resource.title }}</h2>
 
-            <span class="badge bg-light text-dark">
-                {{ resource.get_resource_type_display }}
+        <div class="mt-3">
+
+            <span class="badge bg-light text-dark badge-custom">
+                {{ resource.resource_type.name }}
             </span>
 
-        </div>
-
-
-        <div class="card-body p-4">
-
-            <!-- Description -->
-            {% if resource.description %}
-            <h5>Description</h5>
-
-            <<div class="resource-content">
-                {{ resource.description|safe }}
-            </div>
-            {% endif %}
-
-
-            <!-- Metadata -->
-            <div class="row">
-
-                <div class="col-md-6 mb-3">
-
-                    <div class="border rounded p-3 h-100">
-
-                        <h6 class="text-muted">
-                            Subject
-                        </h6>
-
-                        <h5>
-                            {{ resource.subject.name }}
-                        </h5>
-
-                    </div>
-
-                </div>
-
-                <div class="col-md-6 mb-3">
-
-                    <div class="border rounded p-3 h-100">
-
-                        <h6 class="text-muted">
-                            Topic
-                        </h6>
-
-                        <h5>
-                            {{ resource.topic.title }}
-                        </h5>
-
-                    </div>
-
-                </div>
-
-                {% if resource.subtopic %}
-                <div class="col-md-6 mb-3">
-
-                    <div class="border rounded p-3 h-100">
-
-                        <h6 class="text-muted">
-                            SubTopic
-                        </h6>
-
-                        <h5>
-                            {{ resource.subtopic.title }}
-                        </h5>
-
-                    </div>
-
-                </div>
-                {% endif %}
-
-                <div class="col-md-6 mb-3">
-
-                    <div class="border rounded p-3 h-100">
-
-                        <h6 class="text-muted">
-                            Views
-                        </h6>
-
-                        <h5>
-                            👁 {{ resource.views }}
-                        </h5>
-
-                    </div>
-
-                </div>
-
-                <div class="col-md-6 mb-3">
-
-                    <div class="border rounded p-3 h-100">
-
-                        <h6 class="text-muted">
-                            Uploaded On
-                        </h6>
-
-                        <h5>
-                            {{ resource.created_at|date:"d M Y" }}
-                        </h5>
-
-                    </div>
-
-                </div>
-
-                <div class="col-md-6 mb-3">
-
-                    <div class="border rounded p-3 h-100">
-
-                        <h6 class="text-muted">
-                            Resource Type
-                        </h6>
-
-                        <h5>
-                            {{ resource.get_resource_type_display }}
-                        </h5>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- Resource Preview -->
-            {% if resource.file %}
-
-            <hr class="my-4">
-
-            <h4 class="mb-3">
-                Resource Preview
-            </h4>
-
-            {% if '.pdf' in resource.file.url %}
-
-            <iframe
-                src="{{ resource.file.url }}"
-                width="100%"
-                height="700"
-                class="border rounded"
-            >
-            </iframe>
-
-            {% else %}
-
-            <div class="alert alert-light">
-
-                <i class="bi bi-file-earmark"></i>
-
-                This file cannot be previewed.
-
-                Please download it below.
-
-            </div>
-
-            {% endif %}
-
-            {% endif %}
-
-
-            <!-- Video Preview -->
-            {% if resource.video_url %}
-
-            <hr class="my-4">
-
-            <h4 class="mb-3">
-                Video Resource
-            </h4>
-
-            <div class="ratio ratio-16x9">
-
-                <iframe
-                    src="{{ resource.video_url }}"
-                    allowfullscreen
-                >
-                </iframe>
-
-            </div>
-
-            {% endif %}
-
-
-            <!-- Action Buttons -->
-            <hr class="my-4">
-
-            <div class="d-flex flex-wrap gap-3">
-
-                {% if resource.file %}
-                <a
-                    href="{{ resource.file.url }}"
-                    target="_blank"
-                    class="btn btn-success"
-                >
-                    📥 Download Resource
-                </a>
-                {% endif %}
-
-                {% if resource.video_url %}
-                <a
-                    href="{{ resource.video_url }}"
-                    target="_blank"
-                    class="btn btn-danger"
-                >
-                    ▶ Watch Video
-                </a>
-                {% endif %}
-
-                {% if resource.subtopic %}
-                <a
-                    href="{% url 'library:subtopic_detail' resource.subtopic.id %}"
-                    class="btn btn-outline-primary"
-                >
-                    ← Back to SubTopic
-                </a>
-                {% endif %}
-
-            </div>
-
-        </div>
-
-
-        <!-- Footer -->
-        <div class="card-footer bg-light text-center">
-
-            <small class="text-muted">
-                Powered by your Learning Management System
-            </small>
+            <span class="badge bg-warning text-dark badge-custom">
+                {{ resource.access_level.name }}
+            </span>
+
+            <span class="badge bg-success badge-custom">
+                {{ resource.visibility.name }}
+            </span>
 
         </div>
 
     </div>
 
 
-    <!-- Related Resources -->
-    {% if resource.subtopic.resources.count > 1 %}
+    <div class="card info-card">
 
-    <div class="mt-5">
+        <div class="card-body p-4">
 
-        <h4 class="mb-3">
-            Other Resources in this SubTopic
-        </h4>
+            {% if resource.description %}
 
-        <div class="row">
+            <h4>Description</h4>
 
-            {% for item in resource.subtopic.resources.all %}
+            <div class="resource-content mb-5">
 
-                {% if item.id != resource.id %}
+                {{ resource.description|safe }}
 
-                <div class="col-md-4 mb-3">
+            </div>
 
-                    <div class="card shadow-sm h-100">
+            {% endif %}
 
-                        <div class="card-body">
 
-                            <h6>
-                                {{ item.title }}
-                            </h6>
+            <div class="row g-4 mb-5">
 
-                            <small class="text-muted">
-                                {{ item.get_resource_type_display }}
-                            </small>
+                <div class="col-md-4">
 
-                            <br><br>
+                    <div class="meta-box">
 
-                            <a
-                                href="{% url 'library:resource_detail' item.id %}"
-                                class="btn btn-sm btn-primary"
-                            >
-                                Open
-                            </a>
+                        <small class="text-muted">Lesson</small>
 
-                        </div>
+                        <h5>{{ resource.lesson.title }}</h5>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <div class="meta-box">
+
+                        <small class="text-muted">Uploaded By</small>
+
+                        <h5>{{ resource.uploaded_by }}</h5>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <div class="meta-box">
+
+                        <small class="text-muted">Uploaded</small>
+
+                        <h5>{{ resource.created_at|date:"d M Y" }}</h5>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <div class="meta-box">
+
+                        <small class="text-muted">Views</small>
+
+                        <h5>{{ resource.views }}</h5>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <div class="meta-box">
+
+                        <small class="text-muted">Downloads</small>
+
+                        <h5>{{ resource.downloads }}</h5>
+
+                    </div>
+
+                </div>
+
+                {% if resource.duration %}
+
+                <div class="col-md-4">
+
+                    <div class="meta-box">
+
+                        <small class="text-muted">Duration</small>
+
+                        <h5>{{ resource.duration }}</h5>
 
                     </div>
 
                 </div>
 
                 {% endif %}
+
+            </div>
+
+
+            {% if resource.file %}
+
+            <h4 class="mb-3">
+
+                Attached File
+
+            </h4>
+
+            {% if ".pdf" in resource.file.url %}
+
+            <iframe
+                src="{{ resource.file.url }}"
+                width="100%"
+                height="700"
+                class="border rounded mb-4">
+            </iframe>
+
+            {% else %}
+
+            <div class="alert alert-info">
+
+                Preview isn't available for this file type.
+
+            </div>
+
+            {% endif %}
+
+            {% endif %}
+
+            {% if embed_url %}
+
+            <h4 class="mb-3">Video Lesson</h4>
+
+            <div class="ratio ratio-16x9 mb-4">
+                <iframe
+                    src="{{ embed_url }}"
+                    title="{{ resource.title }}"
+                    class="rounded"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen>
+                </iframe>
+            </div>
+
+            <div class="mb-4">
+                <a href="{{ resource.external_url }}"
+                target="_blank"
+                class="btn btn-outline-primary">
+                    Watch on YouTube
+                </a>
+            </div>
+
+            {% elif resource.external_url %}
+
+            <div class="alert alert-primary">
+                <strong>External Resource</strong><br><br>
+
+                <a href="{{ resource.external_url }}"
+                target="_blank"
+                class="btn btn-primary">
+                    Open Website
+                </a>
+            </div>
+
+            {% endif %}
+
+            <div class="action-buttons d-flex flex-wrap gap-3 mt-4">
+
+                {% if resource.file %}
+
+                <a href="{% url 'library:download_resource' resource.id %}"
+                   class="btn btn-success">
+
+                    Download
+
+                </a>
+
+                {% endif %}
+
+                <a href="{% url 'library:edit_resource' resource.id %}"
+                   class="btn btn-warning">
+
+                    Edit Resource
+
+                </a>
+
+                <a href="{% url 'library:delete_resource' resource.id %}"
+                   class="btn btn-danger">
+
+                    Delete Resource
+
+                </a>
+
+                <a href="{% url 'library:lesson_detail' resource.lesson.slug %}"
+                   class="btn btn-outline-primary">
+
+                    Back to Lesson
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    {% if related_resources %}
+
+    <div class="mt-5">
+
+        <h3 class="mb-4">
+
+            Related Resources
+
+        </h3>
+
+        <div class="row">
+
+            {% for item in related_resources %}
+
+            <div class="col-lg-4 mb-4">
+
+                <div class="card related-card h-100">
+
+                    <div class="card-body">
+
+                        <h5>{{ item.title }}</h5>
+
+                        <p class="text-muted">
+
+                            {{ item.resource_type.name }}
+
+                        </p>
+
+                        <a href="{% url 'library:resource_detail' item.id %}"
+                           class="btn btn-primary">
+
+                            Open
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
 
             {% endfor %}
 

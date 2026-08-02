@@ -2,8 +2,10 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .forms import ResourceForm
+from django.db.models import F, Q
 from .decorators import school_admin_required
-
+from django.core.paginator import Paginator
+from urllib.parse import urlparse, parse_qs
 from .models import (
     Level,
     CurriculumClass,
@@ -29,6 +31,31 @@ def resource_search(query):
     )
 
 
+
+
+def get_embed_url(url):
+    if not url:
+        return None
+
+    parsed = urlparse(url)
+
+    # YouTube short URL
+    if "youtu.be" in parsed.netloc:
+        video_id = parsed.path.strip("/")
+        return f"https://www.youtube.com/embed/{video_id}"
+
+    # YouTube watch URL
+    if "youtube.com" in parsed.netloc:
+        video_id = parse_qs(parsed.query).get("v", [""])[0]
+        if video_id:
+            return f"https://www.youtube.com/embed/{video_id}"
+
+    # Vimeo
+    if "vimeo.com" in parsed.netloc:
+        video_id = parsed.path.strip("/")
+        return f"https://player.vimeo.com/video/{video_id}"
+
+    return None
 # ==================================================
 # LIBRARY HOME
 # ==================================================
@@ -224,18 +251,13 @@ def resource_list(request):
 
     if query:
         resources = resources.filter(resource_search(query))
-
     resource_type = request.GET.get("type")
 
     if resource_type:
-        resources = resources.filter(
-            resource_type__id=resource_type
-        )
+        resources = resources.filter(resource_type__id=resource_type)
 
     paginator = Paginator(resources, 20)
-
     page = request.GET.get("page")
-
     resources = paginator.get_page(page)
 
     return render(
@@ -246,7 +268,6 @@ def resource_list(request):
             "query": query,
         },
     )
-
 @login_required
 def resource_detail(request, pk):
 
@@ -282,15 +303,18 @@ def resource_detail(request, pk):
         .order_by("order")
     )
 
+    # Generate embed URL if applicable
+    embed_url = get_embed_url(resource.external_url)
+
     return render(
         request,
         "library/resource_detail.html",
         {
             "resource": resource,
             "related_resources": related_resources,
+            "embed_url": embed_url,
         },
     )
-
 
 
 @login_required
@@ -321,7 +345,7 @@ def add_resource(request):
             )
 
             return redirect(
-                "resource_detail",
+                "library:resource_detail",
                 pk=resource.pk,
             )
 
@@ -370,9 +394,9 @@ def edit_resource(request, pk):
             )
 
             return redirect(
-                "resource_detail",
-                pk=resource.pk,
-            )
+            "library:resource_detail",
+            pk=resource.pk,
+        )
 
     else:
 
@@ -411,7 +435,7 @@ def delete_resource(request, pk):
         )
 
         return redirect(
-            "resource_list"
+            "library:resource_list"
         )
 
     return render(
@@ -447,5 +471,6 @@ def download_resource(request, pk):
 
 
  
+
 
 

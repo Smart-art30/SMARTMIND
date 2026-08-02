@@ -1,4 +1,5 @@
 from django import forms
+from django_ckeditor_5.widgets import CKEditor5Widget
 
 from .models import (
     Resource,
@@ -32,13 +33,15 @@ class ResourceForm(forms.ModelForm):
             "access_level": forms.Select(attrs={"class": "form-select"}),
             "visibility": forms.Select(attrs={"class": "form-select"}),
 
-            "title": forms.TextInput(attrs={"class": "form-control"}),
-
-            "description": forms.Textarea(
+            "title": forms.TextInput(
                 attrs={
                     "class": "form-control",
-                    "rows": 5,
+                    "placeholder": "Enter resource title",
                 }
+            ),
+
+            "description": CKEditor5Widget(
+                config_name="extends"
             ),
 
             "file": forms.ClearableFileInput(
@@ -46,11 +49,17 @@ class ResourceForm(forms.ModelForm):
             ),
 
             "external_url": forms.URLInput(
-                attrs={"class": "form-control"}
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "https://example.com",
+                }
             ),
 
             "duration": forms.NumberInput(
-                attrs={"class": "form-control"}
+                attrs={
+                    "class": "form-control",
+                    "min": "0",
+                }
             ),
 
             "thumbnail": forms.ClearableFileInput(
@@ -58,13 +67,18 @@ class ResourceForm(forms.ModelForm):
             ),
 
             "order": forms.NumberInput(
-                attrs={"class": "form-control"}
+                attrs={
+                    "class": "form-control",
+                    "min": "0",
+                }
             ),
         }
 
     def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
 
+        # Querysets
         self.fields["lesson"].queryset = (
             Lesson.objects.filter(is_published=True)
             .select_related(
@@ -80,24 +94,30 @@ class ResourceForm(forms.ModelForm):
         )
 
         self.fields["resource_type"].queryset = (
-            ResourceType.objects.order_by("order")
+            ResourceType.objects.order_by("name")
         )
 
         self.fields["access_level"].queryset = (
-            AccessLevel.objects.all()
+            AccessLevel.objects.order_by("name")
         )
 
         self.fields["visibility"].queryset = (
-            Visibility.objects.all()
+            Visibility.objects.order_by("name")
         )
+
+        # Apply Bootstrap styling to all fields except CKEditor
+        for name, field in self.fields.items():
+            if name != "description":
+                existing = field.widget.attrs.get("class", "")
+                field.widget.attrs["class"] = f"{existing} form-control".strip()
 
     def clean(self):
         cleaned_data = super().clean()
 
-        file = cleaned_data.get("file")
+        uploaded_file = cleaned_data.get("file")
         external_url = cleaned_data.get("external_url")
 
-        if not file and not external_url:
+        if not uploaded_file and not external_url:
             raise forms.ValidationError(
                 "Please upload a file or provide an external URL."
             )

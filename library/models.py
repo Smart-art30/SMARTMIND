@@ -8,7 +8,7 @@ from django_ckeditor_5.fields import CKEditor5Field
 # =========================
 class Level(models.Model):
     name = models.CharField(max_length=100, unique=True)
-    description = models.TextField(blank=True)
+    description = CKEditor5Field(blank=True)
     order = models.PositiveIntegerField(default=0)
 
     class Meta:

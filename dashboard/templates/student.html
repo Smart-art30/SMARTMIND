@@ -473,7 +473,9 @@ body{
         <a href="{% url 'assignment_list' %}">📝 Assignments</a>
         <a href="{% url 'quiz_home' %}">❓ Quizzes</a>
         <a href="{% url 'library:home' %}">📚 Library</a>
-        <a href="#">💬 Messages</a>
+        <a href="{% url 'library:resource_list' %}">
+            <i class="bi bi-collection-fill me-2"></i> Resources
+        </a>        <a href="#">💬 Messages</a>
 
         <form method="post" action="{% url 'logout' %}">
             {% csrf_token %}

@@ -19,4 +19,9 @@ urlpatterns = [
     path("resources/<int:pk>/edit/", views.edit_resource, name="edit_resource"),
     path("resources/<int:pk>/delete/", views.delete_resource, name="delete_resource"),
     path("resources/<int:pk>/download/", views.download_resource, name="download_resource"),
+    path("resources/<int:pk>/",views.resource_detail,name="resource_detail",),
+    path("resources/<int:pk>/", views.resource_detail, name="resource_detail"),
+    path("resources/<int:pk>/edit/", views.edit_resource, name="edit_resource"),
+    path("resources/<int:pk>/delete/", views.delete_resource, name="delete_resource"),
+    path("resources/<int:pk>/download/", views.download_resource, name="download_resource"),
 ]
