@@ -1,293 +1,449 @@
-
 from django.contrib import admin
 from .models import (
     Level,
+    CurriculumClass,
     Subject,
     Topic,
     SubTopic,
+    Lesson,
     Resource,
+    ResourceType,
+    AccessLevel,
+    Visibility,
+    Assessment,
     Question,
-    Progress,
+    AssessmentAttempt,
+    StudentAnswer,
+    LessonProgress,
+    Product,
+    ProductResource,
+    Purchase,
 )
 
 
-# =========================
-# LEVEL ADMIN
-# =========================
+# =====================================================
+# LEVEL
+# =====================================================
 @admin.register(Level)
 class LevelAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name')
-    search_fields = ('name',)
-    ordering = ('name',)
+    list_display = ("id", "name", "order")
+    search_fields = ("name",)
+    ordering = ("order",)
 
 
-# =========================
-# SUBJECT ADMIN
-# =========================
+# =====================================================
+# CURRICULUM CLASS
+# =====================================================
+@admin.register(CurriculumClass)
+class CurriculumClassAdmin(admin.ModelAdmin):
+    list_display = ("id", "name", "level", "order")
+    list_filter = ("level",)
+    search_fields = ("name", "level__name")
+    autocomplete_fields = ("level",)
+    ordering = ("level", "order")
+
+
+# =====================================================
+# SUBJECT
+# =====================================================
 @admin.register(Subject)
 class SubjectAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'level')
-    list_filter = ('level',)
-    search_fields = ('name', 'level__name')
-    autocomplete_fields = ('level',)
-    ordering = ('level', 'name')
-    list_select_related = ('level',)
+    list_display = (
+        "id",
+        "name",
+        "curriculum_class",
+        "order",
+    )
+
+    list_filter = (
+        "curriculum_class",
+    )
+
+    search_fields = (
+        "name",
+        "curriculum_class__name",
+        "curriculum_class__level__name",
+    )
+
+    autocomplete_fields = (
+        "curriculum_class",
+    )
+
+    ordering = (
+        "curriculum_class",
+        "order",
+    )
 
 
-# =========================
-# TOPIC ADMIN
-# =========================
+# =====================================================
+# TOPIC
+# =====================================================
 @admin.register(Topic)
 class TopicAdmin(admin.ModelAdmin):
     list_display = (
-        'id',
-        'title',
-        'subject',
-        'get_level',
+        "id",
+        "title",
+        "subject",
+        "curriculum_class",
     )
 
     list_filter = (
-        'subject__level',
-        'subject',
+        "subject",
+        "subject__curriculum_class",
     )
 
     search_fields = (
-        'title',
-        'subject__name',
-        'subject__level__name',
+        "title",
+        "subject__name",
     )
 
     autocomplete_fields = (
-        'subject',
-        'level',
+        "subject",
     )
 
-    ordering = (
-        'subject__level',
-        'subject',
-        'title',
-    )
-
-    list_select_related = (
-        'level',
-        'subject',
-    )
-
-    def get_level(self, obj):
-        return obj.level
-    get_level.short_description = 'Level'
+    def curriculum_class(self, obj):
+        return obj.subject.curriculum_class
 
 
-# =========================
-# SUBTOPIC ADMIN
-# =========================
+# =====================================================
+# SUBTOPIC
+# =====================================================
 @admin.register(SubTopic)
 class SubTopicAdmin(admin.ModelAdmin):
     list_display = (
-        'id',
-        'title',
-        'topic',
-        'get_subject',
-        'get_level',
+        "id",
+        "title",
+        "topic",
+        "subject",
     )
 
     list_filter = (
-        'topic__subject__level',
-        'topic__subject',
-        'topic',
+        "topic",
+        "topic__subject",
     )
 
     search_fields = (
-        'title',
-        'topic__title',
-        'topic__subject__name',
-        'topic__subject__level__name',
+        "title",
+        "topic__title",
     )
 
     autocomplete_fields = (
-        'topic',
+        "topic",
     )
 
-    ordering = (
-        'topic',
-        'title',
-    )
-
-    list_select_related = (
-        'topic',
-        'topic__subject',
-        'topic__level',
-    )
-
-    def get_subject(self, obj):
+    def subject(self, obj):
         return obj.topic.subject
-    get_subject.short_description = 'Subject'
-
-    def get_level(self, obj):
-        return obj.topic.level
-    get_level.short_description = 'Level'
 
 
-# =========================
-# RESOURCE ADMIN
-# =========================
+# =====================================================
+# LESSON
+# =====================================================
+@admin.register(Lesson)
+class LessonAdmin(admin.ModelAdmin):
+    list_display = (
+        "title",
+        "subtopic",
+        "estimated_minutes",
+        "is_published",
+        "created_at",
+    )
+
+    list_filter = (
+        "is_published",
+        "subtopic",
+    )
+
+    search_fields = (
+        "title",
+        "subtopic__title",
+    )
+
+    autocomplete_fields = (
+        "subtopic",
+    )
+
+    readonly_fields = (
+        "created_at",
+        "updated_at",
+    )
+
+
+# =====================================================
+# RESOURCE TYPE
+# =====================================================
+@admin.register(ResourceType)
+class ResourceTypeAdmin(admin.ModelAdmin):
+    list_display = (
+        "name",
+        "icon",
+        "color",
+        "order",
+    )
+    search_fields = ("name",)
+
+
+# =====================================================
+# ACCESS LEVEL
+# =====================================================
+@admin.register(AccessLevel)
+class AccessLevelAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "name",
+    )
+    search_fields = ("name",)
+
+
+# =====================================================
+# VISIBILITY
+# =====================================================
+@admin.register(Visibility)
+class VisibilityAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "name",
+    )
+    search_fields = ("name",)
+
+
+# =====================================================
+# RESOURCE
+# =====================================================
 @admin.register(Resource)
 class ResourceAdmin(admin.ModelAdmin):
     list_display = (
-        'title',
-        'resource_type',
-        'level',
-        'subject',
-        'topic',
-        'subtopic',
-        'views',
-        'created_at',
+        "title",
+        "lesson",
+        "resource_type",
+        "access_level",
+        "visibility",
+        "uploaded_by",
+        "views",
+        "downloads",
+        "created_at",
     )
 
     list_filter = (
-        'resource_type',
-        'level',
-        'subject',
-        'topic',
-        'subtopic',
-        'created_at',
+        "resource_type",
+        "access_level",
+        "visibility",
+        "created_at",
     )
 
     search_fields = (
-        'title',
-        'description',
-        'level__name',
-        'subject__name',
-        'topic__title',
-        'subtopic__title',
+        "title",
+        "lesson__title",
     )
 
     autocomplete_fields = (
-        'level',
-        'subject',
-        'topic',
-        'subtopic',
+        "lesson",
+        "resource_type",
+        "access_level",
+        "visibility",
+        "uploaded_by",
     )
 
     readonly_fields = (
-        'views',
-        'created_at',
-    )
-
-    date_hierarchy = 'created_at'
-
-    ordering = (
-        '-created_at',
-    )
-
-    list_select_related = (
-        'level',
-        'subject',
-        'topic',
-        'subtopic',
+        "views",
+        "downloads",
+        "created_at",
+        "updated_at",
     )
 
 
-# =========================
-# QUESTION ADMIN
-# =========================
+# =====================================================
+# ASSESSMENT
+# =====================================================
+@admin.register(Assessment)
+class AssessmentAdmin(admin.ModelAdmin):
+    list_display = (
+        "title",
+        "lesson",
+        "assessment_type",
+        "passing_score",
+        "is_published",
+    )
+
+    list_filter = (
+        "assessment_type",
+        "is_published",
+    )
+
+    search_fields = (
+        "title",
+        "lesson__title",
+    )
+
+    autocomplete_fields = (
+        "lesson",
+    )
+
+
+# =====================================================
+# QUESTION
+# =====================================================
 @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):
     list_display = (
-        'id',
-        'short_question',
-        'level',
-        'subject',
-        'topic',
-        'subtopic',
-        'answer',
+        "id",
+        "assessment",
+        "short_question",
+        "answer",
+        "marks",
     )
 
     list_filter = (
-        'level',
-        'subject',
-        'topic',
-        'subtopic',
-        'answer',
+        "assessment",
     )
 
     search_fields = (
-        'question',
-        'level__name',
-        'subject__name',
-        'topic__title',
-        'subtopic__title',
+        "question",
+        "assessment__title",
     )
 
     autocomplete_fields = (
-        'level',
-        'subject',
-        'topic',
-        'subtopic',
-    )
-
-    ordering = (
-        '-id',
-    )
-
-    list_select_related = (
-        'level',
-        'subject',
-        'topic',
-        'subtopic',
+        "assessment",
     )
 
     def short_question(self, obj):
-        return obj.question[:80]
-    short_question.short_description = 'Question'
+        return str(obj.question)[:80]
+
+    short_question.short_description = "Question"
 
 
-# =========================
-# PROGRESS ADMIN
-# =========================
-@admin.register(Progress)
-class ProgressAdmin(admin.ModelAdmin):
+# =====================================================
+# ASSESSMENT ATTEMPT
+# =====================================================
+@admin.register(AssessmentAttempt)
+class AssessmentAttemptAdmin(admin.ModelAdmin):
     list_display = (
-        'learner',
-        'topic',
-        'subtopic',
-        'score',
-        'completed',
-        'date_completed',
-    )
-
-    list_filter = (
-        'completed',
-        'topic',
-        'subtopic',
-        'date_completed',
+        "learner",
+        "assessment",
+        "score",
+        "percentage",
+        "passed",
+        "completed_at",
     )
 
     search_fields = (
-        'learner__username',
-        'learner__first_name',
-        'learner__last_name',
-        'topic__title',
-        'subtopic__title',
+        "learner__username",
+        "assessment__title",
+    )
+
+    list_filter = (
+        "passed",
     )
 
     autocomplete_fields = (
-        'learner',
-        'topic',
-        'subtopic',
+        "learner",
+        "assessment",
+    )
+
+
+# =====================================================
+# STUDENT ANSWERS
+# =====================================================
+@admin.register(StudentAnswer)
+class StudentAnswerAdmin(admin.ModelAdmin):
+    list_display = (
+        "attempt",
+        "question",
+        "selected_answer",
+        "is_correct",
+        "marks_awarded",
+    )
+
+    search_fields = (
+        "question__question",
+        "attempt__learner__username",
+    )
+
+    autocomplete_fields = (
+        "attempt",
+        "question",
+    )
+
+
+# =====================================================
+# LESSON PROGRESS
+# =====================================================
+@admin.register(LessonProgress)
+class LessonProgressAdmin(admin.ModelAdmin):
+    list_display = (
+        "learner",
+        "lesson",
+        "status",
+        "percentage",
+        "last_accessed",
+    )
+
+    list_filter = (
+        "status",
+    )
+
+    autocomplete_fields = (
+        "learner",
+        "lesson",
     )
 
     readonly_fields = (
-        'date_completed',
+        "started_at",
+        "completed_at",
+        "last_accessed",
     )
 
-    ordering = (
-        '-date_completed',
+
+# =====================================================
+# PRODUCT
+# =====================================================
+@admin.register(Product)
+class ProductAdmin(admin.ModelAdmin):
+    list_display = (
+        "title",
+        "creator",
+        "price",
+        "is_active",
+        "created_at",
     )
 
-    list_select_related = (
-        'learner',
-        'topic',
-        'subtopic',
+    search_fields = (
+        "title",
+        "creator__username",
     )
 
+    list_filter = (
+        "is_active",
+    )
+
+    autocomplete_fields = (
+        "creator",
+    )
+
+
+# =====================================================
+# PRODUCT RESOURCE
+# =====================================================
+@admin.register(ProductResource)
+class ProductResourceAdmin(admin.ModelAdmin):
+    autocomplete_fields = (
+        "product",
+        "resource",
+    )
+
+
+# =====================================================
+# PURCHASE
+# =====================================================
+@admin.register(Purchase)
+class PurchaseAdmin(admin.ModelAdmin):
+    list_display = (
+        "learner",
+        "product",
+        "amount",
+        "purchased_at",
+    )
+
+    autocomplete_fields = (
+        "learner",
+        "product",
+    )

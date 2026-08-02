@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ level.name }}
+{% endblock %}
+
+{% block content %}
+
+<style>
+
+.level-banner{
+    background:linear-gradient(135deg,#667eea,#764ba2);
+    color:#fff;
+    padding:45px;
+    border-radius:20px;
+    margin-bottom:40px;
+}
+
+.class-card{
+    border:none;
+    border-radius:18px;
+    overflow:hidden;
+    transition:.3s;
+    box-shadow:0 8px 25px rgba(0,0,0,.08);
+    height:100%;
+}
+
+.class-card:hover{
+    transform:translateY(-8px);
+    box-shadow:0 15px 40px rgba(0,0,0,.15);
+}
+
+.class-header{
+    background:#f8f9fa;
+    padding:25px;
+    border-bottom:1px solid #eee;
+}
+
+.class-body{
+    padding:25px;
+}
+
+.stat{
+    font-size:15px;
+    color:#777;
+}
+
+</style>
+
+<div class="container py-4">
+
+    <div class="level-banner">
+
+        <h1 class="fw-bold">
+
+            🎓 {{ level.name }}
+
+        </h1>
+
+        {% if level.description %}
+        <p class="mb-0">
+            {{ level.description }}
+        </p>
+        {% endif %}
+
+    </div>
+
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <h3 class="fw-bold">
+            Curriculum Classes
+        </h3>
+
+        <span class="badge bg-primary fs-6">
+            {{ classes.count }} Class{{ classes.count|pluralize }}
+        </span>
+
+    </div>
+
+
+    <div class="row">
+
+        {% for class in classes %}
+
+        <div class="col-lg-4 col-md-6 mb-4">
+
+            <div class="card class-card">
+
+                <div class="class-header">
+
+                    <h4 class="mb-2">
+                        {{ class.name }}
+                    </h4>
+
+                    {% if class.description %}
+                    <small class="text-muted">
+                        {{ class.description }}
+                    </small>
+                    {% endif %}
+
+                </div>
+
+
+                <div class="class-body">
+
+                    <p class="stat">
+
+                        📚 {{ class.subjects.count }}
+
+                        Subject{{ class.subjects.count|pluralize }}
+
+                    </p>
+
+                    <a href="{% url 'library:class_detail' class.id %}"
+                       class="btn btn-primary w-100 mt-3">
+
+                        Open Class
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        {% empty %}
+
+        <div class="col-12">
+
+            <div class="alert alert-info">
+
+                No curriculum classes have been added to this level yet.
+
+            </div>
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+
+    <div class="mt-4">
+
+        <a href="{% url 'library:home' %}"
+           class="btn btn-outline-secondary">
+
+            ← Back to Library
+
+        </a>
+
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,34 +1,45 @@
-from library.models import Progress, Resource
+from library.models import LessonProgress, Resource
 
 
 def get_learning_recommendations(user):
     """
-    Recommend what the learner should study next.
+    Recommend resources from lessons that are not yet completed.
     """
 
     if not user or not user.is_authenticated:
         return []
 
-    weak_topics = (
-        Progress.objects
+    progress_records = (
+        LessonProgress.objects
         .filter(
             learner=user,
-            score__lt=60
+            percentage__lt=100
         )
-        .select_related("topic")
+        .select_related(
+            "lesson",
+            "lesson__subtopic",
+            "lesson__subtopic__topic",
+            "lesson__subtopic__topic__subject",
+        )
     )
 
     recommendations = []
 
-    for progress in weak_topics:
-
-        if progress.topic:
-
-            lessons = Resource.objects.filter(
-                topic=progress.topic
+    for progress in progress_records:
+        resources = (
+            Resource.objects
+            .filter(
+                lesson=progress.lesson
+            )
+            .select_related(
+                "lesson",
+                "lesson__subtopic",
+                "lesson__subtopic__topic",
+                "lesson__subtopic__topic__subject",
             )[:3]
+        )
 
-            recommendations.extend(lessons)
+        recommendations.extend(resources)
 
     return recommendations
 
@@ -43,21 +54,33 @@ def build_adaptive_context(user):
     if not recommendations:
         return ""
 
-    text = []
+    context = []
 
-    for lesson in recommendations:
+    for resource in recommendations:
+        lesson = resource.lesson
+        subtopic = lesson.subtopic
+        topic = subtopic.topic
+        subject = topic.subject
 
-        text.append(f"""
-Recommended Lesson
+        context.append(
+            f"""
+Recommended Resource
 
 Title:
+{resource.title}
+
+Lesson:
 {lesson.title}
 
+Subtopic:
+{subtopic.title}
+
 Topic:
-{lesson.topic}
+{topic.title}
 
 Subject:
-{lesson.subject}
-""")
+{subject.name}
+"""
+        )
 
-    return "\n--------------------------------\n".join(text)
+    return "\n--------------------------------\n".join(context)

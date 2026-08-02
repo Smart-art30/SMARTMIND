@@ -1,42 +1,39 @@
-from library.models import ResourceView, Progress, Resource
+from library.models import LessonProgress, Resource
 
 
 def recommend_resources(user, limit=5):
+    """
+    Recommend resources from lessons the learner has not yet completed.
+    """
 
     if not user or not user.is_authenticated:
-        return []
+        return Resource.objects.none()
 
-    viewed = ResourceView.objects.filter(
-        learner=user
-    ).values_list(
-        "resource_id",
-        flat=True,
-    )
-
-    weak_topics = Progress.objects.filter(
-        learner=user,
-        score__lt=50,
-    ).values_list(
-        "topic_id",
-        flat=True,
-    )
-
-    recommendations = (
-        Resource.objects.filter(
-            topic_id__in=weak_topics
+    lesson_ids = (
+        LessonProgress.objects
+        .filter(
+            learner=user,
+            percentage__lt=100,
         )
-        .exclude(id__in=viewed)
+        .values_list("lesson_id", flat=True)
+    )
+
+    return (
+        Resource.objects
+        .filter(lesson_id__in=lesson_ids)
         .select_related(
-            "level",
-            "subject",
-            "topic",
+            "lesson",
+            "lesson__subtopic",
+            "lesson__subtopic__topic",
+            "lesson__subtopic__topic__subject",
         )[:limit]
     )
 
-    return recommendations
-
 
 def build_recommendation_context(resources):
+    """
+    Build recommendation context for the AI.
+    """
 
     if not resources:
         return ""
@@ -44,18 +41,28 @@ def build_recommendation_context(resources):
     text = []
 
     for resource in resources:
+        lesson = resource.lesson
+        subtopic = lesson.subtopic
+        topic = subtopic.topic
+        subject = topic.subject
 
         text.append(f"""
-Recommended Lesson
+Recommended Resource
 
 Title:
 {resource.title}
 
-Subject:
-{resource.subject}
+Lesson:
+{lesson.title}
+
+Subtopic:
+{subtopic.title}
 
 Topic:
-{resource.topic}
+{topic.title}
+
+Subject:
+{subject.name}
 """)
 
     return "\n".join(text)

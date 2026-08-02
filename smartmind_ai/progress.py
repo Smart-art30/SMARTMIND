@@ -1,9 +1,9 @@
-from library.models import Progress
+from library.models import LessonProgress
 
 
 def build_progress_context(user):
     """
-    Build a summary of the learner's recent progress
+    Build a summary of the learner's recent lesson progress
     for the AI prompt.
     """
 
@@ -11,10 +11,15 @@ def build_progress_context(user):
         return ""
 
     progress = (
-        Progress.objects
+        LessonProgress.objects
         .filter(learner=user)
-        .select_related("topic", "subtopic")
-        .order_by("-date_completed", "-id")[:15]
+        .select_related(
+            "lesson",
+            "lesson__subtopic",
+            "lesson__subtopic__topic",
+            "lesson__subtopic__topic__subject",
+        )
+        .order_by("-last_accessed")[:15]
     )
 
     if not progress.exists():
@@ -23,39 +28,29 @@ def build_progress_context(user):
     context = []
 
     for p in progress:
-
-        topic = (
-            p.topic.title
-            if p.topic
-            else "Unknown Topic"
-        )
-
-        subtopic = (
-            p.subtopic.title
-            if p.subtopic
-            else "General"
-        )
-
-        status = (
-            "Completed"
-            if p.completed
-            else "In Progress"
-        )
-
-        score = f"{p.score}%"
+        lesson = p.lesson
+        subtopic = lesson.subtopic
+        topic = subtopic.topic
+        subject = topic.subject
 
         context.append(f"""
+SUBJECT:
+{subject.name}
+
 TOPIC:
-{topic}
+{topic.title}
 
 SUBTOPIC:
-{subtopic}
+{subtopic.title}
 
-SCORE:
-{score}
+LESSON:
+{lesson.title}
+
+PROGRESS:
+{p.percentage}%
 
 STATUS:
-{status}
+{p.get_status_display()}
 """)
 
     return "\n----------------------------------------\n".join(context)

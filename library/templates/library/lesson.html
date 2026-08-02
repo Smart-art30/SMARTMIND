@@ -1,0 +1,367 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ lesson.title }}
+{% endblock %}
+
+{% block content %}
+
+<style>
+
+.lesson-header{
+    background:linear-gradient(135deg,#667eea,#764ba2);
+    color:white;
+    padding:40px;
+    border-radius:20px;
+    margin-bottom:30px;
+}
+
+.info-card,
+.resource-card,
+.assessment-card{
+    border:none;
+    border-radius:18px;
+    box-shadow:0 8px 25px rgba(0,0,0,.08);
+    margin-bottom:25px;
+}
+
+.resource-card:hover,
+.assessment-card:hover{
+    transform:translateY(-4px);
+    transition:.3s;
+}
+
+.badge-soft{
+    background:#eef2ff;
+    color:#4f46e5;
+    padding:6px 12px;
+    border-radius:20px;
+}
+
+</style>
+
+
+<div class="container py-4">
+
+<div class="lesson-header">
+
+<nav class="mb-3">
+
+<small>
+
+{{ lesson.subtopic.topic.subject.curriculum_class.level.name }}
+
+>
+
+{{ lesson.subtopic.topic.subject.curriculum_class.name }}
+
+>
+
+{{ lesson.subtopic.topic.subject.name }}
+
+>
+
+{{ lesson.subtopic.topic.name }}
+
+>
+
+{{ lesson.subtopic.name }}
+
+</small>
+
+</nav>
+
+<h1 class="fw-bold">
+
+{{ lesson.title }}
+
+</h1>
+
+{% if lesson.description %}
+
+<p class="mb-0">
+
+{{ lesson.description|linebreaks }}
+
+</p>
+
+{% endif %}
+
+</div>
+
+
+<div class="row">
+
+<div class="col-lg-8">
+
+<div class="card info-card">
+
+<div class="card-body">
+
+<h3>
+
+Lesson Resources
+
+</h3>
+
+<hr>
+
+{% for resource in resources %}
+
+<div class="card resource-card">
+
+<div class="card-body">
+
+<div class="d-flex justify-content-between">
+
+<div>
+
+<h5>
+
+{{ resource.title }}
+
+</h5>
+
+<p class="text-muted mb-2">
+
+{{ resource.description|truncatewords:20 }}
+
+</p>
+
+<span class="badge-soft">
+
+{{ resource.resource_type.name }}
+
+</span>
+
+</div>
+
+<div>
+
+<a href="{% url 'library:resource_detail' resource.pk %}"
+class="btn btn-primary">
+
+Open
+
+</a>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+{% empty %}
+
+<div class="alert alert-info">
+
+No resources have been uploaded for this lesson.
+
+</div>
+
+{% endfor %}
+
+</div>
+
+</div>
+
+
+<div class="card info-card">
+
+<div class="card-body">
+
+<h3>
+
+Assessments
+
+</h3>
+
+<hr>
+
+{% for assessment in assessments %}
+
+<div class="card assessment-card">
+
+<div class="card-body">
+
+<h5>
+
+{{ assessment.title }}
+
+</h5>
+
+{% if assessment.instructions %}
+
+<p class="text-muted">
+
+{{ assessment.instructions|truncatewords:25 }}
+
+</p>
+
+{% endif %}
+
+<div class="row">
+
+<div class="col-md-4">
+
+<strong>Time</strong><br>
+
+{{ assessment.time_limit }} minutes
+
+</div>
+
+<div class="col-md-4">
+
+<strong>Pass Mark</strong><br>
+
+{{ assessment.passing_score }}%
+
+</div>
+
+<div class="col-md-4">
+
+<a href="#"
+class="btn btn-success mt-2">
+
+Start Assessment
+
+</a>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+{% empty %}
+
+<div class="alert alert-warning">
+
+No assessments available.
+
+</div>
+
+{% endfor %}
+
+</div>
+
+</div>
+
+</div>
+
+
+<div class="col-lg-4">
+
+<div class="card info-card">
+
+<div class="card-body">
+
+<h4>
+
+Lesson Progress
+
+</h4>
+
+<hr>
+
+{% if progress.completed %}
+
+<div class="alert alert-success">
+
+✅ Lesson Completed
+
+</div>
+
+{% else %}
+
+<div class="alert alert-warning">
+
+In Progress
+
+</div>
+
+{% endif %}
+
+{% if progress.percentage %}
+
+<div class="progress mb-3">
+
+<div class="progress-bar"
+style="width:{{ progress.percentage }}%">
+
+{{ progress.percentage }}%
+
+</div>
+
+</div>
+
+{% endif %}
+
+</div>
+
+</div>
+
+
+<div class="card info-card">
+
+<div class="card-body">
+
+<h4>
+
+Lesson Details
+
+</h4>
+
+<hr>
+
+<p>
+
+<strong>Subject</strong><br>
+
+{{ lesson.subtopic.topic.subject.name }}
+
+</p>
+
+<p>
+
+<strong>Topic</strong><br>
+
+{{ lesson.subtopic.topic.name }}
+
+</p>
+
+<p>
+
+<strong>Sub Topic</strong><br>
+
+{{ lesson.subtopic.name }}
+
+</p>
+
+{% if lesson.duration %}
+
+<p>
+
+<strong>Duration</strong><br>
+
+{{ lesson.duration }} Minutes
+
+</p>
+
+{% endif %}
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+{% endblock %}
