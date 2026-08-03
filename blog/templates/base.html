@@ -306,7 +306,6 @@
                     {% endfor %}
                 </div>
             </div>
-
             <div class="sidebar-section">
                 <h3>Quick Links</h3>
                 <div class="sidebar-links">
@@ -315,7 +314,20 @@
                     <a href="#"><i class="bi bi-bookmark"></i><span>Bookmarks</span></a>
                     <a href="{% url 'library:home' %}"><i class="bi bi-journal-text"></i><span>Library</span></a>
                 </div>
+
+                <div class="user-box mt-3">
+                    {% if user.is_authenticated %}
+                        <span>Hi, <strong>{{ user.username }}</strong></span>
+                        <form action="{% url 'logout' %}" method="post" class="m-0">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-pill">Logout</button>
+                        </form>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="btn-pill">Login</a>
+                    {% endif %}
+                </div>
             </div>
+                        </div>
         </aside>
 
         <main>
