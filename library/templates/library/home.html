@@ -4,205 +4,165 @@
 Learning Library
 {% endblock %}
 
-
 {% block content %}
 
 <style>
-
 .library-hero {
     background: linear-gradient(135deg,#667eea,#764ba2);
-    border-radius:25px;
-    padding:50px;
-    color:white;
-    margin-bottom:40px;
+    border-radius: 25px;
+    padding: 50px;
+    color: white;
+    margin-bottom: 40px;
 }
 
-.library-hero h1{
-    font-weight:700;
+.library-hero h1 {
+    font-weight: 700;
 }
 
-.level-card{
-    border:none;
-    border-radius:20px;
-    overflow:hidden;
-    box-shadow:0 8px 30px rgba(0,0,0,.08);
-    transition:.3s;
-    height:100%;
+.level-card {
+    border: none;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 8px 30px rgba(0,0,0,.08);
+    transition: .3s;
+    height: 100%;
 }
 
-.level-card:hover{
-    transform:translateY(-8px);
+.level-card:hover {
+    transform: translateY(-8px);
 }
 
-.level-header{
-    background:linear-gradient(135deg,#667eea,#764ba2);
-    color:white;
-    padding:25px;
+.level-header {
+    background: linear-gradient(135deg,#667eea,#764ba2);
+    color: white;
+    padding: 25px;
 }
 
-.level-body{
-    padding:25px;
+.level-body {
+    padding: 25px;
 }
 
-.class-badge{
-    background:#eef2ff;
-    padding:8px 15px;
-    border-radius:20px;
-    display:inline-block;
-    margin:5px;
+.class-badge {
+    background: #eef2ff;
+    padding: 8px 15px;
+    border-radius: 20px;
+    display: inline-block;
+    margin: 5px 5px 0 0;
 }
 
+@media (max-width: 576px) {
+    .container {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+
+    .library-hero {
+        padding: 20px;
+        border-radius: 16px;
+        margin-bottom: 24px;
+    }
+
+    .library-hero h1 {
+        font-size: 1.6rem;
+    }
+
+    .library-hero p {
+        font-size: 0.95rem;
+    }
+
+    .input-group {
+        flex-direction: column;
+    }
+
+    .input-group .form-control {
+        width: 100%;
+        border-radius: 12px !important;
+        margin-bottom: 10px;
+    }
+
+    .input-group .btn {
+        width: 100%;
+        border-radius: 12px !important;
+    }
+
+    .level-header,
+    .level-body {
+        padding: 18px;
+    }
+
+    .class-badge {
+        display: block;
+        width: 100%;
+        margin-bottom: 8px;
+        text-align: center;
+    }
+}
 </style>
-
-
 
 <div class="container py-4">
 
+    <!-- HERO -->
+    <div class="library-hero">
+        <h1>📚 SmartMind Learning Library</h1>
+        <p>Explore lessons, notes, videos, assessments and learning resources.</p>
 
-<!-- HERO -->
+        <form method="GET" action="{% url 'library:resource_list' %}">
+            <div class="input-group mt-4">
+                <input
+                    type="text"
+                    name="q"
+                    class="form-control"
+                    placeholder="Search lessons, topics, resources..."
+                >
+                <button class="btn btn-light px-4">
+                    Search
+                </button>
+            </div>
+        </form>
+    </div>
 
-<div class="library-hero">
+    <h3 class="fw-bold mb-4">
+        Browse Curriculum
+    </h3>
 
-<h1>
-📚 SmartMind Learning Library
-</h1>
+    <div class="row">
+        {% for level in levels %}
+        <div class="col-12 col-md-4 mb-4">
+            <div class="card level-card">
+                <div class="level-header">
+                    <h4>🎓 {{ level.name }}</h4>
+                    <p class="mb-0">{{ level.classes.count }} Classes</p>
+                </div>
 
-<p>
-Explore lessons, notes, videos, assessments and learning resources.
-</p>
+                <div class="level-body">
+                    <p class="text-muted">
+                        Choose your class to begin learning.
+                    </p>
 
+                    <div>
+                        {% for cls in level.classes.all %}
+                        <a href="{% url 'library:class_detail' cls.id %}"
+                           class="class-badge text-decoration-none">
+                            {{ cls.name }}
+                        </a>
+                        {% empty %}
+                        <p>No classes added.</p>
+                        {% endfor %}
+                    </div>
 
-<form method="GET"
-      action="{% url 'library:resource_list' %}">
-
-<div class="input-group mt-4">
-
-<input 
-type="text"
-name="q"
-class="form-control rounded-pill"
-placeholder="Search lessons, topics, resources..."
->
-
-<button class="btn btn-light rounded-pill px-4">
-Search
-</button>
-
+                    <a href="{% url 'library:level_detail' level.id %}"
+                       class="btn btn-primary w-100 mt-4">
+                        View Level
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="alert alert-info">
+            No curriculum levels available yet.
+        </div>
+        {% endfor %}
+    </div>
 </div>
-
-</form>
-
-
-</div>
-
-
-
-
-
-<h3 class="fw-bold mb-4">
-Browse Curriculum
-</h3>
-
-
-
-<div class="row">
-
-
-{% for level in levels %}
-
-
-<div class="col-md-4 mb-4">
-
-
-<div class="card level-card">
-
-
-<div class="level-header">
-
-<h4>
-🎓 {{ level.name }}
-</h4>
-
-
-<p class="mb-0">
-{{ level.classes.count }} Classes
-</p>
-
-
-</div>
-
-
-
-<div class="level-body">
-
-
-<p class="text-muted">
-Choose your class to begin learning.
-</p>
-
-
-
-<div>
-
-{% for cls in level.classes.all %}
-
-
-<a href="{% url 'library:class_detail' cls.id %}"
-class="class-badge text-decoration-none">
-
-{{ cls.name }}
-
-</a>
-
-
-{% empty %}
-
-<p>
-No classes added.
-</p>
-
-{% endfor %}
-
-</div>
-
-
-
-<a href="{% url 'library:level_detail' level.id %}"
-class="btn btn-primary w-100 mt-4">
-
-View Level
-
-</a>
-
-
-
-</div>
-
-
-</div>
-
-
-</div>
-
-
-{% empty %}
-
-
-<div class="alert alert-info">
-
-No curriculum levels available yet.
-
-</div>
-
-
-{% endfor %}
-
-
-</div>
-
-
-
-</div>
-
 
 {% endblock %}
