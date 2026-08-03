@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .forms import ResourceForm
+from django.http import JsonResponse
 from django.db.models import F, Q
 from .decorators import school_admin_required
 from django.core.paginator import Paginator
@@ -96,8 +97,25 @@ def level_detail(request, pk):
 def class_detail(request, pk):
 
     curriculum_class = get_object_or_404(
-        CurriculumClass.objects.prefetch_related("subjects"),
+        CurriculumClass,
         pk=pk,
+    )
+
+    subjects = curriculum_class.subjects.all()
+
+    resources = (
+        Resource.objects
+        .filter(
+            lesson__subtopic__topic__subject__curriculum_class=curriculum_class
+        )
+        .select_related(
+            "lesson",
+            "lesson__subtopic",
+            "lesson__subtopic__topic",
+            "lesson__subtopic__topic__subject",
+            "resource_type",
+        )
+        .order_by("lesson__subtopic__topic__subject__name", "order")
     )
 
     return render(
@@ -105,7 +123,8 @@ def class_detail(request, pk):
         "library/class.html",
         {
             "curriculum_class": curriculum_class,
-            "subjects": curriculum_class.subjects.all(),
+            "subjects": subjects,
+            "resources": resources,
         },
     )
 
@@ -332,11 +351,8 @@ def add_resource(request):
         if form.is_valid():
 
             resource = form.save(commit=False)
-
             resource.uploaded_by = request.user
-
             resource.save()
-
             form.save_m2m()
 
             messages.success(
@@ -471,6 +487,78 @@ def download_resource(request, pk):
 
 
  
+# ==================================================
+# AJAX DROPDOWNS
+# ==================================================
 
+@login_required
+def load_classes(request):
+
+    level_id = request.GET.get("level")
+
+    data = list(
+        CurriculumClass.objects.filter(
+            level_id=level_id
+        ).values("id", "name")
+    )
+
+    return JsonResponse(data, safe=False)
+
+
+@login_required
+def load_subjects(request):
+
+    class_id = request.GET.get("curriculum_class")
+
+    data = list(
+        Subject.objects.filter(
+            curriculum_class_id=class_id
+        ).values("id", "name")
+    )
+
+    return JsonResponse(data, safe=False)
+
+
+@login_required
+def load_topics(request):
+
+    subject_id = request.GET.get("subject")
+
+    data = list(
+        Topic.objects.filter(
+            subject_id=subject_id
+        ).values("id", "title")
+    )
+
+    return JsonResponse(data, safe=False)
+
+
+@login_required
+def load_subtopics(request):
+
+    topic_id = request.GET.get("topic")
+
+    data = list(
+        SubTopic.objects.filter(
+            topic_id=topic_id
+        ).values("id", "title")
+    )
+
+    return JsonResponse(data, safe=False)
+
+
+@login_required
+def load_lessons(request):
+
+    subtopic_id = request.GET.get("subtopic")
+
+    data = list(
+        Lesson.objects.filter(
+            subtopic_id=subtopic_id,
+            is_published=True,
+        ).values("id", "title")
+    )
+
+    return JsonResponse(data, safe=False)
 
 

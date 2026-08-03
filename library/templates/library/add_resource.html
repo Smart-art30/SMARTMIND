@@ -131,6 +131,78 @@ Upload a learning resource for a lesson.
 
 <div class="row g-4">
 
+<div class="col-md-4">
+
+<label class="form-label fw-bold">
+Access Level
+</label>
+
+{{ form.access_level }}
+
+{{ form.access_level.errors }}
+
+</div>
+
+<div class="col-md-4">
+
+<label class="form-label fw-bold">
+Level
+</label>
+
+{{ form.level }}
+
+{{ form.level.errors }}
+
+</div>
+
+<div class="col-md-4">
+
+<label class="form-label fw-bold">
+Curriculum Class
+</label>
+
+{{ form.curriculum_class }}
+
+{{ form.curriculum_class.errors }}
+
+</div>
+
+<div class="col-md-4">
+
+<label class="form-label fw-bold">
+Subject
+</label>
+
+{{ form.subject }}
+
+{{ form.subject.errors }}
+
+</div>
+
+<div class="col-md-4">
+
+<label class="form-label fw-bold">
+Topic
+</label>
+
+{{ form.topic }}
+
+{{ form.topic.errors }}
+
+</div>
+
+<div class="col-md-4">
+
+<label class="form-label fw-bold">
+Sub Topic
+</label>
+
+{{ form.subtopic }}
+
+{{ form.subtopic.errors }}
+
+</div>
+
 <div class="col-12">
 
 <label class="form-label fw-bold">
@@ -156,17 +228,7 @@ Resource Type
 
 </div>
 
-<div class="col-md-4">
 
-<label class="form-label fw-bold">
-Access Level
-</label>
-
-{{ form.access_level }}
-
-{{ form.access_level.errors }}
-
-</div>
 
 <div class="col-md-4">
 
@@ -327,85 +389,159 @@ Cancel
 
 <script>
 
-document.addEventListener("DOMContentLoaded",function(){
+document.addEventListener("DOMContentLoaded", function () {
 
-const zone=document.getElementById("drop-zone");
+    // ------------------------
+    // Drag & Drop Upload
+    // ------------------------
 
-const input=document.getElementById("id_file");
+    const zone = document.getElementById("drop-zone");
+    const input = document.getElementById("id_file");
+    const preview = document.getElementById("preview");
 
-const preview=document.getElementById("preview");
+    function showPreview(){
 
-function showPreview(){
+        if(!input.files.length){
+            preview.innerHTML="";
+            return;
+        }
 
-if(!input.files.length){
+        const file=input.files[0];
 
-preview.innerHTML="";
+        if(file.type.startsWith("image/")){
 
-return;
+            const reader=new FileReader();
 
-}
+            reader.onload=function(e){
 
-const file=input.files[0];
+                preview.innerHTML=`
+                    <img src="${e.target.result}" class="preview-image shadow">
+                    <div class="mt-2">${file.name}</div>
+                `;
 
-if(file.type.startsWith("image/")){
+            }
 
-const reader=new FileReader();
+            reader.readAsDataURL(file);
 
-reader.onload=function(e){
+        }else{
 
-preview.innerHTML=`
-<img src="${e.target.result}"
-class="preview-image shadow">
-<div class="mt-2">${file.name}</div>
-`;
+            preview.innerHTML=`
+                <div class="alert alert-info">
+                    📄 ${file.name}
+                </div>
+            `;
 
-}
+        }
 
-reader.readAsDataURL(file);
+    }
 
-}
+    zone.addEventListener("click",()=>input.click());
+    input.addEventListener("change",showPreview);
 
-else{
+    zone.addEventListener("dragover",e=>{
+        e.preventDefault();
+        zone.classList.add("dragover");
+    });
 
-preview.innerHTML=`
-<div class="alert alert-info">
-📄 ${file.name}
-</div>
-`;
+    zone.addEventListener("dragleave",()=>{
+        zone.classList.remove("dragover");
+    });
 
-}
+    zone.addEventListener("drop",e=>{
+        e.preventDefault();
+        zone.classList.remove("dragover");
+        input.files=e.dataTransfer.files;
+        showPreview();
+    });
 
-}
 
-zone.addEventListener("click",()=>input.click());
+    // ------------------------
+    // Cascading Dropdowns
+    // ------------------------
 
-input.addEventListener("change",showPreview);
+    function load(url, value, target, label){
 
-zone.addEventListener("dragover",e=>{
+        fetch(`${url}?${value}`)
+        .then(response=>response.json())
+        .then(data=>{
 
-e.preventDefault();
+            target.innerHTML=`<option value="">${label}</option>`;
 
-zone.classList.add("dragover");
+            data.forEach(item=>{
 
-});
+                target.innerHTML+=`
+                    <option value="${item.id}">
+                        ${item.name || item.title}
+                    </option>
+                `;
 
-zone.addEventListener("dragleave",()=>{
+            });
 
-zone.classList.remove("dragover");
+        });
 
-});
+    }
 
-zone.addEventListener("drop",e=>{
+    const level=document.getElementById("id_level");
+    const curriculum=document.getElementById("id_curriculum_class");
+    const subject=document.getElementById("id_subject");
+    const topic=document.getElementById("id_topic");
+    const subtopic=document.getElementById("id_subtopic");
+    const lesson=document.getElementById("id_lesson");
 
-e.preventDefault();
+    level.addEventListener("change",function(){
 
-zone.classList.remove("dragover");
+        load(
+            "{% url 'library:load_classes' %}",
+            "level="+this.value,
+            curriculum,
+            "Select Curriculum Class"
+        );
 
-input.files=e.dataTransfer.files;
+    });
 
-showPreview();
+    curriculum.addEventListener("change",function(){
 
-});
+        load(
+            "{% url 'library:load_subjects' %}",
+            "curriculum_class="+this.value,
+            subject,
+            "Select Subject"
+        );
+
+    });
+
+    subject.addEventListener("change",function(){
+
+        load(
+            "{% url 'library:load_topics' %}",
+            "subject="+this.value,
+            topic,
+            "Select Topic"
+        );
+
+    });
+
+    topic.addEventListener("change",function(){
+
+        load(
+            "{% url 'library:load_subtopics' %}",
+            "topic="+this.value,
+            subtopic,
+            "Select Sub Topic"
+        );
+
+    });
+
+    subtopic.addEventListener("change",function(){
+
+        load(
+            "{% url 'library:load_lessons' %}",
+            "subtopic="+this.value,
+            lesson,
+            "Select Lesson"
+        );
+
+    });
 
 });
 

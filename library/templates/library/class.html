@@ -13,10 +13,16 @@
     color:#fff;
     padding:45px;
     border-radius:20px;
-    margin-bottom:35px;
+    margin-bottom:40px;
 }
 
-.subject-card{
+.section-title{
+    font-weight:700;
+    margin-bottom:25px;
+}
+
+.subject-card,
+.resource-card{
     border:none;
     border-radius:18px;
     overflow:hidden;
@@ -25,7 +31,8 @@
     height:100%;
 }
 
-.subject-card:hover{
+.subject-card:hover,
+.resource-card:hover{
     transform:translateY(-6px);
     box-shadow:0 15px 35px rgba(0,0,0,.15);
 }
@@ -33,161 +40,237 @@
 .subject-header{
     background:#f8f9fa;
     padding:20px;
+    text-align:center;
     border-bottom:1px solid #eee;
 }
 
-.subject-body{
-    padding:25px;
+.subject-body,
+.resource-body{
+    padding:20px;
 }
 
 .subject-icon{
-    font-size:45px;
+    font-size:50px;
+}
+
+.resource-title{
+    font-weight:600;
+    margin-bottom:12px;
+}
+
+.resource-meta{
+    font-size:.9rem;
+    color:#6c757d;
+}
+
+.badge-resource{
+    font-size:.75rem;
+    margin-bottom:10px;
 }
 
 </style>
 
 <div class="container py-4">
 
-<div class="class-banner">
+    <!-- Banner -->
+    <div class="class-banner">
 
-<small>
+        <small>{{ curriculum_class.level.name }}</small>
 
-{{ curriculum_class.level.name }}
+        <h1 class="fw-bold mt-2">
+            📘 {{ curriculum_class.name }}
+        </h1>
 
-</small>
+        {% if curriculum_class.description %}
+            <p class="mt-3 mb-0">
+                {{ curriculum_class.description }}
+            </p>
+        {% endif %}
 
-<h1 class="fw-bold mt-2">
+    </div>
 
-📘 {{ curriculum_class.name }}
 
-</h1>
+    <!-- Subjects -->
 
-{% if curriculum_class.description %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
 
-<p class="mb-0">
+        <h2 class="section-title mb-0">
+            📚 Subjects
+        </h2>
 
-{{ curriculum_class.description }}
+        <span class="badge bg-primary">
+            {{ subjects.count }} Subject{{ subjects.count|pluralize }}
+        </span>
 
-</p>
+    </div>
 
-{% endif %}
+    <div class="row">
 
-</div>
+        {% for subject in subjects %}
 
+        <div class="col-lg-4 col-md-6 mb-4">
 
+            <div class="card subject-card">
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="subject-header">
 
-<h3 class="fw-bold">
+                    <div class="subject-icon">
+                        📖
+                    </div>
 
-Subjects
+                    <h4 class="mt-3">
+                        {{ subject.name }}
+                    </h4>
 
-</h3>
+                </div>
 
-<span class="badge bg-primary fs-6">
+                <div class="subject-body">
 
-{{ subjects.count }} Subject{{ subjects.count|pluralize }}
+                    <p class="text-muted">
+                        {{ subject.topics.count }}
+                        Topic{{ subject.topics.count|pluralize }}
+                    </p>
 
-</span>
+                    <a href="{% url 'library:subject_detail' subject.pk %}"
+                       class="btn btn-primary w-100">
 
-</div>
+                        Open Subject
 
+                    </a>
 
+                </div>
 
-<div class="row">
+            </div>
 
-{% for subject in subjects %}
+        </div>
 
-<div class="col-lg-4 col-md-6 mb-4">
+        {% empty %}
 
-<div class="card subject-card">
+        <div class="col-12">
 
-<div class="subject-header text-center">
+            <div class="alert alert-info">
 
-<div class="subject-icon">
+                No subjects available.
 
-📚
+            </div>
 
-</div>
+        </div>
 
-<h4 class="mt-3">
+        {% endfor %}
 
-{{ subject.name }}
+    </div>
 
-</h4>
 
-</div>
+    <hr class="my-5">
 
 
-<div class="subject-body">
+    <!-- Resources -->
 
-{% if subject.description %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
 
-<p class="text-muted">
+        <h2 class="section-title mb-0">
+            📂 Class Resources
+        </h2>
 
-{{ subject.description|truncatewords:18 }}
+        <span class="badge bg-success">
+            {{ resources.count }} Resource{{ resources.count|pluralize }}
+        </span>
 
-</p>
+    </div>
 
-{% endif %}
 
+    <div class="row">
 
-<p>
+        {% for resource in resources %}
 
-<strong>
+        <div class="col-lg-4 col-md-6 mb-4">
 
-{{ subject.topics.count }}
+            <div class="card resource-card">
 
-</strong>
+                <div class="resource-body">
 
-Topic{{ subject.topics.count|pluralize }}
+                    <span class="badge bg-secondary badge-resource">
 
-</p>
+                        {{ resource.resource_type.name }}
 
+                    </span>
 
-<a href="{% url 'library:subject_detail' subject.pk %}"
+                    <h5 class="resource-title">
 
-class="btn btn-primary w-100">
+                        {{ resource.title }}
 
-Open Subject
+                    </h5>
 
-</a>
+                    <div class="resource-meta mb-2">
 
-</div>
+                        <strong>Subject:</strong>
 
-</div>
+                        {{ resource.lesson.subtopic.topic.subject.name }}
 
-</div>
+                    </div>
 
-{% empty %}
+                    <div class="resource-meta mb-2">
 
-<div class="col-12">
+                        <strong>Lesson:</strong>
 
-<div class="alert alert-info">
+                        {{ resource.lesson.title }}
 
-No subjects have been added to this class yet.
+                    </div>
 
-</div>
+                    {% if resource.description %}
 
-</div>
+                    <p>
 
-{% endfor %}
+                        {{ resource.description|striptags|truncatewords:20 }}
 
-</div>
+                    </p>
 
+                    {% endif %}
 
+                    <div class="d-grid">
 
-<div class="mt-4">
+                        <a href="{% url 'library:resource_detail' resource.pk %}"
+                           class="btn btn-success">
 
-<a href="{% url 'library:level_detail' curriculum_class.level.pk %}"
+                            Open Resource
 
-class="btn btn-outline-secondary">
+                        </a>
 
-← Back to {{ curriculum_class.level.name }}
+                    </div>
 
-</a>
+                </div>
 
-</div>
+            </div>
+
+        </div>
+
+        {% empty %}
+
+        <div class="col-12">
+
+            <div class="alert alert-warning">
+
+                No resources have been uploaded for this class yet.
+
+            </div>
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+
+    <div class="mt-5">
+
+        <a href="{% url 'library:level_detail' curriculum_class.level.pk %}"
+           class="btn btn-outline-secondary">
+
+            ← Back to {{ curriculum_class.level.name }}
+
+        </a>
+
+    </div>
 
 </div>
 
