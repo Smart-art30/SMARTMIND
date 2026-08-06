@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Questions{% endblock %}
+
+{% block content %}
+
+<div class="container py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h2>{{ assessment.title }}</h2>
+            <p class="text-muted mb-0">
+                Question Bank
+            </p>
+        </div>
+
+        <a href="{% url 'library:add_question' assessment.id %}"
+           class="btn btn-primary">
+
+            <i class="bi bi-plus-circle"></i>
+            Add Question
+
+        </a>
+
+    </div>
+
+
+    {% if questions %}
+
+    <div class="card shadow-sm">
+
+        <div class="table-responsive">
+
+            <table class="table table-hover align-middle mb-0">
+
+                <thead class="table-light">
+
+                    <tr>
+
+                        <th>#</th>
+
+                        <th>Question</th>
+
+                        <th>Type</th>
+
+                        <th>Marks</th>
+
+                        <th>Order</th>
+
+                        <th width="180">Actions</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                {% for question in questions %}
+
+                    <tr>
+
+                        <td>{{ forloop.counter }}</td>
+
+                        <td>
+
+                            {{ question.question|safe|truncatewords_html:20 }}
+
+                        </td>
+
+                        <td>
+
+                            {{ question.get_question_type_display }}
+
+                        </td>
+
+                        <td>
+
+                            {{ question.marks }}
+
+                        </td>
+
+                        <td>
+
+                            {{ question.order }}
+
+                        </td>
+
+                        <td>
+
+                            <a href="{% url 'library:edit_question' question.id %}"
+
+                               class="btn btn-sm btn-warning">
+
+                                Edit
+
+                            </a>
+
+                            <a href="{% url 'library:delete_question' question.id %}"
+
+                               class="btn btn-sm btn-danger">
+
+                                Delete
+
+                            </a>
+
+                        </td>
+
+                    </tr>
+
+                {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+    {% else %}
+
+    <div class="alert alert-info">
+
+        No questions have been added yet.
+
+    </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

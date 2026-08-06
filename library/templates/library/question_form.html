@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% load django_ckeditor_5 %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+
+<div class="container py-4">
+
+    <div class="card shadow">
+
+        <div class="card-header">
+
+            <h3>{{ title }}</h3>
+
+        </div>
+
+        <div class="card-body">
+
+            <form method="post">
+
+                {% csrf_token %}
+
+                {{ form.media }}
+
+                {% for field in form %}
+
+                <div class="mb-3">
+
+                    <label class="form-label">
+
+                        {{ field.label }}
+
+                    </label>
+
+                    {{ field }}
+
+                    {% if field.help_text %}
+
+                        <div class="form-text">
+
+                            {{ field.help_text }}
+
+                        </div>
+
+                    {% endif %}
+
+                    {% for error in field.errors %}
+
+                        <div class="text-danger">
+
+                            {{ error }}
+
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+                {% endfor %}
+
+                <div class="mt-4">
+
+                    <button class="btn btn-success">
+
+                        Save Question
+
+                    </button>
+
+                    <a href="{% url 'library:question_list' assessment.id %}"
+
+                       class="btn btn-secondary">
+
+                        Cancel
+
+                    </a>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

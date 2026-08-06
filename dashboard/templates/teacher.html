@@ -13,9 +13,106 @@
       background: #f4f7fb;
     }
 
+    .top-nav {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      height: 68px;
+      background: #111827;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.2rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .brand-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: #2563eb;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    .nav-links a {
+      color: #cbd5e1;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 8px 10px;
+      border-radius: 8px;
+    }
+
+    .nav-links a:hover {
+      background: #1f2937;
+      color: white;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .nav-user {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #e5e7eb;
+      font-weight: 600;
+    }
+
+    .avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #2563eb;
+      display: grid;
+      place-items: center;
+      color: white;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .btn-pill {
+      display: inline-block;
+      padding: 10px 16px;
+      border-radius: 999px;
+      border: 1px solid #334155;
+      color: white;
+      text-decoration: none;
+      background: transparent;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-pill:hover {
+      background: #2563eb;
+      border-color: #2563eb;
+    }
+
     .layout {
       display: flex;
-      min-height: 100vh;
+      min-height: calc(100vh - 68px);
     }
 
     /* SIDEBAR */
@@ -106,45 +203,111 @@
     }
 
     @media (max-width: 768px) {
+      .top-nav {
+        flex-direction: column;
+        height: auto;
+        padding: 12px 16px;
+        gap: 10px;
+      }
+
+      .nav-links,
+      .nav-actions {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
       .sidebar {
         display: none;
       }
+
+      .main {
+        padding: 16px;
+      }
+
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
     }
 
-  .btn{
-    display:inline-block;
-    padding:12px 18px;
-    margin-right:10px;
-    background:#2563eb;
-    color:white;
-    text-decoration:none;
-    border-radius:8px;
-    font-weight:600;
-}
+    .btn{
+      display:inline-block;
+      padding:12px 18px;
+      margin-right:10px;
+      background:#2563eb;
+      color:white;
+      text-decoration:none;
+      border-radius:8px;
+      font-weight:600;
+    }
 
-.btn:hover{
-    background:#1d4ed8;
-}
+    .btn:hover{
+      background:#1d4ed8;
+    }
   </style>
 </head>
 <body>
 
-<div class="layout">
+  <!-- TOP NAVIGATION BAR -->
+  <div class="top-nav">
+    <div class="brand">
+      <div class="brand-badge">🎓</div>
+      <span>SmartMind</span>
+    </div>
 
-  <!-- SIDEBAR -->
+    <div class="nav-links">
+      {% if user.is_authenticated %}
+        <a href="{% url 'teacher_dashboard' %}">Dashboard</a>
+      {% else %}
+        <a href="{% url 'blog:home' %}">Home</a>
+      {% endif %}
+      <a href="#">Categories</a>
+      <a href="#">Trending</a>
+      <a href="#">About</a>
+      <a href="{% url 'library:home' %}">Library</a>
+      <a href="{% url 'blog:add_post' %}">+ Post</a>
+    </div>
+
+    <div class="nav-actions">
+      {% if user.is_authenticated %}
+        <div class="nav-user">
+          <div class="avatar">{{ request.user.username|first|upper }}</div>
+          <span>{{ request.user.username }}</span>
+        </div>
+        <form action="{% url 'logout' %}" method="post" class="m-0">
+          {% csrf_token %}
+          <button type="submit" class="btn-pill">Logout</button>
+        </form>
+      {% else %}
+        <a href="{% url 'login' %}" class="btn-pill">Login</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="layout">
+
+    <!-- SIDEBAR -->
 <div class="sidebar">
-    <h2>SmartMind</h2>
+    <h2>🎓 SmartMind</h2>
 
-    <a href="{% url 'teacher_dashboard' %}">🏠 Dashboard</a>
-
-
-      <a href="{% url 'blog:add_post' %}">
-         ➕ Add post
+    <a href="{% url 'teacher_dashboard' %}">
+        🏠 Dashboard
     </a>
 
+    <a href="{% url 'blog:add_post' %}">
+        ➕ Add Post
+    </a>
+
+    <a href="{% url 'library:resource_list' %}">
+        📚 Resources
+    </a>
+    
     <a href="{% url 'manage_assignments' %}">
         📝 Assignments
     </a>
+   
 
     <a href="{% url 'manage_quizzes' %}">
         ❓ Quizzes
@@ -153,14 +316,13 @@
     <a href="{% url 'submission_list' %}">
         📥 Student Submissions
     </a>
-    
 
     <a href="{% url 'gradebook' %}">
         📊 Results
     </a>
 
     <a href="{% url 'school_subjects' request.user.school.id %}">
-        📚 Subjects
+        📖 Subjects
     </a>
 
     <a href="#">
@@ -178,153 +340,130 @@
         </button>
     </form>
 </div>
+    <!-- MAIN -->
+    <div class="main">
 
-  <!-- MAIN -->
-  <div class="main">
+      <div class="header">
+        <h1>Welcome, {{ request.user.username }}</h1>
+        <span>Teacher</span>
+      </div>
 
-    <div class="header">
-      <h1>Welcome, {{ request.user.username }}</h1>
-      <span>Teacher</span>
-    </div>
+      <!-- STATS -->
+      <div class="cards">
+        <div class="card">
+            <h3>📝 Assignments</h3>
+            <p>{{ assignment_count }}</p>
+        </div>
 
-    <!-- STATS -->
- <div class="cards">
+        <div class="card">
+            <h3>❓ Quizzes</h3>
+            <p>{{ quiz_count }}</p>
+        </div>
 
-    <div class="card">
-        <h3>📝 Assignments</h3>
-        <p>{{ assignment_count }}</p>
-    </div>
+        <div class="section">
+          <h2>Quick Actions</h2>
 
-    <div class="card">
-        <h3>❓ Quizzes</h3>
-        <p>{{ quiz_count }}</p>
-    </div>
-<div class="section">
+          <p>
+            <a href="{% url 'create_assignment' %}" class="btn">
+                ➕ New Assignment
+            </a>
 
-    <h2>Quick Actions</h2>
+            <a href="{% url 'create_quiz' %}" class="btn">
+                ❓ New Quiz
+            </a>
+          </p>
+        </div>
 
-    <p>
+        <div class="card">
+            <h3>👨‍🎓 Students</h3>
+            <p>{{ student_count }}</p>
+        </div>
 
-        <a href="{% url 'create_assignment' %}" class="btn">
-            ➕ New Assignment
+        <div class="card">
+            <h3>📥 Pending Essays</h3>
+            <p>{{ pending_submissions }}</p>
+        </div>
+      </div>
+
+      <!-- TEACHER SECTION -->
+      <div class="section">
+        <h2>Teaching Overview</h2>
+        <p>Manage your classes, upload assignments, and track student performance.</p>
+
+        <ul>
+          <li>Upload new assignments</li>
+          <li>Review student submissions</li>
+          <li>Mark attendance</li>
+          <li>Send announcements</li>
+        </ul>
+      </div>
+
+      <div class="section">
+        <h2>Recent Assignments</h2>
+
+        {% for assignment in assignments %}
+        <div style="padding:12px;border-bottom:1px solid #eee;">
+          <strong>{{ assignment.title }}</strong><br>
+          {{ assignment.subject }}
+          |
+          {{ assignment.school_class }}
+          |
+          {{ assignment.get_assignment_type_display }}
+          <br>
+          <small>
+            Due:
+            {{ assignment.due_date|date:"d M Y H:i" }}
+          </small>
+        </div>
+        {% empty %}
+        <p>No assignments created.</p>
+        {% endfor %}
+      </div>
+
+      <div class="section">
+        <a href="{% url 'create_assignment' %}">
+            ➕ Create Assignment
         </a>
 
-        <a href="{% url 'create_quiz' %}" class="btn">
-            ❓ New Quiz
+        <a href="{% url 'create_quiz' %}">
+            📝 Create Quiz
         </a>
 
-    </p>
+        <a href="{% url 'manage_assignments' %}">
+            📂 Manage Assignments
+        </a>
 
-</div>
-    <div class="card">
-        <h3>👨‍🎓 Students</h3>
-        <p>{{ student_count }}</p>
-    </div>
+        <a href="{% url 'manage_quizzes' %}">
+            📚 Manage Quizzes
+        </a>
 
-    <div class="card">
-        <h3>📥 Pending Essays</h3>
-        <p>{{ pending_submissions }}</p>
-    </div>
+        <h2>📚 Latest Blog Posts</h2>
 
-</div>
-
-    <!-- TEACHER SECTION -->
-    <div class="section">
-      <h2>Teaching Overview</h2>
-      <p>Manage your classes, upload assignments, and track student performance.</p>
-
-      <ul>
-        <li>Upload new assignments</li>
-        <li>Review student submissions</li>
-        <li>Mark attendance</li>
-        <li>Send announcements</li>
-      </ul>
-    </div>
-    <div class="section">
-
-<h2>Recent Assignments</h2>
-
-{% for assignment in assignments %}
-
-<div style="padding:12px;border-bottom:1px solid #eee;">
-
-<strong>{{ assignment.title }}</strong><br>
-
-{{ assignment.subject }}
-
-|
-
-{{ assignment.school_class }}
-
-|
-
-{{ assignment.get_assignment_type_display }}
-
-<br>
-
-<small>
-Due:
-{{ assignment.due_date|date:"d M Y H:i" }}
-</small>
-
-</div>
-
-{% empty %}
-
-<p>No assignments created.</p>
-
-{% endfor %}
-
-</div>
-<div class="section">
-<a href="{% url 'create_assignment' %}">
-    ➕ Create Assignment
-</a>
-
-<a href="{% url 'create_quiz' %}">
-    📝 Create Quiz
-</a>
-
-<a href="{% url 'manage_assignments' %}">
-    📂 Manage Assignments
-</a>
-
-<a href="{% url 'manage_quizzes' %}">
-    📚 Manage Quizzes
-</a>
-    <h2>📚 Latest Blog Posts</h2>
-
-    {% for post in posts %}
-
-        <div class="assignment-item">
-
+        {% for post in posts %}
+          <div class="assignment-item">
             <h3>
-                <a href="{{ post.get_absolute_url }}">
-                    {{ post.title }}
-                </a>
+              <a href="{{ post.get_absolute_url }}">
+                {{ post.title }}
+              </a>
             </h3>
 
             <p>
-                {{ post.excerpt|truncatewords:20 }}
+              {{ post.excerpt|truncatewords:20 }}
             </p>
 
             <small>
-                {{ post.author }}
-                •
-                {{ post.created_at|date:"M d, Y" }}
+              {{ post.author }}
+              •
+              {{ post.created_at|date:"M d, Y" }}
             </small>
+          </div>
+        {% empty %}
+          <p>No blog posts available.</p>
+        {% endfor %}
+      </div>
 
-        </div>
-
-    {% empty %}
-
-        <p>No blog posts available.</p>
-
-    {% endfor %}
-
-</div>
+    </div>
   </div>
-</div>
 
 </body>
 </html>

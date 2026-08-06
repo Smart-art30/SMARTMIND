@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container py-5">
+
+<div class="card shadow">
+
+<div class="card-header bg-success text-white">
+
+<h2>
+
+Assessment Result
+
+</h2>
+
+</div>
+
+<div class="card-body">
+
+<h3>
+
+{{ attempt.assessment.title }}
+
+</h3>
+
+<hr>
+
+<div class="row text-center">
+
+<div class="col">
+
+<h5>
+
+Score
+
+</h5>
+
+<h2>
+
+{{ attempt.score }}
+
+</h2>
+
+</div>
+
+<div class="col">
+
+<h5>
+
+Percentage
+
+</h5>
+
+<h2>
+
+{{ attempt.percentage }}%
+
+</h2>
+
+</div>
+
+<div class="col">
+
+<h5>
+
+Status
+
+</h5>
+
+{% if attempt.passed %}
+
+<span class="badge bg-success">
+
+PASSED
+
+</span>
+
+{% else %}
+
+<span class="badge bg-danger">
+
+FAILED
+
+</span>
+
+{% endif %}
+
+</div>
+
+</div>
+
+<hr>
+
+<h4>
+
+Question Review
+
+</h4>
+
+{% for answer in answers %}
+
+<div class="card mb-3">
+
+<div class="card-body">
+
+<h5>
+
+Question {{ forloop.counter }}
+
+</h5>
+
+<div>
+
+{{ answer.question.question|safe }}
+
+</div>
+
+<hr>
+
+<p>
+
+<strong>Your Answer</strong>
+
+</p>
+
+<div>
+
+{{ answer.selected_answer|safe }}
+
+</div>
+
+{% if answer.question.question_type != "essay" %}
+
+<hr>
+
+<p>
+
+<strong>Correct Answer:</strong>
+
+{{ answer.question.answer }}
+
+</p>
+
+{% if answer.is_correct %}
+
+<span class="badge bg-success">
+
+Correct
+
+</span>
+
+{% else %}
+
+<span class="badge bg-danger">
+
+Incorrect
+
+</span>
+
+{% endif %}
+
+{% endif %}
+
+</div>
+
+</div>
+
+{% endfor %}
+
+</div>
+
+</div>
+
+</div>
+
+{% endblock %}

@@ -265,42 +265,64 @@ class Question(models.Model):
         ("essay", "Essay"),
     )
 
-    assessment = models.ForeignKey(
-        Assessment,
-        on_delete=models.CASCADE,
-        related_name="questions",
-    )
+    assessment = models.ForeignKey(Assessment,on_delete=models.CASCADE,related_name="questions",)
+    question_type = models.CharField(max_length=20,choices=QUESTION_TYPES,default="mcq",)
     question = CKEditor5Field(config_name="default")
-    option_a = models.CharField(max_length=255)
-    option_b = models.CharField(max_length=255)
-    option_c = models.CharField(max_length=255)
-    option_d = models.CharField(max_length=255)
-    answer = models.CharField(max_length=1)
+    option_a = models.CharField(max_length=255, blank=True)
+    option_b = models.CharField(max_length=255, blank=True)
+    option_c = models.CharField(max_length=255, blank=True)
+    option_d = models.CharField(max_length=255, blank=True)
+    answer = models.CharField(max_length=255)
     explanation = CKEditor5Field(config_name="default", blank=True)
     marks = models.PositiveIntegerField(default=1)
     order = models.PositiveIntegerField(default=0)
 
-
 class AssessmentAttempt(models.Model):
-    learner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    assessment = models.ForeignKey(Assessment, on_delete=models.CASCADE)
+
+    STATUS_CHOICES = (
+        ("started", "Started"),
+        ("submitted", "Submitted"),
+        ("graded", "Graded"),
+    )
+
+    learner = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,)
+    assessment = models.ForeignKey(Assessment,on_delete=models.CASCADE,)
+    attempt_number = models.PositiveIntegerField(default=1)
     started_at = models.DateTimeField(auto_now_add=True)
-    completed_at = models.DateTimeField(null=True, blank=True)
-    score = models.DecimalField(max_digits=5, decimal_places=2, default=0)
-    percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    completed_at = models.DateTimeField(null=True,blank=True,)
+    score = models.DecimalField(max_digits=5,decimal_places=2,default=0,)
+    percentage = models.DecimalField(max_digits=5,decimal_places=2,default=0,)
     passed = models.BooleanField(default=False)
+    status = models.CharField(max_length=20,choices=STATUS_CHOICES,default="started",)
+
+    class Meta:
+        ordering = ["-started_at"]
+        unique_together = (
+            "learner",
+            "assessment",
+            "attempt_number",
+        )
+
+    def __str__(self):
+        return (
+            f"{self.learner} - "
+            f"{self.assessment.title} "
+            f"(Attempt {self.attempt_number})"
+        )
 
 
 class StudentAnswer(models.Model):
-    attempt = models.ForeignKey(
-        AssessmentAttempt,
-        on_delete=models.CASCADE,
-        related_name="answers",
-    )
-    question = models.ForeignKey(Question, on_delete=models.CASCADE)
-    selected_answer = models.CharField(max_length=20)
+    
+    attempt = models.ForeignKey(AssessmentAttempt,on_delete=models.CASCADE,related_name="answers",)
+    question = models.ForeignKey(Question,on_delete=models.CASCADE,)
+    selected_answer = CKEditor5Field("Selected Answer",config_name="extends",)
     is_correct = models.BooleanField(default=False)
     marks_awarded = models.PositiveIntegerField(default=0)
+    graded = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ["question__order"]
+
 
 
 # =========================

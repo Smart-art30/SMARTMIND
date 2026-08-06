@@ -31,7 +31,7 @@ def get_student_assignments(user):
 @login_required
 def quiz_home(request):
     enrollments = Enrollment.objects.filter(student=request.user).select_related("school_class")
-    return render(request, "quizzes/home.html", {
+    return render(request, "quiz_home.html", {
         "enrollments": enrollments
     })
 
