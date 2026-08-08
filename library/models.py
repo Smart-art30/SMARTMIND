@@ -257,7 +257,22 @@ class Assessment(models.Model):
 # =========================
 # QUESTION
 # =========================
-class Question(models.Model):
+
+class QuestionTag(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+
+    color = models.CharField(
+        max_length=20,
+        default="primary",
+    )
+
+    description = models.TextField(blank=True)
+
+    def __str__(self):
+        return self.name
+
+class QuestionBank(models.Model):
+
     QUESTION_TYPES = (
         ("mcq", "Multiple Choice"),
         ("true_false", "True/False"),
@@ -265,17 +280,93 @@ class Question(models.Model):
         ("essay", "Essay"),
     )
 
-    assessment = models.ForeignKey(Assessment,on_delete=models.CASCADE,related_name="questions",)
-    question_type = models.CharField(max_length=20,choices=QUESTION_TYPES,default="mcq",)
+    lesson = models.ForeignKey(
+        Lesson,
+        on_delete=models.CASCADE,
+        related_name="question_bank",
+    )
+
+    question_type = models.CharField(
+        max_length=20,
+        choices=QUESTION_TYPES,
+        default="mcq",
+    )
+
     question = CKEditor5Field(config_name="default")
+
     option_a = models.CharField(max_length=255, blank=True)
     option_b = models.CharField(max_length=255, blank=True)
     option_c = models.CharField(max_length=255, blank=True)
     option_d = models.CharField(max_length=255, blank=True)
+
     answer = models.CharField(max_length=255)
-    explanation = CKEditor5Field(config_name="default", blank=True)
+
+    explanation = CKEditor5Field(
+        config_name="default",
+        blank=True,
+    )
+
     marks = models.PositiveIntegerField(default=1)
+
+    difficulty = models.CharField(
+        max_length=20,
+        choices=[
+            ("easy", "Easy"),
+            ("medium", "Medium"),
+            ("hard", "Hard"),
+        ],
+        default="medium",
+    )
+
     order = models.PositiveIntegerField(default=0)
+
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+    tags = models.ManyToManyField(
+    QuestionTag,
+    blank=True,
+)
+    is_active = models.BooleanField(default=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["order"]
+
+    def __str__(self):
+        return self.question[:60]
+
+
+
+
+
+class AssessmentQuestion(models.Model):
+
+    assessment = models.ForeignKey(
+        Assessment,
+        on_delete=models.CASCADE,
+        related_name="assessment_questions",
+    )
+
+    question = models.ForeignKey(
+        QuestionBank,
+        on_delete=models.CASCADE,
+        related_name="assessment_links",
+    )
+
+    order = models.PositiveIntegerField(default=1)
+
+    marks = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+    )
+
+    class Meta:
+        ordering = ["order"]
 
 class AssessmentAttempt(models.Model):
 
@@ -314,7 +405,7 @@ class AssessmentAttempt(models.Model):
 class StudentAnswer(models.Model):
     
     attempt = models.ForeignKey(AssessmentAttempt,on_delete=models.CASCADE,related_name="answers",)
-    question = models.ForeignKey(Question,on_delete=models.CASCADE,)
+    question = models.ForeignKey(QuestionBank,on_delete=models.CASCADE,)
     selected_answer = CKEditor5Field("Selected Answer",config_name="extends",)
     is_correct = models.BooleanField(default=False)
     marks_awarded = models.PositiveIntegerField(default=0)

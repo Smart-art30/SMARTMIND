@@ -1,89 +1,115 @@
 {% extends "base.html" %}
-
-{% load django_ckeditor_5 %}
+{% load crispy_forms_tags %}
 
 {% block title %}{{ title }}{% endblock %}
 
 {% block content %}
-
 <div class="container py-4">
 
-    <div class="card shadow">
+    <div class="row justify-content-center">
 
-        <div class="card-header">
+        <div class="col-lg-10">
 
-            <h3>{{ title }}</h3>
+            <div class="card shadow border-0">
 
-        </div>
+                <div class="card-header bg-primary text-white">
 
-        <div class="card-body">
-
-            <form method="post">
-
-                {% csrf_token %}
-
-                {{ form.media }}
-
-                {% for field in form %}
-
-                <div class="mb-3">
-
-                    <label class="form-label">
-
-                        {{ field.label }}
-
-                    </label>
-
-                    {{ field }}
-
-                    {% if field.help_text %}
-
-                        <div class="form-text">
-
-                            {{ field.help_text }}
-
-                        </div>
-
-                    {% endif %}
-
-                    {% for error in field.errors %}
-
-                        <div class="text-danger">
-
-                            {{ error }}
-
-                        </div>
-
-                    {% endfor %}
+                    <h4 class="mb-0">
+                        <i class="bi bi-patch-question-fill me-2"></i>
+                        {{ title }}
+                    </h4>
 
                 </div>
 
-                {% endfor %}
+                <div class="card-body">
 
-                <div class="mt-4">
+                    <form method="post">
 
-                    <button class="btn btn-success">
+                        {% csrf_token %}
 
-                        Save Question
+                        <div class="row">
 
-                    </button>
+                            <div class="col-md-8 mb-3">
+                                {{ form.lesson|as_crispy_field }}
+                            </div>
 
-                    <a href="{% url 'library:question_list' assessment.id %}"
+                            <div class="col-md-4 mb-3">
+                                {{ form.question_type|as_crispy_field }}
+                            </div>
 
-                       class="btn btn-secondary">
+                            <div class="col-md-6 mb-3">
+                                {{ form.difficulty|as_crispy_field }}
+                            </div>
 
-                        Cancel
+                            <div class="col-md-6 mb-3">
+                                {{ form.order|as_crispy_field }}
+                            </div>
 
-                    </a>
+                            <div class="col-12 mb-3">
+                                {{ form.question|as_crispy_field }}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                {{ form.option_a|as_crispy_field }}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                {{ form.option_b|as_crispy_field }}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                {{ form.option_c|as_crispy_field }}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                {{ form.option_d|as_crispy_field }}
+                            </div>
+
+                            <div class="col-12 mb-3">
+                                {{ form.answer|as_crispy_field }}
+                            </div>
+
+                            <div class="col-12 mb-3">
+                                {{ form.explanation|as_crispy_field }}
+                            </div>
+
+                            <div class="col-12 mb-3">
+                                {{ form.tags|as_crispy_field }}
+                            </div>
+
+                        </div>
+
+                        <hr>
+
+                        <div class="d-flex justify-content-between">
+
+                            <a href="{% url 'library:question_bank_list' %}"
+                               class="btn btn-secondary">
+
+                                <i class="bi bi-arrow-left"></i>
+                                Back
+
+                            </a>
+
+                            <button class="btn btn-success">
+
+                                <i class="bi bi-check-circle"></i>
+
+                                Save Question
+
+                            </button>
+
+                        </div>
+
+                    </form>
 
                 </div>
 
-            </form>
+            </div>
 
         </div>
 
     </div>
 
 </div>
-
 {% endblock %}

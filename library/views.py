@@ -1,7 +1,11 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .forms import (AssessmentForm,QuestionForm,ResourceForm,TakeAssessmentForm,)
+from .forms import (ResourceForm,AssessmentForm,QuestionBankForm,
+    QuestionTagForm,
+    AssessmentQuestionForm,
+    TakeAssessmentForm,
+)
 from django.http import JsonResponse
 from django.db.models import F, Q, Max
 from .decorators import school_admin_required
@@ -16,7 +20,9 @@ from .models import (
     Subject,
     Topic,
     SubTopic,
-    Question,
+    QuestionBank,
+    QuestionTag,
+    AssessmentQuestion,
     Lesson,
     Resource,
     Assessment,
@@ -24,7 +30,7 @@ from .models import (
     AssessmentAttempt,
     ResourceView,
     RecentlyViewed,
-     StudentAnswer,
+    StudentAnswer,
 )
 
 
@@ -571,36 +577,52 @@ def load_lessons(request):
 
 @login_required
 @school_admin_required
-def question_list(request, assessment_id):
+def question_bank_list(request):
 
-    assessment = get_object_or_404(Assessment,pk=assessment_id,)
-    questions = (assessment.questions.all().order_by("order"))
+    questions = (
+        QuestionBank.objects
+        .select_related(
+            "lesson",
+            "created_by",
+        )
+        .prefetch_related("tags")
+        .order_by("lesson", "order")
+    )
+
+    query = request.GET.get("q", "").strip()
+
+    if query:
+        questions = questions.filter(
+            Q(question__icontains=query) |
+            Q(answer__icontains=query) |
+            Q(tags__name__icontains=query)
+        ).distinct()
 
     return render(
         request,
-        "library/question_list.html",
+        "library/question_bank_list.html",
         {
-            "assessment": assessment,
             "questions": questions,
+            "query": query,
         },
     )
 
 
 @login_required
 @school_admin_required
-def add_question(request, assessment_id):
-
-    assessment = get_object_or_404(Assessment,pk=assessment_id,)
+def add_question(request):
 
     if request.method == "POST":
 
-        form = QuestionForm(request.POST)
+        form = QuestionBankForm(request.POST)
 
         if form.is_valid():
 
             question = form.save(commit=False)
-            question.assessment = assessment
+            question.created_by = request.user
             question.save()
+
+            form.save_m2m()
 
             messages.success(
                 request,
@@ -608,24 +630,18 @@ def add_question(request, assessment_id):
             )
 
             return redirect(
-                "library:question_list",
-                assessment_id=assessment.id,
+                "library:question_bank_list"
             )
 
     else:
 
-        form = QuestionForm(
-            initial={
-                "assessment": assessment,
-            }
-        )
+        form = QuestionBankForm()
 
     return render(
         request,
-        "library/question_form.html",
+        "library/question_bank_form.html",
         {
             "form": form,
-            "assessment": assessment,
             "title": "Add Question",
         },
     )
@@ -635,11 +651,14 @@ def add_question(request, assessment_id):
 @school_admin_required
 def edit_question(request, pk):
 
-    question = get_object_or_404(Question,pk=pk,)
+    question = get_object_or_404(
+        QuestionBank,
+        pk=pk,
+    )
 
     if request.method == "POST":
 
-        form = QuestionForm(
+        form = QuestionBankForm(
             request.POST,
             instance=question,
         )
@@ -654,20 +673,20 @@ def edit_question(request, pk):
             )
 
             return redirect(
-                "library:question_list",
-                assessment_id=question.assessment.id,
+                "library:question_bank_list"
             )
 
     else:
 
-        form = QuestionForm(instance=question)
+        form = QuestionBankForm(
+            instance=question,
+        )
 
     return render(
         request,
-        "library/question_form.html",
+        "library/question_bank_form.html",
         {
             "form": form,
-            "assessment": question.assessment,
             "title": "Edit Question",
         },
     )
@@ -679,11 +698,9 @@ def edit_question(request, pk):
 def delete_question(request, pk):
 
     question = get_object_or_404(
-        Question,
+        QuestionBank,
         pk=pk,
     )
-
-    assessment = question.assessment
 
     if request.method == "POST":
 
@@ -695,13 +712,12 @@ def delete_question(request, pk):
         )
 
         return redirect(
-            "library:question_list",
-            assessment_id=assessment.id,
+            "library:question_bank_list"
         )
 
     return render(
         request,
-        "library/question_confirm_delete.html",
+        "library/question_bank_delete.html",
         {
             "question": question,
         },
@@ -709,38 +725,217 @@ def delete_question(request, pk):
 
 
 @login_required
-def start_assessment(request, assessment_id):
+@school_admin_required
+def tag_list(request):
+
+    tags = QuestionTag.objects.order_by("name")
+
+    return render(
+        request,
+        "library/tag_list.html",
+        {
+            "tags": tags,
+        },
+    )
+@login_required
+@school_admin_required
+def add_tag(request):
+
+    if request.method == "POST":
+
+        form = QuestionTagForm(request.POST)
+
+        if form.is_valid():
+
+            form.save()
+
+            messages.success(
+                request,
+                "Tag created successfully."
+            )
+
+            return redirect(
+                "library:tag_list"
+            )
+
+    else:
+
+        form = QuestionTagForm()
+
+    return render(
+        request,
+        "library/tag_form.html",
+        {
+            "form": form,
+            "title": "Add Tag",
+        },
+    )
+
+
+@login_required
+@school_admin_required
+def edit_tag(request, pk):
+
+    tag = get_object_or_404(
+        QuestionTag,
+        pk=pk,
+    )
+
+    if request.method == "POST":
+
+        form = QuestionTagForm(
+            request.POST,
+            instance=tag,
+        )
+
+        if form.is_valid():
+
+            form.save()
+
+            messages.success(
+                request,
+                "Tag updated successfully."
+            )
+
+            return redirect(
+                "library:tag_list"
+            )
+
+    else:
+
+        form = QuestionTagForm(
+            instance=tag,
+        )
+
+    return render(
+        request,
+        "library/tag_form.html",
+        {
+            "form": form,
+            "title": "Edit Tag",
+        },
+    )
+
+
+@login_required
+@school_admin_required
+def delete_tag(request, pk):
+
+    tag = get_object_or_404(
+        QuestionTag,
+        pk=pk,
+    )
+
+    if request.method == "POST":
+
+        tag.delete()
+
+        messages.success(
+            request,
+            "Tag deleted successfully."
+        )
+
+        return redirect(
+            "library:tag_list"
+        )
+
+    return render(
+        request,
+        "library/tag_delete.html",
+        {
+            "tag": tag,
+        },
+    )
+
+@login_required
+@school_admin_required
+def assessment_questions(request, assessment_id):
+
     assessment = get_object_or_404(
         Assessment,
+        pk=assessment_id,
+    )
+
+    questions = (
+        AssessmentQuestion.objects
+        .filter(assessment=assessment)
+        .select_related(
+            "question",
+        )
+        .order_by("order")
+    )
+
+    return render(
+        request,
+        "library/assessment_questions.html",
+        {
+            "assessment": assessment,
+            "questions": questions,
+        },
+    )
+@login_required
+def start_assessment(request, assessment_id):
+    assessment = get_object_or_404(
+        Assessment.objects.select_related("lesson"),
         pk=assessment_id,
         is_published=True,
     )
 
-    # Ensure the assessment has questions
-    if assessment.questions.count() == 0:
+    assessment_questions = (
+        AssessmentQuestion.objects.filter(assessment=assessment)
+        .select_related("question")
+        .order_by("order")
+    )
+
+    if not assessment_questions.exists():
         messages.warning(
             request,
-            "This assessment has no questions yet."
+            "This assessment has no questions assigned."
         )
         return redirect(
             "library:lesson_detail",
             slug=assessment.lesson.slug,
         )
 
-    # Resume an unfinished attempt if one exists
-    attempt = AssessmentAttempt.objects.filter(
-        learner=request.user,
-        assessment=assessment,
-        status="started",
-    ).first()
+    # Resume unfinished attempt
+    attempt = (
+        AssessmentAttempt.objects.filter(
+            learner=request.user,
+            assessment=assessment,
+            status="started",
+        )
+        .order_by("-started_at")
+        .first()
+    )
 
     if attempt:
+        messages.info(
+            request,
+            "Resuming your unfinished assessment."
+        )
         return redirect(
             "library:take_assessment",
             attempt_id=attempt.pk,
         )
 
-    # Determine next attempt number
+    # Optional maximum attempts
+    if getattr(assessment, "max_attempts", None):
+
+        attempts = AssessmentAttempt.objects.filter(
+            learner=request.user,
+            assessment=assessment,
+        ).count()
+
+        if attempts >= assessment.max_attempts:
+            messages.error(
+                request,
+                "You have reached the maximum number of attempts."
+            )
+            return redirect(
+                "library:lesson_detail",
+                slug=assessment.lesson.slug,
+            )
+
     last_attempt = (
         AssessmentAttempt.objects.filter(
             learner=request.user,
@@ -750,28 +945,17 @@ def start_assessment(request, assessment_id):
         )
     )
 
-    next_attempt = (
-        last_attempt["attempt_number__max"] or 0
-    ) + 1
-
-    # Create new attempt
     attempt = AssessmentAttempt.objects.create(
         learner=request.user,
         assessment=assessment,
-        attempt_number=next_attempt,
+        attempt_number=(last_attempt["attempt_number__max"] or 0) + 1,
         status="started",
     )
 
-    # Verify it was actually saved
-    if not AssessmentAttempt.objects.filter(pk=attempt.pk).exists():
-        messages.error(
-            request,
-            "Unable to start the assessment. Please try again."
-        )
-        return redirect(
-            "library:lesson_detail",
-            slug=assessment.lesson.slug,
-        )
+    messages.success(
+        request,
+        f"You have started '{assessment.title}'."
+    )
 
     return redirect(
         "library:take_assessment",
@@ -781,73 +965,140 @@ def start_assessment(request, assessment_id):
 @login_required
 @transaction.atomic
 def take_assessment(request, attempt_id):
+
     attempt = get_object_or_404(
-        AssessmentAttempt,
+        AssessmentAttempt.objects.select_related(
+            "assessment",
+            "assessment__lesson",
+        ),
         pk=attempt_id,
         learner=request.user,
     )
 
     assessment = attempt.assessment
-    questions = assessment.questions.all().order_by("order")
-    end_time = attempt.started_at + timedelta(minutes=assessment.time_limit)
-    remaining_seconds = int((end_time - timezone.now()).total_seconds())
-    if remaining_seconds < 0:
-        remaining_seconds = 0
+
+    assessment_questions = (
+        AssessmentQuestion.objects
+        .filter(assessment=assessment)
+        .select_related("question")
+        .order_by("order")
+    )
+
+    questions = [aq.question for aq in assessment_questions]
+
+    end_time = (
+        attempt.started_at +
+        timedelta(minutes=assessment.time_limit)
+    )
+
+    remaining_seconds = max(
+        0,
+        int((end_time - timezone.now()).total_seconds())
+    )
+
+    # Auto-submit if time expired
+    if (
+        timezone.now() >= end_time
+        and attempt.status == "started"
+    ):
+        messages.warning(
+            request,
+            "Time is up. Your assessment has been submitted automatically."
+        )
+
+        request.method = "POST"
+        request.POST = request.POST.copy()
 
     if request.method == "POST":
+
         form = TakeAssessmentForm(
             request.POST,
             questions=questions,
         )
 
         if form.is_valid():
+
             attempt.answers.all().delete()
 
-            total_score = 0
             total_marks = 0
+            total_score = 0
 
-            for question in questions:
+            for aq in assessment_questions:
+
+                question = aq.question
+
                 field_name = f"question_{question.id}"
-                student_answer = form.cleaned_data[field_name]
 
-                total_marks += question.marks
-                is_correct = False
-                marks_awarded = 0
+                answer = (
+                    form.cleaned_data.get(field_name, "")
+                    or ""
+                )
 
-                if question.question_type in ["mcq", "true_false", "short"]:
-                    if student_answer.strip().lower() == question.answer.strip().lower():
-                        is_correct = True
-                        marks_awarded = question.marks
+                marks = aq.marks
+
+                total_marks += marks
+
+                correct = False
+                awarded = 0
+
+                if answer.strip():
+
+                    if (
+                        answer.strip().lower()
+                        ==
+                        question.answer.strip().lower()
+                    ):
+                        correct = True
+                        awarded = marks
 
                 StudentAnswer.objects.create(
                     attempt=attempt,
                     question=question,
-                    selected_answer=student_answer,
-                    is_correct=is_correct,
-                    marks_awarded=marks_awarded,
+                    selected_answer=answer,
+                    is_correct=correct,
+                    marks_awarded=awarded,
                 )
 
-                total_score += marks_awarded
+                total_score += awarded
 
-            percentage = (total_score / total_marks) * 100 if total_marks else 0
+            percentage = (
+                (total_score / total_marks) * 100
+                if total_marks else 0
+            )
 
             attempt.score = total_score
             attempt.percentage = percentage
-            attempt.passed = percentage >= assessment.passing_score
+            attempt.passed = (
+                percentage >= assessment.passing_score
+            )
             attempt.completed_at = timezone.now()
             attempt.status = "submitted"
+
             attempt.save()
 
-            return redirect("library:assessment_result", attempt.id)
-    else:
-        form = TakeAssessmentForm(questions=questions)
+            messages.success(
+                request,
+                "Assessment submitted successfully."
+            )
 
-    if timezone.now() > end_time and attempt.status == "started":
-        messages.warning(request, "The assessment time has expired.")
+            return redirect(
+                "library:assessment_result",
+                attempt.id,
+            )
+
+    else:
+
+        form = TakeAssessmentForm(
+            questions=questions,
+        )
 
     question_forms = [
-        (question, form[f"question_{question.id}"])
-        for question in questions
+        (
+            aq,
+            aq.question,
+            form[f"question_{aq.question.id}"],
+        )
+        for aq in assessment_questions
     ]
 
     return render(
@@ -857,13 +1108,11 @@ def take_assessment(request, attempt_id):
             "attempt": attempt,
             "assessment": assessment,
             "question_forms": question_forms,
-            "form": form,
             "remaining_seconds": remaining_seconds,
+            "end_time": end_time,
+            "form": form,
         },
     )
-
-
-
 @login_required
 def assessment_result(request, attempt_id):
 
@@ -875,17 +1124,24 @@ def assessment_result(request, attempt_id):
         learner=request.user,
     )
 
-    answers = (
-        attempt.answers
+    assessment_questions = (
+        AssessmentQuestion.objects
+        .filter(assessment=attempt.assessment)
         .select_related("question")
-        .order_by("question__order")
+        .order_by("order")
     )
+
+    answers = {
+        answer.question_id: answer
+        for answer in attempt.answers.select_related("question")
+    }
 
     return render(
         request,
         "library/assessment_result.html",
         {
             "attempt": attempt,
+            "assessment_questions": assessment_questions,
             "answers": answers,
         },
     )
@@ -894,22 +1150,10 @@ def assessment_result(request, attempt_id):
 @login_required
 @school_admin_required
 def assessment_list(request, lesson_id):
-
-    lesson = get_object_or_404(
-        Lesson,
-        pk=lesson_id,
-    )
-
-    assessments = (
-        lesson.assessments
-        .all()
-        .order_by("-created_at")
-    )
-
-    return render(
-        request,
-        "library/assessment_list.html",
-        {
+    lesson = get_object_or_404(Lesson,pk=lesson_id,)
+    assessments = (lesson.assessments.all().order_by("-created_at"))
+    return render(request,"library/assessment_list.html",
+    {
             "lesson": lesson,
             "assessments": assessments,
         },
@@ -920,28 +1164,14 @@ def assessment_list(request, lesson_id):
 @school_admin_required
 def add_assessment(request, lesson_id):
 
-    lesson = get_object_or_404(
-        Lesson,
-        pk=lesson_id,
-    )
-
+    lesson = get_object_or_404(Lesson,pk=lesson_id,)
     if request.method == "POST":
-
         form = AssessmentForm(request.POST)
-
         if form.is_valid():
-
             assessment = form.save(commit=False)
-
             assessment.lesson = lesson
-
             assessment.save()
-
-            messages.success(
-                request,
-                "Assessment created successfully."
-            )
-
+            messages.success(request,"Assessment created successfully.")
             return redirect(
                 "library:assessment_list",
                 lesson.id,
@@ -950,7 +1180,6 @@ def add_assessment(request, lesson_id):
     else:
 
         form = AssessmentForm()
-
     return render(
         request,
         "library/assessment_form.html",
@@ -965,38 +1194,17 @@ def add_assessment(request, lesson_id):
 @login_required
 @school_admin_required
 def edit_assessment(request, pk):
-
-    assessment = get_object_or_404(
-        Assessment,
-        pk=pk,
-    )
-
+    assessment = get_object_or_404(Assessment,pk=pk,)
     if request.method == "POST":
-
-        form = AssessmentForm(
-            request.POST,
-            instance=assessment,
-        )
-
+        form = AssessmentForm(request.POST,instance=assessment,)
         if form.is_valid():
-
             form.save()
-
-            messages.success(
-                request,
-                "Assessment updated."
-            )
-
-            return redirect(
-                "library:assessment_list",
-                assessment.lesson.id,
-            )
+            messages.success(request,"Assessment updated.")
+            return redirect("library:assessment_list",assessment.lesson.id,)
 
     else:
 
-        form = AssessmentForm(
-            instance=assessment
-        )
+        form = AssessmentForm(instance=assessment)
 
     return render(
         request,
@@ -1041,3 +1249,144 @@ def delete_assessment(request, pk):
             "assessment":assessment,
         }
     )
+
+
+@login_required
+@school_admin_required
+def add_assessment_question(request, assessment_id):
+
+    assessment = get_object_or_404(
+        Assessment,
+        pk=assessment_id,
+    )
+
+    if request.method == "POST":
+
+        form = AssessmentQuestionForm(request.POST)
+
+        if form.is_valid():
+
+            assessment_question = form.save(commit=False)
+            assessment_question.assessment = assessment
+            assessment_question.save()
+
+            messages.success(
+                request,
+                "Question added to assessment."
+            )
+
+            return redirect(
+                "library:assessment_questions",
+                assessment.id,
+            )
+
+    else:
+
+        form = AssessmentQuestionForm()
+
+    return render(
+        request,
+        "library/assessment_question_form.html",
+        {
+            "form": form,
+            "assessment": assessment,
+            "title": "Add Question",
+        },
+    )
+
+@login_required
+@school_admin_required
+def edit_assessment_question(request, pk):
+
+    assessment_question = get_object_or_404(
+        AssessmentQuestion,
+        pk=pk,
+    )
+
+    if request.method == "POST":
+
+        form = AssessmentQuestionForm(
+            request.POST,
+            instance=assessment_question,
+        )
+
+        if form.is_valid():
+
+            form.save()
+
+            messages.success(
+                request,
+                "Assessment question updated."
+            )
+
+            return redirect(
+                "library:assessment_questions",
+                assessment_question.assessment.id,
+            )
+
+    else:
+
+        form = AssessmentQuestionForm(
+            instance=assessment_question,
+        )
+
+    return render(
+        request,
+        "library/assessment_question_form.html",
+        {
+            "form": form,
+            "assessment": assessment_question.assessment,
+            "title": "Edit Question",
+        },
+    )
+
+
+@login_required
+@school_admin_required
+def delete_assessment_question(request, pk):
+
+    assessment_question = get_object_or_404(
+        AssessmentQuestion,
+        pk=pk,
+    )
+
+    assessment = assessment_question.assessment
+
+    if request.method == "POST":
+
+        assessment_question.delete()
+
+        messages.success(
+            request,
+            "Question removed from assessment."
+        )
+
+        return redirect(
+            "library:assessment_questions",
+            assessment.id,
+        )
+
+    return render(
+        request,
+        "library/assessment_question_delete.html",
+        {
+            "assessment_question": assessment_question,
+        },
+    )
+
+@login_required
+def edit_lesson(request, pk):
+    lesson = get_object_or_404(Lesson, pk=pk)
+
+    if request.method == "POST":
+        form = LessonForm(request.POST, request.FILES, instance=lesson)
+        if form.is_valid():
+            form.save()
+            return redirect("library:lesson_detail", slug=lesson.slug)
+    else:
+        form = LessonForm(instance=lesson)
+
+    return render(request, "library/edit_lesson.html", {
+        "form": form,
+        "lesson": lesson,
+    })

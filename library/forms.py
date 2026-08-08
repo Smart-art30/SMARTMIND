@@ -12,8 +12,10 @@ from .models import (
     Subject,
     Topic,
     SubTopic,
-    Question,
     Assessment,
+    QuestionBank,
+    QuestionTag,
+    AssessmentQuestion,
 )
 
 
@@ -223,12 +225,14 @@ class ResourceForm(forms.ModelForm):
 
         return cleaned_data
 
+class QuestionBankForm(forms.ModelForm):
 
-class QuestionForm(forms.ModelForm):
     class Meta:
-        model = Question
+
+        model = QuestionBank
+
         fields = [
-            "assessment",
+            "lesson",
             "question_type",
             "question",
             "option_a",
@@ -236,63 +240,169 @@ class QuestionForm(forms.ModelForm):
             "option_c",
             "option_d",
             "answer",
-            "marks",
-            "order",
             "explanation",
+            "marks",
+            "difficulty",
+            "tags",
+            "order",
+            "is_active",
         ]
 
         widgets = {
-            "question": CKEditor5Widget(config_name="default"),
-            "explanation": CKEditor5Widget(config_name="default"),
-            "assessment": forms.Select(attrs={"class": "form-select"}),
-            "question_type": forms.Select(attrs={"class": "form-select"}),
+
+            "lesson": forms.Select(
+                attrs={"class":"form-select"}
+            ),
+
+            "question_type": forms.Select(
+                attrs={"class":"form-select"}
+            ),
+
+            "question": CKEditor5Widget(
+                config_name="default"
+            ),
+
             "option_a": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Option A"}
+                attrs={
+                    "class":"form-control",
+                    "placeholder":"Option A",
+                }
             ),
+
             "option_b": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Option B"}
+                attrs={
+                    "class":"form-control",
+                    "placeholder":"Option B",
+                }
             ),
+
             "option_c": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Option C"}
+                attrs={
+                    "class":"form-control",
+                    "placeholder":"Option C",
+                }
             ),
+
             "option_d": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Option D"}
+                attrs={
+                    "class":"form-control",
+                    "placeholder":"Option D",
+                }
             ),
+
             "answer": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Correct Answer"}
+                attrs={
+                    "class":"form-control",
+                    "placeholder":"Correct Answer",
+                }
             ),
-            "marks": forms.NumberInput(attrs={"class": "form-control", "min": 1}),
-            "order": forms.NumberInput(attrs={"class": "form-control", "min": 0}),
+
+            "marks": forms.NumberInput(
+                attrs={
+                    "class":"form-control",
+                    "min":1,
+                }
+            ),
+
+            "difficulty": forms.Select(
+                attrs={"class":"form-select"}
+            ),
+
+            "tags": forms.SelectMultiple(
+                attrs={"class":"form-select"}
+            ),
+
+            "order": forms.NumberInput(
+                attrs={
+                    "class":"form-control",
+                    "min":0,
+                }
+            ),
+
+            "is_active": forms.CheckboxInput(
+                attrs={
+                    "class":"form-check-input",
+                }
+            ),
+
+            "explanation": CKEditor5Widget(
+                config_name="default"
+            ),
+
         }
 
     def clean(self):
+
         cleaned_data = super().clean()
-        question_type = cleaned_data.get("question_type")
+
+        qtype = cleaned_data.get("question_type")
+
+        answer = cleaned_data.get("answer")
+
         option_a = cleaned_data.get("option_a")
         option_b = cleaned_data.get("option_b")
         option_c = cleaned_data.get("option_c")
         option_d = cleaned_data.get("option_d")
-        answer = cleaned_data.get("answer")
 
-        if question_type == "mcq":
-            options = [option_a, option_b, option_c, option_d]
-            if not all(options):
+        if qtype == "mcq":
+
+            if not all([option_a, option_b, option_c, option_d]):
+
                 raise forms.ValidationError(
-                    "All four options are required for Multiple Choice questions."
+                    "MCQ questions require all four options."
                 )
 
-            if answer not in ["A", "B", "C", "D"]:
+            if answer not in ["A","B","C","D"]:
+
                 raise forms.ValidationError(
                     "Correct answer must be A, B, C or D."
                 )
 
-        elif question_type == "true_false":
-            if answer not in ["True", "False"]:
-                raise forms.ValidationError("Answer must be True or False.")
+        elif qtype == "true_false":
+
+            if answer not in ["True","False"]:
+
+                raise forms.ValidationError(
+                    "Answer must be True or False."
+                )
 
         return cleaned_data
 
 
+class QuestionTagForm(forms.ModelForm):
+
+    class Meta:
+
+        model = QuestionTag
+
+        fields = [
+            "name",
+            "color",
+            "description",
+        ]
+
+        widgets = {
+
+            "name": forms.TextInput(
+                attrs={
+                    "class":"form-control",
+                }
+            ),
+
+            "color": forms.TextInput(
+                attrs={
+                    "class":"form-control",
+                }
+            ),
+
+            "description": forms.Textarea(
+                attrs={
+                    "class":"form-control",
+                    "rows":3,
+                }
+            ),
+
+        }
 
 class TakeAssessmentForm(forms.Form):
 
@@ -302,7 +412,9 @@ class TakeAssessmentForm(forms.Form):
         if not questions:
             return
 
-        for question in questions:
+        for assessment_question in questions:
+
+            question = assessment_question.question
 
             field_name = f"question_{question.id}"
 
@@ -355,8 +467,48 @@ class TakeAssessmentForm(forms.Form):
                     required=True,
                 )
 
+class AssessmentQuestionForm(forms.ModelForm):
 
+    class Meta:
+        model = AssessmentQuestion
+        fields = [
+            "question",
+            "marks",
+            "order",
+        ]
 
+        widgets = {
+            "question": forms.Select(
+                attrs={"class": "form-select"}
+            ),
+            "marks": forms.NumberInput(
+                attrs={
+                    "class": "form-control",
+                    "min": 1,
+                }
+            ),
+            "order": forms.NumberInput(
+                attrs={
+                    "class": "form-control",
+                    "min": 1,
+                }
+            ),
+        }
+
+    def __init__(self, *args, assessment=None, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields["question"].queryset = QuestionBank.objects.none()
+
+        if assessment:
+            self.fields["question"].queryset = (
+                QuestionBank.objects.filter(
+                    lesson=assessment.lesson,
+                    is_active=True,
+                ).order_by("order")
+            )
+
+            
 class AssessmentForm(forms.ModelForm):
 
     class Meta:
@@ -364,9 +516,13 @@ class AssessmentForm(forms.ModelForm):
 
         fields = [
             "title",
+            "assessment_type",
             "instructions",
             "time_limit",
             "passing_score",
+            "attempts_allowed",
+            "randomize_questions",
+            "show_answers",
             "is_published",
         ]
 
@@ -374,8 +530,14 @@ class AssessmentForm(forms.ModelForm):
 
             "title": forms.TextInput(
                 attrs={
-                    "class":"form-control",
-                    "placeholder":"Assessment title"
+                    "class": "form-control",
+                    "placeholder": "Assessment title",
+                }
+            ),
+
+            "assessment_type": forms.Select(
+                attrs={
+                    "class": "form-select",
                 }
             ),
 
@@ -385,23 +547,41 @@ class AssessmentForm(forms.ModelForm):
 
             "time_limit": forms.NumberInput(
                 attrs={
-                    "class":"form-control",
-                    "min":1
+                    "class": "form-control",
+                    "min": 1,
                 }
             ),
 
             "passing_score": forms.NumberInput(
                 attrs={
-                    "class":"form-control",
-                    "min":0,
-                    "max":100
+                    "class": "form-control",
+                    "min": 0,
+                    "max": 100,
+                }
+            ),
+
+            "attempts_allowed": forms.NumberInput(
+                attrs={
+                    "class": "form-control",
+                    "min": 1,
+                }
+            ),
+
+            "randomize_questions": forms.CheckboxInput(
+                attrs={
+                    "class": "form-check-input",
+                }
+            ),
+
+            "show_answers": forms.CheckboxInput(
+                attrs={
+                    "class": "form-check-input",
                 }
             ),
 
             "is_published": forms.CheckboxInput(
                 attrs={
-                    "class":"form-check-input"
+                    "class": "form-check-input",
                 }
             ),
-
         }

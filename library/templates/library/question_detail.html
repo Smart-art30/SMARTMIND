@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}Question Details{% endblock %}
+
+{% block content %}
+
+<div class="container py-4">
+
+<div class="card shadow border-0">
+
+<div class="card-header bg-primary text-white d-flex justify-content-between">
+
+<h4 class="mb-0">
+
+<i class="bi bi-eye-fill"></i>
+
+Question Details
+
+</h4>
+
+<div>
+
+<a href="{% url 'library:edit_question' question.pk %}"
+class="btn btn-warning btn-sm">
+
+<i class="bi bi-pencil"></i>
+
+Edit
+
+</a>
+
+<a href="{% url 'library:delete_question' question.pk %}"
+class="btn btn-danger btn-sm">
+
+<i class="bi bi-trash"></i>
+
+Delete
+
+</a>
+
+</div>
+
+</div>
+
+<div class="card-body">
+
+<h5>Lesson</h5>
+
+<p>{{ question.lesson }}</p>
+
+<hr>
+
+<h5>Question</h5>
+
+<div class="border rounded p-3 bg-light">
+
+{{ question.question|safe }}
+
+</div>
+
+{% if question.question_type == "mcq" %}
+
+<hr>
+
+<h5>Choices</h5>
+
+<ul class="list-group">
+
+<li class="list-group-item">
+<strong>A.</strong> {{ question.option_a }}
+</li>
+
+<li class="list-group-item">
+<strong>B.</strong> {{ question.option_b }}
+</li>
+
+<li class="list-group-item">
+<strong>C.</strong> {{ question.option_c }}
+</li>
+
+<li class="list-group-item">
+<strong>D.</strong> {{ question.option_d }}
+</li>
+
+</ul>
+
+{% endif %}
+
+<hr>
+
+<h5>Correct Answer</h5>
+
+<div class="alert alert-success">
+
+{{ question.answer }}
+
+</div>
+
+{% if question.explanation %}
+
+<h5>Explanation</h5>
+
+<div class="alert alert-info">
+
+{{ question.explanation|safe }}
+
+</div>
+
+{% endif %}
+
+<h5>Tags</h5>
+
+{% for tag in question.tags.all %}
+
+<span class="badge bg-primary">
+
+{{ tag.name }}
+
+</span>
+
+{% empty %}
+
+<span class="text-muted">
+
+No tags assigned.
+
+</span>
+
+{% endfor %}
+
+</div>
+
+<div class="card-footer">
+
+<a href="{% url 'library:question_bank_list' %}"
+class="btn btn-secondary">
+
+<i class="bi bi-arrow-left"></i>
+
+Back to Question Bank
+
+</a>
+
+</div>
+
+</div>
+
+</div>
+
+{% endblock %}

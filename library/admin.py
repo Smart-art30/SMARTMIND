@@ -11,10 +11,14 @@ from .models import (
     AccessLevel,
     Visibility,
     Assessment,
-    Question,
+    QuestionBank,
+    QuestionTag,
+    AssessmentQuestion,
     AssessmentAttempt,
     StudentAnswer,
     LessonProgress,
+    ResourceView,
+    RecentlyViewed,
     Product,
     ProductResource,
     Purchase,
@@ -256,10 +260,12 @@ class ResourceAdmin(admin.ModelAdmin):
 # =====================================================
 @admin.register(Assessment)
 class AssessmentAdmin(admin.ModelAdmin):
+
     list_display = (
         "title",
         "lesson",
         "assessment_type",
+        "question_count",
         "passing_score",
         "is_published",
     )
@@ -278,52 +284,166 @@ class AssessmentAdmin(admin.ModelAdmin):
         "lesson",
     )
 
+    def question_count(self, obj):
+        return obj.questions.count()
+
+    question_count.short_description = "Questions"
+
 
 # =====================================================
 # QUESTION
 # =====================================================
-@admin.register(Question)
-class QuestionAdmin(admin.ModelAdmin):
+@admin.register(QuestionBank)
+class QuestionBankAdmin(admin.ModelAdmin):
+
     list_display = (
         "id",
-        "assessment",
         "short_question",
-        "answer",
+        "lesson",
+        "question_type",
+        "difficulty",
         "marks",
+        "tag_list",
+        "created_by",
+        "is_active",
     )
 
     list_filter = (
-        "assessment",
+        "lesson",
+        "question_type",
+        "difficulty",
+        "is_active",
+        "tags",
     )
 
     search_fields = (
         "question",
+        "answer",
+        "lesson__title",
+        "tags__name",
+    )
+
+    autocomplete_fields = (
+        "lesson",
+        "created_by",
+        "tags",
+    )
+
+    filter_horizontal = ("tags",)
+
+    def short_question(self, obj):
+        return obj.question[:80]
+
+    short_question.short_description = "Question"
+
+    def tag_list(self, obj):
+        return ", ".join(tag.name for tag in obj.tags.all())
+
+    tag_list.short_description = "Tags"
+
+
+@admin.register(AssessmentQuestion)
+class AssessmentQuestionAdmin(admin.ModelAdmin):
+
+    list_display = (
+        "assessment",
+        "lesson",
+        "question",
+        "marks",
+        "order",
+    )
+
+    list_filter = (
+        "assessment",
+        "assessment__lesson",
+    )
+
+    search_fields = (
         "assessment__title",
+        "question__question",
     )
 
     autocomplete_fields = (
         "assessment",
+        "question",
     )
 
-    def short_question(self, obj):
-        return str(obj.question)[:80]
+    ordering = (
+        "assessment",
+        "order",
+    )
 
-    short_question.short_description = "Question"
+    def lesson(self, obj):
+        return obj.assessment.lesson
 
+    lesson.short_description = "Lesson"
 
+@admin.register(QuestionTag)
+class QuestionTagAdmin(admin.ModelAdmin):
+
+    list_display = (
+        "name",
+    )
+
+    search_fields = (
+        "name",
+    )
+
+@admin.register(ResourceView)
+class ResourceViewAdmin(admin.ModelAdmin):
+
+    list_display = (
+        "learner",
+        "resource",
+        "downloads",
+        "viewed_at",
+        "duration",
+        "completed",
+    )
+
+    search_fields = (
+        "learner__username",
+        "resource__title",
+    )
+
+    autocomplete_fields = (
+        "learner",
+        "resource",
+    )
+
+@admin.register(RecentlyViewed)
+class RecentlyViewedAdmin(admin.ModelAdmin):
+
+    list_display = (
+        "learner",
+        "lesson",
+        "viewed_at",
+    )
+
+    search_fields = (
+        "learner__username",
+        "lesson__title",
+    )
+
+    autocomplete_fields = (
+        "learner",
+        "lesson",
+    )
 # =====================================================
 # ASSESSMENT ATTEMPT
 # =====================================================
 @admin.register(AssessmentAttempt)
 class AssessmentAttemptAdmin(admin.ModelAdmin):
     list_display = (
-        "learner",
-        "assessment",
-        "score",
-        "percentage",
-        "passed",
-        "completed_at",
-    )
+    "learner",
+    "assessment",
+    "attempt_number",
+    "status",
+    "score",
+    "percentage",
+    "passed",
+    "completed_at",
+)
 
     search_fields = (
         "learner__username",

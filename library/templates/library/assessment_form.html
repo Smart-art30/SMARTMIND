@@ -1,0 +1,319 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+{{ title|default:"Assessment" }} | SmartMind
+{% endblock %}
+
+{% block content %}
+
+{{ form.media }}
+
+<div class="container py-4">
+
+```
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <div class="d-flex align-items-center gap-2 mb-2">
+            <a href="{% url 'library:assessment_list' lesson.id %}"
+               class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i>
+                Back to Assessments
+            </a>
+        </div>
+
+        <h2 class="fw-bold mb-1">
+            <i class="bi bi-ui-checks-grid text-primary me-2"></i>
+            {{ title|default:"Assessment" }}
+        </h2>
+
+        <p class="text-muted mb-0">
+            Create and configure an assessment for
+            <strong>{{ lesson.title }}</strong>
+        </p>
+    </div>
+</div>
+
+
+<!-- Form Card -->
+<div class="card border-0 shadow-sm">
+
+    <div class="card-header bg-primary text-white py-3">
+        <h5 class="mb-0">
+            <i class="bi bi-pencil-square me-2"></i>
+            Assessment Details
+        </h5>
+    </div>
+
+    <div class="card-body p-4">
+
+        <form method="POST">
+
+            {% csrf_token %}
+
+            <!-- General Errors -->
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+
+            <!-- Title -->
+            <div class="mb-4">
+
+                <label for="{{ form.title.id_for_label }}"
+                       class="form-label fw-semibold">
+
+                    <i class="bi bi-card-heading me-1"></i>
+                    Assessment Title
+
+                </label>
+
+                {{ form.title }}
+
+                {% if form.title.errors %}
+                    <div class="text-danger small mt-1">
+                        {{ form.title.errors }}
+                    </div>
+                {% endif %}
+
+            </div>
+
+
+            <!-- Assessment Type -->
+            <div class="mb-4">
+
+                <label for="{{ form.assessment_type.id_for_label }}"
+                       class="form-label fw-semibold">
+
+                    <i class="bi bi-list-check me-1"></i>
+                    Assessment Type
+
+                </label>
+
+                {{ form.assessment_type }}
+
+                {% if form.assessment_type.errors %}
+                    <div class="text-danger small mt-1">
+                        {{ form.assessment_type.errors }}
+                    </div>
+                {% endif %}
+
+            </div>
+
+
+            <!-- Instructions -->
+            <div class="mb-4">
+
+                <label for="{{ form.instructions.id_for_label }}"
+                       class="form-label fw-semibold">
+
+                    <i class="bi bi-info-circle me-1"></i>
+                    Instructions
+
+                </label>
+
+                {{ form.instructions }}
+
+                {% if form.instructions.errors %}
+                    <div class="text-danger small mt-1">
+                        {{ form.instructions.errors }}
+                    </div>
+                {% endif %}
+
+            </div>
+
+
+            <!-- Time / Passing Score -->
+            <div class="row g-3 mb-4">
+
+                <div class="col-md-6">
+
+                    <label for="{{ form.time_limit.id_for_label }}"
+                           class="form-label fw-semibold">
+
+                        <i class="bi bi-clock me-1"></i>
+                        Time Limit (minutes)
+
+                    </label>
+
+                    {{ form.time_limit }}
+
+                    <div class="form-text">
+                        Leave blank if the assessment has no time limit.
+                    </div>
+
+                    {% if form.time_limit.errors %}
+                        <div class="text-danger small">
+                            {{ form.time_limit.errors }}
+                        </div>
+                    {% endif %}
+
+                </div>
+
+
+                <div class="col-md-6">
+
+                    <label for="{{ form.passing_score.id_for_label }}"
+                           class="form-label fw-semibold">
+
+                        <i class="bi bi-trophy me-1"></i>
+                        Passing Score (%)
+
+                    </label>
+
+                    {{ form.passing_score }}
+
+                    <div class="form-text">
+                        Enter a value between 0 and 100.
+                    </div>
+
+                    {% if form.passing_score.errors %}
+                        <div class="text-danger small">
+                            {{ form.passing_score.errors }}
+                        </div>
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+
+            <!-- Attempts -->
+            <div class="mb-4">
+
+                <label for="{{ form.attempts_allowed.id_for_label }}"
+                       class="form-label fw-semibold">
+
+                    <i class="bi bi-arrow-repeat me-1"></i>
+                    Attempts Allowed
+
+                </label>
+
+                {{ form.attempts_allowed }}
+
+                <div class="form-text">
+                    Specify how many times a learner can attempt this assessment.
+                </div>
+
+                {% if form.attempts_allowed.errors %}
+                    <div class="text-danger small">
+                        {{ form.attempts_allowed.errors }}
+                    </div>
+                {% endif %}
+
+            </div>
+
+
+            <!-- Assessment Behaviour -->
+            <div class="card bg-light border-0 mb-4">
+
+                <div class="card-body">
+
+                    <h6 class="fw-bold mb-3">
+                        <i class="bi bi-gear-fill me-2"></i>
+                        Assessment Settings
+                    </h6>
+
+
+                    <!-- Randomize -->
+                    <div class="form-check mb-3">
+
+                        {{ form.randomize_questions }}
+
+                        <label class="form-check-label"
+                               for="{{ form.randomize_questions.id_for_label }}">
+
+                            <strong>Randomize Questions</strong>
+
+                            <div class="text-muted small">
+                                Present questions in a different order for each attempt.
+                            </div>
+
+                        </label>
+
+                    </div>
+
+
+                    <!-- Show Answers -->
+                    <div class="form-check mb-3">
+
+                        {{ form.show_answers }}
+
+                        <label class="form-check-label"
+                               for="{{ form.show_answers.id_for_label }}">
+
+                            <strong>Show Answers</strong>
+
+                            <div class="text-muted small">
+                                Allow learners to see correct answers after completing the assessment.
+                            </div>
+
+                        </label>
+
+                    </div>
+
+
+                    <!-- Published -->
+                    <div class="form-check">
+
+                        {{ form.is_published }}
+
+                        <label class="form-check-label"
+                               for="{{ form.is_published.id_for_label }}">
+
+                            <strong>Publish Assessment</strong>
+
+                            <div class="text-muted small">
+                                Make this assessment available to learners.
+                            </div>
+
+                        </label>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Form Actions -->
+            <div class="d-flex flex-wrap gap-2 pt-3 border-top">
+
+                <button type="submit"
+                        class="btn btn-primary">
+
+                    <i class="bi bi-check-circle-fill me-1"></i>
+
+                    {% if title == "Edit Assessment" %}
+                        Update Assessment
+                    {% else %}
+                        Create Assessment
+                    {% endif %}
+
+                </button>
+
+
+                <a href="{% url 'library:assessment_list' lesson.id %}"
+                   class="btn btn-outline-secondary">
+
+                    <i class="bi bi-x-circle me-1"></i>
+                    Cancel
+
+                </a>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+```
+
+</div>
+
+{% endblock %}

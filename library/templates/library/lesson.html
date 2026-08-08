@@ -468,8 +468,12 @@ body{
                                             </div>
                                         {% else %}
                                             <div class="d-grid gap-2">
-                                                <a href="{% url 'library:question_list' assessment.id %}" class="btn btn-primary">
-                                                    <i class="bi bi-ui-checks-grid"></i> Manage Questions
+                                               <a href="{% url 'library:assessment_questions' assessment.id %}" 
+                                                class="btn btn-primary">
+
+                                                    <i class="bi bi-ui-checks-grid"></i>
+                                                    Manage Questions
+
                                                 </a>
                                                 <a href="#" class="btn btn-outline-success">
                                                     <i class="bi bi-graph-up-arrow"></i> View Results
