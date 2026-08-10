@@ -1,4 +1,3 @@
-
 document.addEventListener("DOMContentLoaded", function () {
 
     const button = document.getElementById("smartmind-chat-button");
@@ -7,26 +6,133 @@ document.addEventListener("DOMContentLoaded", function () {
     const input = document.getElementById("smartmind-input");
     const messages = document.getElementById("smartmind-messages");
 
+    /*
+     * Optional close button.
+     *
+     * If your header contains:
+     *
+     * <button id="smartmind-close">×</button>
+     *
+     * it will automatically work.
+     */
+    const closeButton = document.getElementById("smartmind-close");
 
-    // =========================================================
-    // OPEN / CLOSE CHAT
-    // =========================================================
 
-    button.onclick = function () {
+    // =====================================================
+    // SAFETY CHECK
+    // =====================================================
 
-        if (windowBox.style.display === "flex") {
-            windowBox.style.display = "none";
-        } else {
-            windowBox.style.display = "flex";
+    if (!button || !windowBox || !send || !input || !messages) {
+        console.error("SmartMind AI chatbot elements not found.");
+        return;
+    }
+
+
+    // =====================================================
+    // OPEN CHAT
+    // =====================================================
+
+    function openChat() {
+
+        windowBox.style.display = "flex";
+
+        /*
+         * Small delay allows the browser to finish
+         * rendering the chatbot before focusing.
+         */
+        setTimeout(function () {
+
             input.focus();
+
+            scrollToBottom();
+
+        }, 100);
+
+    }
+
+
+    // =====================================================
+    // CLOSE CHAT
+    // =====================================================
+
+    function closeChat() {
+
+        windowBox.style.display = "none";
+
+        /*
+         * Remove focus so the mobile keyboard closes.
+         */
+        input.blur();
+
+    }
+
+
+    // =====================================================
+    // TOGGLE CHAT
+    // =====================================================
+
+    function toggleChat() {
+
+        const isOpen =
+            window.getComputedStyle(windowBox).display !== "none";
+
+        if (isOpen) {
+
+            closeChat();
+
+        } else {
+
+            openChat();
+
         }
 
-    };
+    }
 
 
-    // =========================================================
+    // =====================================================
+    // CHAT BUTTON
+    // =====================================================
+
+    button.addEventListener("click", function () {
+
+        toggleChat();
+
+    });
+
+
+    // =====================================================
+    // CLOSE BUTTON
+    // =====================================================
+
+    if (closeButton) {
+
+        closeButton.addEventListener("click", function () {
+
+            closeChat();
+
+        });
+
+    }
+
+
+    // =====================================================
+    // SCROLL TO BOTTOM
+    // =====================================================
+
+    function scrollToBottom() {
+
+        requestAnimationFrame(function () {
+
+            messages.scrollTop = messages.scrollHeight;
+
+        });
+
+    }
+
+
+    // =====================================================
     // ADD USER MESSAGE
-    // =========================================================
+    // =====================================================
 
     function addUserMessage(message) {
 
@@ -34,27 +140,36 @@ document.addEventListener("DOMContentLoaded", function () {
 
         wrapper.className = "smartmind-message user";
 
+
         const bubble = document.createElement("div");
 
         bubble.className = "smartmind-bubble";
 
-        // IMPORTANT:
-        // Use textContent for learner messages.
-        // This prevents the learner from injecting HTML/JavaScript.
+
+        /*
+         * IMPORTANT:
+         *
+         * textContent is used for learner messages.
+         *
+         * This prevents HTML/JavaScript injection.
+         */
 
         bubble.textContent = message;
+
 
         wrapper.appendChild(bubble);
 
         messages.appendChild(wrapper);
 
-        messages.scrollTop = messages.scrollHeight;
+
+        scrollToBottom();
+
     }
 
 
-    // =========================================================
+    // =====================================================
     // ADD AI MESSAGE
-    // =========================================================
+    // =====================================================
 
     function addAIMessage(html) {
 
@@ -62,42 +177,38 @@ document.addEventListener("DOMContentLoaded", function () {
 
         wrapper.className = "smartmind-message ai";
 
+
         const bubble = document.createElement("div");
 
         bubble.className = "smartmind-bubble";
 
+
         /*
-         * The backend should already have converted Gemini's
-         * Markdown into HTML.
+         * Backend-generated HTML.
          *
-         * The HTML is inserted here so that:
+         * Example:
          *
-         * <strong>text</strong>
-         *
-         * becomes bold text,
-         *
-         * <h3>Heading</h3>
-         *
-         * becomes a heading,
-         *
+         * <strong>Coding</strong>
+         * <p>Coding means...</p>
          * <ol>...</ol>
-         *
-         * becomes a numbered list.
          */
 
         bubble.innerHTML = html;
+
 
         wrapper.appendChild(bubble);
 
         messages.appendChild(wrapper);
 
-        messages.scrollTop = messages.scrollHeight;
+
+        scrollToBottom();
+
     }
 
 
-    // =========================================================
+    // =====================================================
     // ADD ERROR MESSAGE
-    // =========================================================
+    // =====================================================
 
     function addErrorMessage(message) {
 
@@ -105,52 +216,113 @@ document.addEventListener("DOMContentLoaded", function () {
 
         wrapper.className = "smartmind-message ai";
 
+
         const bubble = document.createElement("div");
 
         bubble.className = "smartmind-bubble";
+
 
         bubble.style.color = "#dc2626";
 
         bubble.textContent = message;
 
+
         wrapper.appendChild(bubble);
 
         messages.appendChild(wrapper);
 
-        messages.scrollTop = messages.scrollHeight;
+
+        scrollToBottom();
+
     }
 
 
-    // =========================================================
+    // =====================================================
+    // ADD TEMPORARY "THINKING" MESSAGE
+    // =====================================================
+
+    function addThinkingMessage() {
+
+        const wrapper = document.createElement("div");
+
+        wrapper.className =
+            "smartmind-message ai smartmind-thinking";
+
+
+        const bubble = document.createElement("div");
+
+        bubble.className = "smartmind-bubble";
+
+        bubble.textContent = "SmartMind AI is thinking...";
+
+
+        wrapper.appendChild(bubble);
+
+        messages.appendChild(wrapper);
+
+
+        scrollToBottom();
+
+
+        return wrapper;
+
+    }
+
+
+    // =====================================================
     // SEND MESSAGE
-    // =========================================================
+    // =====================================================
 
     async function sendMessage() {
 
         const message = input.value.trim();
 
+
+        // Don't send empty messages
+
         if (!message) {
+
             return;
+
         }
 
 
+        // -----------------------------------------------
         // Show learner message
+        // -----------------------------------------------
 
         addUserMessage(message);
 
+
+        // Clear input
+
         input.value = "";
 
-        input.focus();
 
-
-        // Disable button while waiting
+        // -----------------------------------------------
+        // Disable send button
+        // -----------------------------------------------
 
         send.disabled = true;
 
         send.style.opacity = "0.6";
 
+        send.style.cursor = "not-allowed";
+
+
+        // -----------------------------------------------
+        // Show thinking message
+        // -----------------------------------------------
+
+        const thinkingMessage =
+            addThinkingMessage();
+
 
         try {
+
+            // -------------------------------------------
+            // Send request to Django
+            // -------------------------------------------
 
             const response = await fetch(
                 "/smartmind_ai/chat/",
@@ -159,6 +331,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     headers: {
                         "Content-Type": "application/json",
+
+                        "X-Requested-With":
+                            "XMLHttpRequest"
                     },
 
                     body: JSON.stringify({
@@ -168,9 +343,59 @@ document.addEventListener("DOMContentLoaded", function () {
             );
 
 
-            // Check HTTP status
+            // -------------------------------------------
+            // Remove thinking message
+            // -------------------------------------------
+
+            if (thinkingMessage) {
+
+                thinkingMessage.remove();
+
+            }
+
+
+            // -------------------------------------------
+            // Handle HTTP errors
+            // -------------------------------------------
 
             if (!response.ok) {
+
+                /*
+                 * Handle Gemini quota errors.
+                 */
+
+                if (response.status === 429) {
+
+                    addErrorMessage(
+                        "🤖 SmartMind AI is temporarily busy. Please try again later."
+                    );
+
+                    return;
+
+                }
+
+
+                if (response.status === 500) {
+
+                    addErrorMessage(
+                        "SmartMind AI is temporarily unavailable. Please try again later."
+                    );
+
+                    return;
+
+                }
+
+
+                if (response.status === 403) {
+
+                    addErrorMessage(
+                        "SmartMind AI access was denied. Please contact the administrator."
+                    );
+
+                    return;
+
+                }
+
 
                 throw new Error(
                     `Server returned ${response.status}`
@@ -179,10 +404,16 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
 
+            // -------------------------------------------
+            // Read JSON response
+            // -------------------------------------------
+
             const data = await response.json();
 
 
-            // Make sure a reply exists
+            // -------------------------------------------
+            // Display AI response
+            // -------------------------------------------
 
             if (data.reply) {
 
@@ -197,48 +428,93 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
 
-        } catch (err) {
+        } catch (error) {
 
             console.error(
                 "SmartMind AI Error:",
-                err
+                error
             );
+
+
+            // Remove thinking message if it still exists
+
+            if (thinkingMessage) {
+
+                thinkingMessage.remove();
+
+            }
+
 
             addErrorMessage(
                 "Sorry, I couldn't connect to SmartMind AI. Please try again."
             );
 
+
         } finally {
 
+            // -------------------------------------------
             // Re-enable send button
+            // -------------------------------------------
 
             send.disabled = false;
 
             send.style.opacity = "1";
 
-            input.focus();
+            send.style.cursor = "pointer";
+
+
+            /*
+             * Don't force the keyboard open after every
+             * response on mobile.
+             *
+             * Only keep focus if the chatbot is still open.
+             */
+
+            if (
+                window.getComputedStyle(windowBox).display !== "none"
+            ) {
+
+                input.focus();
+
+            }
 
         }
 
     }
 
 
-    // =========================================================
+    // =====================================================
     // SEND BUTTON
-    // =========================================================
+    // =====================================================
 
-    send.onclick = sendMessage;
+    send.addEventListener(
+        "click",
+        function () {
+
+            sendMessage();
+
+        }
+    );
 
 
-    // =========================================================
+    // =====================================================
     // ENTER KEY
-    // =========================================================
+    // =====================================================
 
     input.addEventListener(
         "keydown",
         function (event) {
 
-            if (event.key === "Enter") {
+            /*
+             * Enter sends the message.
+             *
+             * Shift + Enter creates a new line.
+             */
+
+            if (
+                event.key === "Enter" &&
+                !event.shiftKey
+            ) {
 
                 event.preventDefault();
 
@@ -248,5 +524,53 @@ document.addEventListener("DOMContentLoaded", function () {
 
         }
     );
+
+
+    // =====================================================
+    // MOBILE KEYBOARD HANDLING
+    // =====================================================
+
+    /*
+     * Modern phones expose the visible viewport through
+     * visualViewport.
+     *
+     * This helps prevent the chatbot from being pushed
+     * behind the mobile keyboard.
+     */
+
+    if (window.visualViewport) {
+
+        function updateMobileViewport() {
+
+            document.documentElement.style.setProperty(
+                "--smartmind-viewport-height",
+                `${window.visualViewport.height}px`
+            );
+
+        }
+
+
+        window.visualViewport.addEventListener(
+            "resize",
+            updateMobileViewport
+        );
+
+
+        window.visualViewport.addEventListener(
+            "scroll",
+            updateMobileViewport
+        );
+
+
+        updateMobileViewport();
+
+    }
+
+
+    // =====================================================
+    // INITIAL STATE
+    // =====================================================
+
+    windowBox.style.display = "none";
 
 });

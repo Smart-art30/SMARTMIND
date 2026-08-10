@@ -303,9 +303,14 @@
            Do not fill the whole phone screen.
         */
 
-        height: 72vh;
+      height: min(
+        72vh,
+        calc(var(--smartmind-viewport-height, 100vh) - 110px)
+    );
 
-        max-height: 72vh;
+    max-height: calc(
+        var(--smartmind-viewport-height, 100vh) - 110px
+    );
 
         min-height: 400px;
 
@@ -510,4 +515,19 @@
 #smartmind-chat-window {
 
     contain: layout paint;
+}
+
+@media screen and (max-width: 576px) {
+
+    #smartmind-chat-window {
+        height: min(
+            72vh,
+            calc(var(--smartmind-viewport-height, 100vh) - 110px)
+        );
+
+        max-height: calc(
+            var(--smartmind-viewport-height, 100vh) - 110px
+        );
+    }
+
 }
