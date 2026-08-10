@@ -6,66 +6,287 @@
 
 {% block content %}
 
-<h1 style="margin-bottom: 15px;">
-    Category: {{ category.name }}
-</h1>
+<div class="category-page">
 
-<p style="color: #6c757d; margin-bottom: 20px;">
-    {{ posts|length }} post(s) found in this category
-</p>
+    <header class="category-header">
+        <h1>Category: {{ category.name }}</h1>
 
-{% if posts %}
-    <div class="posts-grid">
-        {% for post in posts %}
-            <div class="post-card">
-                <h2>{{ post.title }}</h2>
+        <p class="post-count">
+            {{ posts|length }} post{{ posts|length|pluralize }} found in this category
+        </p>
+    </header>
 
-                <p style="color: #6c757d;">
-                    {{ post.created_at|date:"M d, Y" }}
-                </p>
+    {% if posts %}
 
-                <p>
-                    {{ post.content|truncatewords:25|safe }}
-                </p>
+        <section class="posts-grid" aria-label="Posts in {{ category.name }}">
 
-              <a href="{% url 'blog:post_detail' post.slug %}">
-                    Read More →
-                </a>
-            </div>
-        {% endfor %}
-    </div>
-{% else %}
-    <p>No posts available in this category yet.</p>
-{% endif %}
+            {% for post in posts %}
+
+                <article class="post-card">
+
+                    <h2 class="post-title">
+                        {{ post.title }}
+                    </h2>
+
+                    <p class="post-date">
+                        {{ post.created_at|date:"M d, Y" }}
+                    </p>
+
+                    <div class="post-excerpt">
+                        {{ post.content|truncatewords:25|safe }}
+                    </div>
+
+                    <a
+                        href="{% url 'blog:post_detail' post.slug %}"
+                        class="read-more"
+                    >
+                        Read More →
+                    </a>
+
+                </article>
+
+            {% endfor %}
+
+        </section>
+
+    {% else %}
+
+        <div class="empty-message">
+            <p>No posts available in this category yet.</p>
+        </div>
+
+    {% endif %}
+
+</div>
 
 <style>
+    /*
+    ==========================
+       Global sizing rules
+    ==========================
+    */
+
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+    }
+
+    html,
+    body {
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+    }
+
+    /*
+    ==========================
+       Full-width category page
+    ==========================
+    */
+
+    .category-page {
+        width: 100%;
+        max-width: none;
+        margin: 0;
+        padding: 24px;
+    }
+
+    .category-header {
+        width: 100%;
+        margin-bottom: 25px;
+    }
+
+    .category-header h1 {
+        margin: 0 0 10px;
+        color: #212529;
+        font-size: clamp(1.6rem, 4vw, 2.3rem);
+        line-height: 1.2;
+        overflow-wrap: anywhere;
+    }
+
+    .post-count {
+        margin: 0;
+        color: #6c757d;
+        font-size: 1rem;
+    }
+
+    /*
+    ==========================
+       Responsive post grid
+    ==========================
+    */
+
     .posts-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 15px;
+        width: 100%;
+        grid-template-columns: repeat(
+            auto-fit,
+            minmax(min(100%, 280px), 1fr)
+        );
+        gap: 20px;
     }
+
+    /*
+    ==========================
+       Post card
+    ==========================
+    */
 
     .post-card {
-        background: #fff;
-        padding: 15px;
+        width: 100%;
+        min-width: 0;
+        padding: 18px;
+        background: #ffffff;
         border-radius: 10px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
     }
 
-    .post-card h2 {
-        font-size: 1.2rem;
-        margin-bottom: 8px;
+    .post-title {
+        margin: 0 0 8px;
+        color: #212529;
+        font-size: 1.25rem;
+        line-height: 1.35;
+        overflow-wrap: anywhere;
+        word-break: break-word;
     }
 
-    .post-card a {
+    .post-date {
+        margin: 0 0 15px;
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+
+    .post-excerpt {
+        color: #343a40;
+        line-height: 1.6;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+    }
+
+    /*
+    ==========================
+       Responsive images
+    ==========================
+    */
+
+    .post-excerpt img {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        height: auto;
+        margin: 12px 0;
+        border-radius: 8px;
+        object-fit: contain;
+    }
+
+    /*
+    ==========================
+       Other wide content
+    ==========================
+    */
+
+    .post-excerpt iframe,
+    .post-excerpt video,
+    .post-excerpt canvas,
+    .post-excerpt table {
+        display: block;
+        max-width: 100%;
+        height: auto;
+    }
+
+    .post-excerpt pre {
+        max-width: 100%;
+        padding: 10px;
+        overflow-x: auto;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        background: #f8f9fa;
+        border-radius: 6px;
+    }
+
+    .post-excerpt a {
+        overflow-wrap: anywhere;
+    }
+
+    /*
+    ==========================
+       Read-more link
+    ==========================
+    */
+
+    .read-more {
         display: inline-block;
-        margin-top: 10px;
+        margin-top: 15px;
         color: #0d6efd;
+        font-weight: 600;
         text-decoration: none;
     }
 
-    .post-card a:hover {
+    .read-more:hover {
         text-decoration: underline;
+    }
+
+    /*
+    ==========================
+       Empty category message
+    ==========================
+    */
+
+    .empty-message {
+        width: 100%;
+        padding: 25px;
+        color: #6c757d;
+        text-align: center;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+
+    /*
+    ==========================
+       Tablet screens
+    ==========================
+    */
+
+    @media (max-width: 768px) {
+        .category-page {
+            padding: 18px;
+        }
+
+        .posts-grid {
+            gap: 16px;
+        }
+
+        .post-card {
+            padding: 16px;
+        }
+    }
+
+    /*
+    ==========================
+       Mobile screens
+    ==========================
+    */
+
+    @media (max-width: 576px) {
+        .category-page {
+            padding: 12px;
+        }
+
+        .posts-grid {
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        .post-card {
+            padding: 15px;
+        }
+
+        .post-title {
+            font-size: 1.15rem;
+        }
     }
 </style>
 

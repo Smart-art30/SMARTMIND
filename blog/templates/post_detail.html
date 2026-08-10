@@ -1,295 +1,514 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}{{ post.title }}{% endblock %}
+{% block title %}
+    {{ post.title }}
+{% endblock %}
 
 {% block content %}
+
 <style>
-body {
-    background: linear-gradient(180deg, #f8f9fa 0%, #eef2f7 100%);
-}
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+    }
 
-.reading-shell {
-    width: 100vw;
-    margin: 0;
-    padding: 0 20px;
-    box-sizing: border-box;
-}
+    html,
+    body {
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+    }
 
-/* Post card */
-.post-article,
-.comment-section {
-    border: 0;
-    border-radius: 1.25rem;
-    overflow: hidden;
-    box-shadow: 0 .5rem 1.5rem rgba(0, 0, 0, .06);
-}
+    body {
+        background: linear-gradient(180deg, #f8f9fa 0%, #eef2f7 100%);
+    }
 
-/* Hero media */
-.hero-media {
-    position: relative;
-    width: 100%;
-    max-height: 460px;
-}
+    /*
+    Main full-width wrapper
+    */
+    .reading-shell {
+        width: 100%;
+        max-width: none;
+        margin: 0;
+        padding: 20px;
+    }
 
-.hero-media img,
-.hero-media video,
-.hero-media iframe {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 0.5rem 0.5rem 0 0;
-}
+    /*
+    Post and comments
+    */
+    .post-article,
+    .comment-section {
+        width: 100%;
+        max-width: none;
+        border: 0;
+        border-radius: 1.25rem;
+        overflow: hidden;
+        box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.06);
+    }
 
-/* Text styles */
-.post-title {
-    font-size: 2.2rem;
-    font-weight: 800;
-    line-height: 1.2;
-}
+    /*
+    Featured image, video and YouTube iframe
+    */
+    .hero-media {
+        position: relative;
+        width: 100%;
+        max-width: 100%;
+        overflow: hidden;
+        background: #f1f3f5;
+    }
 
-.post-meta {
-    font-size: 0.9rem;
-    color: #6c757d;
-}
+    .hero-media img {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        height: auto;
+        max-height: 460px;
+        object-fit: contain;
+        margin: 0 auto;
+    }
 
-.post-content {
-    font-size: 1.05rem;
-    line-height: 1.8;
-}
+    .hero-media video {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        height: auto;
+        max-height: 460px;
+        object-fit: contain;
+    }
 
-/* Avatar */
-.avatar {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    object-fit: cover;
-}
+    .hero-media iframe {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        aspect-ratio: 16 / 9;
+        height: auto;
+        border: 0;
+    }
 
-/* Comment avatar (Facebook‑style) */
-.comment-avatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    object-fit: cover;
-}
+    /*
+    Text styles
+    */
+    .post-title {
+        font-size: clamp(1.6rem, 4vw, 2.2rem);
+        font-weight: 800;
+        line-height: 1.2;
+        overflow-wrap: anywhere;
+    }
 
-/* Comment lines */
-.comment-section [id^="comment-"] {
-    transition: background-color 0.2s ease;
-}
+    .post-meta {
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
 
-.comment-section [id^="comment-"]:hover {
-    background: #f8f9fa;
-}
+    .post-content {
+        width: 100%;
+        max-width: 100%;
+        font-size: 1.05rem;
+        line-height: 1.8;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+    }
 
-/* Separator between comments */
-.comment-section hr {
-    margin: 0;
-    border-top: 1px solid #eee;
-}
+    /*
+    Images inserted through post.content
+    */
+    .post-content img {
+        display: block;
+        width: auto;
+        max-width: 100%;
+        height: auto;
+        margin: 1rem auto;
+        border-radius: 8px;
+        object-fit: contain;
+    }
 
-/* Like and Reply row (Facebook style) */
-.like-text,
-.text-muted small {
-    font-size: 0.8rem;
-    color: #65676b;
-    cursor: pointer;
-}
+    /*
+    If an image has a fixed width attribute,
+    force it to fit the screen.
+    */
+    .post-content img[width],
+    .post-content img[height] {
+        width: auto;
+        max-width: 100%;
+        height: auto;
+    }
 
-.like-text:hover,
-.text-muted small:hover {
-    color: #1877f2;
-}
+    .post-content figure {
+        max-width: 100%;
+        margin: 1rem 0;
+    }
 
-/* Comment form */
-.comment-form {
-    padding: 0.5rem 0.75rem;
-    border-radius: 8px;
-    border: 1px solid #ddd;
-    background: #f0f2f5;
-}
+    .post-content figure img {
+        width: 100%;
+        max-width: 100%;
+        height: auto;
+    }
 
-/* Like button */
-.like-btn {
-    border-radius: 999px;
-    padding: 6px 12px;
-    border: none;
-    background: #f1f1f1;
-    font-size: 0.875rem;
-    transition: background-color 0.2s ease, color 0.2s ease;
-}
+    .post-content iframe,
+    .post-content video,
+    .post-content canvas,
+    .post-content svg {
+        display: block;
+        max-width: 100%;
+        height: auto;
+    }
 
-.like-btn:hover:not(:disabled) {
-    background: #e2e2e2;
-}
+    .post-content table {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        overflow-x: auto;
+    }
 
-.like-btn.liked {
-    background: #dc3545;
-    color: #fff;
-}
+    .post-content pre {
+        max-width: 100%;
+        padding: 12px;
+        overflow-x: auto;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        background: #f8f9fa;
+        border-radius: 6px;
+    }
+
+    .post-content a {
+        overflow-wrap: anywhere;
+    }
+
+    /*
+    Avatars
+    */
+    .avatar {
+        width: 48px;
+        height: 48px;
+        flex: 0 0 48px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .comment-avatar {
+        width: 36px;
+        height: 36px;
+        flex: 0 0 36px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    /*
+    Comments
+    */
+    .comment-section [id^="comment-"] {
+        max-width: 100%;
+        transition: background-color 0.2s ease;
+    }
+
+    .comment-section [id^="comment-"]:hover {
+        background: #f8f9fa;
+    }
+
+    .comment-section hr {
+        margin: 0;
+        border-top: 1px solid #eee;
+    }
+
+    .like-text,
+    .text-muted small {
+        font-size: 0.8rem;
+        color: #65676b;
+        cursor: pointer;
+    }
+
+    .like-text:hover,
+    .text-muted small:hover {
+        color: #1877f2;
+    }
+
+    .comment-form {
+        padding: 0.5rem 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background: #f0f2f5;
+    }
+
+    .like-btn {
+        padding: 6px 12px;
+        border: none;
+        border-radius: 999px;
+        background: #f1f1f1;
+        font-size: 0.875rem;
+        transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .like-btn:hover:not(:disabled) {
+        background: #e2e2e2;
+    }
+
+    .like-btn.liked {
+        color: #fff;
+        background: #dc3545;
+    }
+
+    /*
+    Small screens
+    */
+    @media (max-width: 768px) {
+        .reading-shell {
+            padding: 12px;
+        }
+
+        .post-article,
+        .comment-section {
+            border-radius: 0.75rem;
+        }
+
+        .post-content {
+            font-size: 1rem;
+            line-height: 1.7;
+        }
+
+        .hero-media img {
+            max-height: none;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .reading-shell {
+            padding: 0;
+        }
+
+        .post-article,
+        .comment-section {
+            border-radius: 0;
+        }
+
+        .card-body {
+            padding: 15px;
+        }
+
+        .post-title {
+            font-size: 1.5rem;
+        }
+
+        .post-content img {
+            width: 100%;
+            max-width: 100%;
+            height: auto;
+        }
+
+        .post-meta {
+            font-size: 0.78rem;
+        }
+    }
 </style>
 
-<div class="reading-shell"></div>
+<div class="reading-shell">
 
-        <!-- POST ARTICLE -->
-        <article class="card post-article mb-4">
+    <!-- POST ARTICLE -->
+    <article class="card post-article mb-4">
+
+        {% if post.image or post.video or post.youtube_url %}
             <div class="hero-media">
+
                 {% if post.image %}
-                    <img src="{{ post.image.url }}" alt="{{ post.title }}">
+                    <img
+                        src="{{ post.image.url }}"
+                        alt="{{ post.title }}"
+                        loading="lazy"
+                    >
+
                 {% elif post.video %}
                     <video controls>
-                        <source src="{{ post.video.url }}" type="{{ post.video.content_type }}">
+                        <source
+                            src="{{ post.video.url }}"
+                            type="{{ post.video.content_type }}"
+                        >
                         Your browser does not support the video tag.
                     </video>
+
                 {% elif post.youtube_url %}
                     <iframe
                         src="{{ post.youtube_url }}"
-                        frameborder="0"
+                        title="{{ post.title }}"
                         allowfullscreen
                         loading="lazy"
                     ></iframe>
                 {% endif %}
+
+            </div>
+        {% endif %}
+
+        <div class="card-body">
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+
+                <div class="d-flex gap-2 align-items-center">
+                    <img
+                        src="{{ post.author.profile.avatar.url|default:'/static/default-avatar.png' }}"
+                        class="avatar"
+                        alt="{{ post.author.username }} avatar"
+                        loading="lazy"
+                    >
+
+                    <div>
+                        <strong>{{ post.author.username }}</strong>
+                        <br>
+
+                        <small class="text-muted post-meta">
+                            {{ post.created_at|date:"M d, Y" }}
+                            • 👁 {{ post.view_count }}
+                        </small>
+                    </div>
+                </div>
+
+                <button
+                    id="like-btn"
+                    class="like-btn {% if is_liked %}liked{% endif %}"
+                    data-url="{% url 'blog:like_toggle' post.slug %}"
+                    aria-label="Like this post"
+                >
+                    ❤️ <span id="like-count">{{ post.likes.count }}</span>
+                </button>
+
             </div>
 
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <div class="d-flex gap-2 align-items-center">
+            <h1 class="post-title">
+                {{ post.title }}
+            </h1>
+
+            <hr class="my-3">
+
+            <div class="post-content">
+                {{ post.content|safe }}
+            </div>
+
+        </div>
+    </article>
+
+    <!-- COMMENTS SECTION -->
+    <section class="comment-section">
+
+        <div class="card-body">
+
+            <h5 class="mb-3 px-3 pt-3">
+                Comments ({{ total_comments }})
+            </h5>
+
+            {% if user.is_authenticated %}
+
+                <form
+                    id="comment-form"
+                    method="POST"
+                    action="{% url 'blog:add_comment' post.slug %}"
+                    class="mb-3 px-3 comment-form"
+                >
+                    {% csrf_token %}
+
+                    {{ form.text }}
+
+                    <button type="submit" class="btn btn-primary btn-sm mt-2">
+                        Post Comment
+                    </button>
+                </form>
+
+            {% else %}
+
+                <p class="text-muted px-3 mb-3">
+                    Please <a href="{% url 'login' %}">login</a> to comment.
+                </p>
+
+            {% endif %}
+
+            <hr class="my-0">
+
+            <div id="comments-container" class="py-0">
+
+                {% for comment in comments %}
+
+                    <div
+                        id="comment-{{ comment.id }}"
+                        class="d-flex gap-2 align-items-start px-3 py-2"
+                        data-comment-id="{{ comment.id }}"
+                    >
                         <img
-                            src="{{ post.author.profile.avatar.url|default:'/static/default-avatar.png' }}"
-                            class="avatar"
-                            alt="{{ post.author.username }} avatar"
+                            src="{{ comment.author.profile.avatar.url|default:'/static/default-avatar.png' }}"
+                            class="comment-avatar mt-1"
+                            alt="{{ comment.author.username }} avatar"
+                            loading="lazy"
                         >
-                        <div>
-                            <strong>{{ post.author.username }}</strong><br>
-                            <small class="text-muted post-meta">
-                                {{ post.created_at|date:"M d, Y" }} • 👁 {{ post.view_count }}
-                            </small>
+
+                        <div class="flex-grow-1 min-width-0">
+
+                            <div class="d-flex gap-1 align-items-baseline flex-wrap">
+                                <strong>{{ comment.author.username }}</strong>
+
+                                <small class="text-muted post-meta fst-italic">
+                                    {{ comment.created_at|date:"M d, Y H:i" }}
+                                </small>
+                            </div>
+
+                            <div class="mt-1 comment-text">
+                                {{ comment.text|linebreaksbr }}
+                            </div>
+
+                            <div class="mt-1 d-flex gap-3 align-items-center">
+                                <small class="text-muted">
+                                    <span class="like-text">
+                                        {% if comment.liked_by_current_user %}
+                                            You
+                                        {% else %}
+                                            Like
+                                        {% endif %}
+                                    </span>
+                                </small>
+
+                                <small class="text-muted">
+                                    Reply
+                                </small>
+                            </div>
+
                         </div>
                     </div>
 
-                    <button
-                        id="like-btn"
-                        class="like-btn {% if is_liked %}liked{% endif %}"
-                        data-url="{% url 'blog:like_toggle' post.slug %}"
-                        aria-label="Like this post"
-                    >
-                        ❤️ <span id="like-count">{{ post.likes.count }}</span>
-                    </button>
-                </div>
+                    <hr class="my-0 mx-3">
 
-                <h1 class="post-title">{{ post.title }}</h1>
+                {% empty %}
 
-                <hr class="my-3">
-
-                <div class="post-content">
-                    {{ post.content|safe }}
-                </div>
-            </div>
-        </article>
-
-        <!-- COMMENTS SECTION (Facebook‑style) -->
-        <section class="comment-section">
-            <div class="card-body">
-
-                <h5 class="mb-3 px-3 pt-3">
-                    Comments ({{ total_comments }})
-                </h5>
-
-                {% if user.is_authenticated %}
-                    <form
-                        id="comment-form"
-                        method="POST"
-                        action="{% url 'blog:add_comment' post.slug %}"
-                        class="mb-3 px-3 comment-form"
-                    >
-                        {% csrf_token %}
-                        {{ form.text }}
-
-                        <button type="submit" class="btn btn-primary btn-sm mt-2">
-                            Post Comment
-                        </button>
-                    </form>
-                {% else %}
-                    <p class="text-muted px-3 mb-3">
-                        Please <a href="{% url 'login' %}">login</a> to comment.
+                    <p class="text-muted px-3 py-3">
+                        No comments yet.
                     </p>
-                {% endif %}
 
-                <hr class="my-0">
-
-                <div id="comments-container" class="py-0">
-
-                    {% for comment in comments %}
-                        <div
-                            id="comment-{{ comment.id }}"
-                            class="d-flex gap-2 align-items-start px-3 py-2"
-                            data-comment-id="{{ comment.id }}"
-                        >
-                            <img
-                                src="{{ comment.author.profile.avatar.url|default:'/static/default-avatar.png' }}"
-                                class="comment-avatar mt-1"
-                                alt="{{ comment.author.username }} avatar"
-                                loading="lazy"
-                            >
-
-                            <div class="flex-grow-1">
-                                <div class="d-flex gap-1 align-items-baseline">
-                                    <strong>{{ comment.author.username }}</strong>
-                                    <small class="text-muted post-meta fst-italic">
-                                        {{ comment.created_at|date:"M d, Y H:i" }}
-                                    </small>
-                                </div>
-
-                                <div class="mt-1" style="word-break: break‑word;">
-                                    {{ comment.text|linebreaksbr }}
-                                </div>
-
-                                <!-- Like and Reply row (Facebook style) -->
-                                <div class="mt-1 d-flex gap-3 align-items-center">
-                                    <small class="text-muted">
-                                        <span class="like-text">
-                                            {% if comment.liked_by_current_user %}
-                                                You
-                                            {% else %}
-                                                Like
-                                            {% endif %}
-                                        </span>
-                                    </small>
-
-                                    <small class="text-muted">
-                                        Reply
-                                    </small>
-                                </div>
-                            </div>
-                        </div>
-
-                        <hr class="my-0 mx-3">
-                    {% endfor %}
-
-                </div>
+                {% endfor %}
 
             </div>
-        </section>
-    </div>
+
+        </div>
+
+    </section>
+
 </div>
+
 {% endblock %}
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
 
     function getCSRFToken() {
-        return document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+        return document.querySelector(
+            '[name=csrfmiddlewaretoken]'
+        )?.value;
     }
 
-    /* LIKE BUTTON (post) */
     const likeBtn = document.getElementById('like-btn');
-    if (likeBtn) {
-        likeBtn.addEventListener('click', async function(e) {
-            e.preventDefault();
 
-            const res = await fetch(this.dataset.url, {
+    if (likeBtn) {
+        likeBtn.addEventListener('click', async function (event) {
+            event.preventDefault();
+
+            const response = await fetch(this.dataset.url, {
                 method: 'POST',
                 headers: {
                     'X-CSRFToken': getCSRFToken(),
@@ -297,35 +516,34 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
 
-            const data = await res.json();
+            const data = await response.json();
 
             this.classList.toggle('liked');
-            document.getElementById('like-count').innerText = data.like_count;
+            document.getElementById('like-count').innerText =
+                data.like_count;
         });
     }
 
-    /* COMMENTS AJAX (post comment) */
     const form = document.getElementById('comment-form');
     const container = document.getElementById('comments-container');
     const textarea = form?.querySelector('textarea');
 
     if (form) {
-        // Enter to submit (without shift)
         if (textarea) {
-            textarea.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
+            textarea.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter' && !event.shiftKey) {
+                    event.preventDefault();
                     form.requestSubmit();
                 }
             });
         }
 
-        form.addEventListener('submit', async function(e) {
-            e.preventDefault();
+        form.addEventListener('submit', async function (event) {
+            event.preventDefault();
 
             const formData = new FormData(this);
 
-            const res = await fetch(this.action, {
+            const response = await fetch(this.action, {
                 method: 'POST',
                 body: formData,
                 headers: {
@@ -334,57 +552,42 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
 
-            const data = await res.json();
+            const data = await response.json();
 
             if (data.success) {
-                // Insert new comment at top
-                container.insertAdjacentHTML('afterbegin', data.html);
+                container.insertAdjacentHTML(
+                    'afterbegin',
+                    data.html
+                );
+
                 this.reset();
 
-                // Update count
-                const countEl = document.querySelector('h5');
-                const countMatch = countEl.innerText.match(/\d+/);
+                const countElement = document.querySelector('h5');
+                const countMatch = countElement.innerText.match(/\d+/);
+
                 if (countMatch) {
                     const newCount = parseInt(countMatch[0]) + 1;
-                    countEl.innerText = `Comments (${newCount})`;
+                    countElement.innerText = `Comments (${newCount})`;
                 }
 
-                // Success message
-                const msg = document.createElement('div');
-                msg.className = 'alert alert-success mt-3';
-                msg.innerText = 'Comment added successfully!';
-                container.prepend(msg);
+                const message = document.createElement('div');
+                message.className = 'alert alert-success mt-3';
+                message.innerText = 'Comment added successfully!';
 
-                setTimeout(() => msg.remove(), 3000);
+                container.prepend(message);
 
-                // Scroll + highlight
-                const firstComment = container.firstElementChild;
-                if (firstComment) {
-                    firstComment.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    firstComment.classList.add('comment-highlight');
-
-                    setTimeout(() => {
-                        firstComment.classList.remove('comment-highlight');
-                    }, 3000);
-                }
+                setTimeout(function () {
+                    message.remove();
+                }, 3000);
             } else {
                 alert('Error submitting comment');
             }
         });
     }
 
-    /* Optional: Hook up comment‑like / reply clicks */
-    document.querySelectorAll('.like-text').forEach(el => {
-        el.addEventListener('click', function() {
-            // Add your AJAX like‑toggle for the comment here
+    document.querySelectorAll('.like-text').forEach(function (element) {
+        element.addEventListener('click', function () {
             console.log('Like clicked on comment');
-        });
-    });
-
-    document.querySelectorAll('small:contains("Reply")').forEach(el => {
-        el.addEventListener('click', function() {
-            // Open a reply textarea or modal
-            console.log('Reply clicked');
         });
     });
 });
