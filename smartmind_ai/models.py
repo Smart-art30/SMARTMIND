@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models
+from django_ckeditor_5.fields import CKEditor5Field
 
 
 class ChatMessage(models.Model):
@@ -16,7 +17,10 @@ class ChatMessage(models.Model):
 
     role = models.CharField(max_length=20, choices=ROLE_CHOICES)
 
-    message = models.TextField()
+    message = CKEditor5Field(
+    config_name="default",
+    blank=True,
+)
 
     created_at = models.DateTimeField(auto_now_add=True)
 

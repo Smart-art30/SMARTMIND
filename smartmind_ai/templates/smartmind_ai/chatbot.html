@@ -57,121 +57,312 @@
     </div>
 
 </div>
+
 <style>
-#smartmind-chat-button{
-    position:fixed;
-    right:25px;
-    bottom:25px;
-    width:65px;
-    height:65px;
-    border-radius:50%;
-    background:#2563eb;
-    color:white;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:30px;
-    cursor:pointer;
-    box-shadow:0 10px 30px rgba(0,0,0,.25);
-    z-index:9999;
+
+/* ================================
+   SMARTMIND CHAT MESSAGES
+================================ */
+
+.smartmind-message {
+    display: flex;
+    margin-bottom: 15px;
 }
 
-#smartmind-chat-window{
-    position:fixed;
-    right:25px;
-    bottom:100px;
-    width:380px;
-    height:600px;
-    background:white;
-    border-radius:20px;
-    overflow:hidden;
-    display:none;
-    flex-direction:column;
-    box-shadow:0 20px 60px rgba(0,0,0,.25);
-    z-index:9999;
+.smartmind-message.user {
+    justify-content: flex-end;
 }
 
-#smartmind-header{
-    background:#2563eb;
-    color:white;
-    padding:15px 20px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
+.smartmind-message.ai {
+    justify-content: flex-start;
 }
 
-.header-info{
-    display:flex;
-    gap:12px;
-    align-items:center;
+.smartmind-bubble {
+    max-width: 85%;
+    padding: 12px 15px;
+    border-radius: 16px;
+    line-height: 1.6;
+    font-size: 14px;
+    word-wrap: break-word;
 }
 
-.logo{
-    font-size:32px;
+.smartmind-message.user .smartmind-bubble {
+    background: #2563eb;
+    color: white;
+    border-bottom-right-radius: 5px;
 }
 
-#smartmind-close{
-    border:none;
-    background:none;
-    color:white;
-    font-size:24px;
-    cursor:pointer;
+.smartmind-message.ai .smartmind-bubble {
+    background: white;
+    color: #1f2937;
+    border-bottom-left-radius: 5px;
+    box-shadow: 0 3px 10px rgba(0,0,0,.06);
 }
 
-#smartmind-messages{
-    flex:1;
-    overflow-y:auto;
-    padding:20px;
-    background:#f5f7fb;
+/* Rich text inside AI response */
+
+.smartmind-bubble p {
+    margin: 0 0 10px;
 }
 
-.welcome-card{
-    background:white;
-    padding:20px;
-    border-radius:15px;
-    box-shadow:0 5px 15px rgba(0,0,0,.08);
+.smartmind-bubble p:last-child {
+    margin-bottom: 0;
 }
 
-.chips{
-    display:flex;
-    flex-wrap:wrap;
-    gap:8px;
-    margin-top:10px;
+.smartmind-bubble h1,
+.smartmind-bubble h2,
+.smartmind-bubble h3,
+.smartmind-bubble h4 {
+    margin: 12px 0 8px;
+    line-height: 1.3;
 }
 
-.chips span{
-    background:#e8f0ff;
-    color:#2563eb;
-    padding:8px 14px;
-    border-radius:30px;
-    font-size:13px;
+.smartmind-bubble h3 {
+    font-size: 16px;
 }
 
-#smartmind-input-area{
-    display:flex;
-    gap:10px;
-    padding:15px;
-    border-top:1px solid #ddd;
-    background:white;
+.smartmind-bubble ul,
+.smartmind-bubble ol {
+    margin: 8px 0 10px;
+    padding-left: 22px;
 }
 
-#smartmind-input{
-    flex:1;
-    border:1px solid #ddd;
-    border-radius:30px;
-    padding:12px 18px;
-    outline:none;
-    font-size:15px;
+.smartmind-bubble li {
+    margin-bottom: 5px;
 }
 
-#smartmind-send{
-    width:48px;
-    border:none;
-    border-radius:50%;
-    background:#2563eb;
-    color:white;
-    cursor:pointer;
-    font-size:18px;
+.smartmind-bubble strong {
+    font-weight: 700;
 }
 
+.smartmind-bubble em {
+    font-style: italic;
+}
+
+.smartmind-bubble code {
+    background: #f1f5f9;
+    padding: 2px 5px;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+.smartmind-bubble pre {
+    background: #111827;
+    color: white;
+    padding: 12px;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-size: 12px;
+}
+
+/* ================================
+   CHAT WIDGET BASE STYLES
+================================ */
+
+#smartmind-chat-button {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #2563eb;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    cursor: pointer;
+    box-shadow: 0 10px 30px rgba(0,0,0,.25);
+    z-index: 9999;
+    transition: transform 0.2s ease;
+}
+
+#smartmind-chat-button:hover {
+    transform: scale(1.05);
+}
+
+#smartmind-chat-window {
+    position: fixed;
+    right: 20px;
+    bottom: 90px;
+    width: 360px;
+    max-width: calc(100vw - 40px);
+    height: 520px;
+    max-height: calc(100vh - 120px);
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    display: none;
+    flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0,0,0,.25);
+    z-index: 9999;
+}
+
+#smartmind-header {
+    background: #2563eb;
+    color: white;
+    padding: 14px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.header-info {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.logo {
+    font-size: 26px;
+}
+
+#smartmind-close {
+    border: none;
+    background: none;
+    color: white;
+    font-size: 22px;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+
+#smartmind-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    background: #f5f7fb;
+}
+
+.welcome-card {
+    background: white;
+    padding: 16px;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0,0,0,.08);
+}
+
+.welcome-card h3 {
+    margin: 0 0 8px;
+    font-size: 16px;
+}
+
+.welcome-card p {
+    margin: 0 0 10px;
+    font-size: 14px;
+    color: #4b5563;
+}
+
+.chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.chips span {
+    background: #e8f0ff;
+    color: #2563eb;
+    padding: 6px 12px;
+    border-radius: 30px;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+#smartmind-input-area {
+    display: flex;
+    gap: 10px;
+    padding: 12px;
+    border-top: 1px solid #ddd;
+    background: white;
+    flex-shrink: 0;
+}
+
+#smartmind-input {
+    flex: 1;
+    border: 1px solid #ddd;
+    border-radius: 30px;
+    padding: 10px 14px;
+    outline: none;
+    font-size: 14px;
+    min-width: 0; /* prevents overflow in flex */
+}
+
+#smartmind-send {
+    width: 42px;
+    border: none;
+    border-radius: 50%;
+    background: #2563eb;
+    color: white;
+    cursor: pointer;
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+/* ================================
+   RESPONSIVE: SMALL SCREENS
+================================ */
+
+@media (max-width: 480px) {
+    #smartmind-chat-button {
+        right: 12px;
+        bottom: 12px;
+        width: 54px;
+        height: 54px;
+        font-size: 24px;
+    }
+
+    #smartmind-chat-window {
+        right: 0;
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        max-width: 100%;
+        height: calc(100vh - 60px);
+        max-height: none;
+        border-radius: 16px 16px 0 0;
+    }
+
+    #smartmind-header {
+        padding: 12px 14px;
+    }
+
+    .logo {
+        font-size: 22px;
+    }
+
+    #smartmind-messages {
+        padding: 12px;
+    }
+
+    .welcome-card {
+        padding: 14px;
+    }
+
+    .chips span {
+        font-size: 11px;
+        padding: 5px 10px;
+    }
+
+    #smartmind-input-area {
+        padding: 10px;
+        gap: 8px;
+    }
+
+    #smartmind-input {
+        font-size: 14px;
+        padding: 9px 12px;
+    }
+
+    #smartmind-send {
+        width: 38px;
+        font-size: 15px;
+    }
+
+    .smartmind-bubble {
+        font-size: 13px;
+        padding: 10px 12px;
+    }
+}
 </style>
