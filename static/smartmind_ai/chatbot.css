@@ -1,97 +1,513 @@
-#smartmind-chat-button{
+/* =========================================================
+   SMARTMIND AI CHATBOT
+   Responsive Desktop + Mobile CSS
+========================================================= */
+
+/* =========================================================
+   FLOATING CHAT BUTTON
+========================================================= */
+
+#smartmind-chat-button {
     position: fixed;
-    bottom: 20px;
     right: 20px;
+    bottom: 20px;
 
     width: 65px;
     height: 65px;
 
+    border: none;
     border-radius: 50%;
 
     background: #0d6efd;
-    color: white;
+    color: #ffffff;
 
-    display:flex;
-    justify-content:center;
-    align-items:center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-    font-size:30px;
+    font-size: 30px;
 
-    cursor:pointer;
+    cursor: pointer;
 
-    box-shadow:0 8px 20px rgba(0,0,0,.3);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.30);
 
-    z-index:999999;
+    z-index: 999999;
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
 }
 
-#smartmind-chat-window{
+#smartmind-chat-button:hover {
+    transform: scale(1.06);
 
-    position:fixed;
-
-    bottom:95px;
-    right:20px;
-
-    width:360px;
-    height:520px;
-
-    background:white;
-
-    border-radius:15px;
-
-    box-shadow:0 10px 40px rgba(0,0,0,.25);
-
-    display:none;
-
-    overflow:hidden;
-
-    z-index:999998;
+    box-shadow:
+        0 10px 25px rgba(0, 0, 0, 0.35);
 }
 
-#smartmind-header{
 
-    background:#0d6efd;
+/* =========================================================
+   CHAT WINDOW
+========================================================= */
 
-    color:white;
+#smartmind-chat-window {
+    position: fixed;
 
-    padding:15px;
+    right: 20px;
+    bottom: 95px;
 
-    font-weight:bold;
+    width: 360px;
+    height: 520px;
+
+    max-width: calc(100vw - 40px);
+    max-height: calc(100vh - 120px);
+
+    background: #ffffff;
+
+    border-radius: 16px;
+
+    overflow: hidden;
+
+    box-shadow:
+        0 10px 40px rgba(0, 0, 0, 0.25);
+
+    z-index: 999998;
+
+    display: none;
+
+    /*
+       Important:
+       header + messages + input
+       are arranged vertically.
+    */
+    flex-direction: column;
+
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
 }
 
-#smartmind-messages{
 
-    height:390px;
+/* =========================================================
+   HEADER
+========================================================= */
 
-    overflow-y:auto;
+#smartmind-header {
+    background: #0d6efd;
 
-    padding:15px;
+    color: #ffffff;
+
+    padding: 15px;
+
+    font-weight: bold;
+
+    flex-shrink: 0;
+
+    min-height: 60px;
+
+    display: flex;
+    align-items: center;
 }
 
-#smartmind-input-area{
 
-    display:flex;
+/* =========================================================
+   MESSAGES AREA
+========================================================= */
 
-    border-top:1px solid #ddd;
+#smartmind-messages {
+    flex: 1;
+
+    min-height: 0;
+
+    overflow-y: auto;
+
+    overflow-x: hidden;
+
+    padding: 15px;
+
+    background: #ffffff;
+
+    -webkit-overflow-scrolling: touch;
+
+    scrollbar-width: thin;
 }
 
-#smartmind-input{
 
-    flex:1;
+/* Chrome / Edge scrollbar */
 
-    border:none;
-
-    padding:12px;
-
-    outline:none;
+#smartmind-messages::-webkit-scrollbar {
+    width: 5px;
 }
 
-#smartmind-send{
+#smartmind-messages::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
 
-    border:none;
+#smartmind-messages::-webkit-scrollbar-thumb {
+    background: #b8b8b8;
+    border-radius: 10px;
+}
 
-    background:#0d6efd;
 
-    color:white;
+/* =========================================================
+   INPUT AREA
+========================================================= */
 
-    padding:0 20px;
+#smartmind-input-area {
+    display: flex;
+
+    width: 100%;
+
+    min-height: 56px;
+
+    border-top: 1px solid #dddddd;
+
+    background: #ffffff;
+
+    flex-shrink: 0;
+}
+
+
+/* =========================================================
+   INPUT
+========================================================= */
+
+#smartmind-input {
+    flex: 1;
+
+    min-width: 0;
+
+    border: none;
+
+    outline: none;
+
+    padding: 12px 14px;
+
+    font-size: 15px;
+
+    background: #ffffff;
+
+    color: #222222;
+}
+
+#smartmind-input::placeholder {
+    color: #888888;
+}
+
+
+/* =========================================================
+   SEND BUTTON
+========================================================= */
+
+#smartmind-send {
+    width: 60px;
+
+    border: none;
+
+    background: #0d6efd;
+
+    color: #ffffff;
+
+    padding: 0;
+
+    cursor: pointer;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    flex-shrink: 0;
+
+    font-size: 18px;
+}
+
+#smartmind-send:hover {
+    background: #0b5ed7;
+}
+
+
+/* =========================================================
+   GENERAL CHAT CONTENT
+========================================================= */
+
+#smartmind-chat-window * {
+    box-sizing: border-box;
+}
+
+
+/* Prevent long text from breaking the window */
+
+#smartmind-messages img,
+#smartmind-messages video {
+    max-width: 100%;
+    height: auto;
+}
+
+#smartmind-messages pre {
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+#smartmind-messages p {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+
+/* =========================================================
+   MOBILE
+   576px AND BELOW
+========================================================= */
+
+@media screen and (max-width: 576px) {
+
+    /* -----------------------------------------
+       Floating button
+    ----------------------------------------- */
+
+    #smartmind-chat-button {
+
+        width: 58px;
+        height: 58px;
+
+        right: 14px;
+        bottom: 14px;
+
+        font-size: 25px;
+    }
+
+
+    /* -----------------------------------------
+       Chat window
+    ----------------------------------------- */
+
+    #smartmind-chat-window {
+
+        /*
+           Leave 10px on both sides.
+        */
+
+        left: 10px;
+        right: 10px;
+
+        bottom: 80px;
+
+        width: auto;
+
+        max-width: none;
+
+        /*
+           Do not fill the whole phone screen.
+        */
+
+        height: 72vh;
+
+        max-height: 72vh;
+
+        min-height: 400px;
+
+        border-radius: 18px;
+
+        box-shadow:
+            0 8px 30px rgba(0, 0, 0, 0.28);
+    }
+
+
+    /* -----------------------------------------
+       Header
+    ----------------------------------------- */
+
+    #smartmind-header {
+
+        padding: 11px 13px;
+
+        min-height: 55px;
+
+        font-size: 16px;
+    }
+
+
+    /* -----------------------------------------
+       Messages
+    ----------------------------------------- */
+
+    #smartmind-messages {
+
+        padding: 10px;
+
+        font-size: 14px;
+    }
+
+
+    /* -----------------------------------------
+       Input area
+    ----------------------------------------- */
+
+    #smartmind-input-area {
+
+        min-height: 52px;
+    }
+
+
+    #smartmind-input {
+
+        padding: 10px 12px;
+
+        font-size: 14px;
+    }
+
+
+    #smartmind-send {
+
+        width: 55px;
+
+        font-size: 17px;
+    }
+}
+
+
+/* =========================================================
+   SMALL PHONES
+   380px AND BELOW
+========================================================= */
+
+@media screen and (max-width: 380px) {
+
+    #smartmind-chat-button {
+
+        width: 54px;
+        height: 54px;
+
+        right: 10px;
+        bottom: 10px;
+
+        font-size: 23px;
+    }
+
+
+    #smartmind-chat-window {
+
+        left: 6px;
+        right: 6px;
+
+        bottom: 72px;
+
+        height: 68vh;
+
+        max-height: 68vh;
+
+        min-height: 360px;
+
+        border-radius: 15px;
+    }
+
+
+    #smartmind-header {
+
+        padding: 9px 11px;
+
+        min-height: 50px;
+
+        font-size: 15px;
+    }
+
+
+    #smartmind-messages {
+
+        padding: 8px;
+
+        font-size: 13px;
+    }
+
+
+    #smartmind-input-area {
+
+        min-height: 50px;
+    }
+
+
+    #smartmind-input {
+
+        padding: 9px;
+
+        font-size: 13px;
+    }
+
+
+    #smartmind-send {
+
+        width: 50px;
+
+        font-size: 16px;
+    }
+}
+
+
+/* =========================================================
+   VERY SHORT PHONE SCREENS
+========================================================= */
+
+@media screen and (max-height: 600px) and (max-width: 576px) {
+
+    #smartmind-chat-window {
+
+        bottom: 70px;
+
+        height: 75vh;
+
+        max-height: 75vh;
+    }
+}
+
+
+/* =========================================================
+   LANDSCAPE PHONES
+========================================================= */
+
+@media screen and (orientation: landscape)
+       and (max-width: 900px) {
+
+    #smartmind-chat-window {
+
+        left: auto;
+
+        right: 10px;
+
+        bottom: 70px;
+
+        width: 360px;
+
+        max-width: calc(100vw - 20px);
+
+        height: 80vh;
+
+        max-height: 80vh;
+    }
+}
+
+
+/* =========================================================
+   ACCESSIBILITY
+========================================================= */
+
+#smartmind-chat-button:focus,
+#smartmind-send:focus,
+#smartmind-input:focus {
+
+    outline: 2px solid #0d6efd;
+
+    outline-offset: 2px;
+}
+
+
+/* =========================================================
+   PREVENT BODY OVERFLOW FROM CHATBOT
+========================================================= */
+
+#smartmind-chat-window {
+
+    contain: layout paint;
 }
