@@ -238,37 +238,18 @@ def category_post(request, slug):
 def post_detail(request, slug):
 
     # --------------------------------------------------------
-    # COMMENTS QUERY
-    # --------------------------------------------------------
-
-    comments_qs = (
-        Comment.objects
-        .order_by("created_at")
-        .prefetch_related("liked_by")
-    )
-
-    # --------------------------------------------------------
-    # POST
+    # GET POST
     # --------------------------------------------------------
 
     post = get_object_or_404(
-        Post.objects
-        .select_related(
+        Post.objects.select_related(
             "category",
             "author",
-        )
-        .prefetch_related(
+        ).prefetch_related(
             "tags",
-            "likes",
-            Prefetch(
-                "comments",
-                queryset=comments_qs,
-            ),
-        )
-        .filter(
-            status="published",
         ),
         slug=slug,
+        status="published",
     )
 
     # --------------------------------------------------------
@@ -280,7 +261,7 @@ def post_detail(request, slug):
     if not request.session.get(session_key):
 
         Post.objects.filter(
-            id=post.id
+            pk=post.pk
         ).update(
             view_count=Coalesce(
                 F("view_count"),
@@ -299,7 +280,11 @@ def post_detail(request, slug):
     # --------------------------------------------------------
 
     comments = list(
-        post.comments.all()[:20]
+        Comment.objects
+        .filter(post=post)
+        .select_related("author")
+        .prefetch_related("liked_by")
+        .order_by("created_at")[:20]
     )
 
     # --------------------------------------------------------
@@ -314,14 +299,13 @@ def post_detail(request, slug):
 
             comment.liked_by_current_user = (
                 comment.liked_by
-                .filter(id=user_id)
+                .filter(pk=user_id)
                 .exists()
             )
 
     else:
 
         for comment in comments:
-
             comment.liked_by_current_user = False
 
     # --------------------------------------------------------
@@ -335,7 +319,7 @@ def post_detail(request, slug):
     )
 
     # --------------------------------------------------------
-    # EDIT PERMISSION
+    # PERMISSIONS
     # --------------------------------------------------------
 
     can_edit = (
@@ -351,24 +335,27 @@ def post_detail(request, slug):
     )
 
     # --------------------------------------------------------
+    # POST LIKE STATUS
+    # --------------------------------------------------------
+
+    is_liked = False
+
+    if request.user.is_authenticated:
+
+        is_liked = post.likes.filter(
+            pk=request.user.pk
+        ).exists()
+
+    # --------------------------------------------------------
     # CONTEXT
     # --------------------------------------------------------
 
     context = {
         "post": post,
         "comments": comments,
-
-        "total_comments": post.comments.count(),
-
-        "is_liked": (
-            request.user.is_authenticated
-            and post.likes.filter(
-                id=request.user.id
-            ).exists()
-        ),
-
+        "total_comments": len(comments),
+        "is_liked": is_liked,
         "form": CommentForm(),
-
         "can_edit": can_edit,
         "can_delete": can_edit,
     }
@@ -378,7 +365,6 @@ def post_detail(request, slug):
         "post_detail.html",
         context,
     )
-
 
 # ============================================================
 # LIKE / UNLIKE POST
