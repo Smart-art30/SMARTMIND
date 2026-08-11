@@ -1,35 +1,25 @@
-from django.http import JsonResponse
-from django.shortcuts import (
-    render,
-    get_object_or_404,
-    redirect,
-)
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
+from django.db.models import F
+from django.forms import (
+    ClearableFileInput,
+    Select,
+    SelectMultiple,
+    TextInput,
+    Textarea,
+    URLInput,
+    modelform_factory,
+)
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import (
     require_http_methods,
     require_POST,
 )
-from django.db.models import Prefetch, F, Value
-from django.db.models.functions import Coalesce
-from django.core.exceptions import PermissionDenied
-
-from django.forms import (
-    modelform_factory,
-    Textarea,
-    TextInput,
-    Select,
-    ClearableFileInput,
-    URLInput,
-    SelectMultiple,
-)
 
 from django_ckeditor_5.widgets import CKEditor5Widget
 
-from .models import (
-    Post,
-    Comment,
-    Category,
-)
+from .models import Category, Comment, Post
 
 
 # ============================================================
@@ -57,7 +47,6 @@ CommentForm = modelform_factory(
 
 PostForm = modelform_factory(
     Post,
-
     fields=[
         "title",
         "category",
@@ -72,22 +61,18 @@ PostForm = modelform_factory(
         "visible_to_all",
         "status",
     ],
-
     widgets={
-
         "title": TextInput(
             attrs={
                 "class": "form-control",
                 "placeholder": "Enter post title...",
             }
         ),
-
         "category": Select(
             attrs={
                 "class": "form-select",
             }
         ),
-
         "excerpt": Textarea(
             attrs={
                 "class": "form-control",
@@ -95,56 +80,47 @@ PostForm = modelform_factory(
                 "placeholder": "Short description of the post...",
             }
         ),
-
         "content": CKEditor5Widget(
-            config_name="default"
+            config_name="default",
         ),
-
         "school": Select(
             attrs={
                 "class": "form-select",
             }
         ),
-
         "target_classes": SelectMultiple(
             attrs={
                 "class": "form-select",
             }
         ),
-
         "image": ClearableFileInput(
             attrs={
                 "class": "form-control",
                 "accept": "image/*",
             }
         ),
-
         "video": ClearableFileInput(
             attrs={
                 "class": "form-control",
                 "accept": "video/*",
             }
         ),
-
         "youtube_url": URLInput(
             attrs={
                 "class": "form-control",
                 "placeholder": "https://www.youtube.com/watch?v=...",
             }
         ),
-
         "tags": SelectMultiple(
             attrs={
                 "class": "form-select",
             }
         ),
-
         "visible_to_all": Select(
             attrs={
                 "class": "form-select",
             }
         ),
-
         "status": Select(
             attrs={
                 "class": "form-select",
@@ -155,11 +131,85 @@ PostForm = modelform_factory(
 
 
 # ============================================================
+# HELPER FUNCTIONS
+# ============================================================
+
+def get_user_role(request):
+    """
+    Safely return the logged-in user's role.
+    """
+    return getattr(request.user, "role", None)
+
+
+def is_staff_user(request):
+    """
+    Return True for superusers, school administrators, and teachers.
+    """
+    user_role = get_user_role(request)
+
+    return (
+        request.user.is_authenticated
+        and (
+            request.user.is_superuser
+            or user_role in ["school_admin", "teacher"]
+        )
+    )
+
+
+def can_manage_post(request, post):
+    """
+    Determine whether the current user can edit or delete a post.
+    """
+    user_role = get_user_role(request)
+
+    return (
+        request.user.is_authenticated
+        and (
+            request.user.is_superuser
+            or user_role == "school_admin"
+            or (
+                user_role == "teacher"
+                and post.author_id == request.user.pk
+            )
+        )
+    )
+
+
+def get_post_comments(request, post):
+    """
+    Fetch the latest comments and mark whether the current user
+    liked each comment.
+    """
+    comments = list(
+        Comment.objects
+        .filter(post=post)
+        .select_related("author")
+        .prefetch_related("liked_by")
+        .order_by("created_at")[:20]
+    )
+
+    if request.user.is_authenticated:
+        user_id = request.user.pk
+
+        for comment in comments:
+            # Uses the prefetched liked_by objects without another
+            # database query for every comment.
+            comment.liked_by_current_user = any(
+                user.pk == user_id
+                for user in comment.liked_by.all()
+            )
+    else:
+        for comment in comments:
+            comment.liked_by_current_user = False
+
+    return comments
+
+
+# ============================================================
 # HOME
 # ============================================================
 
 def home(request):
-
     posts = (
         Post.objects
         .filter(
@@ -187,26 +237,25 @@ def home(request):
             "author",
             "category",
         )
+        .prefetch_related("tags")
         .order_by("-created_at")
         .first()
     )
 
-    return render(
-        request,
-        "home.html",
-        {
-            "posts": posts,
-            "categories": categories,
-            "featured_post": featured_post,
-        },
-    )
+    context = {
+        "posts": posts,
+        "categories": categories,
+        "featured_post": featured_post,
+    }
+
+    return render(request, "home.html", context)
 
 
 # ============================================================
 # CATEGORY POSTS
 # ============================================================
-def category_post(request, slug):
 
+def category_post(request, slug):
     category = get_object_or_404(
         Category,
         slug=slug,
@@ -223,15 +272,12 @@ def category_post(request, slug):
         .order_by("-created_at")
     )
 
-    return render(
-        request,
-        "category_post.html",
-        {
-            "category": category,
-            "posts": posts,
-        },
-    )
+    context = {
+        "category": category,
+        "posts": posts,
+    }
 
+    return render(request, "category_post.html", context)
 
 
 # ============================================================
@@ -239,179 +285,71 @@ def category_post(request, slug):
 # ============================================================
 
 def post_detail(request, slug):
-
-    # --------------------------------------------------------
-    # GET POST
-    # --------------------------------------------------------
-
     post = get_object_or_404(
         Post.objects
         .select_related(
             "author",
             "category",
         )
-        .prefetch_related(
-            "tags",
-        ),
+        .prefetch_related("tags"),
         slug=slug,
     )
 
-    # --------------------------------------------------------
-    # PUBLIC VISIBILITY
-    # --------------------------------------------------------
     # Published posts are visible to everyone.
-    # Admins/teachers can also view posts regardless of status.
+    # School administrators and teachers can also view
+    # posts regardless of their status.
+    if not is_staff_user(request) and post.status != "published":
+        raise PermissionDenied("This post is not available.")
 
-    user_role = getattr(
-        request.user,
-        "role",
-        None,
-    )
-
-    is_staff_user = (
-        request.user.is_authenticated
-        and (
-            request.user.is_superuser
-            or user_role in [
-                "school_admin",
-                "teacher",
-            ]
-        )
-    )
-
-    if not is_staff_user:
-
-        if post.status != "published":
-            raise PermissionDenied(
-                "This post is not available."
-            )
-
-    # --------------------------------------------------------
-    # COUNT VIEW ONCE PER SESSION
-    # --------------------------------------------------------
-
+    # Increment the view count only once per session.
     session_key = f"viewed_post_{post.pk}"
 
     if not request.session.get(session_key):
-
-        # Safely increment the view count.
-        Post.objects.filter(
-            pk=post.pk
-        ).update(
+        Post.objects.filter(pk=post.pk).update(
             view_count=F("view_count") + 1
         )
 
         request.session[session_key] = True
 
+        # Refresh the object so the template receives the new count.
         post.refresh_from_db(
             fields=["view_count"]
         )
 
-    # --------------------------------------------------------
-    # COMMENTS
-    # --------------------------------------------------------
-
-    comments = list(
-        Comment.objects
-        .filter(
-            post=post
-        )
-        .select_related(
-            "author"
-        )
-        .prefetch_related(
-            "liked_by"
-        )
-        .order_by(
-            "created_at"
-        )[:20]
+    # Always fetch comments, regardless of whether the view has
+    # already been counted in the current session.
+    comments = get_post_comments(
+        request,
+        post,
     )
 
-    # --------------------------------------------------------
-    # COMMENT LIKE STATUS
-    # --------------------------------------------------------
+    user_role = get_user_role(request)
 
-    if request.user.is_authenticated:
-
-        user_id = request.user.pk
-
-        for comment in comments:
-
-            comment.liked_by_current_user = (
-                comment.liked_by
-                .filter(
-                    pk=user_id
-                )
-                .exists()
-            )
-
-    else:
-
-        for comment in comments:
-
-            comment.liked_by_current_user = False
-
-    # --------------------------------------------------------
-    # EDIT / DELETE PERMISSION
-    # --------------------------------------------------------
-
-    can_edit = (
-        request.user.is_authenticated
-        and (
-            request.user.is_superuser
-
-            or user_role == "school_admin"
-
-            or (
-                user_role == "teacher"
-                and post.author_id == request.user.pk
-            )
-        )
+    can_edit = can_manage_post(
+        request,
+        post,
     )
 
     can_delete = can_edit
 
-    # --------------------------------------------------------
-    # POST LIKE STATUS
-    # --------------------------------------------------------
-
     is_liked = False
 
     if request.user.is_authenticated:
-
         is_liked = post.likes.filter(
             pk=request.user.pk
         ).exists()
 
-    # --------------------------------------------------------
-    # COMMENT FORM
-    # --------------------------------------------------------
-
     comment_form = CommentForm()
-
-    # --------------------------------------------------------
-    # CONTEXT
-    # --------------------------------------------------------
 
     context = {
         "post": post,
-
         "comments": comments,
-
         "total_comments": len(comments),
-
         "is_liked": is_liked,
-
         "form": comment_form,
-
         "can_edit": can_edit,
-
         "can_delete": can_delete,
     }
-
-    # --------------------------------------------------------
-    # RENDER
-    # --------------------------------------------------------
 
     return render(
         request,
@@ -420,37 +358,24 @@ def post_detail(request, slug):
     )
 
 
-
 # ============================================================
-# LIKE / UNLIKE POST
+# LIKE OR UNLIKE POST
 # ============================================================
 
 @login_required
 @require_POST
 def like_toggle(request, slug):
-
     post = get_object_or_404(
         Post,
         slug=slug,
         status="published",
     )
 
-    if post.likes.filter(
-        id=request.user.id
-    ).exists():
-
-        post.likes.remove(
-            request.user
-        )
-
+    if post.likes.filter(pk=request.user.pk).exists():
+        post.likes.remove(request.user)
         is_liked = False
-
     else:
-
-        post.likes.add(
-            request.user
-        )
-
+        post.likes.add(request.user)
         is_liked = True
 
     return JsonResponse(
@@ -468,38 +393,25 @@ def like_toggle(request, slug):
 @login_required
 @require_POST
 def add_comment(request, slug):
-
     post = get_object_or_404(
         Post,
         slug=slug,
         status="published",
     )
 
-    form = CommentForm(
-        request.POST
-    )
+    form = CommentForm(request.POST)
 
     if form.is_valid():
-
-        comment = form.save(
-            commit=False
-        )
-
+        comment = form.save(commit=False)
         comment.post = post
-
         comment.author = request.user
-
         comment.save()
 
         return redirect(
-            f"{post.get_absolute_url()}"
-            f"?commented=1"
-            f"#comment-{comment.id}"
+            f"{post.get_absolute_url()}?commented=1#comment-{comment.pk}"
         )
 
-    return redirect(
-        post.get_absolute_url()
-    )
+    return redirect(post.get_absolute_url())
 
 
 # ============================================================
@@ -509,65 +421,39 @@ def add_comment(request, slug):
 @login_required
 @require_http_methods(["GET", "POST"])
 def add_post(request):
-
-    # --------------------------------------------------------
-    # ALLOWED ROLES
-    # --------------------------------------------------------
-
     allowed_roles = [
         "school_admin",
         "teacher",
     ]
 
-    user_role = getattr(
-        request.user,
-        "role",
-        None,
-    )
+    user_role = get_user_role(request)
 
-    if not (
+    has_permission = (
         request.user.is_superuser
         or user_role in allowed_roles
-    ):
+    )
 
+    if not has_permission:
         raise PermissionDenied(
             "You do not have permission to add posts."
         )
 
-    # --------------------------------------------------------
-    # POST REQUEST
-    # --------------------------------------------------------
-
     if request.method == "POST":
-
         form = PostForm(
             request.POST,
             request.FILES,
         )
 
         if form.is_valid():
-
-            post = form.save(
-                commit=False
-            )
-
-            # Automatically assign author
+            post = form.save(commit=False)
             post.author = request.user
-
             post.save()
 
+            # Required for ManyToMany fields such as tags.
             form.save_m2m()
 
-            return redirect(
-                post.get_absolute_url()
-            )
-
-    # --------------------------------------------------------
-    # GET REQUEST
-    # --------------------------------------------------------
-
+            return redirect(post.get_absolute_url())
     else:
-
         form = PostForm()
 
     return render(
@@ -586,46 +472,17 @@ def add_post(request):
 @login_required
 @require_http_methods(["GET", "POST"])
 def edit_post(request, pk):
-
     post = get_object_or_404(
         Post,
         pk=pk,
     )
 
-    user_role = getattr(
-        request.user,
-        "role",
-        None,
-    )
-
-    # --------------------------------------------------------
-    # PERMISSION
-    # --------------------------------------------------------
-
-    can_edit = (
-
-        request.user.is_superuser
-
-        or user_role == "school_admin"
-
-        or (
-            user_role == "teacher"
-            and post.author_id == request.user.id
-        )
-    )
-
-    if not can_edit:
-
+    if not can_manage_post(request, post):
         raise PermissionDenied(
             "You do not have permission to edit this post."
         )
 
-    # --------------------------------------------------------
-    # POST
-    # --------------------------------------------------------
-
     if request.method == "POST":
-
         form = PostForm(
             request.POST,
             request.FILES,
@@ -633,28 +490,21 @@ def edit_post(request, pk):
         )
 
         if form.is_valid():
-
             updated_post = form.save(
                 commit=False
             )
 
-            # Never allow editing the author
+            # Preserve the original author.
             updated_post.author = post.author
-
             updated_post.save()
 
+            # Required for ManyToMany fields such as tags.
             form.save_m2m()
 
             return redirect(
                 updated_post.get_absolute_url()
             )
-
-    # --------------------------------------------------------
-    # GET
-    # --------------------------------------------------------
-
     else:
-
         form = PostForm(
             instance=post
         )
@@ -676,55 +526,19 @@ def edit_post(request, pk):
 @login_required
 @require_http_methods(["GET", "POST"])
 def delete_post(request, pk):
-
     post = get_object_or_404(
         Post,
         pk=pk,
     )
 
-    user_role = getattr(
-        request.user,
-        "role",
-        None,
-    )
-
-    # --------------------------------------------------------
-    # PERMISSION
-    # --------------------------------------------------------
-
-    can_delete = (
-
-        request.user.is_superuser
-
-        or user_role == "school_admin"
-
-        or (
-            user_role == "teacher"
-            and post.author_id == request.user.id
-        )
-    )
-
-    if not can_delete:
-
+    if not can_manage_post(request, post):
         raise PermissionDenied(
             "You do not have permission to delete this post."
         )
 
-    # --------------------------------------------------------
-    # CONFIRM DELETE
-    # --------------------------------------------------------
-
     if request.method == "POST":
-
         post.delete()
-
-        return redirect(
-            "blog:home"
-        )
-
-    # --------------------------------------------------------
-    # SHOW CONFIRMATION
-    # --------------------------------------------------------
+        return redirect("blog:home")
 
     return render(
         request,
