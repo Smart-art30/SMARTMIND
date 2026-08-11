@@ -149,17 +149,26 @@ def add_comment(request, slug):
 @login_required
 @require_http_methods(["GET", "POST"])
 def add_post(request):
-    if not (request.user.is_superuser or getattr(request.user, "role", None) == "school_admin"):
+    # Allow superusers, school admins, and teachers
+    allowed_roles = ["school_admin", "teacher"]
+
+    if not (
+        request.user.is_superuser
+        or getattr(request.user, "role", None) in allowed_roles
+    ):
         raise PermissionDenied("You do not have permission to add posts.")
 
     if request.method == "POST":
         form = PostForm(request.POST, request.FILES)
+
         if form.is_valid():
             post = form.save(commit=False)
             post.author = request.user
             post.save()
             form.save_m2m()
+
             return redirect(post.get_absolute_url())
+
     else:
         form = PostForm()
 

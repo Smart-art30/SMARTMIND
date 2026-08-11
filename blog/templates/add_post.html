@@ -1,431 +1,2726 @@
+```html
 {% extends "base.html" %}
 
 {% block content %}
+
 <div class="post-page">
 
-  <div class="post-card">
+    <div class="post-card">
 
-    <!-- Page header -->
-    <div class="post-header">
-      <div>
-        <span class="eyebrow">
-          <i class="bi bi-pencil-square"></i>
-          Content management
-        </span>
+        <!-- ==================================================
+             HEADER
+        =================================================== -->
 
-        <h1 class="post-title">Create a New Post</h1>
+        <div class="post-header">
 
-        <p class="post-subtitle">
-          Share your ideas, images, and videos with your audience.
-        </p>
-      </div>
+            <div>
 
-      <div class="header-icon">
-        <i class="bi bi-file-earmark-plus"></i>
-      </div>
-    </div>
+                <span class="eyebrow">
+                    <i class="bi bi-pencil-square"></i>
+                    Content management
+                </span>
 
-    {{ form.media }}
+                <h1 class="post-title">
+                    Create a New Post
+                </h1>
 
-    <form method="POST" enctype="multipart/form-data" novalidate>
-      {% csrf_token %}
-
-      {% if form.non_field_errors %}
-        <div class="alert alert-danger rounded-3">
-          <i class="bi bi-exclamation-triangle me-2"></i>
-          {{ form.non_field_errors }}
-        </div>
-      {% endif %}
-
-      <div class="row g-4">
-        {% for field in form %}
-          <div class="
-            {% if field.name == 'content' or field.name == 'body' %}
-              col-12
-            {% else %}
-              col-12 col-md-6
-            {% endif %}
-          ">
-
-            {% if field.name == "image" or field.name == "video" %}
-
-              <label class="form-label custom-label" for="{{ field.id_for_label }}">
-                {{ field.label }}
-
-                {% if field.field.required %}
-                  <span class="required-mark">*</span>
-                {% endif %}
-              </label>
-
-              <div class="upload-zone"
-                   tabindex="0"
-                   data-field="{{ field.name }}">
-
-                <div class="upload-icon">
-                  {% if field.name == "image" %}
-                    <i class="bi bi-image"></i>
-                  {% else %}
-                    <i class="bi bi-camera-video"></i>
-                  {% endif %}
-                </div>
-
-                <h6 class="upload-title">
-                  Upload your
-                  {% if field.name == "image" %}image{% else %}video{% endif %}
-                </h6>
-
-                <p class="upload-text">
-                  Drag and drop your file here, or
-                  <span>browse</span>
+                <p class="post-subtitle">
+                    Share your ideas, images, and videos with your audience.
                 </p>
 
-                <small class="upload-hint">
-                  You can also paste a file from your clipboard
-                </small>
+            </div>
 
-                {{ field }}
+            <div class="header-icon">
+                <i class="bi bi-file-earmark-plus"></i>
+            </div>
 
-                <div class="preview-area"></div>
-                <div class="preview-meta"></div>
-                <div class="preview-actions"></div>
-              </div>
+        </div>
 
-            {% else %}
 
-              <label class="form-label custom-label" for="{{ field.id_for_label }}">
-                {{ field.label }}
+        {{ form.media }}
 
-                {% if field.field.required %}
-                  <span class="required-mark">*</span>
-                {% endif %}
-              </label>
 
-              <div class="input-wrapper">
-                {{ field }}
-              </div>
+        <!-- ==================================================
+             FORM
+        =================================================== -->
+
+        <form method="POST"
+              enctype="multipart/form-data"
+              novalidate
+              id="postForm">
+
+            {% csrf_token %}
+
+
+            <!-- FORM NON-FIELD ERRORS -->
+
+            {% if form.non_field_errors %}
+
+                <div class="alert alert-danger rounded-3">
+
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+
+                    {{ form.non_field_errors }}
+
+                </div>
 
             {% endif %}
 
-            {% if field.help_text %}
-              <div class="form-text custom-help">
-                <i class="bi bi-info-circle me-1"></i>
-                {{ field.help_text }}
-              </div>
-            {% endif %}
 
-            {% for error in field.errors %}
-              <div class="field-error">
-                <i class="bi bi-exclamation-circle me-1"></i>
-                {{ error }}
-              </div>
-            {% endfor %}
+            <div class="row g-4">
 
-          </div>
-        {% endfor %}
-      </div>
 
-      <!-- Form actions -->
-      <div class="form-actions">
-        <a href="javascript:history.back()" class="btn cancel-btn">
-          <i class="bi bi-arrow-left me-2"></i>
-          Cancel
-        </a>
+                {% for field in form %}
 
-        <button type="submit" class="btn save-btn">
-          <i class="bi bi-check2-circle me-2"></i>
-          Save Post
-        </button>
-      </div>
-    </form>
+                    <div class="
+                        {% if field.name == 'content' or field.name == 'body' %}
+                            col-12
+                        {% else %}
+                            col-12 col-md-6
+                        {% endif %}
+                    ">
 
-  </div>
+
+                        <!-- ==================================================
+                             IMAGE / VIDEO FIELDS
+                        =================================================== -->
+
+                        {% if field.name == "image" or field.name == "video" %}
+
+
+                            <label class="form-label custom-label"
+                                   for="{{ field.id_for_label }}">
+
+                                {{ field.label }}
+
+                                {% if field.field.required %}
+                                    <span class="required-mark">*</span>
+                                {% endif %}
+
+                            </label>
+
+
+                            <!-- ==================================================
+                                 UPLOAD ZONE
+                            =================================================== -->
+
+                            <div class="upload-zone"
+                                 tabindex="0"
+                                 data-field="{{ field.name }}">
+
+
+                                <!-- ICON -->
+
+                                <div class="upload-icon">
+
+                                    {% if field.name == "image" %}
+
+                                        <i class="bi bi-image"></i>
+
+                                    {% else %}
+
+                                        <i class="bi bi-camera-video"></i>
+
+                                    {% endif %}
+
+                                </div>
+
+
+                                <!-- TITLE -->
+
+                                <h6 class="upload-title">
+
+                                    {% if field.name == "image" %}
+
+                                        Upload Image
+
+                                    {% else %}
+
+                                        Upload Video
+
+                                    {% endif %}
+
+                                </h6>
+
+
+                                <!-- DESCRIPTION -->
+
+                                <p class="upload-text">
+
+                                    Drag and drop your file here,
+                                    or
+                                    <span>browse</span>
+
+                                </p>
+
+
+                                <!-- ==================================================
+                                     PASTE BOX
+                                =================================================== -->
+
+                                <div class="paste-box">
+
+                                    <i class="bi bi-clipboard"></i>
+
+                                    <span>
+                                        Copy a
+                                        {% if field.name == "image" %}
+                                            image
+                                        {% else %}
+                                            video file
+                                        {% endif %}
+                                        and press
+                                    </span>
+
+                                    <kbd>Ctrl</kbd>
+
+                                    <span>+</span>
+
+                                    <kbd>V</kbd>
+
+                                </div>
+
+
+                                <small class="upload-hint">
+
+                                    Click this box first, then paste.
+
+                                </small>
+
+
+                                <!-- ==================================================
+                                     DJANGO FILE INPUT
+                                =================================================== -->
+
+                                {{ field }}
+
+
+                                <!-- ==================================================
+                                     PREVIEW
+                                =================================================== -->
+
+                                <div class="preview-area"></div>
+
+                                <div class="preview-meta"></div>
+
+                                <div class="preview-actions"></div>
+
+                                <div class="upload-status"></div>
+
+
+                            </div>
+
+
+                        {% else %}
+
+
+                            <!-- ==================================================
+                                 NORMAL FIELD
+                            =================================================== -->
+
+                            <label class="form-label custom-label"
+                                   for="{{ field.id_for_label }}">
+
+                                {{ field.label }}
+
+                                {% if field.field.required %}
+                                    <span class="required-mark">*</span>
+                                {% endif %}
+
+                            </label>
+
+
+                            <div class="input-wrapper">
+
+                                {{ field }}
+
+                            </div>
+
+
+                        {% endif %}
+
+
+                        <!-- ==================================================
+                             HELP TEXT
+                        =================================================== -->
+
+                        {% if field.help_text %}
+
+                            <div class="form-text custom-help">
+
+                                <i class="bi bi-info-circle me-1"></i>
+
+                                {{ field.help_text }}
+
+                            </div>
+
+                        {% endif %}
+
+
+                        <!-- ==================================================
+                             FIELD ERRORS
+                        =================================================== -->
+
+                        {% for error in field.errors %}
+
+                            <div class="field-error">
+
+                                <i class="bi bi-exclamation-circle me-1"></i>
+
+                                {{ error }}
+
+                            </div>
+
+                        {% endfor %}
+
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+
+            <!-- ==================================================
+                 FORM ACTIONS
+            =================================================== -->
+
+            <div class="form-actions">
+
+                <a href="javascript:history.back()"
+                   class="btn cancel-btn">
+
+                    <i class="bi bi-arrow-left me-2"></i>
+
+                    Cancel
+
+                </a>
+
+
+                <button type="submit"
+                        class="btn save-btn"
+                        id="savePostButton">
+
+                    <i class="bi bi-check2-circle me-2"></i>
+
+                    Save Post
+
+                </button>
+
+            </div>
+
+
+        </form>
+
+    </div>
+
 </div>
+
 {% endblock %}
 
+
+
+<!-- ==========================================================
+     CSS
+=========================================================== -->
 
 {% block extra_css %}
+
 <style>
-  /*
-    These variables inherit your existing website color.
-    If your base template uses --main-color, replace --bs-primary
-    with var(--main-color).
-  */
-  :root {
+
+/* ==========================================================
+   VARIABLES
+=========================================================== */
+
+:root {
+
     --primary-color: var(--bs-primary);
+
     --primary-dark: var(--bs-primary);
+
     --border-color: #e5e7eb;
+
     --soft-bg: #f8fafc;
+
     --text-muted: #6b7280;
-  }
 
-  .post-page {
+}
+
+
+/* ==========================================================
+   PAGE
+=========================================================== */
+
+.post-page {
+
     width: 100%;
+
     min-height: calc(100vh - 70px);
-    margin: 0;
+
     padding: 2rem 0;
-  }
 
-  .post-card {
+}
+
+
+.post-card {
+
     width: 100%;
-    max-width: none;
-    margin: 0;
+
     padding: clamp(1.25rem, 4vw, 3rem);
-    background: #ffffff;
-    border-top: 1px solid var(--border-color);
-    border-bottom: 1px solid var(--border-color);
-    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.05);
-  }
 
-  .post-header {
+    background: #ffffff;
+
+    border-top: 1px solid var(--border-color);
+
+    border-bottom: 1px solid var(--border-color);
+
+    box-shadow:
+        0 12px 35px rgba(0, 0, 0, 0.05);
+
+}
+
+
+/* ==========================================================
+   HEADER
+=========================================================== */
+
+.post-header {
+
     display: flex;
+
     align-items: flex-start;
+
     justify-content: space-between;
+
     gap: 1rem;
+
     margin-bottom: 2rem;
+
     padding-bottom: 1.5rem;
+
     border-bottom: 1px solid var(--border-color);
-  }
 
-  .eyebrow {
+}
+
+
+.eyebrow {
+
     display: inline-flex;
+
     align-items: center;
+
     gap: 0.4rem;
+
     margin-bottom: 0.6rem;
+
     color: var(--primary-color);
+
     font-size: 0.78rem;
+
     font-weight: 700;
+
     letter-spacing: 0.08em;
+
     text-transform: uppercase;
-  }
 
-  .post-title {
+}
+
+
+.post-title {
+
     margin: 0;
-    color: inherit;
+
     font-size: clamp(1.6rem, 4vw, 2.3rem);
+
     font-weight: 750;
-  }
 
-  .post-subtitle {
+}
+
+
+.post-subtitle {
+
     margin: 0.5rem 0 0;
-    color: var(--text-muted);
-  }
 
-  .header-icon {
+    color: var(--text-muted);
+
+}
+
+
+.header-icon {
+
     display: grid;
+
     width: 54px;
+
     height: 54px;
+
     flex-shrink: 0;
-    place-items: center;
-    color: var(--primary-color);
-    background: color-mix(
-      in srgb,
-      var(--primary-color) 12%,
-      white
-    );
-    border-radius: 15px;
-    font-size: 1.4rem;
-  }
 
-  .custom-label {
+    place-items: center;
+
+    color: var(--primary-color);
+
+    background:
+        color-mix(
+            in srgb,
+            var(--primary-color) 12%,
+            white
+        );
+
+    border-radius: 15px;
+
+    font-size: 1.4rem;
+
+}
+
+
+/* ==========================================================
+   LABELS
+=========================================================== */
+
+.custom-label {
+
     display: block;
+
     margin-bottom: 0.5rem;
-    color: inherit;
+
     font-weight: 650;
-  }
 
-  .required-mark {
+}
+
+
+.required-mark {
+
     color: #dc3545;
-  }
 
-  .input-wrapper input:not([type="file"]),
-  .input-wrapper select,
-  .input-wrapper textarea {
+}
+
+
+/* ==========================================================
+   NORMAL INPUTS
+=========================================================== */
+
+.input-wrapper input:not([type="file"]),
+
+.input-wrapper select,
+
+.input-wrapper textarea {
+
     width: 100%;
+
     padding: 0.85rem 1rem;
-    color: inherit;
+
     background: #ffffff;
+
     border: 1px solid var(--border-color);
+
     border-radius: 10px;
+
     outline: none;
+
     transition: 0.2s ease;
-  }
 
-  .input-wrapper textarea {
+}
+
+
+.input-wrapper textarea {
+
     min-height: 160px;
+
     resize: vertical;
-  }
 
-  .input-wrapper input:focus,
-  .input-wrapper select:focus,
-  .input-wrapper textarea:focus {
+}
+
+
+.input-wrapper input:focus,
+
+.input-wrapper select:focus,
+
+.input-wrapper textarea:focus {
+
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 4px color-mix(
-      in srgb,
-      var(--primary-color) 15%,
-      transparent
-    );
-  }
 
-  .upload-zone {
+    box-shadow:
+        0 0 0 4px
+        color-mix(
+            in srgb,
+            var(--primary-color) 15%,
+            transparent
+        );
+
+}
+
+
+/* ==========================================================
+   UPLOAD ZONE
+=========================================================== */
+
+.upload-zone {
+
     position: relative;
-    min-height: 210px;
-    padding: 1.6rem 1rem;
+
+    min-height: 270px;
+
+    padding: 1.8rem 1rem;
+
     text-align: center;
+
     background: var(--soft-bg);
-    border: 2px dashed color-mix(
-      in srgb,
-      var(--primary-color) 45%,
-      white
-    );
+
+    border: 2px dashed
+        color-mix(
+            in srgb,
+            var(--primary-color) 45%,
+            white
+        );
+
     border-radius: 15px;
+
     cursor: pointer;
+
     transition: 0.25s ease;
-  }
 
-  .upload-zone:hover,
-  .upload-zone:focus,
-  .upload-zone.dragover {
-    background: color-mix(
-      in srgb,
-      var(--primary-color) 7%,
-      white
-    );
+    overflow: hidden;
+
+}
+
+
+.upload-zone:hover,
+
+.upload-zone:focus,
+
+.upload-zone.dragover,
+
+.upload-zone.paste-active {
+
+    background:
+        color-mix(
+            in srgb,
+            var(--primary-color) 7%,
+            white
+        );
+
     border-color: var(--primary-color);
-  }
 
-  .upload-icon {
+    outline: none;
+
+}
+
+
+/* ==========================================================
+   ICON
+=========================================================== */
+
+.upload-icon {
+
     display: grid;
-    width: 52px;
-    height: 52px;
+
+    width: 55px;
+
+    height: 55px;
+
     margin: 0 auto 0.8rem;
+
     place-items: center;
+
     color: var(--primary-color);
+
     background: #ffffff;
+
     border-radius: 14px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-    font-size: 1.4rem;
-  }
 
-  .upload-title {
+    box-shadow:
+        0 5px 15px rgba(0, 0, 0, 0.08);
+
+    font-size: 1.5rem;
+
+}
+
+
+.upload-title {
+
     margin-bottom: 0.35rem;
-    font-weight: 700;
-  }
 
-  .upload-text {
-    margin-bottom: 0.3rem;
+    font-weight: 700;
+
+}
+
+
+.upload-text {
+
+    margin-bottom: 0.8rem;
+
     color: var(--text-muted);
+
     font-size: 0.9rem;
-  }
 
-  .upload-text span {
+}
+
+
+.upload-text span {
+
     color: var(--primary-color);
+
     font-weight: 700;
-  }
 
-  .upload-hint {
-    color: #9ca3af;
-  }
+}
 
-  .upload-zone input[type="file"] {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    opacity: 0;
-    cursor: pointer;
-  }
 
-  .preview-area,
-  .preview-meta,
-  .preview-actions {
-    position: relative;
-    z-index: 2;
-    margin-top: 0.75rem;
-  }
+/* ==========================================================
+   PASTE BOX
+=========================================================== */
 
-  .custom-help {
-    margin-top: 0.4rem;
-    color: var(--text-muted);
-    font-size: 0.8rem;
-  }
+.paste-box {
 
-  .field-error {
-    margin-top: 0.4rem;
-    color: #dc3545;
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    flex-wrap: wrap;
+
+    gap: 0.35rem;
+
+    margin: 0 auto 0.5rem;
+
+    padding: 0.6rem 0.9rem;
+
+    color: var(--primary-color);
+
+    background:
+        color-mix(
+            in srgb,
+            var(--primary-color) 8%,
+            white
+        );
+
+    border: 1px solid
+        color-mix(
+            in srgb,
+            var(--primary-color) 18%,
+            white
+        );
+
+    border-radius: 9px;
+
     font-size: 0.82rem;
-  }
 
-  .form-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 0.75rem;
-    margin-top: 2.5rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid var(--border-color);
-  }
+    font-weight: 600;
 
-  .cancel-btn,
-  .save-btn {
-    min-height: 45px;
-    padding: 0.7rem 1.2rem;
-    border-radius: 10px;
-    font-weight: 650;
-  }
+}
 
-  .cancel-btn {
-    color: inherit;
-    background: transparent;
+
+.paste-box i {
+
+    font-size: 1rem;
+
+}
+
+
+.paste-box kbd {
+
+    padding: 2px 7px;
+
+    color: #374151;
+
+    background: #ffffff;
+
+    border: 1px solid #d1d5db;
+
+    border-radius: 5px;
+
+    box-shadow:
+        0 1px 1px rgba(0,0,0,0.08);
+
+    font-size: 0.72rem;
+
+}
+
+
+.upload-hint {
+
+    display: block;
+
+    margin-top: 0.4rem;
+
+    color: #9ca3af;
+
+    font-size: 0.75rem;
+
+}
+
+
+/* ==========================================================
+   FILE INPUT
+
+   The file input is transparent but remains clickable.
+=========================================================== */
+
+.upload-zone input[type="file"] {
+
+    position: absolute;
+
+    inset: 0;
+
+    width: 100%;
+
+    height: 100%;
+
+    opacity: 0;
+
+    cursor: pointer;
+
+    z-index: 5;
+
+}
+
+
+/*
+   Preview elements must appear above
+   the transparent file input.
+*/
+
+.preview-area,
+
+.preview-meta,
+
+.preview-actions,
+
+.upload-status {
+
+    position: relative;
+
+    z-index: 20;
+
+}
+
+
+/* ==========================================================
+   PREVIEW
+=========================================================== */
+
+.preview-box {
+
+    margin-top: 1rem;
+
+    padding: 0.75rem;
+
+    background: #ffffff;
+
     border: 1px solid var(--border-color);
-  }
 
-  .cancel-btn:hover {
+    border-radius: 13px;
+
+    box-shadow:
+        0 5px 20px rgba(0,0,0,0.08);
+
+}
+
+
+.file-preview {
+
+    display: block;
+
+    width: 100%;
+
+    max-height: 380px;
+
+    object-fit: contain;
+
+    border-radius: 10px;
+
+}
+
+
+.video-preview {
+
+    display: block;
+
+    width: 100%;
+
+    max-height: 380px;
+
+    border-radius: 10px;
+
+    background: #000000;
+
+}
+
+
+/* ==========================================================
+   FILE INFORMATION
+=========================================================== */
+
+.preview-filename {
+
+    margin-top: 0.65rem;
+
+    font-weight: 650;
+
+    word-break: break-word;
+
+}
+
+
+.preview-size {
+
+    margin-top: 0.15rem;
+
+    color: var(--text-muted);
+
+    font-size: 0.78rem;
+
+}
+
+
+/* ==========================================================
+   REMOVE BUTTON
+=========================================================== */
+
+.remove-file {
+
+    position: relative;
+
+    z-index: 30;
+
+    margin-top: 0.7rem;
+
+    padding: 0.45rem 0.8rem;
+
+    color: #dc3545;
+
+    background: #ffffff;
+
+    border: 1px solid #dc3545;
+
+    border-radius: 7px;
+
+    cursor: pointer;
+
+    font-size: 0.8rem;
+
+}
+
+
+.remove-file:hover {
+
+    color: #ffffff;
+
+    background: #dc3545;
+
+}
+
+
+/* ==========================================================
+   STATUS
+=========================================================== */
+
+.upload-status {
+
+    margin-top: 0.6rem;
+
+    font-size: 0.8rem;
+
+}
+
+
+.upload-status.success {
+
+    color: #198754;
+
+}
+
+
+.upload-status.error {
+
+    color: #dc3545;
+
+}
+
+
+/* ==========================================================
+   HELP / ERRORS
+=========================================================== */
+
+.custom-help {
+
+    margin-top: 0.4rem;
+
+    color: var(--text-muted);
+
+    font-size: 0.8rem;
+
+}
+
+
+.field-error {
+
+    margin-top: 0.4rem;
+
+    color: #dc3545;
+
+    font-size: 0.82rem;
+
+}
+
+
+/* ==========================================================
+   ACTIONS
+=========================================================== */
+
+.form-actions {
+
+    display: flex;
+
+    justify-content: flex-end;
+
+    gap: 0.75rem;
+
+    margin-top: 2.5rem;
+
+    padding-top: 1.5rem;
+
+    border-top: 1px solid var(--border-color);
+
+}
+
+
+.cancel-btn,
+
+.save-btn {
+
+    min-height: 45px;
+
+    padding: 0.7rem 1.2rem;
+
+    border-radius: 10px;
+
+    font-weight: 650;
+
+}
+
+
+.cancel-btn {
+
+    color: inherit;
+
+    background: transparent;
+
+    border: 1px solid var(--border-color);
+
+}
+
+
+.cancel-btn:hover {
+
     background: var(--soft-bg);
-  }
 
-  .save-btn {
+}
+
+
+.save-btn {
+
     color: #ffffff;
+
     background: var(--primary-color);
+
     border: none;
-    box-shadow: 0 7px 16px color-mix(
-      in srgb,
-      var(--primary-color) 28%,
-      transparent
-    );
-  }
 
-  .save-btn:hover {
+    box-shadow:
+        0 7px 16px
+        color-mix(
+            in srgb,
+            var(--primary-color) 28%,
+            transparent
+        );
+
+}
+
+
+.save-btn:hover {
+
     color: #ffffff;
-    background: var(--primary-dark);
-    transform: translateY(-1px);
-  }
 
-  @media (max-width: 576px) {
+    background: var(--primary-dark);
+
+    transform: translateY(-1px);
+
+}
+
+
+/* ==========================================================
+   MOBILE
+=========================================================== */
+
+@media (max-width: 576px) {
+
     .post-page {
-      padding: 0;
+
+        padding: 0;
+
     }
+
 
     .post-card {
-      padding: 1.25rem;
-      border-radius: 0;
+
+        padding: 1.25rem;
+
+        border-radius: 0;
+
     }
+
 
     .post-header {
-      align-items: center;
+
+        align-items: center;
+
     }
+
 
     .header-icon {
-      width: 44px;
-      height: 44px;
+
+        width: 44px;
+
+        height: 44px;
+
     }
+
 
     .form-actions {
-      flex-direction: column-reverse;
+
+        flex-direction: column-reverse;
+
     }
 
+
     .cancel-btn,
+
     .save-btn {
-      width: 100%;
+
+        width: 100%;
+
     }
-  }
+
+
+    .paste-box {
+
+        font-size: 0.75rem;
+
+    }
+
+
+    .upload-zone {
+
+        min-height: 250px;
+
+    }
+
+}
+
 </style>
+
 {% endblock %}
+
+
+
+<!-- ==========================================================
+     JAVASCRIPT
+=========================================================== -->
+
+{% block extra_js %}
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    "use strict";
+
+
+    /* ==========================================================
+       GET UPLOAD ZONES
+    =========================================================== */
+
+    const uploadZones =
+        document.querySelectorAll(".upload-zone");
+
+
+    if (!uploadZones.length) {
+
+        console.warn(
+            "SmartMind: No upload zones found."
+        );
+
+        return;
+    }
+
+
+    /* ==========================================================
+       ACTIVE UPLOAD ZONE
+
+       We explicitly remember the zone selected by the user.
+
+       This is more reliable than document.activeElement because
+       the transparent file input can steal browser focus.
+    =========================================================== */
+
+    let activeUploadZone = null;
+
+
+    /* ==========================================================
+       GET FILE INPUT
+    =========================================================== */
+
+    function getInput(zone) {
+
+        return zone.querySelector(
+            'input[type="file"]'
+        );
+
+    }
+
+
+    /* ==========================================================
+       ACTIVATE ZONE
+    =========================================================== */
+
+    function activateZone(zone) {
+
+        activeUploadZone = zone;
+
+
+        uploadZones.forEach(function (item) {
+
+            if (item === zone) {
+
+                item.classList.add(
+                    "paste-active"
+                );
+
+            } else {
+
+                item.classList.remove(
+                    "paste-active"
+                );
+
+            }
+
+        });
+
+
+        console.log(
+            "SmartMind: Active upload zone:",
+            zone.dataset.field
+        );
+
+    }
+
+
+    /* ==========================================================
+       FORMAT FILE SIZE
+    =========================================================== */
+
+    function formatFileSize(bytes) {
+
+        if (!bytes) {
+
+            return "0 B";
+
+        }
+
+
+        if (bytes < 1024) {
+
+            return bytes + " B";
+
+        }
+
+
+        if (bytes < 1024 * 1024) {
+
+            return (
+                (bytes / 1024).toFixed(1)
+                + " KB"
+            );
+
+        }
+
+
+        if (bytes < 1024 * 1024 * 1024) {
+
+            return (
+                (bytes / (1024 * 1024)).toFixed(1)
+                + " MB"
+            );
+
+        }
+
+
+        return (
+            (bytes / (1024 * 1024 * 1024)).toFixed(1)
+            + " GB"
+        );
+
+    }
+
+
+    /* ==========================================================
+       SHOW STATUS
+    =========================================================== */
+
+    function showStatus(
+        zone,
+        message,
+        type = ""
+    ) {
+
+        const status =
+            zone.querySelector(
+                ".upload-status"
+            );
+
+
+        if (!status) {
+
+            return;
+
+        }
+
+
+        status.textContent =
+            message;
+
+
+        status.className =
+            "upload-status";
+
+
+        if (type) {
+
+            status.classList.add(
+                type
+            );
+
+        }
+
+    }
+
+
+    /* ==========================================================
+       CLEAR STATUS
+    =========================================================== */
+
+    function clearStatus(zone) {
+
+        const status =
+            zone.querySelector(
+                ".upload-status"
+            );
+
+
+        if (!status) {
+
+            return;
+
+        }
+
+
+        status.textContent =
+            "";
+
+
+        status.className =
+            "upload-status";
+
+    }
+
+
+    /* ==========================================================
+       ATTACH FILE TO DJANGO INPUT
+    =========================================================== */
+
+    function attachFile(
+        input,
+        file
+    ) {
+
+        if (!input || !file) {
+
+            return false;
+
+        }
+
+
+        try {
+
+            const dataTransfer =
+                new DataTransfer();
+
+
+            dataTransfer.items.add(
+                file
+            );
+
+
+            input.files =
+                dataTransfer.files;
+
+
+            return (
+                input.files &&
+                input.files.length > 0
+            );
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "SmartMind: File attachment failed:",
+                error
+            );
+
+
+            return false;
+
+        }
+
+    }
+
+
+    /* ==========================================================
+       VALIDATE FILE
+    =========================================================== */
+
+    function validateFile(
+        zone,
+        file
+    ) {
+
+        if (!file) {
+
+            return {
+
+                valid: false,
+
+                message:
+                    "No file was selected."
+
+            };
+
+        }
+
+
+        const fieldName =
+            zone.dataset.field;
+
+
+        /* IMAGE */
+
+        if (
+            fieldName === "image"
+        ) {
+
+            if (
+                !file.type ||
+                !file.type.startsWith(
+                    "image/"
+                )
+            ) {
+
+                return {
+
+                    valid: false,
+
+                    message:
+                        "Please select or paste an image file."
+
+                };
+
+            }
+
+        }
+
+
+        /* VIDEO */
+
+        if (
+            fieldName === "video"
+        ) {
+
+            if (
+                !file.type ||
+                !file.type.startsWith(
+                    "video/"
+                )
+            ) {
+
+                return {
+
+                    valid: false,
+
+                    message:
+                        "Please select or paste a video file."
+
+                };
+
+            }
+
+        }
+
+
+        return {
+
+            valid: true,
+
+            message: ""
+
+        };
+
+    }
+
+
+    /* ==========================================================
+       SHOW PREVIEW
+    =========================================================== */
+
+    function showPreview(
+        zone,
+        file
+    ) {
+
+        const previewArea =
+            zone.querySelector(
+                ".preview-area"
+            );
+
+
+        const previewMeta =
+            zone.querySelector(
+                ".preview-meta"
+            );
+
+
+        const previewActions =
+            zone.querySelector(
+                ".preview-actions"
+            );
+
+
+        if (!previewArea) {
+
+            return;
+
+        }
+
+
+        /* CLEAR OLD PREVIEW */
+
+        previewArea.innerHTML =
+            "";
+
+
+        if (previewMeta) {
+
+            previewMeta.innerHTML =
+                "";
+
+        }
+
+
+        if (previewActions) {
+
+            previewActions.innerHTML =
+                "";
+
+        }
+
+
+        /* ======================================================
+           PREVIEW BOX
+        ======================================================= */
+
+        const previewBox =
+            document.createElement(
+                "div"
+            );
+
+
+        previewBox.className =
+            "preview-box";
+
+
+        /* ======================================================
+           IMAGE
+        ======================================================= */
+
+        if (
+            file.type.startsWith(
+                "image/"
+            )
+        ) {
+
+            const image =
+                document.createElement(
+                    "img"
+                );
+
+
+            image.className =
+                "file-preview";
+
+
+            image.alt =
+                file.name ||
+                "Pasted image";
+
+
+            image.loading =
+                "eager";
+
+
+            const imageURL =
+                URL.createObjectURL(
+                    file
+                );
+
+
+            image.src =
+                imageURL;
+
+
+            previewBox.appendChild(
+                image
+            );
+
+        }
+
+
+        /* ======================================================
+           VIDEO
+        ======================================================= */
+
+        else if (
+            file.type.startsWith(
+                "video/"
+            )
+        ) {
+
+            const video =
+                document.createElement(
+                    "video"
+                );
+
+
+            video.className =
+                "video-preview";
+
+
+            video.controls =
+                true;
+
+
+            video.preload =
+                "metadata";
+
+
+            video.playsInline =
+                true;
+
+
+            const videoURL =
+                URL.createObjectURL(
+                    file
+                );
+
+
+            video.src =
+                videoURL;
+
+
+            previewBox.appendChild(
+                video
+            );
+
+        }
+
+
+        /* ======================================================
+           ADD PREVIEW
+        ======================================================= */
+
+        previewArea.appendChild(
+            previewBox
+        );
+
+
+        /* ======================================================
+           FILE NAME
+        ======================================================= */
+
+        if (previewMeta) {
+
+            const filename =
+                document.createElement(
+                    "div"
+                );
+
+
+            filename.className =
+                "preview-filename";
+
+
+            filename.textContent =
+                file.name ||
+                "Pasted file";
+
+
+            previewMeta.appendChild(
+                filename
+            );
+
+
+            /* FILE SIZE */
+
+            const filesize =
+                document.createElement(
+                    "div"
+                );
+
+
+            filesize.className =
+                "preview-size";
+
+
+            filesize.textContent =
+                formatFileSize(
+                    file.size
+                );
+
+
+            previewMeta.appendChild(
+                filesize
+            );
+
+        }
+
+
+        /* ======================================================
+           REMOVE BUTTON
+        ======================================================= */
+
+        if (previewActions) {
+
+            const remove =
+                document.createElement(
+                    "button"
+                );
+
+
+            remove.type =
+                "button";
+
+
+            remove.className =
+                "remove-file";
+
+
+            remove.innerHTML =
+                '<i class="bi bi-trash me-1"></i> Remove';
+
+
+            remove.addEventListener(
+                "click",
+                function (event) {
+
+                    event.preventDefault();
+
+                    event.stopPropagation();
+
+
+                    clearFile(
+                        zone
+                    );
+
+                }
+            );
+
+
+            previewActions.appendChild(
+                remove
+            );
+
+        }
+
+
+        zone.classList.add(
+            "paste-active"
+        );
+
+    }
+
+
+    /* ==========================================================
+       CLEAR FILE
+    =========================================================== */
+
+    function clearFile(
+        zone
+    ) {
+
+        const input =
+            getInput(zone);
+
+
+        const previewArea =
+            zone.querySelector(
+                ".preview-area"
+            );
+
+
+        const previewMeta =
+            zone.querySelector(
+                ".preview-meta"
+            );
+
+
+        const previewActions =
+            zone.querySelector(
+                ".preview-actions"
+            );
+
+
+        /* CLEAR INPUT */
+
+        if (input) {
+
+            input.value =
+                "";
+
+        }
+
+
+        /* CLEAR PREVIEW */
+
+        if (previewArea) {
+
+            previewArea.innerHTML =
+                "";
+
+        }
+
+
+        if (previewMeta) {
+
+            previewMeta.innerHTML =
+                "";
+
+        }
+
+
+        if (previewActions) {
+
+            previewActions.innerHTML =
+                "";
+
+        }
+
+
+        clearStatus(
+            zone
+        );
+
+
+        zone.classList.remove(
+            "paste-active"
+        );
+
+
+        console.log(
+            "SmartMind: File removed."
+        );
+
+    }
+
+
+    /* ==========================================================
+       PROCESS FILE
+
+       Used by:
+       - Browse
+       - Drag/drop
+       - Paste
+    =========================================================== */
+
+    function processFile(
+        zone,
+        file,
+        source = "upload"
+    ) {
+
+        if (!zone || !file) {
+
+            return;
+
+        }
+
+
+        /* VALIDATE */
+
+        const validation =
+            validateFile(
+                zone,
+                file
+            );
+
+
+        if (!validation.valid) {
+
+            showStatus(
+                zone,
+                validation.message,
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        /* INPUT */
+
+        const input =
+            getInput(zone);
+
+
+        if (!input) {
+
+            showStatus(
+                zone,
+                "File input not found.",
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        /* ATTACH */
+
+        const attached =
+            attachFile(
+                input,
+                file
+            );
+
+
+        if (!attached) {
+
+            showStatus(
+                zone,
+                "The file could not be attached. Please try Browse.",
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        /* PREVIEW */
+
+        showPreview(
+            zone,
+            file
+        );
+
+
+        /* SOURCE */
+
+        let sourceText =
+            "Selected";
+
+
+        if (
+            source === "paste"
+        ) {
+
+            sourceText =
+                "Pasted";
+
+        }
+
+
+        if (
+            source === "drop"
+        ) {
+
+            sourceText =
+                "Dropped";
+
+        }
+
+
+        /* STATUS */
+
+        showStatus(
+            zone,
+
+            sourceText +
+            ": " +
+            (
+                file.name ||
+                "file"
+            ),
+
+            "success"
+        );
+
+
+        console.log(
+            "SmartMind:",
+            sourceText,
+            file.name,
+            file.type,
+            formatFileSize(
+                file.size
+            )
+        );
+
+    }
+
+
+    /* ==========================================================
+       CONVERT CLIPBOARD BLOB TO FILE
+       
+       Screenshots frequently arrive without a filename.
+       This creates a proper filename.
+    =========================================================== */
+
+    function clipboardBlobToFile(
+        blob,
+        fieldName
+    ) {
+
+        if (!blob) {
+
+            return null;
+
+        }
+
+
+        let extension =
+            "bin";
+
+
+        if (
+            blob.type ===
+            "image/png"
+        ) {
+
+            extension =
+                "png";
+
+        }
+
+        else if (
+            blob.type ===
+                "image/jpeg" ||
+            blob.type ===
+                "image/jpg"
+        ) {
+
+            extension =
+                "jpg";
+
+        }
+
+        else if (
+            blob.type ===
+            "image/webp"
+        ) {
+
+            extension =
+                "webp";
+
+        }
+
+        else if (
+            blob.type ===
+            "image/gif"
+        ) {
+
+            extension =
+                "gif";
+
+        }
+
+        else if (
+            blob.type ===
+            "image/bmp"
+        ) {
+
+            extension =
+                "bmp";
+
+        }
+
+        else if (
+            blob.type ===
+            "video/mp4"
+        ) {
+
+            extension =
+                "mp4";
+
+        }
+
+        else if (
+            blob.type ===
+            "video/webm"
+        ) {
+
+            extension =
+                "webm";
+
+        }
+
+        else if (
+            blob.type ===
+            "video/ogg"
+        ) {
+
+            extension =
+                "ogv";
+
+        }
+
+
+        const prefix =
+            fieldName === "image"
+                ? "pasted-image"
+                : "pasted-video";
+
+
+        const filename =
+            prefix +
+            "-" +
+            Date.now() +
+            "." +
+            extension;
+
+
+        try {
+
+            return new File(
+                [blob],
+                filename,
+                {
+                    type:
+                        blob.type,
+
+                    lastModified:
+                        Date.now()
+                }
+            );
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "SmartMind: Could not create File:",
+                error
+            );
+
+            return null;
+
+        }
+
+    }
+
+
+    /* ==========================================================
+       INITIALIZE ZONES
+    =========================================================== */
+
+    uploadZones.forEach(
+        function (zone) {
+
+            const input =
+                getInput(zone);
+
+
+            if (!input) {
+
+                console.warn(
+                    "SmartMind: File input missing:",
+                    zone
+                );
+
+                return;
+
+            }
+
+
+            /* ==================================================
+               POINTER DOWN
+            ================================================== */
+
+            zone.addEventListener(
+                "pointerdown",
+                function () {
+
+                    activateZone(
+                        zone
+                    );
+
+                }
+            );
+
+
+            /* ==================================================
+               FOCUS
+            ================================================== */
+
+            zone.addEventListener(
+                "focus",
+                function () {
+
+                    activateZone(
+                        zone
+                    );
+
+                },
+                true
+            );
+
+
+            /* ==================================================
+               CLICK
+            ================================================== */
+
+            zone.addEventListener(
+                "click",
+                function () {
+
+                    activateZone(
+                        zone
+                    );
+
+                }
+            );
+
+
+            /* ==================================================
+               NORMAL FILE BROWSE
+            ================================================== */
+
+            input.addEventListener(
+                "change",
+                function () {
+
+                    activateZone(
+                        zone
+                    );
+
+
+                    if (
+                        input.files &&
+                        input.files.length
+                    ) {
+
+                        processFile(
+                            zone,
+                            input.files[0],
+                            "upload"
+                        );
+
+                    }
+
+                }
+            );
+
+
+            /* ==================================================
+               DRAG ENTER
+            ================================================== */
+
+            zone.addEventListener(
+                "dragenter",
+                function (event) {
+
+                    event.preventDefault();
+
+                    event.stopPropagation();
+
+
+                    activateZone(
+                        zone
+                    );
+
+
+                    zone.classList.add(
+                        "dragover"
+                    );
+
+                }
+            );
+
+
+            /* ==================================================
+               DRAG OVER
+            ================================================== */
+
+            zone.addEventListener(
+                "dragover",
+                function (event) {
+
+                    event.preventDefault();
+
+                    event.stopPropagation();
+
+
+                    activateZone(
+                        zone
+                    );
+
+
+                    zone.classList.add(
+                        "dragover"
+                    );
+
+                }
+            );
+
+
+            /* ==================================================
+               DRAG LEAVE
+            ================================================== */
+
+            zone.addEventListener(
+                "dragleave",
+                function (event) {
+
+                    event.preventDefault();
+
+                    event.stopPropagation();
+
+
+                    zone.classList.remove(
+                        "dragover"
+                    );
+
+                }
+            );
+
+
+            /* ==================================================
+               DROP
+            ================================================== */
+
+            zone.addEventListener(
+                "drop",
+                function (event) {
+
+                    event.preventDefault();
+
+                    event.stopPropagation();
+
+
+                    activateZone(
+                        zone
+                    );
+
+
+                    zone.classList.remove(
+                        "dragover"
+                    );
+
+
+                    const files =
+                        event.dataTransfer &&
+                        event.dataTransfer.files;
+
+
+                    if (
+                        files &&
+                        files.length
+                    ) {
+
+                        processFile(
+                            zone,
+                            files[0],
+                            "drop"
+                        );
+
+                    }
+
+                    else {
+
+                        showStatus(
+                            zone,
+                            "No file was found in the dropped item.",
+                            "error"
+                        );
+
+                    }
+
+                }
+            );
+
+        }
+    );
+
+
+    /* ==========================================================
+       CLIPBOARD PASTE
+
+       IMPORTANT:
+
+       We listen on DOCUMENT so Ctrl+V works even when the
+       transparent file input is focused.
+
+       activeUploadZone determines where the image/video goes.
+    =========================================================== */
+
+    document.addEventListener(
+        "paste",
+        function (event) {
+
+            const zone =
+                activeUploadZone;
+
+
+            if (!zone) {
+
+                console.log(
+                    "SmartMind: No upload zone selected for paste."
+                );
+
+                return;
+
+            }
+
+
+            const clipboard =
+                event.clipboardData;
+
+
+            if (!clipboard) {
+
+                showStatus(
+                    zone,
+                    "Clipboard access is unavailable.",
+                    "error"
+                );
+
+                return;
+
+            }
+
+
+            const fieldName =
+                zone.dataset.field;
+
+
+            const items =
+                clipboard.items;
+
+
+            if (
+                !items ||
+                !items.length
+            ) {
+
+                showStatus(
+                    zone,
+                    "Nothing usable was found in the clipboard.",
+                    "error"
+                );
+
+                return;
+
+            }
+
+
+            console.log(
+                "SmartMind: Processing clipboard..."
+            );
+
+
+            /* ==================================================
+               SEARCH CLIPBOARD ITEMS
+            ================================================== */
+
+            for (
+                let i = 0;
+                i < items.length;
+                i++
+            ) {
+
+                const item =
+                    items[i];
+
+
+                console.log(
+                    "Clipboard:",
+                    item.kind,
+                    item.type
+                );
+
+
+                /* ONLY FILE ITEMS */
+
+                if (
+                    item.kind !== "file"
+                ) {
+
+                    continue;
+
+                }
+
+
+                const blob =
+                    item.getAsFile();
+
+
+                if (!blob) {
+
+                    continue;
+
+                }
+
+
+                /* =================================================
+                   IMAGE
+                ================================================= */
+
+                if (
+                    fieldName === "image" &&
+                    blob.type.startsWith(
+                        "image/"
+                    )
+                ) {
+
+                    event.preventDefault();
+
+
+                    const file =
+                        blob instanceof File
+                            ? blob
+                            : clipboardBlobToFile(
+                                blob,
+                                "image"
+                            );
+
+
+                    if (!file) {
+
+                        showStatus(
+                            zone,
+                            "Could not create the pasted image.",
+                            "error"
+                        );
+
+                        return;
+
+                    }
+
+
+                    processFile(
+                        zone,
+                        file,
+                        "paste"
+                    );
+
+
+                    return;
+
+                }
+
+
+                /* =================================================
+                   VIDEO
+                ================================================= */
+
+                if (
+                    fieldName === "video" &&
+                    blob.type.startsWith(
+                        "video/"
+                    )
+                ) {
+
+                    event.preventDefault();
+
+
+                    const file =
+                        blob instanceof File
+                            ? blob
+                            : clipboardBlobToFile(
+                                blob,
+                                "video"
+                            );
+
+
+                    if (!file) {
+
+                        showStatus(
+                            zone,
+                            "Could not create the pasted video.",
+                            "error"
+                        );
+
+                        return;
+
+                    }
+
+
+                    processFile(
+                        zone,
+                        file,
+                        "paste"
+                    );
+
+
+                    return;
+
+                }
+
+            }
+
+
+            /* ==================================================
+               NOTHING COMPATIBLE
+            ================================================== */
+
+            showStatus(
+
+                zone,
+
+                fieldName === "image"
+
+                    ? "No image file was found in the clipboard."
+
+                    : "No video file was found in the clipboard.",
+
+                "error"
+
+            );
+
+        }
+    );
+
+
+    /* ==========================================================
+       CTRL + V / CMD + V VISUAL FEEDBACK
+    =========================================================== */
+
+    document.addEventListener(
+        "keydown",
+        function (event) {
+
+            if (
+                (
+                    event.ctrlKey ||
+                    event.metaKey
+                ) &&
+                event.key.toLowerCase() === "v"
+            ) {
+
+                if (
+                    activeUploadZone
+                ) {
+
+                    activeUploadZone.classList.add(
+                        "paste-active"
+                    );
+
+
+                    console.log(
+                        "SmartMind: Ctrl/Cmd + V detected."
+                    );
+
+                }
+
+            }
+
+        }
+    );
+
+
+    /* ==========================================================
+       FORM SUBMIT DEBUG
+    =========================================================== */
+
+    const postForm =
+        document.getElementById(
+            "postForm"
+        );
+
+
+    if (postForm) {
+
+        postForm.addEventListener(
+            "submit",
+            function () {
+
+                console.log(
+                    "SmartMind: Form submitting..."
+                );
+
+
+                uploadZones.forEach(
+                    function (zone) {
+
+                        const input =
+                            getInput(zone);
+
+
+                        if (
+                            input &&
+                            input.files &&
+                            input.files.length
+                        ) {
+
+                            console.log(
+                                "Submitting:",
+                                zone.dataset.field,
+                                input.files[0].name,
+                                input.files[0].type,
+                                formatFileSize(
+                                    input.files[0].size
+                                )
+                            );
+
+                        }
+
+                    }
+                );
+
+            }
+        );
+
+    }
+
+
+    /* ==========================================================
+       INITIALIZATION MESSAGE
+    =========================================================== */
+
+    console.log(
+        "SmartMind: Image/video upload system loaded successfully."
+    );
+
+
+    console.log(
+        "SmartMind: Click an upload box, then press Ctrl+V."
+    );
+
+});
+
+</script>
+
+{% endblock %}
+```
