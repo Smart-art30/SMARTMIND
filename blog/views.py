@@ -237,133 +237,18 @@ def category_post(request, slug):
 # ============================================================
 def post_detail(request, slug):
 
-    # --------------------------------------------------------
-    # GET POST
-    # --------------------------------------------------------
-
     post = get_object_or_404(
-        Post.objects.select_related(
-            "category",
-            "author",
-        ).prefetch_related(
-            "tags",
-        ),
+        Post,
         slug=slug,
         status="published",
     )
 
-    # --------------------------------------------------------
-    # COUNT VIEW ONCE PER SESSION
-    # --------------------------------------------------------
-
-    session_key = f"viewed_post_{post.id}"
-
-    if not request.session.get(session_key):
-
-        Post.objects.filter(
-            pk=post.pk
-        ).update(
-            view_count=Coalesce(
-                F("view_count"),
-                Value(0)
-            ) + 1
-        )
-
-        request.session[session_key] = True
-
-        post.refresh_from_db(
-            fields=["view_count"]
-        )
-
-    # --------------------------------------------------------
-    # COMMENTS
-    # --------------------------------------------------------
-
-    comments = list(
-        Comment.objects
-        .filter(post=post)
-        .select_related("author")
-        .prefetch_related("liked_by")
-        .order_by("created_at")[:20]
-    )
-
-    # --------------------------------------------------------
-    # COMMENT LIKE STATUS
-    # --------------------------------------------------------
-
-    if request.user.is_authenticated:
-
-        user_id = request.user.id
-
-        for comment in comments:
-
-            comment.liked_by_current_user = (
-                comment.liked_by
-                .filter(pk=user_id)
-                .exists()
-            )
-
-    else:
-
-        for comment in comments:
-            comment.liked_by_current_user = False
-
-    # --------------------------------------------------------
-    # USER ROLE
-    # --------------------------------------------------------
-
-    user_role = getattr(
-        request.user,
-        "role",
-        None,
-    )
-
-    # --------------------------------------------------------
-    # PERMISSIONS
-    # --------------------------------------------------------
-
-    can_edit = (
-        request.user.is_authenticated
-        and (
-            request.user.is_superuser
-            or user_role == "school_admin"
-            or (
-                user_role == "teacher"
-                and post.author_id == request.user.id
-            )
-        )
-    )
-
-    # --------------------------------------------------------
-    # POST LIKE STATUS
-    # --------------------------------------------------------
-
-    is_liked = False
-
-    if request.user.is_authenticated:
-
-        is_liked = post.likes.filter(
-            pk=request.user.pk
-        ).exists()
-
-    # --------------------------------------------------------
-    # CONTEXT
-    # --------------------------------------------------------
-
-    context = {
-        "post": post,
-        "comments": comments,
-        "total_comments": len(comments),
-        "is_liked": is_liked,
-        "form": CommentForm(),
-        "can_edit": can_edit,
-        "can_delete": can_edit,
-    }
-
     return render(
         request,
         "post_detail.html",
-        context,
+        {
+            "post": post,
+        },
     )
 
 # ============================================================
