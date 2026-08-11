@@ -1,29 +1,62 @@
 from django.http import JsonResponse
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import (
+    render,
+    get_object_or_404,
+    redirect,
+)
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import (
+    require_http_methods,
+    require_POST,
+)
 from django.db.models import Prefetch
 from django.core.exceptions import PermissionDenied
-from django.forms import modelform_factory, Textarea, TextInput, Select, ClearableFileInput, URLInput, SelectMultiple
+
+from django.forms import (
+    modelform_factory,
+    Textarea,
+    TextInput,
+    Select,
+    ClearableFileInput,
+    URLInput,
+    SelectMultiple,
+)
+
 from django_ckeditor_5.widgets import CKEditor5Widget
 
-from .models import Post, Comment, Category
+from .models import (
+    Post,
+    Comment,
+    Category,
+)
 
+
+# ============================================================
+# COMMENT FORM
+# ============================================================
 
 CommentForm = modelform_factory(
     Comment,
     fields=["text"],
     widgets={
-        "text": Textarea(attrs={
-            "placeholder": "Share your view",
-            "rows": 4,
-            "class": "form-control",
-        })
-    }
+        "text": Textarea(
+            attrs={
+                "placeholder": "Share your view",
+                "rows": 4,
+                "class": "form-control",
+            }
+        )
+    },
 )
+
+
+# ============================================================
+# POST FORM
+# ============================================================
 
 PostForm = modelform_factory(
     Post,
+
     fields=[
         "title",
         "category",
@@ -38,138 +71,616 @@ PostForm = modelform_factory(
         "visible_to_all",
         "status",
     ],
+
     widgets={
-        "title": TextInput(attrs={"class": "form-control"}),
-        "category": Select(attrs={"class": "form-select"}),
-        "excerpt": Textarea(attrs={"class": "form-control", "rows": 2}),
-        "content": CKEditor5Widget(config_name="default"),
-        "school": Select(attrs={"class": "form-select"}),
-        "target_classes": SelectMultiple(attrs={"class": "form-select"}),
-        "image": ClearableFileInput(attrs={"class": "form-control"}),
-        "video": ClearableFileInput(attrs={"class": "form-control"}),
-        "youtube_url": URLInput(attrs={"class": "form-control"}),
-        "tags": SelectMultiple(attrs={"class": "form-select"}),
-        "visible_to_all": Select(attrs={"class": "form-select"}),
-        "status": Select(attrs={"class": "form-select"}),
+
+        "title": TextInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "Enter post title...",
+            }
+        ),
+
+        "category": Select(
+            attrs={
+                "class": "form-select",
+            }
+        ),
+
+        "excerpt": Textarea(
+            attrs={
+                "class": "form-control",
+                "rows": 2,
+                "placeholder": "Short description of the post...",
+            }
+        ),
+
+        "content": CKEditor5Widget(
+            config_name="default"
+        ),
+
+        "school": Select(
+            attrs={
+                "class": "form-select",
+            }
+        ),
+
+        "target_classes": SelectMultiple(
+            attrs={
+                "class": "form-select",
+            }
+        ),
+
+        "image": ClearableFileInput(
+            attrs={
+                "class": "form-control",
+                "accept": "image/*",
+            }
+        ),
+
+        "video": ClearableFileInput(
+            attrs={
+                "class": "form-control",
+                "accept": "video/*",
+            }
+        ),
+
+        "youtube_url": URLInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "https://www.youtube.com/watch?v=...",
+            }
+        ),
+
+        "tags": SelectMultiple(
+            attrs={
+                "class": "form-select",
+            }
+        ),
+
+        "visible_to_all": Select(
+            attrs={
+                "class": "form-select",
+            }
+        ),
+
+        "status": Select(
+            attrs={
+                "class": "form-select",
+            }
+        ),
     },
 )
 
 
-def home(request):
-    posts = Post.objects.filter(status="published", approved=True).order_by("-created_at")
-    categories = Category.objects.all()
-    featured_post = Post.objects.filter(
-        status="published",
-        approved=True,
-        is_featured=True
-    ).order_by("-created_at").first()
+# ============================================================
+# HOME
+# ============================================================
 
-    return render(request, "home.html", {
-        "posts": posts,
-        "categories": categories,
-        "featured_post": featured_post,
-    })
+def home(request):
+
+    posts = (
+        Post.objects
+        .filter(
+            status="published",
+            approved=True,
+        )
+        .select_related(
+            "author",
+            "category",
+        )
+        .prefetch_related("tags")
+        .order_by("-created_at")
+    )
+
+    categories = Category.objects.all()
+
+    featured_post = (
+        Post.objects
+        .filter(
+            status="published",
+            approved=True,
+            is_featured=True,
+        )
+        .select_related(
+            "author",
+            "category",
+        )
+        .order_by("-created_at")
+        .first()
+    )
+
+    return render(
+        request,
+        "home.html",
+        {
+            "posts": posts,
+            "categories": categories,
+            "featured_post": featured_post,
+        },
+    )
+
+
+# ============================================================
+# CATEGORY POSTS
+# ============================================================
 
 def category_post(request, slug):
-    category = get_object_or_404(Category, slug=slug)
-    posts = Post.objects.filter(category=category).order_by("-created_at")
-    return render(request, "category_post.html", {"category": category, "posts": posts})
 
-
-def post_detail(request, slug):
-    comments_qs = Comment.objects.order_by("created_at").prefetch_related("liked_by")
-
-    post = get_object_or_404(
-        Post.objects.select_related("category", "author")
-        .prefetch_related("tags", "likes", Prefetch("comments", queryset=comments_qs))
-        .filter(status="published"),
+    category = get_object_or_404(
+        Category,
         slug=slug,
     )
 
+    posts = (
+        Post.objects
+        .filter(
+            category=category,
+            status="published",
+            approved=True,
+        )
+        .select_related(
+            "author",
+            "category",
+        )
+        .prefetch_related("tags")
+        .order_by("-created_at")
+    )
+
+    return render(
+        request,
+        "category_post.html",
+        {
+            "category": category,
+            "posts": posts,
+        },
+    )
+
+
+# ============================================================
+# POST DETAIL
+# ============================================================
+
+def post_detail(request, slug):
+
+    comments_qs = (
+        Comment.objects
+        .order_by("created_at")
+        .prefetch_related("liked_by")
+    )
+
+    post = get_object_or_404(
+
+        Post.objects
+        .select_related(
+            "category",
+            "author",
+        )
+        .prefetch_related(
+            "tags",
+            "likes",
+            Prefetch(
+                "comments",
+                queryset=comments_qs,
+            ),
+        )
+        .filter(
+            status="published",
+        ),
+
+        slug=slug,
+    )
+
+    # --------------------------------------------------------
+    # COUNT VIEW ONCE PER SESSION
+    # --------------------------------------------------------
+
     session_key = f"viewed_post_{post.id}"
+
     if not request.session.get(session_key):
-        Post.objects.filter(id=post.id).update(view_count=post.view_count + 1)
+
+        Post.objects.filter(
+            id=post.id
+        ).update(
+            view_count=post.view_count + 1
+        )
+
         request.session[session_key] = True
+
         post.view_count += 1
 
-    comments = list(post.comments.all()[:20])
+    # --------------------------------------------------------
+    # COMMENTS
+    # --------------------------------------------------------
+
+    comments = list(
+        post.comments.all()[:20]
+    )
 
     if request.user.is_authenticated:
+
         user_id = request.user.id
+
         for comment in comments:
-            comment.liked_by_current_user = comment.liked_by.filter(id=user_id).exists()
+
+            comment.liked_by_current_user = (
+                comment.liked_by
+                .filter(id=user_id)
+                .exists()
+            )
+
     else:
+
         for comment in comments:
+
             comment.liked_by_current_user = False
 
-    context = {
-        "post": post,
-        "comments": comments,
-        "total_comments": post.comments.count(),
-        "is_liked": request.user.is_authenticated and post.likes.filter(id=request.user.id).exists(),
-        "form": CommentForm(),
-    }
-    return render(request, "post_detail.html", context)
+    # --------------------------------------------------------
+    # PERMISSIONS FOR POST ACTIONS
+    # --------------------------------------------------------
 
+    user_role = getattr(
+        request.user,
+        "role",
+        None,
+    )
+
+    can_edit = (
+        request.user.is_authenticated
+        and (
+            request.user.is_superuser
+            or user_role == "school_admin"
+            or (
+                user_role == "teacher"
+                and post.author_id == request.user.id
+            )
+        )
+    )
+
+    can_delete = can_edit
+
+    # --------------------------------------------------------
+    # CONTEXT
+    # --------------------------------------------------------
+
+    context = {
+
+        "post": post,
+
+        "comments": comments,
+
+        "total_comments": post.comments.count(),
+
+        "is_liked": (
+            request.user.is_authenticated
+            and post.likes
+            .filter(id=request.user.id)
+            .exists()
+        ),
+
+        "form": CommentForm(),
+
+        "can_edit": can_edit,
+
+        "can_delete": can_delete,
+    }
+
+    return render(
+        request,
+        "post_detail.html",
+        context,
+    )
+
+
+# ============================================================
+# LIKE / UNLIKE POST
+# ============================================================
 
 @login_required
-@require_http_methods(["POST"])
+@require_POST
 def like_toggle(request, slug):
-    post = get_object_or_404(Post, slug=slug, status="published")
 
-    if post.likes.filter(id=request.user.id).exists():
-        post.likes.remove(request.user)
+    post = get_object_or_404(
+        Post,
+        slug=slug,
+        status="published",
+    )
+
+    if post.likes.filter(
+        id=request.user.id
+    ).exists():
+
+        post.likes.remove(
+            request.user
+        )
+
         is_liked = False
+
     else:
-        post.likes.add(request.user)
+
+        post.likes.add(
+            request.user
+        )
+
         is_liked = True
 
-    return JsonResponse({
-        "is_liked": is_liked,
-        "like_count": post.likes.count(),
-    })
+    return JsonResponse(
+        {
+            "is_liked": is_liked,
+            "like_count": post.likes.count(),
+        }
+    )
 
+
+# ============================================================
+# ADD COMMENT
+# ============================================================
 
 @login_required
-@require_http_methods(["POST"])
+@require_POST
 def add_comment(request, slug):
-    post = get_object_or_404(Post, slug=slug, status="published")
-    form = CommentForm(request.POST)
+
+    post = get_object_or_404(
+        Post,
+        slug=slug,
+        status="published",
+    )
+
+    form = CommentForm(
+        request.POST
+    )
 
     if form.is_valid():
-        comment = form.save(commit=False)
+
+        comment = form.save(
+            commit=False
+        )
+
         comment.post = post
+
         comment.author = request.user
+
         comment.save()
-        return redirect(f"{post.get_absolute_url()}?commented=1#comment-{comment.id}")
 
-    return redirect(post.get_absolute_url())
+        return redirect(
+            f"{post.get_absolute_url()}"
+            f"?commented=1"
+            f"#comment-{comment.id}"
+        )
 
+    return redirect(
+        post.get_absolute_url()
+    )
+
+
+# ============================================================
+# ADD POST
+# ============================================================
 
 @login_required
 @require_http_methods(["GET", "POST"])
 def add_post(request):
-    # Allow superusers, school admins, and teachers
-    allowed_roles = ["school_admin", "teacher"]
+
+    # --------------------------------------------------------
+    # ALLOWED ROLES
+    # --------------------------------------------------------
+
+    allowed_roles = [
+        "school_admin",
+        "teacher",
+    ]
+
+    user_role = getattr(
+        request.user,
+        "role",
+        None,
+    )
 
     if not (
         request.user.is_superuser
-        or getattr(request.user, "role", None) in allowed_roles
+        or user_role in allowed_roles
     ):
-        raise PermissionDenied("You do not have permission to add posts.")
+
+        raise PermissionDenied(
+            "You do not have permission to add posts."
+        )
+
+    # --------------------------------------------------------
+    # POST REQUEST
+    # --------------------------------------------------------
 
     if request.method == "POST":
-        form = PostForm(request.POST, request.FILES)
+
+        form = PostForm(
+            request.POST,
+            request.FILES,
+        )
 
         if form.is_valid():
-            post = form.save(commit=False)
+
+            post = form.save(
+                commit=False
+            )
+
+            # Automatically assign author
             post.author = request.user
+
             post.save()
+
             form.save_m2m()
 
-            return redirect(post.get_absolute_url())
+            return redirect(
+                post.get_absolute_url()
+            )
+
+    # --------------------------------------------------------
+    # GET REQUEST
+    # --------------------------------------------------------
 
     else:
+
         form = PostForm()
 
-    return render(request, "add_post.html", {"form": form})
+    return render(
+        request,
+        "add_post.html",
+        {
+            "form": form,
+        },
+    )
+
+
+# ============================================================
+# EDIT POST
+# ============================================================
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def edit_post(request, pk):
+
+    post = get_object_or_404(
+        Post,
+        pk=pk,
+    )
+
+    user_role = getattr(
+        request.user,
+        "role",
+        None,
+    )
+
+    # --------------------------------------------------------
+    # PERMISSION
+    # --------------------------------------------------------
+
+    can_edit = (
+
+        request.user.is_superuser
+
+        or user_role == "school_admin"
+
+        or (
+            user_role == "teacher"
+            and post.author_id == request.user.id
+        )
+    )
+
+    if not can_edit:
+
+        raise PermissionDenied(
+            "You do not have permission to edit this post."
+        )
+
+    # --------------------------------------------------------
+    # POST
+    # --------------------------------------------------------
+
+    if request.method == "POST":
+
+        form = PostForm(
+            request.POST,
+            request.FILES,
+            instance=post,
+        )
+
+        if form.is_valid():
+
+            updated_post = form.save(
+                commit=False
+            )
+
+            # Never allow editing the author
+            updated_post.author = post.author
+
+            updated_post.save()
+
+            form.save_m2m()
+
+            return redirect(
+                updated_post.get_absolute_url()
+            )
+
+    # --------------------------------------------------------
+    # GET
+    # --------------------------------------------------------
+
+    else:
+
+        form = PostForm(
+            instance=post
+        )
+
+    return render(
+        request,
+        "edit_post.html",
+        {
+            "form": form,
+            "post": post,
+        },
+    )
+
+
+# ============================================================
+# DELETE POST
+# ============================================================
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def delete_post(request, pk):
+
+    post = get_object_or_404(
+        Post,
+        pk=pk,
+    )
+
+    user_role = getattr(
+        request.user,
+        "role",
+        None,
+    )
+
+    # --------------------------------------------------------
+    # PERMISSION
+    # --------------------------------------------------------
+
+    can_delete = (
+
+        request.user.is_superuser
+
+        or user_role == "school_admin"
+
+        or (
+            user_role == "teacher"
+            and post.author_id == request.user.id
+        )
+    )
+
+    if not can_delete:
+
+        raise PermissionDenied(
+            "You do not have permission to delete this post."
+        )
+
+    # --------------------------------------------------------
+    # CONFIRM DELETE
+    # --------------------------------------------------------
+
+    if request.method == "POST":
+
+        post.delete()
+
+        return redirect(
+            "blog:home"
+        )
+
+    # --------------------------------------------------------
+    # SHOW CONFIRMATION
+    # --------------------------------------------------------
+
+    return render(
+        request,
+        "delete_post.html",
+        {
+            "post": post,
+        },
+    )

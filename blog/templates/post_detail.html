@@ -1,400 +1,977 @@
 {% extends 'base.html' %}
 {% load static %}
 
+
 {% block title %}
     {{ post.title }}
 {% endblock %}
 
+
 {% block content %}
 
 <style>
-    *,
-    *::before,
-    *::after {
-        box-sizing: border-box;
-    }
 
-    html,
-    body {
-        width: 100%;
-        max-width: 100%;
-        margin: 0;
-        padding: 0;
-        overflow-x: hidden;
-    }
+/* ==========================================================
+   GLOBAL
+========================================================== */
 
-    body {
-        background: linear-gradient(180deg, #f8f9fa 0%, #eef2f7 100%);
-    }
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
 
-    /*
-    Main full-width wrapper
-    */
+
+html,
+body {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+
+body {
+    background:
+        linear-gradient(
+            180deg,
+            #f8f9fa 0%,
+            #eef2f7 100%
+        );
+}
+
+
+/* ==========================================================
+   MAIN
+========================================================== */
+
+.reading-shell {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 20px;
+}
+
+
+/* ==========================================================
+   POST + COMMENTS
+========================================================== */
+
+.post-article,
+.comment-section {
+
+    width: 100%;
+    max-width: none;
+
+    border: 0;
+
+    border-radius: 1.25rem;
+
+    overflow: hidden;
+
+    box-shadow:
+        0 0.5rem 1.5rem
+        rgba(0, 0, 0, 0.06);
+}
+
+
+/* ==========================================================
+   HERO MEDIA
+========================================================== */
+
+.hero-media {
+
+    position: relative;
+
+    width: 100%;
+    max-width: 100%;
+
+    overflow: hidden;
+
+    background: #f1f3f5;
+}
+
+
+.hero-media img {
+
+    display: block;
+
+    width: 100%;
+    max-width: 100%;
+
+    height: auto;
+
+    max-height: 460px;
+
+    object-fit: contain;
+
+    margin: 0 auto;
+}
+
+
+.hero-media video {
+
+    display: block;
+
+    width: 100%;
+    max-width: 100%;
+
+    height: auto;
+
+    max-height: 460px;
+
+    background: #000;
+
+    object-fit: contain;
+}
+
+
+.hero-media iframe {
+
+    display: block;
+
+    width: 100%;
+    max-width: 100%;
+
+    aspect-ratio: 16 / 9;
+
+    height: auto;
+
+    border: 0;
+}
+
+
+/* ==========================================================
+   POST TITLE
+========================================================== */
+
+.post-title {
+
+    font-size:
+        clamp(
+            1.6rem,
+            4vw,
+            2.2rem
+        );
+
+    font-weight: 800;
+
+    line-height: 1.2;
+
+    overflow-wrap: anywhere;
+}
+
+
+/* ==========================================================
+   META
+========================================================== */
+
+.post-meta {
+
+    font-size: 0.9rem;
+
+    color: #6c757d;
+}
+
+
+/* ==========================================================
+   POST CONTENT
+========================================================== */
+
+.post-content {
+
+    width: 100%;
+    max-width: 100%;
+
+    font-size: 1.05rem;
+
+    line-height: 1.8;
+
+    overflow-wrap: anywhere;
+
+    word-break: break-word;
+}
+
+
+.post-content img {
+
+    display: block;
+
+    width: auto;
+
+    max-width: 100%;
+
+    height: auto;
+
+    margin: 1rem auto;
+
+    border-radius: 8px;
+
+    object-fit: contain;
+}
+
+
+.post-content img[width],
+.post-content img[height] {
+
+    width: auto;
+
+    max-width: 100%;
+
+    height: auto;
+}
+
+
+.post-content figure {
+
+    max-width: 100%;
+
+    margin: 1rem 0;
+}
+
+
+.post-content figure img {
+
+    width: 100%;
+
+    max-width: 100%;
+
+    height: auto;
+}
+
+
+.post-content iframe,
+.post-content video,
+.post-content canvas,
+.post-content svg {
+
+    display: block;
+
+    max-width: 100%;
+
+    height: auto;
+}
+
+
+.post-content table {
+
+    display: block;
+
+    width: 100%;
+
+    max-width: 100%;
+
+    overflow-x: auto;
+}
+
+
+.post-content pre {
+
+    max-width: 100%;
+
+    padding: 12px;
+
+    overflow-x: auto;
+
+    white-space: pre-wrap;
+
+    overflow-wrap: anywhere;
+
+    background: #f8f9fa;
+
+    border-radius: 6px;
+}
+
+
+.post-content a {
+
+    overflow-wrap: anywhere;
+}
+
+
+/* ==========================================================
+   AVATARS
+========================================================== */
+
+.avatar {
+
+    width: 48px;
+    height: 48px;
+
+    flex: 0 0 48px;
+
+    border-radius: 50%;
+
+    object-fit: cover;
+}
+
+
+.comment-avatar {
+
+    width: 36px;
+    height: 36px;
+
+    flex: 0 0 36px;
+
+    border-radius: 50%;
+
+    object-fit: cover;
+}
+
+
+/* ==========================================================
+   POST ACTION AREA
+========================================================== */
+
+.post-actions {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+}
+
+
+/* ==========================================================
+   OPTIONS BUTTON
+========================================================== */
+
+.post-options-btn {
+
+    width: 38px;
+    height: 38px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border: none;
+
+    border-radius: 50%;
+
+    background: #f1f3f5;
+
+    color: #495057;
+
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease;
+}
+
+
+.post-options-btn:hover {
+
+    background: #e2e6ea;
+
+    transform: scale(1.05);
+}
+
+
+/* ==========================================================
+   DROPDOWN
+========================================================== */
+
+.dropdown-menu {
+
+    min-width: 180px;
+
+    border: none;
+
+    border-radius: 12px;
+
+    box-shadow:
+        0 10px 35px
+        rgba(0, 0, 0, 0.12);
+}
+
+
+.dropdown-item {
+
+    padding:
+        0.65rem
+        1rem;
+
+    font-size: 0.9rem;
+}
+
+
+.dropdown-item:hover {
+
+    background: #f8f9fa;
+}
+
+
+.dropdown-item.text-danger:hover {
+
+    color: #dc3545 !important;
+
+    background: #fff1f2;
+}
+
+
+/* ==========================================================
+   LIKE
+========================================================== */
+
+.like-btn {
+
+    min-width: 60px;
+
+    padding:
+        6px 12px;
+
+    border: none;
+
+    border-radius: 999px;
+
+    background: #f1f1f1;
+
+    font-size: 0.875rem;
+
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease;
+}
+
+
+.like-btn:hover:not(:disabled) {
+
+    background: #e2e2e2;
+}
+
+
+.like-btn.liked {
+
+    color: #fff;
+
+    background: #dc3545;
+}
+
+
+/* ==========================================================
+   COMMENTS
+========================================================== */
+
+.comment-section [id^="comment-"] {
+
+    max-width: 100%;
+
+    transition:
+        background-color 0.2s ease;
+}
+
+
+.comment-section [id^="comment-"]:hover {
+
+    background: #f8f9fa;
+}
+
+
+.comment-section hr {
+
+    margin: 0;
+
+    border-top:
+        1px solid #eee;
+}
+
+
+.comment-form {
+
+    padding:
+        0.75rem;
+
+    border:
+        1px solid #ddd;
+
+    border-radius: 8px;
+
+    background: #f0f2f5;
+}
+
+
+.like-text,
+.text-muted small {
+
+    font-size: 0.8rem;
+
+    color: #65676b;
+
+    cursor: pointer;
+}
+
+
+.like-text:hover,
+.text-muted small:hover {
+
+    color: #1877f2;
+}
+
+
+/* ==========================================================
+   DELETE MODAL
+========================================================== */
+
+.delete-icon {
+
+    width: 55px;
+    height: 55px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    margin: 0 auto 1rem;
+
+    border-radius: 50%;
+
+    background: #fff1f2;
+
+    color: #dc3545;
+
+    font-size: 1.5rem;
+}
+
+
+.delete-warning {
+
+    padding: 1rem;
+
+    border-radius: 10px;
+
+    background: #fff8e1;
+
+    border: 1px solid #ffe69c;
+}
+
+
+/* ==========================================================
+   MOBILE
+========================================================== */
+
+@media (max-width: 768px) {
+
     .reading-shell {
-        width: 100%;
-        max-width: none;
-        margin: 0;
-        padding: 20px;
+
+        padding: 12px;
     }
 
-    /*
-    Post and comments
-    */
+
     .post-article,
     .comment-section {
-        width: 100%;
-        max-width: none;
-        border: 0;
-        border-radius: 1.25rem;
-        overflow: hidden;
-        box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.06);
+
+        border-radius: 0.75rem;
     }
 
-    /*
-    Featured image, video and YouTube iframe
-    */
-    .hero-media {
-        position: relative;
-        width: 100%;
-        max-width: 100%;
-        overflow: hidden;
-        background: #f1f3f5;
-    }
-
-    .hero-media img {
-        display: block;
-        width: 100%;
-        max-width: 100%;
-        height: auto;
-        max-height: 460px;
-        object-fit: contain;
-        margin: 0 auto;
-    }
-
-    .hero-media video {
-        display: block;
-        width: 100%;
-        max-width: 100%;
-        height: auto;
-        max-height: 460px;
-        object-fit: contain;
-    }
-
-    .hero-media iframe {
-        display: block;
-        width: 100%;
-        max-width: 100%;
-        aspect-ratio: 16 / 9;
-        height: auto;
-        border: 0;
-    }
-
-    /*
-    Text styles
-    */
-    .post-title {
-        font-size: clamp(1.6rem, 4vw, 2.2rem);
-        font-weight: 800;
-        line-height: 1.2;
-        overflow-wrap: anywhere;
-    }
-
-    .post-meta {
-        font-size: 0.9rem;
-        color: #6c757d;
-    }
 
     .post-content {
-        width: 100%;
-        max-width: 100%;
-        font-size: 1.05rem;
-        line-height: 1.8;
-        overflow-wrap: anywhere;
-        word-break: break-word;
+
+        font-size: 1rem;
+
+        line-height: 1.7;
     }
 
-    /*
-    Images inserted through post.content
-    */
+
+    .hero-media img {
+
+        max-height: none;
+    }
+
+}
+
+
+@media (max-width: 576px) {
+
+    .reading-shell {
+
+        padding: 0;
+    }
+
+
+    .post-article,
+    .comment-section {
+
+        border-radius: 0;
+    }
+
+
+    .card-body {
+
+        padding: 15px;
+    }
+
+
+    .post-title {
+
+        font-size: 1.5rem;
+    }
+
+
     .post-content img {
-        display: block;
-        width: auto;
-        max-width: 100%;
-        height: auto;
-        margin: 1rem auto;
-        border-radius: 8px;
-        object-fit: contain;
-    }
 
-    /*
-    If an image has a fixed width attribute,
-    force it to fit the screen.
-    */
-    .post-content img[width],
-    .post-content img[height] {
-        width: auto;
-        max-width: 100%;
-        height: auto;
-    }
-
-    .post-content figure {
-        max-width: 100%;
-        margin: 1rem 0;
-    }
-
-    .post-content figure img {
         width: 100%;
+
         max-width: 100%;
+
         height: auto;
     }
 
-    .post-content iframe,
-    .post-content video,
-    .post-content canvas,
-    .post-content svg {
-        display: block;
-        max-width: 100%;
-        height: auto;
+
+    .post-meta {
+
+        font-size: 0.78rem;
     }
 
-    .post-content table {
-        display: block;
-        width: 100%;
-        max-width: 100%;
-        overflow-x: auto;
+
+    .post-actions {
+
+        gap: 4px;
     }
 
-    .post-content pre {
-        max-width: 100%;
-        padding: 12px;
-        overflow-x: auto;
-        white-space: pre-wrap;
-        overflow-wrap: anywhere;
-        background: #f8f9fa;
-        border-radius: 6px;
-    }
+}
 
-    .post-content a {
-        overflow-wrap: anywhere;
-    }
-
-    /*
-    Avatars
-    */
-    .avatar {
-        width: 48px;
-        height: 48px;
-        flex: 0 0 48px;
-        border-radius: 50%;
-        object-fit: cover;
-    }
-
-    .comment-avatar {
-        width: 36px;
-        height: 36px;
-        flex: 0 0 36px;
-        border-radius: 50%;
-        object-fit: cover;
-    }
-
-    /*
-    Comments
-    */
-    .comment-section [id^="comment-"] {
-        max-width: 100%;
-        transition: background-color 0.2s ease;
-    }
-
-    .comment-section [id^="comment-"]:hover {
-        background: #f8f9fa;
-    }
-
-    .comment-section hr {
-        margin: 0;
-        border-top: 1px solid #eee;
-    }
-
-    .like-text,
-    .text-muted small {
-        font-size: 0.8rem;
-        color: #65676b;
-        cursor: pointer;
-    }
-
-    .like-text:hover,
-    .text-muted small:hover {
-        color: #1877f2;
-    }
-
-    .comment-form {
-        padding: 0.5rem 0.75rem;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        background: #f0f2f5;
-    }
-
-    .like-btn {
-        padding: 6px 12px;
-        border: none;
-        border-radius: 999px;
-        background: #f1f1f1;
-        font-size: 0.875rem;
-        transition: background-color 0.2s ease, color 0.2s ease;
-    }
-
-    .like-btn:hover:not(:disabled) {
-        background: #e2e2e2;
-    }
-
-    .like-btn.liked {
-        color: #fff;
-        background: #dc3545;
-    }
-
-    /*
-    Small screens
-    */
-    @media (max-width: 768px) {
-        .reading-shell {
-            padding: 12px;
-        }
-
-        .post-article,
-        .comment-section {
-            border-radius: 0.75rem;
-        }
-
-        .post-content {
-            font-size: 1rem;
-            line-height: 1.7;
-        }
-
-        .hero-media img {
-            max-height: none;
-        }
-    }
-
-    @media (max-width: 576px) {
-        .reading-shell {
-            padding: 0;
-        }
-
-        .post-article,
-        .comment-section {
-            border-radius: 0;
-        }
-
-        .card-body {
-            padding: 15px;
-        }
-
-        .post-title {
-            font-size: 1.5rem;
-        }
-
-        .post-content img {
-            width: 100%;
-            max-width: 100%;
-            height: auto;
-        }
-
-        .post-meta {
-            font-size: 0.78rem;
-        }
-    }
 </style>
+
 
 <div class="reading-shell">
 
-    <!-- POST ARTICLE -->
+
+    <!-- ======================================================
+         POST ARTICLE
+    ======================================================= -->
+
     <article class="card post-article mb-4">
 
+
+        <!-- ==================================================
+             HERO MEDIA
+        =================================================== -->
+
         {% if post.image or post.video or post.youtube_url %}
+
             <div class="hero-media">
 
+
                 {% if post.image %}
+
                     <img
                         src="{{ post.image.url }}"
                         alt="{{ post.title }}"
                         loading="lazy"
                     >
 
+
                 {% elif post.video %}
-                    <video controls>
+
+                    <video
+                        controls
+                        preload="metadata"
+                    >
+
                         <source
                             src="{{ post.video.url }}"
-                            type="{{ post.video.content_type }}"
                         >
-                        Your browser does not support the video tag.
+
+                        Your browser does not support
+                        the video tag.
+
                     </video>
 
+
                 {% elif post.youtube_url %}
+
                     <iframe
                         src="{{ post.youtube_url }}"
                         title="{{ post.title }}"
+                        allow="
+                            accelerometer;
+                            autoplay;
+                            clipboard-write;
+                            encrypted-media;
+                            gyroscope;
+                            picture-in-picture;
+                            web-share
+                        "
                         allowfullscreen
                         loading="lazy"
                     ></iframe>
+
                 {% endif %}
 
             </div>
+
         {% endif %}
+
+
+        <!-- ==================================================
+             POST BODY
+        =================================================== -->
 
         <div class="card-body">
 
-            <div class="d-flex justify-content-between align-items-center mb-3">
 
-                <div class="d-flex gap-2 align-items-center">
-                    <img
-                        src="{{ post.author.profile.avatar.url|default:'/static/default-avatar.png' }}"
-                        class="avatar"
-                        alt="{{ post.author.username }} avatar"
-                        loading="lazy"
-                    >
+            <!-- ==================================================
+                 AUTHOR + ACTIONS
+            =================================================== -->
+
+            <div
+                class="
+                    d-flex
+                    justify-content-between
+                    align-items-center
+                    mb-3
+                    gap-3
+                "
+            >
+
+
+                <!-- AUTHOR -->
+
+                <div
+                    class="
+                        d-flex
+                        gap-2
+                        align-items-center
+                        min-width-0
+                    "
+                >
+
+                    {% if post.author.profile.avatar %}
+
+                        <img
+                            src="{{ post.author.profile.avatar.url }}"
+                            class="avatar"
+                            alt="{{ post.author.username }} avatar"
+                            loading="lazy"
+                        >
+
+                    {% else %}
+
+                        <img
+                            src="{% static 'default-avatar.png' %}"
+                            class="avatar"
+                            alt="Default avatar"
+                            loading="lazy"
+                        >
+
+                    {% endif %}
+
 
                     <div>
-                        <strong>{{ post.author.username }}</strong>
+
+                        <strong>
+                            {{ post.author.username }}
+                        </strong>
+
                         <br>
 
                         <small class="text-muted post-meta">
+
                             {{ post.created_at|date:"M d, Y" }}
-                            • 👁 {{ post.view_count }}
+
+                            • 👁
+
+                            {{ post.view_count }}
+
                         </small>
+
                     </div>
+
                 </div>
 
-                <button
-                    id="like-btn"
-                    class="like-btn {% if is_liked %}liked{% endif %}"
-                    data-url="{% url 'blog:like_toggle' post.slug %}"
-                    aria-label="Like this post"
-                >
-                    ❤️ <span id="like-count">{{ post.likes.count }}</span>
-                </button>
+
+                <!-- ==================================================
+                     ACTIONS
+                =================================================== -->
+
+                <div class="post-actions">
+
+
+                    <!-- EDIT / DELETE -->
+
+                    {% if user.is_authenticated %}
+
+                        {% if user.is_superuser or user.role == "school_admin" or post.author_id == user.id %}
+
+                            <div class="dropdown">
+
+                                <button
+                                    class="post-options-btn"
+                                    type="button"
+                                    data-bs-toggle="dropdown"
+                                    aria-expanded="false"
+                                    title="Post options"
+                                >
+
+                                    <i
+                                        class="bi bi-three-dots"
+                                    ></i>
+
+                                </button>
+
+
+                                <ul
+                                    class="
+                                        dropdown-menu
+                                        dropdown-menu-end
+                                    "
+                                >
+
+                                    <!-- EDIT -->
+
+                                    <li>
+
+                                        <a
+                                            class="dropdown-item"
+                                            href="{% url 'blog:edit_post' post.slug %}"
+                                        >
+
+                                            <i
+                                                class="
+                                                    bi
+                                                    bi-pencil-square
+                                                    me-2
+                                                "
+                                            ></i>
+
+                                            Edit Post
+
+                                        </a>
+
+                                    </li>
+
+
+                                    <li>
+
+                                        <hr
+                                            class="dropdown-divider"
+                                        >
+
+                                    </li>
+
+
+                                    <!-- DELETE -->
+
+                                    <li>
+
+                                        <button
+                                            type="button"
+                                            class="
+                                                dropdown-item
+                                                text-danger
+                                            "
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#deletePostModal"
+                                        >
+
+                                            <i
+                                                class="
+                                                    bi
+                                                    bi-trash3
+                                                    me-2
+                                                "
+                                            ></i>
+
+                                            Delete Post
+
+                                        </button>
+
+                                    </li>
+
+                                </ul>
+
+                            </div>
+
+                        {% endif %}
+
+                    {% endif %}
+
+
+                    <!-- ==================================================
+                         LIKE
+                    =================================================== -->
+
+                    <button
+                        id="like-btn"
+                        class="
+                            like-btn
+                            {% if is_liked %}liked{% endif %}
+                        "
+                        data-url="{% url 'blog:like_toggle' post.slug %}"
+                        aria-label="Like this post"
+                    >
+
+                        ❤️
+
+                        <span id="like-count">
+
+                            {{ post.likes.count }}
+
+                        </span>
+
+                    </button>
+
+
+                </div>
 
             </div>
 
+
+            <!-- ==================================================
+                 TITLE
+            =================================================== -->
+
             <h1 class="post-title">
+
                 {{ post.title }}
+
             </h1>
+
 
             <hr class="my-3">
 
+
+            <!-- ==================================================
+                 CONTENT
+            =================================================== -->
+
             <div class="post-content">
+
                 {{ post.content|safe }}
+
             </div>
 
+
         </div>
+
     </article>
 
-    <!-- COMMENTS SECTION -->
-    <section class="comment-section">
+
+    <!-- ======================================================
+         COMMENTS
+    ======================================================= -->
+
+    <section class="comment-section card">
+
 
         <div class="card-body">
 
+
             <h5 class="mb-3 px-3 pt-3">
-                Comments ({{ total_comments }})
+
+                Comments
+                ({{ total_comments }})
+
             </h5>
+
+
+            <!-- ==================================================
+                 COMMENT FORM
+            =================================================== -->
 
             {% if user.is_authenticated %}
 
@@ -404,83 +981,190 @@
                     action="{% url 'blog:add_comment' post.slug %}"
                     class="mb-3 px-3 comment-form"
                 >
+
                     {% csrf_token %}
 
                     {{ form.text }}
 
-                    <button type="submit" class="btn btn-primary btn-sm mt-2">
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary btn-sm mt-2"
+                    >
+
+                        <i class="bi bi-send me-1"></i>
+
                         Post Comment
+
                     </button>
+
                 </form>
 
             {% else %}
 
                 <p class="text-muted px-3 mb-3">
-                    Please <a href="{% url 'login' %}">login</a> to comment.
+
+                    Please
+
+                    <a href="{% url 'login' %}">
+                        login
+                    </a>
+
+                    to comment.
+
                 </p>
 
             {% endif %}
 
+
             <hr class="my-0">
 
-            <div id="comments-container" class="py-0">
+
+            <!-- ==================================================
+                 COMMENTS CONTAINER
+            =================================================== -->
+
+            <div
+                id="comments-container"
+                class="py-0"
+            >
+
 
                 {% for comment in comments %}
 
+
                     <div
                         id="comment-{{ comment.id }}"
-                        class="d-flex gap-2 align-items-start px-3 py-2"
+                        class="
+                            d-flex
+                            gap-2
+                            align-items-start
+                            px-3
+                            py-2
+                        "
                         data-comment-id="{{ comment.id }}"
                     >
-                        <img
-                            src="{{ comment.author.profile.avatar.url|default:'/static/default-avatar.png' }}"
-                            class="comment-avatar mt-1"
-                            alt="{{ comment.author.username }} avatar"
-                            loading="lazy"
-                        >
+
+
+                        <!-- COMMENT AVATAR -->
+
+                        {% if comment.author.profile.avatar %}
+
+                            <img
+                                src="{{ comment.author.profile.avatar.url }}"
+                                class="comment-avatar mt-1"
+                                alt="{{ comment.author.username }} avatar"
+                                loading="lazy"
+                            >
+
+                        {% else %}
+
+                            <img
+                                src="{% static 'default-avatar.png' %}"
+                                class="comment-avatar mt-1"
+                                alt="Default avatar"
+                                loading="lazy"
+                            >
+
+                        {% endif %}
+
 
                         <div class="flex-grow-1 min-width-0">
 
-                            <div class="d-flex gap-1 align-items-baseline flex-wrap">
-                                <strong>{{ comment.author.username }}</strong>
 
-                                <small class="text-muted post-meta fst-italic">
+                            <div
+                                class="
+                                    d-flex
+                                    gap-1
+                                    align-items-baseline
+                                    flex-wrap
+                                "
+                            >
+
+                                <strong>
+                                    {{ comment.author.username }}
+                                </strong>
+
+
+                                <small
+                                    class="
+                                        text-muted
+                                        post-meta
+                                        fst-italic
+                                    "
+                                >
+
                                     {{ comment.created_at|date:"M d, Y H:i" }}
+
                                 </small>
+
                             </div>
+
 
                             <div class="mt-1 comment-text">
+
                                 {{ comment.text|linebreaksbr }}
+
                             </div>
 
-                            <div class="mt-1 d-flex gap-3 align-items-center">
+
+                            <div
+                                class="
+                                    mt-1
+                                    d-flex
+                                    gap-3
+                                    align-items-center
+                                "
+                            >
+
                                 <small class="text-muted">
+
                                     <span class="like-text">
+
                                         {% if comment.liked_by_current_user %}
+
                                             You
+
                                         {% else %}
+
                                             Like
+
                                         {% endif %}
+
                                     </span>
+
                                 </small>
 
+
                                 <small class="text-muted">
+
                                     Reply
+
                                 </small>
+
                             </div>
+
 
                         </div>
+
                     </div>
+
 
                     <hr class="my-0 mx-3">
 
+
                 {% empty %}
 
+
                     <p class="text-muted px-3 py-3">
+
                         No comments yet.
+
                     </p>
 
+
                 {% endfor %}
+
 
             </div>
 
@@ -490,106 +1174,498 @@
 
 </div>
 
+
+<!-- ==========================================================
+     DELETE POST MODAL
+========================================================== -->
+
+{% if user.is_authenticated %}
+
+    {% if user.is_superuser or user.role == "school_admin" or post.author_id == user.id %}
+
+        <div
+            class="modal fade"
+            id="deletePostModal"
+            tabindex="-1"
+            aria-labelledby="deletePostModalLabel"
+            aria-hidden="true"
+        >
+
+            <div
+                class="
+                    modal-dialog
+                    modal-dialog-centered
+                "
+            >
+
+                <div class="modal-content border-0 shadow">
+
+
+                    <!-- HEADER -->
+
+                    <div class="modal-header">
+
+                        <h5
+                            class="modal-title"
+                            id="deletePostModalLabel"
+                        >
+
+                            <i
+                                class="
+                                    bi
+                                    bi-exclamation-triangle
+                                    text-danger
+                                    me-2
+                                "
+                            ></i>
+
+                            Delete Post
+
+                        </h5>
+
+
+                        <button
+                            type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal"
+                            aria-label="Close"
+                        ></button>
+
+                    </div>
+
+
+                    <!-- BODY -->
+
+                    <div class="modal-body text-center">
+
+                        <div class="delete-icon">
+
+                            <i class="bi bi-trash3"></i>
+
+                        </div>
+
+
+                        <h5>
+                            Delete this post?
+                        </h5>
+
+
+                        <p class="text-muted">
+
+                            You are about to permanently
+                            delete this post.
+
+                        </p>
+
+
+                        <div class="delete-warning">
+
+                            <strong>
+                                {{ post.title }}
+                            </strong>
+
+                            <br>
+
+                            <small class="text-muted">
+
+                                This action cannot be undone.
+
+                            </small>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- FOOTER -->
+
+                    <div class="modal-footer">
+
+                        <button
+                            type="button"
+                            class="btn btn-secondary"
+                            data-bs-dismiss="modal"
+                        >
+
+                            Cancel
+
+                        </button>
+
+
+                        <form
+                            method="POST"
+                            action="{% url 'blog:delete_post' post.slug %}"
+                        >
+
+                            {% csrf_token %}
+
+
+                            <button
+                                type="submit"
+                                class="btn btn-danger"
+                            >
+
+                                <i
+                                    class="bi bi-trash3 me-1"
+                                ></i>
+
+                                Delete Post
+
+                            </button>
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    {% endif %}
+
+{% endif %}
+
+
 {% endblock %}
 
+
 {% block extra_js %}
+
 <script>
-document.addEventListener('DOMContentLoaded', function () {
 
-    function getCSRFToken() {
-        return document.querySelector(
-            '[name=csrfmiddlewaretoken]'
-        )?.value;
-    }
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
 
-    const likeBtn = document.getElementById('like-btn');
 
-    if (likeBtn) {
-        likeBtn.addEventListener('click', async function (event) {
-            event.preventDefault();
+        /* ==================================================
+           CSRF
+        ================================================== */
 
-            const response = await fetch(this.dataset.url, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': getCSRFToken(),
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            });
+        function getCSRFToken() {
 
-            const data = await response.json();
+            return document.querySelector(
+                '[name=csrfmiddlewaretoken]'
+            )?.value;
 
-            this.classList.toggle('liked');
-            document.getElementById('like-count').innerText =
-                data.like_count;
-        });
-    }
-
-    const form = document.getElementById('comment-form');
-    const container = document.getElementById('comments-container');
-    const textarea = form?.querySelector('textarea');
-
-    if (form) {
-        if (textarea) {
-            textarea.addEventListener('keydown', function (event) {
-                if (event.key === 'Enter' && !event.shiftKey) {
-                    event.preventDefault();
-                    form.requestSubmit();
-                }
-            });
         }
 
-        form.addEventListener('submit', async function (event) {
-            event.preventDefault();
 
-            const formData = new FormData(this);
+        /* ==================================================
+           LIKE POST
+        ================================================== */
 
-            const response = await fetch(this.action, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRFToken': getCSRFToken(),
-                    'X-Requested-With': 'XMLHttpRequest'
+        const likeBtn =
+            document.getElementById(
+                "like-btn"
+            );
+
+
+        if (likeBtn) {
+
+            likeBtn.addEventListener(
+                "click",
+                async function (event) {
+
+                    event.preventDefault();
+
+
+                    try {
+
+                        const response =
+                            await fetch(
+                                this.dataset.url,
+                                {
+                                    method: "POST",
+
+                                    headers: {
+                                        "X-CSRFToken":
+                                            getCSRFToken(),
+
+                                        "X-Requested-With":
+                                            "XMLHttpRequest"
+                                    }
+                                }
+                            );
+
+
+                        if (!response.ok) {
+
+                            throw new Error(
+                                "Like request failed."
+                            );
+
+                        }
+
+
+                        const data =
+                            await response.json();
+
+
+                        this.classList.toggle(
+                            "liked"
+                        );
+
+
+                        document.getElementById(
+                            "like-count"
+                        ).innerText =
+                            data.like_count;
+
+                    }
+
+                    catch (error) {
+
+                        console.error(
+                            error
+                        );
+
+                    }
+
                 }
-            });
+            );
 
-            const data = await response.json();
+        }
 
-            if (data.success) {
-                container.insertAdjacentHTML(
-                    'afterbegin',
-                    data.html
-                );
 
-                this.reset();
+        /* ==================================================
+           COMMENT FORM
+        ================================================== */
 
-                const countElement = document.querySelector('h5');
-                const countMatch = countElement.innerText.match(/\d+/);
+        const form =
+            document.getElementById(
+                "comment-form"
+            );
 
-                if (countMatch) {
-                    const newCount = parseInt(countMatch[0]) + 1;
-                    countElement.innerText = `Comments (${newCount})`;
+
+        const container =
+            document.getElementById(
+                "comments-container"
+            );
+
+
+        const textarea =
+            form?.querySelector(
+                "textarea"
+            );
+
+
+        /* ==================================================
+           ENTER TO SUBMIT
+        ================================================== */
+
+        if (textarea) {
+
+            textarea.addEventListener(
+                "keydown",
+                function (event) {
+
+                    if (
+                        event.key === "Enter"
+                        &&
+                        !event.shiftKey
+                    ) {
+
+                        event.preventDefault();
+
+                        form.requestSubmit();
+
+                    }
+
                 }
+            );
 
-                const message = document.createElement('div');
-                message.className = 'alert alert-success mt-3';
-                message.innerText = 'Comment added successfully!';
+        }
 
-                container.prepend(message);
 
-                setTimeout(function () {
-                    message.remove();
-                }, 3000);
-            } else {
-                alert('Error submitting comment');
-            }
-        });
+        /* ==================================================
+           COMMENT SUBMISSION
+        ================================================== */
+
+        if (form) {
+
+            form.addEventListener(
+                "submit",
+                async function (event) {
+
+                    event.preventDefault();
+
+
+                    try {
+
+                        const formData =
+                            new FormData(
+                                this
+                            );
+
+
+                        const response =
+                            await fetch(
+                                this.action,
+                                {
+                                    method: "POST",
+
+                                    body: formData,
+
+                                    headers: {
+                                        "X-CSRFToken":
+                                            getCSRFToken(),
+
+                                        "X-Requested-With":
+                                            "XMLHttpRequest"
+                                    }
+                                }
+                            );
+
+
+                        if (!response.ok) {
+
+                            throw new Error(
+                                "Comment request failed."
+                            );
+
+                        }
+
+
+                        const data =
+                            await response.json();
+
+
+                        if (data.success) {
+
+
+                            container.insertAdjacentHTML(
+                                "afterbegin",
+                                data.html
+                            );
+
+
+                            this.reset();
+
+
+                            const countElement =
+                                document.querySelector(
+                                    ".comment-section h5"
+                                );
+
+
+                            if (countElement) {
+
+                                const countMatch =
+                                    countElement
+                                        .innerText
+                                        .match(
+                                            /\d+/
+                                        );
+
+
+                                if (countMatch) {
+
+                                    const newCount =
+                                        parseInt(
+                                            countMatch[0]
+                                        ) + 1;
+
+
+                                    countElement.innerText =
+                                        `Comments (${newCount})`;
+
+                                }
+
+                            }
+
+
+                            const message =
+                                document.createElement(
+                                    "div"
+                                );
+
+
+                            message.className =
+                                "alert alert-success mt-3";
+
+
+                            message.innerText =
+                                "Comment added successfully!";
+
+
+                            container.prepend(
+                                message
+                            );
+
+
+                            setTimeout(
+                                function () {
+
+                                    message.remove();
+
+                                },
+                                3000
+                            );
+
+                        }
+
+                        else {
+
+                            alert(
+                                data.message ||
+                                "Error submitting comment."
+                            );
+
+                        }
+
+                    }
+
+                    catch (error) {
+
+                        console.error(
+                            error
+                        );
+
+
+                        alert(
+                            "Unable to submit comment."
+                        );
+
+                    }
+
+                }
+            );
+
+        }
+
+
+        /* ==================================================
+           COMMENT LIKE PLACEHOLDER
+        ================================================== */
+
+        document
+            .querySelectorAll(
+                ".like-text"
+            )
+            .forEach(
+                function (element) {
+
+                    element.addEventListener(
+                        "click",
+                        function () {
+
+                            console.log(
+                                "Comment like clicked."
+                            );
+
+                        }
+                    );
+
+                }
+            );
+
     }
 
-    document.querySelectorAll('.like-text').forEach(function (element) {
-        element.addEventListener('click', function () {
-            console.log('Like clicked on comment');
-        });
-    });
-});
+);
+
 </script>
+
 {% endblock %}

@@ -1,0 +1,1457 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="post-page">
+
+    <div class="post-card">
+
+        <!-- ==========================================
+             HEADER
+        =========================================== -->
+
+        <div class="post-header">
+
+            <div>
+
+                <span class="eyebrow">
+                    <i class="bi bi-pencil-square"></i>
+                    Content management
+                </span>
+
+                <h1 class="post-title">
+                    Edit Post
+                </h1>
+
+                <p class="post-subtitle">
+                    Update your post content, image, video,
+                    or other information.
+                </p>
+
+            </div>
+
+            <div class="header-icon">
+                <i class="bi bi-pencil-square"></i>
+            </div>
+
+        </div>
+
+
+        {{ form.media }}
+
+
+        <!-- ==========================================
+             FORM
+        =========================================== -->
+
+        <form method="POST"
+              enctype="multipart/form-data"
+              novalidate
+              id="postForm">
+
+            {% csrf_token %}
+
+
+            {% if form.non_field_errors %}
+
+                <div class="alert alert-danger rounded-3">
+
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+
+                    {{ form.non_field_errors }}
+
+                </div>
+
+            {% endif %}
+
+
+            <div class="row g-4">
+
+
+                {% for field in form %}
+
+                    <div class="
+                        {% if field.name == 'content' or field.name == 'body' %}
+                            col-12
+                        {% else %}
+                            col-12 col-md-6
+                        {% endif %}
+                    ">
+
+
+                        {% if field.name == "image" or field.name == "video" %}
+
+
+                            <label
+                                class="form-label custom-label"
+                                for="{{ field.id_for_label }}"
+                            >
+
+                                {{ field.label }}
+
+                                {% if field.field.required %}
+                                    <span class="required-mark">*</span>
+                                {% endif %}
+
+                            </label>
+
+
+                            <div
+                                class="upload-zone"
+                                tabindex="0"
+                                data-field="{{ field.name }}"
+                            >
+
+                                <div class="upload-icon">
+
+                                    {% if field.name == "image" %}
+
+                                        <i class="bi bi-image"></i>
+
+                                    {% else %}
+
+                                        <i class="bi bi-camera-video"></i>
+
+                                    {% endif %}
+
+                                </div>
+
+
+                                <h6 class="upload-title">
+
+                                    {% if field.name == "image" %}
+                                        Update Image
+                                    {% else %}
+                                        Update Video
+                                    {% endif %}
+
+                                </h6>
+
+
+                                <p class="upload-text">
+
+                                    Drag and drop a new file,
+                                    <span>browse</span>,
+                                    or paste.
+
+                                </p>
+
+
+                                <div class="paste-box">
+
+                                    <i class="bi bi-clipboard"></i>
+
+                                    Press
+
+                                    <kbd>Ctrl</kbd>
+                                    +
+                                    <kbd>V</kbd>
+
+                                    to paste
+
+                                </div>
+
+
+                                {{ field }}
+
+
+                                <div class="preview-area"></div>
+
+                                <div class="preview-meta"></div>
+
+                                <div class="preview-actions"></div>
+
+                                <div class="upload-status"></div>
+
+
+                            </div>
+
+
+                        {% else %}
+
+
+                            <label
+                                class="form-label custom-label"
+                                for="{{ field.id_for_label }}"
+                            >
+
+                                {{ field.label }}
+
+                                {% if field.field.required %}
+                                    <span class="required-mark">*</span>
+                                {% endif %}
+
+                            </label>
+
+
+                            <div class="input-wrapper">
+
+                                {{ field }}
+
+                            </div>
+
+
+                        {% endif %}
+
+
+                        {% if field.help_text %}
+
+                            <div class="form-text custom-help">
+
+                                <i class="bi bi-info-circle me-1"></i>
+
+                                {{ field.help_text }}
+
+                            </div>
+
+                        {% endif %}
+
+
+                        {% for error in field.errors %}
+
+                            <div class="field-error">
+
+                                <i class="bi bi-exclamation-circle me-1"></i>
+
+                                {{ error }}
+
+                            </div>
+
+                        {% endfor %}
+
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+
+            <!-- ==========================================
+                 ACTIONS
+            =========================================== -->
+
+            <div class="form-actions">
+
+                <a
+                    href="{{ post.get_absolute_url }}"
+                    class="btn cancel-btn"
+                >
+
+                    <i class="bi bi-arrow-left me-2"></i>
+
+                    Cancel
+
+                </a>
+
+
+                <button
+                    type="submit"
+                    class="btn save-btn"
+                >
+
+                    <i class="bi bi-check2-circle me-2"></i>
+
+                    Update Post
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+
+{% block extra_css %}
+
+<style>
+
+:root {
+    --primary-color: var(--bs-primary);
+    --primary-dark: var(--bs-primary);
+    --border-color: #e5e7eb;
+    --soft-bg: #f8fafc;
+    --text-muted: #6b7280;
+}
+
+
+.post-page {
+    width: 100%;
+    min-height: calc(100vh - 70px);
+    padding: 2rem 0;
+}
+
+
+.post-card {
+    width: 100%;
+    padding: clamp(1.25rem, 4vw, 3rem);
+    background: #ffffff;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    box-shadow: 0 12px 35px rgba(0,0,0,.05);
+}
+
+
+.post-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+
+.eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    margin-bottom: .6rem;
+    color: var(--primary-color);
+    font-size: .78rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+
+.post-title {
+    margin: 0;
+    font-size: clamp(1.6rem,4vw,2.3rem);
+    font-weight: 750;
+}
+
+
+.post-subtitle {
+    margin: .5rem 0 0;
+    color: var(--text-muted);
+}
+
+
+.header-icon {
+    display: grid;
+    width: 54px;
+    height: 54px;
+    flex-shrink: 0;
+    place-items: center;
+    color: var(--primary-color);
+    background: color-mix(
+        in srgb,
+        var(--primary-color) 12%,
+        white
+    );
+    border-radius: 15px;
+    font-size: 1.4rem;
+}
+
+
+.custom-label {
+    display: block;
+    margin-bottom: .5rem;
+    font-weight: 650;
+}
+
+
+.required-mark {
+    color: #dc3545;
+}
+
+
+.input-wrapper input:not([type="file"]),
+.input-wrapper select,
+.input-wrapper textarea {
+
+    width: 100%;
+    padding: .85rem 1rem;
+
+    background: #ffffff;
+
+    border: 1px solid var(--border-color);
+
+    border-radius: 10px;
+
+    outline: none;
+
+    transition: .2s ease;
+}
+
+
+.input-wrapper textarea {
+    min-height: 160px;
+    resize: vertical;
+}
+
+
+.input-wrapper input:focus,
+.input-wrapper select:focus,
+.input-wrapper textarea:focus {
+
+    border-color: var(--primary-color);
+
+    box-shadow:
+        0 0 0 4px
+        color-mix(
+            in srgb,
+            var(--primary-color) 15%,
+            transparent
+        );
+}
+
+
+.upload-zone {
+
+    position: relative;
+
+    min-height: 250px;
+
+    padding: 1.8rem 1rem;
+
+    text-align: center;
+
+    background: var(--soft-bg);
+
+    border: 2px dashed
+        color-mix(
+            in srgb,
+            var(--primary-color) 45%,
+            white
+        );
+
+    border-radius: 15px;
+
+    cursor: pointer;
+
+    transition: .25s ease;
+
+    overflow: hidden;
+}
+
+
+.upload-zone:hover,
+.upload-zone:focus,
+.upload-zone.dragover,
+.upload-zone.paste-active {
+
+    background:
+        color-mix(
+            in srgb,
+            var(--primary-color) 7%,
+            white
+        );
+
+    border-color: var(--primary-color);
+
+    outline: none;
+}
+
+
+.upload-icon {
+
+    display: grid;
+
+    width: 55px;
+    height: 55px;
+
+    margin: 0 auto .8rem;
+
+    place-items: center;
+
+    color: var(--primary-color);
+
+    background: #ffffff;
+
+    border-radius: 14px;
+
+    box-shadow:
+        0 5px 15px rgba(0,0,0,.08);
+
+    font-size: 1.5rem;
+}
+
+
+.upload-title {
+    margin-bottom: .35rem;
+    font-weight: 700;
+}
+
+
+.upload-text {
+
+    margin-bottom: .8rem;
+
+    color: var(--text-muted);
+
+    font-size: .9rem;
+}
+
+
+.upload-text span {
+
+    color: var(--primary-color);
+
+    font-weight: 700;
+}
+
+
+.paste-box {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    flex-wrap: wrap;
+
+    gap: .35rem;
+
+    margin: 0 auto .5rem;
+
+    padding: .55rem .8rem;
+
+    color: var(--primary-color);
+
+    background:
+        color-mix(
+            in srgb,
+            var(--primary-color) 8%,
+            white
+        );
+
+    border-radius: 9px;
+
+    font-size: .82rem;
+
+    font-weight: 600;
+}
+
+
+.paste-box kbd {
+
+    padding: 2px 7px;
+
+    color: #374151;
+
+    background: #ffffff;
+
+    border: 1px solid #d1d5db;
+
+    border-radius: 5px;
+
+    box-shadow:
+        0 1px 1px rgba(0,0,0,.08);
+
+    font-size: .72rem;
+}
+
+
+.upload-zone input[type="file"] {
+
+    position: absolute;
+
+    inset: 0;
+
+    width: 100%;
+
+    height: 100%;
+
+    opacity: 0;
+
+    cursor: pointer;
+
+    z-index: 1;
+}
+
+
+.preview-area,
+.preview-meta,
+.preview-actions,
+.upload-status {
+
+    position: relative;
+
+    z-index: 20;
+}
+
+
+.preview-box {
+
+    margin-top: 1rem;
+
+    padding: .75rem;
+
+    background: #ffffff;
+
+    border-radius: 13px;
+
+    box-shadow:
+        0 5px 20px rgba(0,0,0,.08);
+}
+
+
+.file-preview {
+
+    display: block;
+
+    width: 100%;
+
+    max-height: 350px;
+
+    object-fit: contain;
+
+    border-radius: 10px;
+}
+
+
+.video-preview {
+
+    display: block;
+
+    width: 100%;
+
+    max-height: 350px;
+
+    border-radius: 10px;
+
+    background: #000000;
+}
+
+
+.preview-filename {
+
+    margin-top: .65rem;
+
+    font-weight: 650;
+
+    word-break: break-word;
+}
+
+
+.preview-size {
+
+    margin-top: .15rem;
+
+    color: var(--text-muted);
+
+    font-size: .78rem;
+}
+
+
+.remove-file {
+
+    position: relative;
+
+    z-index: 30;
+
+    margin-top: .7rem;
+
+    padding: .45rem .8rem;
+
+    color: #dc3545;
+
+    background: #ffffff;
+
+    border: 1px solid #dc3545;
+
+    border-radius: 7px;
+
+    cursor: pointer;
+
+    font-size: .8rem;
+}
+
+
+.remove-file:hover {
+
+    color: #ffffff;
+
+    background: #dc3545;
+}
+
+
+.upload-status {
+
+    margin-top: .6rem;
+
+    font-size: .8rem;
+}
+
+
+.upload-status.success {
+    color: #198754;
+}
+
+
+.upload-status.error {
+    color: #dc3545;
+}
+
+
+.custom-help {
+
+    margin-top: .4rem;
+
+    color: var(--text-muted);
+
+    font-size: .8rem;
+}
+
+
+.field-error {
+
+    margin-top: .4rem;
+
+    color: #dc3545;
+
+    font-size: .82rem;
+}
+
+
+.form-actions {
+
+    display: flex;
+
+    justify-content: flex-end;
+
+    gap: .75rem;
+
+    margin-top: 2.5rem;
+
+    padding-top: 1.5rem;
+
+    border-top: 1px solid var(--border-color);
+}
+
+
+.cancel-btn,
+.save-btn {
+
+    min-height: 45px;
+
+    padding: .7rem 1.2rem;
+
+    border-radius: 10px;
+
+    font-weight: 650;
+}
+
+
+.cancel-btn {
+
+    color: inherit;
+
+    background: transparent;
+
+    border: 1px solid var(--border-color);
+}
+
+
+.cancel-btn:hover {
+
+    background: var(--soft-bg);
+}
+
+
+.save-btn {
+
+    color: #ffffff;
+
+    background: var(--primary-color);
+
+    border: none;
+
+    box-shadow:
+        0 7px 16px
+        color-mix(
+            in srgb,
+            var(--primary-color) 28%,
+            transparent
+        );
+}
+
+
+.save-btn:hover {
+
+    color: #ffffff;
+
+    background: var(--primary-dark);
+
+    transform: translateY(-1px);
+}
+
+
+@media (max-width:576px) {
+
+    .post-page {
+        padding: 0;
+    }
+
+    .post-card {
+        padding: 1.25rem;
+        border-radius: 0;
+    }
+
+    .post-header {
+        align-items: center;
+    }
+
+    .header-icon {
+        width: 44px;
+        height: 44px;
+    }
+
+    .form-actions {
+        flex-direction: column-reverse;
+    }
+
+    .cancel-btn,
+    .save-btn {
+        width: 100%;
+    }
+
+}
+
+</style>
+
+{% endblock %}
+
+
+{% block extra_js %}
+
+<script>
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        const uploadZones =
+            document.querySelectorAll(
+                ".upload-zone"
+            );
+
+
+        function getInput(zone) {
+
+            return zone.querySelector(
+                'input[type="file"]'
+            );
+
+        }
+
+
+        function formatFileSize(bytes) {
+
+            if (bytes < 1024)
+                return bytes + " B";
+
+            if (bytes < 1024 * 1024)
+                return (
+                    (bytes / 1024).toFixed(1)
+                    + " KB"
+                );
+
+            return (
+                (bytes / (1024 * 1024)).toFixed(1)
+                + " MB"
+            );
+
+        }
+
+
+        function attachFile(
+            input,
+            file
+        ) {
+
+            try {
+
+                const dataTransfer =
+                    new DataTransfer();
+
+                dataTransfer.items.add(file);
+
+                input.files =
+                    dataTransfer.files;
+
+                return true;
+
+            } catch (error) {
+
+                console.error(error);
+
+                return false;
+
+            }
+
+        }
+
+
+        function showStatus(
+            zone,
+            message,
+            type
+        ) {
+
+            const status =
+                zone.querySelector(
+                    ".upload-status"
+                );
+
+            status.textContent =
+                message;
+
+            status.className =
+                "upload-status " + type;
+
+        }
+
+
+        function showPreview(
+            zone,
+            file
+        ) {
+
+            const previewArea =
+                zone.querySelector(
+                    ".preview-area"
+                );
+
+            const previewMeta =
+                zone.querySelector(
+                    ".preview-meta"
+                );
+
+            const previewActions =
+                zone.querySelector(
+                    ".preview-actions"
+                );
+
+
+            previewArea.innerHTML = "";
+
+            previewMeta.innerHTML = "";
+
+            previewActions.innerHTML = "";
+
+
+            const box =
+                document.createElement(
+                    "div"
+                );
+
+            box.className =
+                "preview-box";
+
+
+            if (
+                file.type.startsWith(
+                    "image/"
+                )
+            ) {
+
+                const image =
+                    document.createElement(
+                        "img"
+                    );
+
+                image.className =
+                    "file-preview";
+
+                image.alt =
+                    file.name;
+
+                image.src =
+                    URL.createObjectURL(
+                        file
+                    );
+
+                box.appendChild(
+                    image
+                );
+
+            }
+
+
+            else if (
+                file.type.startsWith(
+                    "video/"
+                )
+            ) {
+
+                const video =
+                    document.createElement(
+                        "video"
+                    );
+
+                video.className =
+                    "video-preview";
+
+                video.controls =
+                    true;
+
+                video.preload =
+                    "metadata";
+
+                video.src =
+                    URL.createObjectURL(
+                        file
+                    );
+
+                box.appendChild(
+                    video
+                );
+
+            }
+
+
+            previewArea.appendChild(
+                box
+            );
+
+
+            const filename =
+                document.createElement(
+                    "div"
+                );
+
+            filename.className =
+                "preview-filename";
+
+            filename.textContent =
+                file.name;
+
+
+            const filesize =
+                document.createElement(
+                    "div"
+                );
+
+            filesize.className =
+                "preview-size";
+
+            filesize.textContent =
+                formatFileSize(
+                    file.size
+                );
+
+
+            previewMeta.appendChild(
+                filename
+            );
+
+            previewMeta.appendChild(
+                filesize
+            );
+
+
+            const remove =
+                document.createElement(
+                    "button"
+                );
+
+            remove.type =
+                "button";
+
+            remove.className =
+                "remove-file";
+
+            remove.innerHTML =
+                '<i class="bi bi-trash me-1"></i> Remove';
+
+
+            remove.addEventListener(
+                "click",
+                function (event) {
+
+                    event.preventDefault();
+
+                    event.stopPropagation();
+
+                    const input =
+                        getInput(zone);
+
+                    if (input) {
+                        input.value = "";
+                    }
+
+                    previewArea.innerHTML =
+                        "";
+
+                    previewMeta.innerHTML =
+                        "";
+
+                    previewActions.innerHTML =
+                        "";
+
+                    showStatus(
+                        zone,
+                        "",
+                        ""
+                    );
+
+                }
+            );
+
+
+            previewActions.appendChild(
+                remove
+            );
+
+        }
+
+
+        function processFile(
+            zone,
+            file
+        ) {
+
+            if (!file)
+                return;
+
+
+            const fieldName =
+                zone.dataset.field;
+
+
+            if (
+                fieldName === "image" &&
+                !file.type.startsWith(
+                    "image/"
+                )
+            ) {
+
+                showStatus(
+                    zone,
+                    "Please select an image.",
+                    "error"
+                );
+
+                return;
+
+            }
+
+
+            if (
+                fieldName === "video" &&
+                !file.type.startsWith(
+                    "video/"
+                )
+            ) {
+
+                showStatus(
+                    zone,
+                    "Please select a video.",
+                    "error"
+                );
+
+                return;
+
+            }
+
+
+            const input =
+                getInput(zone);
+
+
+            if (!input) {
+
+                showStatus(
+                    zone,
+                    "File input not found.",
+                    "error"
+                );
+
+                return;
+
+            }
+
+
+            if (
+                !attachFile(
+                    input,
+                    file
+                )
+            ) {
+
+                showStatus(
+                    zone,
+                    "Unable to attach file.",
+                    "error"
+                );
+
+                return;
+
+            }
+
+
+            showPreview(
+                zone,
+                file
+            );
+
+
+            showStatus(
+                zone,
+                "Ready: " + file.name,
+                "success"
+            );
+
+
+            zone.classList.add(
+                "paste-active"
+            );
+
+        }
+
+
+        /*
+        ========================================================
+        BROWSE
+        ========================================================
+        */
+
+        uploadZones.forEach(
+            function (zone) {
+
+                const input =
+                    getInput(zone);
+
+                if (!input)
+                    return;
+
+
+                input.addEventListener(
+                    "change",
+                    function () {
+
+                        if (
+                            this.files &&
+                            this.files.length
+                        ) {
+
+                            processFile(
+                                zone,
+                                this.files[0]
+                            );
+
+                        }
+
+                    }
+                );
+
+            }
+        );
+
+
+        /*
+        ========================================================
+        DRAG & DROP
+        ========================================================
+        */
+
+        uploadZones.forEach(
+            function (zone) {
+
+                zone.addEventListener(
+                    "dragover",
+                    function (event) {
+
+                        event.preventDefault();
+
+                        zone.classList.add(
+                            "dragover"
+                        );
+
+                    }
+                );
+
+
+                zone.addEventListener(
+                    "dragleave",
+                    function () {
+
+                        zone.classList.remove(
+                            "dragover"
+                        );
+
+                    }
+                );
+
+
+                zone.addEventListener(
+                    "drop",
+                    function (event) {
+
+                        event.preventDefault();
+
+                        zone.classList.remove(
+                            "dragover"
+                        );
+
+
+                        const files =
+                            event.dataTransfer.files;
+
+
+                        if (
+                            files &&
+                            files.length
+                        ) {
+
+                            processFile(
+                                zone,
+                                files[0]
+                            );
+
+                        }
+
+                    }
+                );
+
+            }
+        );
+
+
+        /*
+        ========================================================
+        CLICK = ACTIVE PASTE TARGET
+        ========================================================
+        */
+
+        uploadZones.forEach(
+            function (zone) {
+
+                zone.addEventListener(
+                    "click",
+                    function () {
+
+                        zone.focus();
+
+                    }
+                );
+
+            }
+        );
+
+
+        /*
+        ========================================================
+        CLIPBOARD PASTE
+        ========================================================
+        */
+
+        document.addEventListener(
+            "paste",
+            function (event) {
+
+                const active =
+                    document.activeElement;
+
+
+                const zone =
+                    active
+                        ? active.closest(
+                            ".upload-zone"
+                        )
+                        : null;
+
+
+                if (!zone)
+                    return;
+
+
+                const clipboard =
+                    event.clipboardData;
+
+
+                if (!clipboard)
+                    return;
+
+
+                const fieldName =
+                    zone.dataset.field;
+
+
+                const items =
+                    clipboard.items;
+
+
+                for (
+                    let i = 0;
+                    i < items.length;
+                    i++
+                ) {
+
+                    const item =
+                        items[i];
+
+
+                    if (
+                        item.kind !== "file"
+                    )
+                        continue;
+
+
+                    const file =
+                        item.getAsFile();
+
+
+                    if (!file)
+                        continue;
+
+
+                    if (
+                        fieldName === "image" &&
+                        file.type.startsWith(
+                            "image/"
+                        )
+                    ) {
+
+                        event.preventDefault();
+
+                        processFile(
+                            zone,
+                            file
+                        );
+
+                        return;
+
+                    }
+
+
+                    if (
+                        fieldName === "video" &&
+                        file.type.startsWith(
+                            "video/"
+                        )
+                    ) {
+
+                        event.preventDefault();
+
+                        processFile(
+                            zone,
+                            file
+                        );
+
+                        return;
+
+                    }
+
+                }
+
+            }
+        );
+
+    }
+
+);
+
+</script>
+
+{% endblock %}
