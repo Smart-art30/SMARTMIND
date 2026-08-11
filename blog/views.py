@@ -291,17 +291,19 @@ def post_detail(request, slug):
             "author",
             "category",
         )
-        .prefetch_related("tags"),
+        .prefetch_related(
+            "tags",
+        ),
         slug=slug,
     )
 
-    # Published posts are visible to everyone.
-    # School administrators and teachers can also view
-    # posts regardless of their status.
+    # Only non-staff users are restricted to published posts.
     if not is_staff_user(request) and post.status != "published":
         raise PermissionDenied("This post is not available.")
 
-    # Increment the view count only once per session.
+    # ---------------------------------------------------------
+    # INCREMENT VIEW COUNT ONCE PER SESSION
+    # ---------------------------------------------------------
     session_key = f"viewed_post_{post.pk}"
 
     if not request.session.get(session_key):
@@ -310,21 +312,23 @@ def post_detail(request, slug):
         )
 
         request.session[session_key] = True
+        request.session.modified = True
 
-        # Refresh the object so the template receives the new count.
         post.refresh_from_db(
             fields=["view_count"]
         )
 
-    # Always fetch comments, regardless of whether the view has
-    # already been counted in the current session.
+    # ---------------------------------------------------------
+    # COMMENTS
+    # ---------------------------------------------------------
     comments = get_post_comments(
         request,
         post,
     )
 
-    user_role = get_user_role(request)
-
+    # ---------------------------------------------------------
+    # PERMISSIONS
+    # ---------------------------------------------------------
     can_edit = can_manage_post(
         request,
         post,
@@ -332,6 +336,9 @@ def post_detail(request, slug):
 
     can_delete = can_edit
 
+    # ---------------------------------------------------------
+    # LIKE STATUS
+    # ---------------------------------------------------------
     is_liked = False
 
     if request.user.is_authenticated:
@@ -339,8 +346,14 @@ def post_detail(request, slug):
             pk=request.user.pk
         ).exists()
 
+    # ---------------------------------------------------------
+    # COMMENT FORM
+    # ---------------------------------------------------------
     comment_form = CommentForm()
 
+    # ---------------------------------------------------------
+    # CONTEXT
+    # ---------------------------------------------------------
     context = {
         "post": post,
         "comments": comments,
