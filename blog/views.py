@@ -9,7 +9,8 @@ from django.views.decorators.http import (
     require_http_methods,
     require_POST,
 )
-from django.db.models import Prefetch
+from django.db.models import Prefetch, F, Value
+from django.db.models.functions import Coalesce
 from django.core.exceptions import PermissionDenied
 
 from django.forms import (
@@ -234,8 +235,11 @@ def category_post(request, slug):
 # ============================================================
 # POST DETAIL
 # ============================================================
-
 def post_detail(request, slug):
+
+    # --------------------------------------------------------
+    # COMMENTS QUERY
+    # --------------------------------------------------------
 
     comments_qs = (
         Comment.objects
@@ -243,8 +247,11 @@ def post_detail(request, slug):
         .prefetch_related("liked_by")
     )
 
-    post = get_object_or_404(
+    # --------------------------------------------------------
+    # POST
+    # --------------------------------------------------------
 
+    post = get_object_or_404(
         Post.objects
         .select_related(
             "category",
@@ -261,7 +268,6 @@ def post_detail(request, slug):
         .filter(
             status="published",
         ),
-
         slug=slug,
     )
 
@@ -276,12 +282,17 @@ def post_detail(request, slug):
         Post.objects.filter(
             id=post.id
         ).update(
-            view_count=post.view_count + 1
+            view_count=Coalesce(
+                F("view_count"),
+                Value(0)
+            ) + 1
         )
 
         request.session[session_key] = True
 
-        post.view_count += 1
+        post.refresh_from_db(
+            fields=["view_count"]
+        )
 
     # --------------------------------------------------------
     # COMMENTS
@@ -290,6 +301,10 @@ def post_detail(request, slug):
     comments = list(
         post.comments.all()[:20]
     )
+
+    # --------------------------------------------------------
+    # COMMENT LIKE STATUS
+    # --------------------------------------------------------
 
     if request.user.is_authenticated:
 
@@ -310,7 +325,7 @@ def post_detail(request, slug):
             comment.liked_by_current_user = False
 
     # --------------------------------------------------------
-    # PERMISSIONS FOR POST ACTIONS
+    # USER ROLE
     # --------------------------------------------------------
 
     user_role = getattr(
@@ -318,6 +333,10 @@ def post_detail(request, slug):
         "role",
         None,
     )
+
+    # --------------------------------------------------------
+    # EDIT PERMISSION
+    # --------------------------------------------------------
 
     can_edit = (
         request.user.is_authenticated
@@ -331,32 +350,27 @@ def post_detail(request, slug):
         )
     )
 
-    can_delete = can_edit
-
     # --------------------------------------------------------
     # CONTEXT
     # --------------------------------------------------------
 
     context = {
-
         "post": post,
-
         "comments": comments,
 
         "total_comments": post.comments.count(),
 
         "is_liked": (
             request.user.is_authenticated
-            and post.likes
-            .filter(id=request.user.id)
-            .exists()
+            and post.likes.filter(
+                id=request.user.id
+            ).exists()
         ),
 
         "form": CommentForm(),
 
         "can_edit": can_edit,
-
-        "can_delete": can_delete,
+        "can_delete": can_edit,
     }
 
     return render(
