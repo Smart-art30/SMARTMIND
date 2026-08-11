@@ -204,7 +204,6 @@ def home(request):
 # ============================================================
 # CATEGORY POSTS
 # ============================================================
-
 def category_post(request, slug):
 
     category = get_object_or_404(
@@ -214,11 +213,7 @@ def category_post(request, slug):
 
     posts = (
         Post.objects
-        .filter(
-            category=category,
-            status="published",
-            approved=True,
-        )
+        .filter(category=category)
         .select_related(
             "author",
             "category",
@@ -235,7 +230,6 @@ def category_post(request, slug):
             "posts": posts,
         },
     )
-
 
 # ============================================================
 # POST DETAIL
