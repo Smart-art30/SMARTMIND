@@ -232,24 +232,194 @@ def category_post(request, slug):
         },
     )
 
+
+
 # ============================================================
 # POST DETAIL
 # ============================================================
+
 def post_detail(request, slug):
 
+    # --------------------------------------------------------
+    # GET POST
+    # --------------------------------------------------------
+
     post = get_object_or_404(
-        Post,
+        Post.objects
+        .select_related(
+            "author",
+            "category",
+        )
+        .prefetch_related(
+            "tags",
+        ),
         slug=slug,
-        status="published",
     )
+
+    # --------------------------------------------------------
+    # PUBLIC VISIBILITY
+    # --------------------------------------------------------
+    # Published posts are visible to everyone.
+    # Admins/teachers can also view posts regardless of status.
+
+    user_role = getattr(
+        request.user,
+        "role",
+        None,
+    )
+
+    is_staff_user = (
+        request.user.is_authenticated
+        and (
+            request.user.is_superuser
+            or user_role in [
+                "school_admin",
+                "teacher",
+            ]
+        )
+    )
+
+    if not is_staff_user:
+
+        if post.status != "published":
+            raise PermissionDenied(
+                "This post is not available."
+            )
+
+    # --------------------------------------------------------
+    # COUNT VIEW ONCE PER SESSION
+    # --------------------------------------------------------
+
+    session_key = f"viewed_post_{post.pk}"
+
+    if not request.session.get(session_key):
+
+        # Safely increment the view count.
+        Post.objects.filter(
+            pk=post.pk
+        ).update(
+            view_count=F("view_count") + 1
+        )
+
+        request.session[session_key] = True
+
+        post.refresh_from_db(
+            fields=["view_count"]
+        )
+
+    # --------------------------------------------------------
+    # COMMENTS
+    # --------------------------------------------------------
+
+    comments = list(
+        Comment.objects
+        .filter(
+            post=post
+        )
+        .select_related(
+            "author"
+        )
+        .prefetch_related(
+            "liked_by"
+        )
+        .order_by(
+            "created_at"
+        )[:20]
+    )
+
+    # --------------------------------------------------------
+    # COMMENT LIKE STATUS
+    # --------------------------------------------------------
+
+    if request.user.is_authenticated:
+
+        user_id = request.user.pk
+
+        for comment in comments:
+
+            comment.liked_by_current_user = (
+                comment.liked_by
+                .filter(
+                    pk=user_id
+                )
+                .exists()
+            )
+
+    else:
+
+        for comment in comments:
+
+            comment.liked_by_current_user = False
+
+    # --------------------------------------------------------
+    # EDIT / DELETE PERMISSION
+    # --------------------------------------------------------
+
+    can_edit = (
+        request.user.is_authenticated
+        and (
+            request.user.is_superuser
+
+            or user_role == "school_admin"
+
+            or (
+                user_role == "teacher"
+                and post.author_id == request.user.pk
+            )
+        )
+    )
+
+    can_delete = can_edit
+
+    # --------------------------------------------------------
+    # POST LIKE STATUS
+    # --------------------------------------------------------
+
+    is_liked = False
+
+    if request.user.is_authenticated:
+
+        is_liked = post.likes.filter(
+            pk=request.user.pk
+        ).exists()
+
+    # --------------------------------------------------------
+    # COMMENT FORM
+    # --------------------------------------------------------
+
+    comment_form = CommentForm()
+
+    # --------------------------------------------------------
+    # CONTEXT
+    # --------------------------------------------------------
+
+    context = {
+        "post": post,
+
+        "comments": comments,
+
+        "total_comments": len(comments),
+
+        "is_liked": is_liked,
+
+        "form": comment_form,
+
+        "can_edit": can_edit,
+
+        "can_delete": can_delete,
+    }
+
+    # --------------------------------------------------------
+    # RENDER
+    # --------------------------------------------------------
 
     return render(
         request,
         "post_detail.html",
-        {
-            "post": post,
-        },
+        context,
     )
+
+
 
 # ============================================================
 # LIKE / UNLIKE POST
