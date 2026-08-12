@@ -210,7 +210,7 @@ def get_post_comments(request, post):
 # ============================================================
 
 def home(request):
-    posts = (
+    posts_qs = (
         Post.objects
         .filter(
             status="published",
@@ -223,6 +223,46 @@ def home(request):
         .prefetch_related("tags")
         .order_by("-created_at")
     )
+
+    posts = []
+    for post in posts_qs:
+        # Comments
+        comments = list(
+            Comment.objects
+            .filter(post=post)
+            .select_related("author")
+            .prefetch_related("liked_by")
+            .order_by("created_at")[:20]
+        )
+
+        if request.user.is_authenticated:
+            user_id = request.user.pk
+            for comment in comments:
+                comment.liked_by_current_user = any(
+                    user.pk == user_id
+                    for user in comment.liked_by.all()
+                )
+        else:
+            for comment in comments:
+                comment.liked_by_current_user = False
+
+        # Like status for post
+        is_liked = (
+            request.user.is_authenticated
+            and post.likes.filter(pk=request.user.pk).exists()
+        )
+
+        # Permissions
+        can_edit = can_manage_post(request, post)
+        can_delete = can_edit
+
+        posts.append({
+            "post": post,
+            "comments": comments,
+            "is_liked": is_liked,
+            "can_edit": can_edit,
+            "can_delete": can_delete,
+        })
 
     categories = Category.objects.all()
 
@@ -243,14 +283,12 @@ def home(request):
     )
 
     context = {
-        "posts": posts,
+        "posts": posts,  # now a list of dicts
         "categories": categories,
         "featured_post": featured_post,
     }
 
     return render(request, "home.html", context)
-
-
 # ============================================================
 # CATEGORY POSTS
 # ============================================================
@@ -402,7 +440,6 @@ def like_toggle(request, slug):
 # ============================================================
 # ADD COMMENT
 # ============================================================
-
 @login_required
 @require_POST
 def add_comment(request, slug):
@@ -420,13 +457,12 @@ def add_comment(request, slug):
         comment.author = request.user
         comment.save()
 
+        # Redirect to home with anchor to this post
         return redirect(
-            f"{post.get_absolute_url()}?commented=1#comment-{comment.pk}"
+            f"{reverse('blog:home')}#post-{post.pk}"
         )
 
-    return redirect(post.get_absolute_url())
-
-
+    return redirect("blog:home")
 # ============================================================
 # ADD POST
 # ============================================================
