@@ -1,501 +1,1160 @@
 {% extends "base.html" %}
 
-
 {% block title %}Learning Blog – Home{% endblock %}
 
-
 {% block content %}
-<div class="home-hero">
-    <div class="hero-content">
-        <span class="hero-badge">Learning Blog</span>
-        <h1>Welcome to the Learners Blog</h1>
-        <p>Explore posts, ideas, and classroom projects in one clean, responsive space.</p>
 
+<div class="home-container">
 
-        {% if user.is_authenticated %}
-            <div class="hero-user">
-                Logged in as <strong>{{ user.username }}</strong>
-            </div>
-        {% endif %}
+    <!-- =====================================================
+         HERO
+    ====================================================== -->
+
+    <div class="home-hero">
+        <div class="hero-content">
+
+            <span class="hero-badge">
+                Learning Blog
+            </span>
+
+            <h1>
+                Welcome to the Learners Blog
+            </h1>
+
+            <p>
+                Explore posts, ideas, and classroom projects
+                in one clean, responsive space.
+            </p>
+
+            {% if user.is_authenticated %}
+                <div class="hero-user">
+                    Logged in as <strong>{{ user.username }}</strong>
+                </div>
+            {% endif %}
+
+        </div>
     </div>
+
+
+    <!-- =====================================================
+         FEATURED POST
+    ====================================================== -->
+
+    {% if featured_post %}
+
+    <section class="featured-section">
+
+        <div class="section-head">
+            <h2>Featured Post</h2>
+            <p>Highlighted content you may want to read first.</p>
+        </div>
+
+        <article class="featured-card">
+
+            <div class="featured-content">
+
+                <span class="featured-label">
+                    Editor's pick
+                </span>
+
+                <h3>
+                    {{ featured_post.title }}
+                </h3>
+
+                {% if featured_post.excerpt %}
+                    <p>
+                        {{ featured_post.excerpt|truncatewords:40 }}
+                    </p>
+                {% endif %}
+
+                <div class="post-meta">
+
+                    <span>
+                        <i class="bi bi-person"></i>
+                        {{ featured_post.author }}
+                    </span>
+
+                    <span>
+                        <i class="bi bi-clock"></i>
+                        {{ featured_post.created_at|date:"M d, Y H:i" }}
+                    </span>
+
+                </div>
+
+
+                <!-- COLLAPSIBLE CONTENT -->
+
+                <button
+                    class="read-more-btn"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#featured-post-content"
+                    aria-expanded="false"
+                    aria-controls="featured-post-content"
+                >
+                    <span class="show-text">
+                        Show content
+                    </span>
+
+                    <span class="hide-text">
+                        Hide content
+                    </span>
+                </button>
+
+
+                <div
+                    class="collapse post-collapse"
+                    id="featured-post-content"
+                >
+
+                    <hr>
+
+                    {% if featured_post.content %}
+                        <div class="post-content">
+                            {{ featured_post.content|safe }}
+                        </div>
+                    {% endif %}
+
+
+                    {% if featured_post.image %}
+
+                        <img
+                            src="{{ featured_post.image.url }}"
+                            class="post-media"
+                            alt="{{ featured_post.title }}"
+                        >
+
+                    {% endif %}
+
+
+                    {% if featured_post.video %}
+
+                        <video
+                            controls
+                            class="post-video"
+                        >
+                            <source
+                                src="{{ featured_post.video.url }}"
+                                type="video/mp4"
+                            >
+
+                            Your browser does not support the video tag.
+                        </video>
+
+                    {% endif %}
+
+
+                    {% if featured_post.youtube_url %}
+
+                        <div class="youtube-container">
+
+                            <iframe
+                                src="https://www.youtube.com/embed/{{ featured_post.youtube_url|slice:'8:' }}"
+                                title="{{ featured_post.title }}"
+                                frameborder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowfullscreen
+                            ></iframe>
+
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </article>
+
+    </section>
+
+    {% endif %}
+
+
+
+    <!-- =====================================================
+         CATEGORIES
+    ====================================================== -->
+
+    {% if categories %}
+
+    <section class="categories-section">
+
+        <div class="section-head">
+
+            <h2>
+                Browse Categories
+            </h2>
+
+            <p>
+                Jump into a topic that interests you.
+            </p>
+
+        </div>
+
+
+        <div class="category-grid">
+
+            {% for category in categories %}
+
+                <a
+                    href="{% url 'blog:category_post' category.slug %}"
+                    class="category-card"
+                >
+
+                    <div class="category-icon">
+                        <i class="bi bi-folder2-open"></i>
+                    </div>
+
+                    <div class="category-info">
+
+                        <h3>
+                            {{ category.name }}
+                        </h3>
+
+                        {% if category.description %}
+                            <p>
+                                {{ category.description|truncatewords:12 }}
+                            </p>
+                        {% else %}
+                            <p>
+                                Explore posts in this category.
+                            </p>
+                        {% endif %}
+
+                    </div>
+
+                    <div class="category-arrow">
+                        <i class="bi bi-arrow-right"></i>
+                    </div>
+
+                </a>
+
+            {% endfor %}
+
+        </div>
+
+    </section>
+
+    {% endif %}
+
+
+
+    <!-- =====================================================
+         RECENT POSTS
+    ====================================================== -->
+
+    <section class="posts-section">
+
+        <div class="section-head">
+
+            <h2>
+                Recent Posts
+            </h2>
+
+            <p>
+                Fresh content from teachers, learners, and contributors.
+            </p>
+
+        </div>
+
+
+        {% if posts %}
+
+            <div class="posts-grid">
+
+                {% for post in posts %}
+
+                    <article
+                        class="post-card"
+                        id="post-{{ post.pk }}"
+                    >
+
+                        <div class="post-card-body">
+
+                            <h3 class="post-title">
+                                {{ post.title }}
+                            </h3>
+
+
+                            {% if post.excerpt %}
+
+                                <p class="post-excerpt">
+                                    {{ post.excerpt|truncatewords:30 }}
+                                </p>
+
+                            {% endif %}
+
+
+                            <!-- COLLAPSE BUTTON -->
+
+                            <button
+                                class="read-more-btn"
+                                type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#post-content-{{ post.pk }}"
+                                aria-expanded="false"
+                                aria-controls="post-content-{{ post.pk }}"
+                            >
+                                <span class="show-text">
+                                    Show content →
+                                </span>
+
+                                <span class="hide-text">
+                                    Hide content ↑
+                                </span>
+                            </button>
+
+
+                            <!-- POST CONTENT -->
+
+                            <div
+                                class="collapse post-collapse"
+                                id="post-content-{{ post.pk }}"
+                            >
+
+                                <hr>
+
+                                {% if post.content %}
+
+                                    <div class="post-content">
+                                        {{ post.content|safe }}
+                                    </div>
+
+                                {% endif %}
+
+
+                                {% if post.image %}
+
+                                    <img
+                                        src="{{ post.image.url }}"
+                                        class="post-media"
+                                        alt="{{ post.title }}"
+                                    >
+
+                                {% endif %}
+
+
+                                {% if post.video %}
+
+                                    <video
+                                        controls
+                                        class="post-video"
+                                    >
+
+                                        <source
+                                            src="{{ post.video.url }}"
+                                            type="video/mp4"
+                                        >
+
+                                        Your browser does not support the video tag.
+
+                                    </video>
+
+                                {% endif %}
+
+
+                                {% if post.youtube_url %}
+
+                                    <div class="youtube-container">
+
+                                        <iframe
+                                            src="https://www.youtube.com/embed/{{ post.youtube_url|slice:'8:' }}"
+                                            title="{{ post.title }}"
+                                            frameborder="0"
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                            allowfullscreen
+                                        ></iframe>
+
+                                    </div>
+
+                                {% endif %}
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- POST META -->
+
+                        <div class="post-meta">
+
+                            <span>
+                                <i class="bi bi-person"></i>
+                                {{ post.author }}
+                            </span>
+
+                            <span>
+                                <i class="bi bi-clock"></i>
+                                {{ post.created_at|date:"M d, Y H:i" }}
+                            </span>
+
+                        </div>
+
+                    </article>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <div class="empty-state">
+
+                <i class="bi bi-journal-x"></i>
+
+                <p>
+                    No posts yet.
+                </p>
+
+            </div>
+
+        {% endif %}
+
+    </section>
+
 </div>
 
 
-{% if featured_post %}
-<section class="featured-section">
-    <div class="section-head">
-        <h2>Featured Post</h2>
-        <p>Highlighted content you may want to read first.</p>
-    </div>
-
-
-    <article class="featured-card">
-        <div class="featured-content">
-            <span class="featured-label">Editor's pick</span>
-            <h3>{{ featured_post.title }}</h3>
-            <p>{{ featured_post.excerpt|truncatewords:40 }}</p>
-
-
-            <div class="post-meta">
-                <span><i class="bi bi-person"></i> {{ featured_post.author }}</span>
-                <span><i class="bi bi-clock"></i> {{ featured_post.created_at|date:"M d, Y H:i" }}</span>
-            </div>
-
-
-            <button
-                class="btn btn-sm btn-outline-primary mt-3"
-                type="button"
-                data-bs-toggle="collapse"
-                data-bs-target="#featured-post-content"
-                aria-expanded="false"
-                aria-controls="featured-post-content"
-            >
-                Show content
-            </button>
-
-
-            <div class="collapse mt-3" id="featured-post-content">
-                <hr>
-                <div>{{ featured_post.content|safe }}</div>
-
-
-                {% if featured_post.image %}
-                    <img src="{{ featured_post.image.url }}" class="img-fluid mt-2" alt="{{ featured_post.title }}">
-                {% endif %}
-
-
-                {% if featured_post.video %}
-                    <video controls class="mt-2" style="max-width: 100%;">
-                        <source src="{{ featured_post.video.url }}" type="video/mp4">
-                        Your browser does not support the video tag.
-                    </video>
-                {% endif %}
-
-
-                {% if featured_post.youtube_url %}
-                    <div class="mt-2">
-                        <iframe
-                            class="w-100"
-                            src="https://www.youtube.com/embed/{{ featured_post.youtube_url|slice:'8:' }}"
-                            frameborder="0"
-                            allowfullscreen
-                        ></iframe>
-                    </div>
-                {% endif %}
-            </div>
-        </div>
-    </article>
-</section>
-{% endif %}
-
-
-{% if categories %}
-<section class="categories-section">
-    <div class="section-head">
-        <h2>Browse Categories</h2>
-        <p>Jump into a topic that interests you.</p>
-    </div>
-
-
-    <div class="category-chips">
-        {% for category in categories %}
-            <span class="category-chip">
-                <i class="bi bi-folder2"></i>
-                <span>{{ category.name }}</span>
-            </span>
-        {% endfor %}
-    </div>
-</section>
-{% endif %}
-
-
-<section class="posts-section">
-    <div class="section-head">
-        <h2>Recent Posts</h2>
-        <p>Fresh content from teachers, learners, and contributors.</p>
-    </div>
-
-
-    {% if posts %}
-        <div class="posts-grid">
-            {% for post in posts %}
-                <article class="post-card" id="post-{{ post.pk }}">
-                    <div class="post-card-body">
-                        <h3 class="post-title">{{ post.title }}</h3>
-
-
-                        <p class="post-excerpt">
-                            {{ post.excerpt|truncatewords:30 }}
-                        </p>
-
-
-                        <button
-                            class="read-more-btn"
-                            type="button"
-                            data-bs-toggle="collapse"
-                            data-bs-target="#post-content-{{ post.pk }}"
-                            aria-expanded="false"
-                            aria-controls="post-content-{{ post.pk }}"
-                        >
-                            Show content →
-                        </button>
-
-
-                        <div class="collapse mt-3" id="post-content-{{ post.pk }}">
-                            <hr>
-                            <div>{{ post.content|safe }}</div>
-
-
-                            {% if post.image %}
-                                <img src="{{ post.image.url }}" class="img-fluid mt-2" alt="{{ post.title }}">
-                            {% endif %}
-
-
-                            {% if post.video %}
-                                <video controls class="mt-2" style="max-width: 100%;">
-                                    <source src="{{ post.video.url }}" type="video/mp4">
-                                    Your browser does not support the video tag.
-                                </video>
-                            {% endif %}
-
-
-                            {% if post.youtube_url %}
-                                <div class="mt-2">
-                                    <iframe
-                                        class="w-100"
-                                        src="https://www.youtube.com/embed/{{ post.youtube_url|slice:'8:' }}"
-                                        frameborder="0"
-                                        allowfullscreen
-                                    ></iframe>
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
-
-
-                    <div class="post-meta">
-                        <span><i class="bi bi-person"></i> {{ post.author }}</span>
-                        <span><i class="bi bi-clock"></i> {{ post.created_at|date:"M d, Y H:i" }}</span>
-                    </div>
-                </article>
-            {% endfor %}
-        </div>
-    {% else %}
-        <div class="empty-state">
-            <i class="bi bi-journal-x"></i>
-            <p>No posts yet.</p>
-        </div>
-    {% endif %}
-</section>
-
 
 <style>
-    .home-hero {
-        background: linear-gradient(135deg, #2563eb, #1e293b);
-        color: #fff;
-        border-radius: 22px;
-        padding: 56px 24px;
-        box-shadow: 0 12px 35px rgba(15, 23, 42, 0.12);
-        margin-bottom: 28px;
+
+/* =========================================================
+   GENERAL
+========================================================= */
+
+.home-container {
+    width: 100%;
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+
+/* =========================================================
+   HERO
+========================================================= */
+
+.home-hero {
+    background: linear-gradient(
+        135deg,
+        #2563eb,
+        #1e293b
+    );
+
+    color: #fff;
+
+    border-radius: 22px;
+
+    padding: 56px 24px;
+
+    box-shadow:
+        0 12px 35px rgba(15, 23, 42, 0.12);
+
+    margin-bottom: 32px;
+}
+
+
+.hero-content {
+    max-width: 760px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+
+.hero-badge,
+.featured-label {
+    display: inline-block;
+
+    margin-bottom: 14px;
+
+    padding: 7px 14px;
+
+    border-radius: 999px;
+
+    background: rgba(255,255,255,.14);
+
+    font-size: .85rem;
+
+    letter-spacing: .04em;
+
+    text-transform: uppercase;
+}
+
+
+.home-hero h1 {
+    margin: 0;
+
+    font-size:
+        clamp(2rem,5vw,3.5rem);
+
+    line-height: 1.1;
+}
+
+
+.home-hero p {
+    margin: 16px auto 0;
+
+    max-width: 62ch;
+
+    font-size:
+        clamp(1rem,2.1vw,1.15rem);
+
+    color: rgba(255,255,255,.9);
+}
+
+
+.hero-user {
+    display: inline-block;
+
+    margin-top: 18px;
+
+    padding: 10px 16px;
+
+    border-radius: 999px;
+
+    background: rgba(255,255,255,.12);
+
+    backdrop-filter: blur(10px);
+}
+
+
+
+/* =========================================================
+   SECTIONS
+========================================================= */
+
+.featured-section,
+.categories-section,
+.posts-section {
+    margin-top: 28px;
+}
+
+
+.section-head {
+    margin-bottom: 18px;
+}
+
+
+.section-head h2 {
+    margin: 0;
+
+    font-size: 1.5rem;
+
+    font-weight: 800;
+}
+
+
+.section-head p {
+    margin: 6px 0 0;
+
+    color: #64748b;
+}
+
+
+
+/* =========================================================
+   FEATURED POST
+========================================================= */
+
+.featured-card {
+    background:
+        linear-gradient(
+            135deg,
+            rgba(37,99,235,.10),
+            rgba(255,255,255,.92)
+        );
+
+    border: 1px solid
+        rgba(148,163,184,.18);
+
+    border-radius: 20px;
+
+    padding: 28px;
+
+    box-shadow:
+        0 10px 30px
+        rgba(15,23,42,.08);
+}
+
+
+.featured-content h3 {
+    margin: 0 0 12px;
+
+    font-size: 1.5rem;
+}
+
+
+.featured-content > p {
+    margin: 0;
+
+    color: #64748b;
+
+    line-height: 1.7;
+}
+
+
+
+/* =========================================================
+   CATEGORY GRID
+========================================================= */
+
+.category-grid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(
+            auto-fit,
+            minmax(220px, 1fr)
+        );
+
+    gap: 16px;
+}
+
+
+.category-card {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 14px;
+
+    min-height: 90px;
+
+    padding: 18px;
+
+    background: #fff;
+
+    border: 1px solid
+        rgba(148,163,184,.20);
+
+    border-radius: 16px;
+
+    color: #1e293b;
+
+    text-decoration: none;
+
+    box-shadow:
+        0 8px 22px
+        rgba(15,23,42,.06);
+
+    transition:
+        transform .2s ease,
+        box-shadow .2s ease,
+        border-color .2s ease;
+}
+
+
+.category-card:hover {
+
+    transform: translateY(-4px);
+
+    border-color: #2563eb;
+
+    box-shadow:
+        0 14px 30px
+        rgba(37,99,235,.14);
+
+    color: #2563eb;
+
+    text-decoration: none;
+}
+
+
+.category-icon {
+
+    flex: 0 0 46px;
+
+    width: 46px;
+    height: 46px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 12px;
+
+    background: #eff6ff;
+
+    color: #2563eb;
+
+    font-size: 1.3rem;
+}
+
+
+.category-info {
+
+    min-width: 0;
+
+    flex: 1;
+}
+
+
+.category-info h3 {
+
+    margin: 0;
+
+    font-size: 1rem;
+
+    font-weight: 700;
+}
+
+
+.category-info p {
+
+    margin: 4px 0 0;
+
+    color: #64748b;
+
+    font-size: .85rem;
+
+    line-height: 1.4;
+}
+
+
+.category-arrow {
+
+    flex: 0 0 auto;
+
+    color: #94a3b8;
+
+    font-size: 1.1rem;
+
+    transition: transform .2s ease;
+}
+
+
+.category-card:hover .category-arrow {
+
+    transform: translateX(4px);
+
+    color: #2563eb;
+}
+
+
+
+/* =========================================================
+   POSTS
+========================================================= */
+
+.posts-grid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(
+            auto-fit,
+            minmax(280px, 1fr)
+        );
+
+    gap: 20px;
+}
+
+
+.post-card {
+
+    background:
+        rgba(255,255,255,.95);
+
+    border: 1px solid
+        rgba(148,163,184,.18);
+
+    border-radius: 18px;
+
+    padding: 22px;
+
+    box-shadow:
+        0 10px 30px
+        rgba(15,23,42,.08);
+
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: space-between;
+
+    min-height: 220px;
+
+    transition:
+        transform .2s ease,
+        box-shadow .2s ease;
+}
+
+
+.post-card:hover {
+
+    transform: translateY(-4px);
+
+    box-shadow:
+        0 16px 35px
+        rgba(15,23,42,.12);
+}
+
+
+.post-title {
+
+    margin: 0 0 12px;
+
+    font-size: 1.25rem;
+
+    line-height: 1.3;
+}
+
+
+.post-excerpt {
+
+    margin: 0;
+
+    color: #64748b;
+
+    line-height: 1.7;
+}
+
+
+
+/* =========================================================
+   POST CONTENT
+========================================================= */
+
+.post-collapse {
+
+    margin-top: 14px;
+}
+
+
+.post-content {
+
+    color: #374151;
+
+    line-height: 1.75;
+
+    overflow-wrap: break-word;
+}
+
+
+.post-content img {
+
+    max-width: 100%;
+
+    height: auto;
+
+    border-radius: 10px;
+}
+
+
+.post-content iframe {
+
+    max-width: 100%;
+}
+
+
+.post-media {
+
+    display: block;
+
+    width: 100%;
+
+    max-height: 450px;
+
+    margin-top: 16px;
+
+    object-fit: contain;
+
+    border-radius: 10px;
+}
+
+
+.post-video {
+
+    display: block;
+
+    width: 100%;
+
+    max-height: 450px;
+
+    margin-top: 16px;
+
+    border-radius: 10px;
+}
+
+
+.youtube-container {
+
+    position: relative;
+
+    width: 100%;
+
+    padding-bottom: 56.25%;
+
+    height: 0;
+
+    margin-top: 16px;
+
+    overflow: hidden;
+
+    border-radius: 10px;
+}
+
+
+.youtube-container iframe {
+
+    position: absolute;
+
+    inset: 0;
+
+    width: 100%;
+
+    height: 100%;
+}
+
+
+
+/* =========================================================
+   META
+========================================================= */
+
+.post-meta {
+
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 10px 16px;
+
+    margin-top: 20px;
+
+    padding-top: 16px;
+
+    border-top:
+        1px solid
+        rgba(148,163,184,.18);
+
+    color: #64748b;
+
+    font-size: .92rem;
+}
+
+
+.post-meta span {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 6px;
+}
+
+
+
+/* =========================================================
+   BUTTON
+========================================================= */
+
+.read-more-btn {
+
+    display: inline-block;
+
+    margin-top: 15px;
+
+    padding: 10px 18px;
+
+    background: #2563eb;
+
+    color: #fff;
+
+    border: none;
+
+    border-radius: 8px;
+
+    font-weight: 600;
+
+    transition: .3s;
+
+    cursor: pointer;
+}
+
+
+.read-more-btn:hover {
+
+    background: #1d4ed8;
+
+    color: #fff;
+}
+
+
+/* Hide "hide" text initially */
+
+.hide-text {
+    display: none;
+}
+
+
+/* When opened, swap text */
+
+.read-more-btn[aria-expanded="true"] .show-text {
+    display: none;
+}
+
+
+.read-more-btn[aria-expanded="true"] .hide-text {
+    display: inline;
+}
+
+
+
+/* =========================================================
+   EMPTY STATE
+========================================================= */
+
+.empty-state {
+
+    padding: 48px 20px;
+
+    text-align: center;
+
+    background:
+        rgba(255,255,255,.9);
+
+    border: 1px dashed
+        rgba(148,163,184,.3);
+
+    border-radius: 18px;
+
+    color: #64748b;
+}
+
+
+.empty-state i {
+
+    font-size: 2rem;
+
+    display: block;
+
+    margin-bottom: 12px;
+
+    color: #2563eb;
+}
+
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 768px) {
+
+    .home-container {
+        padding: 14px;
     }
 
 
-    .hero-content {
-        max-width: 760px;
-        margin: 0 auto;
+    .home-hero {
+
+        padding: 32px 16px;
+
+        border-radius: 18px;
+    }
+
+
+    .home-hero h1 {
+
+        font-size: 1.8rem;
+    }
+
+
+    .home-hero p {
+
+        font-size: 1rem;
+    }
+
+
+    .featured-card,
+    .post-card {
+
+        padding: 18px;
+    }
+
+
+    .section-head h2 {
+
+        font-size: 1.3rem;
+    }
+
+
+    .posts-grid {
+
+        grid-template-columns: 1fr;
+
+        gap: 16px;
+    }
+
+
+    .category-grid {
+
+        grid-template-columns: 1fr;
+
+        gap: 12px;
+    }
+
+
+    .category-card {
+
+        min-height: 80px;
+    }
+
+
+    .post-meta {
+
+        flex-direction: column;
+
+        gap: 6px;
+    }
+
+
+    .read-more-btn {
+
+        width: 100%;
+
         text-align: center;
+    }
+
+}
+
+
+@media (max-width: 480px) {
+
+    .home-container {
+
+        padding: 10px;
+    }
+
+
+    .home-hero {
+
+        padding: 24px 14px;
     }
 
 
     .hero-badge,
     .featured-label {
-        display: inline-block;
-        margin-bottom: 14px;
-        padding: 7px 14px;
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.14);
-        font-size: 0.85rem;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
+
+        font-size: .75rem;
+
+        padding: 6px 12px;
     }
 
 
-    .home-hero h1 {
-        margin: 0;
-        font-size: clamp(2rem, 5vw, 3.5rem);
-        line-height: 1.1;
-    }
-
-
-    .home-hero p {
-        margin: 16px auto 0;
-        max-width: 62ch;
-        font-size: clamp(1rem, 2.1vw, 1.15rem);
-        color: rgba(255, 255, 255, 0.9);
-    }
-
-
-    .hero-user {
-        display: inline-block;
-        margin-top: 18px;
-        padding: 10px 16px;
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.12);
-        backdrop-filter: blur(10px);
-    }
-
-
-    .section-head {
-        margin-bottom: 18px;
-    }
-
-
-    .section-head h2 {
-        margin: 0;
-        font-size: 1.5rem;
-        font-weight: 800;
-    }
-
-
-    .section-head p {
-        margin: 6px 0 0;
-        color: #64748b;
-    }
-
-
-    .featured-section,
-    .categories-section,
-    .posts-section {
-        margin-top: 24px;
-    }
-
-
-    .featured-card {
-        background: linear-gradient(135deg, rgba(37, 99, 235, 0.10), rgba(255, 255, 255, 0.92));
-        border: 1px solid rgba(148, 163, 184, 0.18);
-        border-radius: 20px;
-        padding: 28px;
-        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
-    }
-
-
-    .featured-content h3 {
-        margin: 0 0 12px;
-        font-size: 1.5rem;
-    }
-
-
-    .featured-content p {
-        margin: 0;
-        color: #64748b;
-        line-height: 1.7;
-    }
-
-
-    .category-chips {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
-    }
-
-
-    .category-chip {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 10px 14px;
-        border-radius: 999px;
-        background: #fff;
-        border: 1px solid rgba(148, 163, 184, 0.18);
-        color: #475569;
-        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
-        transition: all 0.2s ease;
-        cursor: default;
-    }
-
-
-    /* Remove hover link effect, keep subtle highlight */
-    .category-chip:hover {
-        background: #f1f5f9;
-        border-color: rgba(148, 163, 184, 0.25);
-        color: #475569;
-        transform: none;
-    }
-
-
-    .posts-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 20px;
-    }
-
-
-    .post-card {
-        background: rgba(255, 255, 255, 0.9);
-        border: 1px solid rgba(148, 163, 184, 0.18);
-        border-radius: 18px;
-        padding: 22px;
-        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        min-height: 220px;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-
-
-    .post-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 16px 35px rgba(15, 23, 42, 0.12);
-    }
-
-
+    .featured-content h3,
     .post-title {
-        margin: 0 0 12px;
-        font-size: 1.25rem;
-        line-height: 1.3;
+
+        font-size: 1.1rem;
     }
 
+}
 
-    .post-excerpt {
-        margin: 0;
-        color: #64748b;
-        line-height: 1.7;
-    }
-
-
-    .post-meta {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px 16px;
-        margin-top: 20px;
-        padding-top: 16px;
-        border-top: 1px solid rgba(148, 163, 184, 0.18);
-        color: #64748b;
-        font-size: 0.92rem;
-    }
-
-
-    .post-meta span {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-    }
-
-
-    .empty-state {
-        padding: 48px 20px;
-        text-align: center;
-        background: rgba(255, 255, 255, 0.9);
-        border: 1px dashed rgba(148, 163, 184, 0.3);
-        border-radius: 18px;
-        color: #64748b;
-    }
-
-
-    .empty-state i {
-        font-size: 2rem;
-        display: block;
-        margin-bottom: 12px;
-        color: #2563eb;
-    }
-
-
-    .read-more-btn {
-        display: inline-block;
-        margin-top: 15px;
-        padding: 10px 18px;
-        background: #2563eb;
-        color: #fff;
-        border: none;
-        border-radius: 8px;
-        font-weight: 600;
-        transition: 0.3s;
-        cursor: pointer;
-    }
-
-
-    .read-more-btn:hover {
-        background: #1d4ed8;
-        color: #fff;
-    }
-
-
-    @media (max-width: 768px) {
-        .home-hero {
-            padding: 32px 16px;
-            border-radius: 18px;
-        }
-
-
-        .home-hero h1 {
-            font-size: 1.8rem;
-        }
-
-
-        .home-hero p {
-            font-size: 1rem;
-        }
-
-
-        .featured-card,
-        .post-card {
-            padding: 18px;
-        }
-
-
-        .section-head h2 {
-            font-size: 1.3rem;
-        }
-
-
-        .posts-grid {
-            grid-template-columns: 1fr;
-            gap: 16px;
-        }
-
-
-        .category-chips {
-            gap: 10px;
-        }
-
-
-        .category-chip {
-            width: 100%;
-            justify-content: center;
-        }
-
-
-        .post-meta {
-            flex-direction: column;
-            gap: 6px;
-        }
-
-
-        .read-more-btn {
-            width: 100%;
-            text-align: center;
-        }
-    }
-
-
-    @media (max-width: 480px) {
-        .home-hero {
-            padding: 24px 14px;
-        }
-
-
-        .hero-badge,
-        .featured-label {
-            font-size: 0.75rem;
-            padding: 6px 12px;
-        }
-
-
-        .featured-content h3,
-        .post-title {
-            font-size: 1.1rem;
-        }
-    }
 </style>
+
 {% endblock %}

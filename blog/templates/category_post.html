@@ -1,107 +1,189 @@
 {% extends "base.html" %}
-
+{% load static %}
 
 {% block title %}
-    {{ category.name }} - Learning Blog
+    {{ category.name }} - SmartMind
 {% endblock %}
-
 
 {% block content %}
 
 <div class="category-page">
 
-    <header class="category-header">
-        <h1>Category: {{ category.name }}</h1>
+    <!-- CATEGORY HEADER -->
+    <div class="category-header">
 
-        <p class="post-count">
-            {{ posts|length }} post{{ posts|length|pluralize }} found in this category
-        </p>
-    </header>
+        <div class="category-title">
+            <div class="category-icon">
+                <i class="bi bi-folder2-open"></i>
+            </div>
+
+            <div>
+                <h1>{{ category.name }}</h1>
+                <p>Posts and learning resources in this category.</p>
+            </div>
+        </div>
+
+    </div>
 
 
-    {% if posts %}
+    <!-- ALL CATEGORIES -->
+    {% if categories %}
+    <div class="categories-section">
 
-        <section class="posts-grid" aria-label="Posts in {{ category.name }}">
+        <div class="section-label">
+            <i class="bi bi-collection"></i>
+            Browse Categories
+        </div>
+
+        <div class="categories">
+
+            {% for cat in categories %}
+
+                <a
+                    href="{% url 'blog:category_posts' cat.slug %}"
+                    class="category-chip {% if cat.id == category.id %}active{% endif %}"
+                >
+                    <i class="bi bi-folder"></i>
+                    <span>{{ cat.name }}</span>
+                </a>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+    {% endif %}
+
+
+    <!-- POSTS -->
+    <div class="posts">
+
+        {% if posts %}
 
             {% for post in posts %}
 
-                <article class="post-card" id="post-{{ post.pk }}">
+                <article class="post">
 
-                    <h2 class="post-title">
-                        {{ post.title }}
-                    </h2>
+                    <!-- POST IMAGE -->
+                    {% if post.image %}
 
-                    <p class="post-date">
-                        {{ post.created_at|date:"M d, Y" }}
-                    </p>
+                        <div class="post-image-container">
 
-
-                    <div class="post-excerpt">
-                        {{ post.content|truncatewords:25|safe }}
-                    </div>
-
-
-                    <!-- COLLAPSE BUTTON -->
-                    <button
-                        type="button"
-                        class="read-more"
-                        data-bs-toggle="collapse"
-                        data-bs-target="#post-content-{{ post.pk }}"
-                        aria-expanded="false"
-                        aria-controls="post-content-{{ post.pk }}"
-                    >
-                        Show content →
-                    </button>
-
-
-                    <!-- FULL POST CONTENT -->
-                    <div
-                        class="collapse post-full-content"
-                        id="post-content-{{ post.pk }}"
-                    >
-
-                        <hr>
-
-                        <div class="post-content">
-                            {{ post.content|safe }}
-                        </div>
-
-
-                        {% if post.image %}
                             <img
                                 src="{{ post.image.url }}"
-                                class="post-image"
                                 alt="{{ post.title }}"
+                                class="post-image"
+                                loading="lazy"
                             >
-                        {% endif %}
+
+                        </div>
+
+                    {% endif %}
 
 
-                        {% if post.video %}
-                            <video
-                                controls
-                                class="post-video"
-                            >
-                                <source
-                                    src="{{ post.video.url }}"
-                                    type="video/mp4"
-                                >
-                                Your browser does not support the video tag.
-                            </video>
-                        {% endif %}
+                    <!-- POST BODY -->
+                    <div class="post-body">
+
+                        <details>
+
+                            <summary>
+
+                                <span class="post-title">
+                                    {{ post.title }}
+                                </span>
+
+                                <span class="expand-icon">
+                                    <i class="bi bi-plus-lg"></i>
+                                </span>
+
+                            </summary>
 
 
-                        {% if post.youtube_url %}
-                            <div class="youtube-container">
+                            <!-- POST CONTENT -->
+                            <div class="post-content">
 
-                                <iframe
-                                    class="youtube-video"
-                                    src="https://www.youtube.com/embed/{{ post.youtube_url|slice:'8:' }}"
-                                    frameborder="0"
-                                    allowfullscreen
-                                ></iframe>
+                                {% if post.excerpt %}
+
+                                    <p class="excerpt">
+                                        {{ post.excerpt }}
+                                    </p>
+
+                                {% endif %}
+
+
+                                {% if post.content %}
+
+                                    <div class="rich-content">
+                                        {{ post.content|safe }}
+                                    </div>
+
+                                {% endif %}
+
+
+                                <!-- VIDEO -->
+                                {% if post.video %}
+
+                                    <div class="video-wrapper">
+
+                                        <video
+                                            controls
+                                            class="post-video"
+                                            preload="metadata"
+                                        >
+                                            <source
+                                                src="{{ post.video.url }}"
+                                                type="video/mp4"
+                                            >
+
+                                            Your browser does not support the video tag.
+
+                                        </video>
+
+                                    </div>
+
+                                {% endif %}
+
+
+                                <!-- YOUTUBE -->
+                                {% if post.youtube_url %}
+
+                                    <div class="youtube-container">
+
+                                        <iframe
+                                            src="https://www.youtube.com/embed/{{ post.youtube_url|slice:'8:' }}"
+                                            title="{{ post.title }}"
+                                            loading="lazy"
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                            allowfullscreen
+                                        ></iframe>
+
+                                    </div>
+
+                                {% endif %}
+
+
+                                <!-- META -->
+                                <div class="meta">
+
+                                    {% if post.author %}
+                                        <span>
+                                            <i class="bi bi-person"></i>
+                                            {{ post.author }}
+                                        </span>
+                                    {% endif %}
+
+                                    {% if post.created_at %}
+                                        <span>
+                                            <i class="bi bi-calendar3"></i>
+                                            {{ post.created_at|date:"d M Y" }}
+                                        </span>
+                                    {% endif %}
+
+                                </div>
 
                             </div>
-                        {% endif %}
+
+                        </details>
 
                     </div>
 
@@ -109,281 +191,686 @@
 
             {% endfor %}
 
-        </section>
 
+        {% else %}
 
-    {% else %}
+            <!-- EMPTY STATE -->
+            <div class="empty">
 
-        <div class="empty-message">
-            <p>No posts available in this category yet.</p>
-        </div>
+                <div class="empty-icon">
+                    <i class="bi bi-folder-x"></i>
+                </div>
 
-    {% endif %}
+                <h3>
+                    No posts in this category yet.
+                </h3>
+
+                <p>
+                    There are currently no posts under
+                    <strong>{{ category.name }}</strong>.
+                </p>
+
+            </div>
+
+        {% endif %}
+
+    </div>
 
 </div>
 
 
 <style>
 
-    *,
-    *::before,
-    *::after {
-        box-sizing: border-box;
-    }
+/* =========================================================
+   GLOBAL
+========================================================= */
+
+* {
+    box-sizing: border-box;
+}
+
+.category-page {
+    width: 100%;
+    max-width: 1100px;
+    margin: 35px auto 60px;
+    padding: 0 20px;
+}
 
 
-    html,
-    body {
-        width: 100%;
-        margin: 0;
-        padding: 0;
-        overflow-x: hidden;
-    }
+/* =========================================================
+   CATEGORY HEADER
+========================================================= */
 
+.category-header {
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 28px 30px;
+    margin-bottom: 24px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.07);
+    border: 1px solid #eef0f3;
+}
+
+.category-title {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.category-icon {
+    width: 58px;
+    height: 58px;
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 15px;
+
+    background: #eff6ff;
+    color: #2563eb;
+
+    font-size: 27px;
+}
+
+.category-header h1 {
+    margin: 0 0 5px;
+
+    font-size: 30px;
+    line-height: 1.2;
+
+    color: #111827;
+}
+
+.category-header p {
+    margin: 0;
+
+    color: #6b7280;
+    font-size: 15px;
+}
+
+
+/* =========================================================
+   CATEGORY SECTION
+========================================================= */
+
+.categories-section {
+    margin-bottom: 28px;
+}
+
+.section-label {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+
+    margin-bottom: 12px;
+
+    font-size: 14px;
+    font-weight: 700;
+
+    color: #4b5563;
+}
+
+.section-label i {
+    color: #2563eb;
+}
+
+.categories {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+}
+
+.category-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+
+    padding: 9px 15px;
+
+    border-radius: 30px;
+
+    border: 1px solid #e5e7eb;
+
+    background: #ffffff;
+
+    color: #374151;
+
+    text-decoration: none;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    transition:
+        background .2s ease,
+        color .2s ease,
+        border-color .2s ease,
+        transform .2s ease;
+}
+
+.category-chip:hover {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    color: #2563eb;
+    transform: translateY(-1px);
+}
+
+.category-chip.active {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: #ffffff;
+}
+
+.category-chip i {
+    font-size: 14px;
+}
+
+
+/* =========================================================
+   POSTS
+========================================================= */
+
+.posts {
+    display: grid;
+    gap: 22px;
+}
+
+.post {
+    background: #ffffff;
+
+    border-radius: 18px;
+
+    overflow: hidden;
+
+    border: 1px solid #eef0f3;
+
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.07);
+
+    transition:
+        transform .2s ease,
+        box-shadow .2s ease;
+}
+
+.post:hover {
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.10);
+}
+
+
+/* =========================================================
+   POST IMAGE
+
+   IMPORTANT:
+   The image is NOT forced into a fixed aspect ratio.
+   Therefore:
+   - portrait images remain portrait
+   - landscape images remain landscape
+   - square images remain square
+   - no distortion
+   - no unnecessary cropping
+========================================================= */
+
+.post-image-container {
+    width: 100%;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    background: #f3f4f6;
+
+    overflow: hidden;
+}
+
+.post-image {
+    display: block;
+
+    width: auto;
+    height: auto;
+
+    max-width: 100%;
+    max-height: 520px;
+
+    object-fit: contain;
+    object-position: center;
+
+    margin: 0 auto;
+}
+
+
+/* =========================================================
+   POST BODY
+========================================================= */
+
+.post-body {
+    padding: 22px 24px;
+}
+
+
+/* =========================================================
+   COLLAPSIBLE TITLE
+========================================================= */
+
+.post details {
+    width: 100%;
+}
+
+.post summary {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 15px;
+
+    cursor: pointer;
+
+    list-style: none;
+
+    color: #111827;
+
+    font-size: 20px;
+    font-weight: 700;
+
+    line-height: 1.4;
+
+    user-select: none;
+}
+
+.post summary::-webkit-details-marker {
+    display: none;
+}
+
+.post summary::marker {
+    display: none;
+}
+
+.post-title {
+    flex: 1;
+}
+
+.expand-icon {
+    width: 34px;
+    height: 34px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: #eff6ff;
+
+    color: #2563eb;
+
+    font-size: 15px;
+
+    transition:
+        transform .2s ease,
+        background .2s ease;
+}
+
+.post details[open] .expand-icon {
+    background: #2563eb;
+    color: #ffffff;
+}
+
+.post details[open] .expand-icon i::before {
+    content: "\f2ea";
+}
+
+
+/* =========================================================
+   POST CONTENT
+========================================================= */
+
+.post-content {
+    padding-top: 22px;
+
+    color: #374151;
+
+    line-height: 1.8;
+
+    font-size: 16px;
+}
+
+.excerpt {
+    margin: 0 0 18px;
+
+    padding: 14px 16px;
+
+    background: #f9fafb;
+
+    border-left: 4px solid #2563eb;
+
+    border-radius: 7px;
+
+    color: #6b7280;
+}
+
+
+/* =========================================================
+   RICH TEXT CONTENT
+========================================================= */
+
+.rich-content {
+    overflow-wrap: anywhere;
+    word-break: normal;
+}
+
+.rich-content img {
+    display: block;
+
+    max-width: 100%;
+    height: auto;
+
+    margin: 18px auto;
+
+    border-radius: 10px;
+}
+
+.rich-content iframe {
+    max-width: 100%;
+}
+
+.rich-content table {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+.rich-content pre {
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+
+/* =========================================================
+   VIDEO
+========================================================= */
+
+.video-wrapper {
+    width: 100%;
+    margin: 25px auto;
+}
+
+.post-video {
+    display: block;
+
+    width: 100%;
+    max-width: 850px;
+
+    height: auto;
+
+    margin: 0 auto;
+
+    border-radius: 12px;
+
+    background: #000;
+}
+
+
+/* =========================================================
+   YOUTUBE
+========================================================= */
+
+.youtube-container {
+    position: relative;
+
+    width: 100%;
+
+    padding-bottom: 56.25%;
+
+    margin: 25px auto;
+
+    overflow: hidden;
+
+    border-radius: 12px;
+
+    background: #000;
+}
+
+.youtube-container iframe {
+    position: absolute;
+
+    inset: 0;
+
+    width: 100%;
+    height: 100%;
+
+    border: 0;
+}
+
+
+/* =========================================================
+   META
+========================================================= */
+
+.meta {
+    display: flex;
+
+    flex-wrap: wrap;
+
+    align-items: center;
+
+    gap: 15px;
+
+    margin-top: 25px;
+    padding-top: 15px;
+
+    border-top: 1px solid #e5e7eb;
+
+    color: #6b7280;
+
+    font-size: 13px;
+}
+
+.meta span {
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 6px;
+}
+
+.meta i {
+    color: #2563eb;
+}
+
+
+/* =========================================================
+   EMPTY
+========================================================= */
+
+.empty {
+    background: #ffffff;
+
+    padding: 60px 25px;
+
+    text-align: center;
+
+    border-radius: 18px;
+
+    border: 1px solid #eef0f3;
+
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
+
+    color: #6b7280;
+}
+
+.empty-icon {
+    width: 65px;
+    height: 65px;
+
+    margin: 0 auto 18px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: #f3f4f6;
+
+    color: #9ca3af;
+
+    font-size: 28px;
+}
+
+.empty h3 {
+    margin: 0 0 8px;
+
+    color: #374151;
+
+    font-size: 20px;
+}
+
+.empty p {
+    margin: 0;
+
+    font-size: 15px;
+}
+
+
+/* =========================================================
+   TABLETS
+========================================================= */
+
+@media (max-width: 800px) {
 
     .category-page {
-        width: 100%;
-        max-width: none;
-        margin: 0;
-        padding: 24px;
+        margin-top: 25px;
+        padding: 0 15px;
     }
 
+    .post-image {
+        max-height: 450px;
+    }
+
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 600px) {
+
+    .category-page {
+        margin-top: 18px;
+        padding: 0 10px;
+    }
 
     .category-header {
-        width: 100%;
-        margin-bottom: 25px;
+        padding: 20px;
+        border-radius: 15px;
     }
 
+    .category-title {
+        align-items: flex-start;
+        gap: 13px;
+    }
+
+    .category-icon {
+        width: 45px;
+        height: 45px;
+
+        border-radius: 12px;
+
+        font-size: 21px;
+    }
 
     .category-header h1 {
-        margin: 0 0 10px;
-        color: #212529;
-        font-size: clamp(1.6rem, 4vw, 2.3rem);
-        line-height: 1.2;
-        overflow-wrap: anywhere;
+        font-size: 23px;
     }
 
-
-    .post-count {
-        margin: 0;
-        color: #6c757d;
-        font-size: 1rem;
+    .category-header p {
+        font-size: 14px;
+        line-height: 1.5;
     }
 
-
-    .posts-grid {
-        display: grid;
-        width: 100%;
-        grid-template-columns: repeat(
-            auto-fit,
-            minmax(min(100%, 280px), 1fr)
-        );
-        gap: 20px;
+    .categories {
+        gap: 7px;
     }
 
-
-    .post-card {
-        width: 100%;
-        min-width: 0;
-        padding: 18px;
-        background: #ffffff;
-        border-radius: 10px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        overflow: hidden;
+    .category-chip {
+        padding: 8px 12px;
+        font-size: 13px;
     }
 
-
-    .post-title {
-        margin: 0 0 8px;
-        color: #212529;
-        font-size: 1.25rem;
-        line-height: 1.35;
-        overflow-wrap: anywhere;
-        word-break: break-word;
+    .post {
+        border-radius: 14px;
     }
 
-
-    .post-date {
-        margin: 0 0 15px;
-        color: #6c757d;
-        font-size: 0.9rem;
+    /*
+       On phones we still don't force an aspect ratio.
+       Portrait images remain portrait.
+    */
+    .post-image-container {
+        max-height: 450px;
     }
 
-
-    .post-excerpt {
-        color: #343a40;
-        line-height: 1.6;
-        overflow-wrap: anywhere;
-        word-break: break-word;
+    .post-image {
+        max-width: 100%;
+        max-height: 450px;
     }
 
-
-    .read-more {
-        display: inline-block;
-        margin-top: 15px;
-        padding: 10px 18px;
-        color: #ffffff;
-        background: #0d6efd;
-        border: none;
-        border-radius: 8px;
-        font-weight: 600;
-        text-decoration: none;
-        cursor: pointer;
-        transition: 0.2s ease;
+    .post-body {
+        padding: 17px;
     }
 
-
-    .read-more:hover {
-        background: #0b5ed7;
-        color: #ffffff;
+    .post summary {
+        font-size: 17px;
     }
 
+    .expand-icon {
+        width: 30px;
+        height: 30px;
+        font-size: 13px;
+    }
 
-    .post-full-content {
-        margin-top: 15px;
-        color: #343a40;
+    .post-content {
+        padding-top: 18px;
+        font-size: 15px;
         line-height: 1.7;
     }
 
-
-    .post-full-content hr {
-        margin: 15px 0;
-        border: 0;
-        border-top: 1px solid #dee2e6;
+    .meta {
+        gap: 10px;
     }
 
+}
 
-    .post-content {
-        width: 100%;
-        overflow-wrap: anywhere;
-        word-break: break-word;
+
+/* =========================================================
+   VERY SMALL PHONES
+========================================================= */
+
+@media (max-width: 380px) {
+
+    .category-page {
+        padding: 0 8px;
     }
 
-
-    .post-content img {
-        display: block;
-        width: 100%;
-        max-width: 100%;
-        height: auto;
-        margin: 12px 0;
-        border-radius: 8px;
-        object-fit: contain;
+    .category-header {
+        padding: 17px;
     }
 
-
-    .post-content iframe,
-    .post-content video,
-    .post-content canvas,
-    .post-content table {
-        max-width: 100%;
+    .category-header h1 {
+        font-size: 21px;
     }
 
-
-    .post-content pre {
-        max-width: 100%;
-        padding: 10px;
-        overflow-x: auto;
-        white-space: pre-wrap;
-        overflow-wrap: anywhere;
-        background: #f8f9fa;
-        border-radius: 6px;
+    .post-body {
+        padding: 15px;
     }
 
-
-    .post-image {
-        display: block;
-        width: 100%;
-        max-width: 100%;
-        height: auto;
-        margin-top: 15px;
-        border-radius: 8px;
+    .post summary {
+        font-size: 16px;
     }
 
-
-    .post-video {
-        display: block;
-        width: 100%;
-        max-width: 100%;
-        height: auto;
-        margin-top: 15px;
-        border-radius: 8px;
-    }
-
-
-    .youtube-container {
-        position: relative;
-        width: 100%;
-        padding-bottom: 56.25%;
-        margin-top: 15px;
-        overflow: hidden;
-        border-radius: 8px;
-    }
-
-
-    .youtube-video {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        border: 0;
-    }
-
-
-    .empty-message {
-        width: 100%;
-        padding: 25px;
-        color: #6c757d;
-        text-align: center;
-        background: #f8f9fa;
-        border-radius: 8px;
-    }
-
-
-    @media (max-width: 768px) {
-
-        .category-page {
-            padding: 18px;
-        }
-
-        .posts-grid {
-            gap: 16px;
-        }
-
-        .post-card {
-            padding: 16px;
-        }
-
-    }
-
-
-    @media (max-width: 576px) {
-
-        .category-page {
-            padding: 12px;
-        }
-
-        .posts-grid {
-            grid-template-columns: 1fr;
-            gap: 15px;
-        }
-
-        .post-card {
-            padding: 15px;
-        }
-
-        .post-title {
-            font-size: 1.15rem;
-        }
-
-        .read-more {
-            width: 100%;
-            text-align: center;
-        }
-
-    }
+}
 
 </style>
-
 
 {% endblock %}

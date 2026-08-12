@@ -506,3 +506,30 @@ def delete_post(request, pk):
             "post": post,
         },
     )
+
+
+def category_posts(request, slug):
+    category = get_object_or_404(
+        Category,
+        slug=slug
+    )
+
+    posts = Post.objects.filter(
+        category=category,
+        status="published"
+    ).select_related(
+        "author",
+        "category"
+    ).order_by("-created_at")
+
+    categories = Category.objects.all().order_by("name")
+
+    return render(
+        request,
+        "blog/category_posts.html",
+        {
+            "category": category,
+            "posts": posts,
+            "categories": categories,
+        }
+    )

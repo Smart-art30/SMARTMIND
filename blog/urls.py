@@ -36,12 +36,7 @@ urlpatterns = [
     ),
 
 
-    # =========================================================
-    # CATEGORY
-    # Example:
-    # /category/mathematics/
-    # =========================================================
-
+  
     path(
         "category/<slug:slug>/",
         views.category_post,

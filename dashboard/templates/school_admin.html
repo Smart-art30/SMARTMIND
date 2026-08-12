@@ -8,95 +8,95 @@
 {% block content %}
 
 <style>
-*{
-    box-sizing:border-box;
+* {
+    box-sizing: border-box;
 }
 
-html{
-    font-size:16px;
-    scroll-behavior:smooth;
+html {
+    font-size: 16px;
+    scroll-behavior: smooth;
 }
 
-body{
-    overflow-x:hidden;
+body {
+    overflow-x: hidden;
 }
 
-.container{
-    width:100%;
-    max-width:1600px;
-    margin:auto;
-    padding:20px;
+.container {
+    width: 100%;
+    max-width: 1600px;
+    margin: auto;
+    padding: 20px;
 }
 
 /* =========================
    HEADER
 ========================= */
 
-.dashboard-header{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    flex-wrap:wrap;
-    gap:20px;
-    margin-bottom:30px;
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 30px;
 }
 
-.dashboard-header h2{
-    font-size:clamp(1.5rem,3vw,2.6rem);
-    margin-bottom:5px;
+.dashboard-header h2 {
+    font-size: clamp(1.5rem, 3vw, 2.6rem);
+    margin-bottom: 5px;
 }
 
-.small{
-    color:#6b7280;
-    font-size:clamp(.8rem,1vw,.95rem);
+.small {
+    color: #6b7280;
+    font-size: clamp(.8rem, 1vw, .95rem);
 }
 
 /* =========================
    BADGE
 ========================= */
 
-.badge-admin{
-    background:#2f6fed;
-    color:white;
-    padding:8px 18px;
-    border-radius:30px;
-    font-size:0.9rem;
+.badge-admin {
+    background: #2f6fed;
+    color: white;
+    padding: 8px 18px;
+    border-radius: 30px;
+    font-size: .9rem;
 }
 
 /* =========================
    STATISTICS GRID
 ========================= */
 
-.grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-    gap:20px;
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
 }
 
 /* =========================
    CARDS
 ========================= */
 
-.card{
-    border:none;
-    border-radius:18px;
-    box-shadow:0 6px 20px rgba(0,0,0,.08);
-    padding:25px;
-    transition:.3s;
+.card {
+    border: none;
+    border-radius: 18px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, .08);
+    padding: 25px;
+    transition: .3s;
 }
 
-.card:hover{
-    transform:translateY(-4px);
+.card:hover {
+    transform: translateY(-4px);
 }
 
-.number{
-    font-size:clamp(1.8rem,4vw,3rem);
-    font-weight:700;
+.number {
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    font-weight: 700;
 }
 
-.label{
-    color:#777;
-    font-size:1rem;
+.label {
+    color: #777;
+    font-size: 1rem;
 }
 
 /* =========================
@@ -104,154 +104,80 @@ body{
 ========================= */
 
 .performance,
-.list{
-    margin-top:30px;
-    border-radius:18px;
-    padding:25px;
-    box-shadow:0 6px 20px rgba(0,0,0,.08);
+.list {
+    margin-top: 30px;
+    border-radius: 18px;
+    padding: 25px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, .08);
 }
 
-.bar{
-    width:100%;
-    height:14px;
-    background:#eee;
-    border-radius:30px;
-    overflow:hidden;
+.bar {
+    width: 100%;
+    height: 14px;
+    background: #eee;
+    border-radius: 30px;
+    overflow: hidden;
 }
 
-.bar-fill{
-    height:100%;
-    width:{{ performance_rate }}%;
-    background:linear-gradient(90deg,#22c55e,#16a34a);
-}
-
-/* =========================
-   BUTTONS
-========================= */
-
-.btn{
-    width:100%;
-    border-radius:12px;
-    padding:12px;
-    font-weight:600;
-    white-space:normal;
+.bar-fill {
+    height: 100%;
+    width: {{ performance_rate }}%;
+    background: linear-gradient(90deg, #22c55e, #16a34a);
 }
 
 /* =========================
-   BLOG
+   GENERAL BUTTONS
 ========================= */
 
-.item{
-    padding:18px 0;
-    border-bottom:1px solid #eee;
-}
-
-.item h5{
-    font-size:1.1rem;
-}
-
-.item p{
-    font-size:.95rem;
+.btn {
+    width: 100%;
+    border-radius: 12px;
+    padding: 12px;
+    font-weight: 600;
+    white-space: normal;
 }
 
 /* =========================
-   PHONE
+   BLOG CATEGORIES
 ========================= */
 
-@media(max-width:576px){
-
-.dashboard-header{
-    text-align:center;
-    justify-content:center;
+.category-list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-top: 15px;
 }
 
-.dashboard-header>div{
-    width:100%;
-}
-
-.d-flex.align-items-center{
-    justify-content:center;
-    width:100%;
-}
-
-.card{
-    padding:18px;
-}
-
-.performance,
-.list{
-    padding:18px;
-}
-
+.category-btn {
+    width: auto !important;
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    padding: 10px 16px;
 }
 
 /* =========================
-   TABLET
+   BLOG POSTS
 ========================= */
 
-@media(min-width:768px){
-
-.grid{
-    grid-template-columns:repeat(3,1fr);
+.item {
+    padding: 18px 0;
+    border-bottom: 1px solid #eee;
 }
 
+.item:last-child {
+    border-bottom: none;
 }
 
-/* =========================
-   LAPTOP
-========================= */
-
-@media(min-width:1200px){
-
-.grid{
-    grid-template-columns:repeat(5,1fr);
+.item h5 {
+    font-size: 1.1rem;
 }
 
-}
-
-/* =========================
-   LARGE MONITORS
-========================= */
-
-@media(min-width:1800px){
-
-.container{
-    max-width:1800px;
-}
-
-.card{
-    padding:35px;
-}
-
-.number{
-    font-size:3.5rem;
-}
-
-}
-
-/* =========================
-   4K / TV
-========================= */
-
-@media(min-width:2500px){
-
-html{
-    font-size:22px;
-}
-
-.container{
-    max-width:2400px;
-}
-
-.card{
-    padding:45px;
-}
-
-.btn{
-    padding:18px;
-    font-size:1.1rem;
-}
-
+.item p {
+    font-size: .95rem;
 }
 
 .post-image {
@@ -266,7 +192,6 @@ html{
 .post-summary {
     padding: 5px 0;
     list-style: none;
-
     color: #2563eb;
     font-size: 1.05rem;
     font-weight: 700;
@@ -310,7 +235,7 @@ details[open] .post-summary::after {
     padding-top: 10px;
     border-top: 1px solid #e5e7eb;
     color: #64748b;
-    font-size: 0.85rem;
+    font-size: .85rem;
 }
 
 .empty {
@@ -318,58 +243,209 @@ details[open] .post-summary::after {
     color: #64748b;
     text-align: center;
 }
+
+/* =========================
+   PHONE
+========================= */
+
+@media (max-width: 576px) {
+
+    .container {
+        padding: 15px;
+    }
+
+    .dashboard-header {
+        text-align: center;
+        justify-content: center;
+    }
+
+    .dashboard-header > div {
+        width: 100%;
+    }
+
+    .d-flex.align-items-center {
+        justify-content: center;
+        width: 100%;
+    }
+
+    .card {
+        padding: 18px;
+    }
+
+    .performance,
+    .list {
+        padding: 18px;
+    }
+
+    .category-list {
+        gap: 8px;
+    }
+
+    .category-btn {
+        padding: 9px 12px;
+        font-size: .9rem;
+    }
+}
+
+/* =========================
+   TABLET
+========================= */
+
+@media (min-width: 768px) {
+
+    .grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* =========================
+   LAPTOP
+========================= */
+
+@media (min-width: 1200px) {
+
+    .grid {
+        grid-template-columns: repeat(5, 1fr);
+    }
+}
+
+/* =========================
+   LARGE MONITORS
+========================= */
+
+@media (min-width: 1800px) {
+
+    .container {
+        max-width: 1800px;
+    }
+
+    .card {
+        padding: 35px;
+    }
+
+    .number {
+        font-size: 3.5rem;
+    }
+}
+
+/* =========================
+   4K / TV
+========================= */
+
+@media (min-width: 2500px) {
+
+    html {
+        font-size: 22px;
+    }
+
+    .container {
+        max-width: 2400px;
+    }
+
+    .card {
+        padding: 45px;
+    }
+
+    .btn {
+        padding: 18px;
+        font-size: 1.1rem;
+    }
+}
 </style>
 
+
 <div class="container">
+
+    <!-- =========================
+         HEADER
+    ========================== -->
 
     <div class="dashboard-header">
 
         <div>
             <h2>🏫 {{ school.name }}</h2>
-            <div class="small">School Administration Dashboard</div>
+            <div class="small">
+                School Administration Dashboard
+            </div>
         </div>
 
         <div class="d-flex align-items-center gap-2">
-            <span class="badge-admin">School Admin</span>
+
+            <span class="badge-admin">
+                School Admin
+            </span>
 
             <form method="post" action="{% url 'logout' %}">
                 {% csrf_token %}
-                <button class="btn btn-dark btn-sm">
+
+                <button type="submit" class="btn btn-dark btn-sm">
                     Logout
                 </button>
+
             </form>
+
         </div>
 
     </div>
+
+
+    <!-- =========================
+         STATISTICS
+    ========================== -->
 
     <div class="grid">
 
         <div class="card">
-            <div class="number">{{ students_count }}</div>
-            <div class="label">Students</div>
+            <div class="number">
+                {{ students_count }}
+            </div>
+            <div class="label">
+                Students
+            </div>
         </div>
 
         <div class="card">
-            <div class="number">{{ teachers_count }}</div>
-            <div class="label">Teachers</div>
+            <div class="number">
+                {{ teachers_count }}
+            </div>
+            <div class="label">
+                Teachers
+            </div>
         </div>
 
         <div class="card">
-            <div class="number">{{ classes_count }}</div>
-            <div class="label">Classes</div>
+            <div class="number">
+                {{ classes_count }}
+            </div>
+            <div class="label">
+                Classes
+            </div>
         </div>
 
         <div class="card">
-            <div class="number">{{ assignments_count }}</div>
-            <div class="label">Assignments</div>
+            <div class="number">
+                {{ assignments_count }}
+            </div>
+            <div class="label">
+                Assignments
+            </div>
         </div>
 
         <div class="card">
-            <div class="number">{{ quiz_attempts_count }}</div>
-            <div class="label">Quiz Attempts</div>
+            <div class="number">
+                {{ quiz_attempts_count }}
+            </div>
+            <div class="label">
+                Quiz Attempts
+            </div>
         </div>
 
     </div>
+
+
+    <!-- =========================
+         PERFORMANCE
+    ========================== -->
 
     <div class="performance">
 
@@ -380,7 +456,12 @@ details[open] .post-summary::after {
         </div>
 
         <div class="bar">
-            <div class="bar-fill"></div>
+
+            <div
+                class="bar-fill"
+                style="width: {{ performance_rate }}%;"
+            ></div>
+
         </div>
 
         <div class="small">
@@ -389,34 +470,155 @@ details[open] .post-summary::after {
 
     </div>
 
-<div class="row mt-4">
 
-    <!-- STAFF -->
-    <div class="col-lg-4 mb-4">
+    <!-- =========================
+         MANAGEMENT SECTIONS
+    ========================== -->
 
-        <div class="card h-100">
+    <div class="row mt-4">
 
-            <h5 class="mb-3">
-                👨‍🏫 Staff Management
-            </h5>
+        <!-- STAFF -->
 
-            <div class="d-grid gap-2">
+        <div class="col-lg-4 mb-4">
 
-                <a href="{% url 'teacher_list' %}" class="btn btn-outline-primary">
-                    Teachers
-                </a>
+            <div class="card h-100">
 
-                <a href="{% url 'teacher_assignment_list' %}" class="btn btn-outline-primary">
-                    Teaching Assignments
-                </a>
+                <h5 class="mb-3">
+                    👨‍🏫 Staff Management
+                </h5>
 
-                <a href="{% url 'teacher_role_list' %}" class="btn btn-outline-primary">
-                    Teacher Roles
-                </a>
+                <div class="d-grid gap-2">
 
-                <a href="{% url 'teacher_permission_list' %}" class="btn btn-outline-primary">
-                    Permissions
-                </a>
+                    <a
+                        href="{% url 'teacher_list' %}"
+                        class="btn btn-outline-primary"
+                    >
+                        Teachers
+                    </a>
+
+                    <a
+                        href="{% url 'teacher_assignment_list' %}"
+                        class="btn btn-outline-primary"
+                    >
+                        Teaching Assignments
+                    </a>
+
+                    <a
+                        href="{% url 'teacher_role_list' %}"
+                        class="btn btn-outline-primary"
+                    >
+                        Teacher Roles
+                    </a>
+
+                    <a
+                        href="{% url 'teacher_permission_list' %}"
+                        class="btn btn-outline-primary"
+                    >
+                        Permissions
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- STUDENTS -->
+
+        <div class="col-lg-4 mb-4">
+
+            <div class="card h-100">
+
+                <h5 class="mb-3">
+                    👨‍🎓 Student Management
+                </h5>
+
+                <div class="d-grid gap-2">
+
+                    <a
+                        href="{% url 'student_list' %}"
+                        class="btn btn-outline-success"
+                    >
+                        Students
+                    </a>
+
+                    <a
+                        href="{% url 'class_list' %}"
+                        class="btn btn-outline-success"
+                    >
+                        Classes
+                    </a>
+
+                    <a
+                        href="{% url 'attendance_dashboard' %}"
+                        class="btn btn-outline-success"
+                    >
+                        Attendance
+                    </a>
+
+                    <a
+                        href="{% url 'parent_list' %}"
+                        class="btn btn-outline-success"
+                    >
+                        Parents
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ACADEMICS -->
+
+        <div class="col-lg-4 mb-4">
+
+            <div class="card h-100">
+
+                <h5 class="mb-3">
+                    📚 Academics
+                </h5>
+
+                <div class="d-grid gap-2">
+
+                    <a
+                        href="{% url 'school_subjects' school.id %}"
+                        class="btn btn-outline-warning"
+                    >
+                        Learning Areas
+                    </a>
+
+                    <a
+                        href="{% url 'library:resource_list' %}"
+                        class="btn btn-outline-warning"
+                    >
+                        Resources
+                    </a>
+
+                    <a
+                        href="{% url 'assignment_list' %}"
+                        class="btn btn-outline-warning"
+                    >
+                        Assignments
+                    </a>
+
+                    <a
+                        href="{% url 'quiz_home' %}"
+                        class="btn btn-outline-warning"
+                    >
+                        Quizzes
+                    </a>
+
+                    <a
+                        href="{% url 'gradebook' %}"
+                        class="btn btn-outline-warning"
+                    >
+                        Marks
+                    </a>
+
+                </div>
 
             </div>
 
@@ -425,134 +627,115 @@ details[open] .post-summary::after {
     </div>
 
 
-    <!-- STUDENTS -->
-    <div class="col-lg-4 mb-4">
-
-        <div class="card h-100">
-
-            <h5 class="mb-3">
-                👨‍🎓 Student Management
-            </h5>
-
-            <div class="d-grid gap-2">
-
-                <a href="{% url 'student_list' %}" class="btn btn-outline-success">
-                    Students
-                </a>
-
-                <a href="{% url 'class_list' %}" class="btn btn-outline-success">
-                    Classes
-                </a>
-
-                <a href="{% url 'attendance_dashboard' %}" class="btn btn-outline-success">
-                    Attendance
-                </a>
-
-                <a href="{% url 'parent_list' %}" class="btn btn-outline-success">
-                    Parents
-                </a>
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-    <!-- ACADEMICS -->
-    <div class="col-lg-4 mb-4">
-
-        <div class="card h-100">
-
-            <h5 class="mb-3">
-                📚 Academics
-            </h5>
-
-            <div class="d-grid gap-2">
-
-                <a href="{% url 'school_subjects' school.id %}" class="btn btn-outline-warning">
-                    Learning Areas
-                </a>
-
-                <a href="{% url 'library:resource_list' %}" class="btn btn-outline-warning">
-                    Resources
-                </a>
-
-                <a href="{% url 'assignment_list' %}" class="btn btn-outline-warning">
-                    Assignments
-                </a>
-
-                <a href="{% url 'quiz_home' %}" class="btn btn-outline-warning">
-                    Quizzes
-                </a>
-
-               <a href="{% url 'gradebook' %}" class="btn btn-outline-warning">
-                    Marks
-            </a>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
+    <!-- =========================
+         BLOG CATEGORIES
+    ========================== -->
 
     <div class="list">
 
-        <h4>📚 Latest Blog Posts</h4>
+        <h4>
+            📂 Blog Categories
+        </h4>
 
-     {% for post in posts %}
+        <div class="category-list">
 
-    <div class="item">
+            {% for category in categories %}
 
-        {% if post.image %}
-            <img
-                src="{{ post.image.url }}"
-                alt="{{ post.title }}"
-                class="post-image"
-            >
-        {% endif %}
+                <a
+                    href="{% url 'blog:category_post' category.slug %}"
+                    class="btn btn-outline-primary category-btn"
+                >
+                    📁 {{ category.name }}
+                </a>
 
-        <details>
+            {% empty %}
 
-            <summary class="post-summary">
-                {{ post.title }}
-            </summary>
+                <p class="empty">
+                    No categories available.
+                </p>
 
-            <div class="post-content">
+            {% endfor %}
 
-                {% if post.excerpt %}
-                    <p>
-                        {{ post.excerpt }}
-                    </p>
-                {% endif %}
-
-                {% if post.content %}
-                    {{ post.content|safe }}
-                {% endif %}
-
-                <span class="small">
-                    {{ post.author }}
-
-                    {% if post.created_at %}
-                        • {{ post.created_at|date:"M d, Y" }}
-                    {% endif %}
-                </span>
-
-            </div>
-
-        </details>
+        </div>
 
     </div>
 
-{% empty %}
 
-    <p class="empty">
-        No blog posts available.
-    </p>
+    <!-- =========================
+         LATEST BLOG POSTS
+    ========================== -->
 
-{% endfor %}
+    <div class="list">
+
+        <h4>
+            📚 Latest Blog Posts
+        </h4>
+
+        {% for post in posts %}
+
+            <div class="item">
+
+                {% if post.image %}
+
+                    <img
+                        src="{{ post.image.url }}"
+                        alt="{{ post.title }}"
+                        class="post-image"
+                    >
+
+                {% endif %}
+
+
+                <details>
+
+                    <summary class="post-summary">
+                        {{ post.title }}
+                    </summary>
+
+
+                    <div class="post-content">
+
+                        {% if post.excerpt %}
+
+                            <p>
+                                {{ post.excerpt }}
+                            </p>
+
+                        {% endif %}
+
+
+                        {% if post.content %}
+
+                            {{ post.content|safe }}
+
+                        {% endif %}
+
+
+                        <span class="small">
+
+                            {{ post.author }}
+
+                            {% if post.created_at %}
+
+                                • {{ post.created_at|date:"M d, Y" }}
+
+                            {% endif %}
+
+                        </span>
+
+                    </div>
+
+                </details>
+
+            </div>
+
+        {% empty %}
+
+            <p class="empty">
+                No blog posts available.
+            </p>
+
+        {% endfor %}
 
     </div>
 
