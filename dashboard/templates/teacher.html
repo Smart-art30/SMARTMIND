@@ -8,361 +8,823 @@ Teacher Dashboard | SmartMind
 {% block content %}
 
 <style>
-    .teacher-dashboard {
-        width: 100%;
-        max-width: 1600px;
-        margin: 0 auto;
-        padding: 25px;
+
+/* =========================================================
+   TEACHER DASHBOARD
+========================================================= */
+
+.teacher-dashboard {
+    width: 100%;
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 25px;
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.teacher-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 28px;
+}
+
+.teacher-header h1 {
+    margin: 0;
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    color: #111827;
+}
+
+.teacher-header p {
+    margin: 6px 0 0;
+    color: #64748b;
+}
+
+.teacher-badge {
+    padding: 8px 16px;
+    border-radius: 999px;
+    background: #dbeafe;
+    color: #1d4ed8;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   STATISTICS
+========================================================= */
+
+.teacher-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+}
+
+.teacher-stat {
+    padding: 22px;
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 8px 25px rgba(15, 23, 42, .07);
+}
+
+.teacher-stat-icon {
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    background: #eff6ff;
+    margin-bottom: 14px;
+    font-size: 1.3rem;
+}
+
+.teacher-stat h3 {
+    margin: 0 0 7px;
+    color: #64748b;
+    font-size: .95rem;
+}
+
+.teacher-stat-number {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #111827;
+}
+
+
+/* =========================================================
+   SECTIONS
+========================================================= */
+
+.teacher-section {
+    margin-top: 28px;
+    padding: 24px;
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 8px 25px rgba(15, 23, 42, .07);
+}
+
+.teacher-section-header {
+    margin-bottom: 20px;
+}
+
+.teacher-section-header h2 {
+    margin: 0;
+    font-size: 1.3rem;
+    color: #111827;
+}
+
+.teacher-section-header p {
+    margin: 5px 0 0;
+    color: #64748b;
+    font-size: .92rem;
+}
+
+
+/* =========================================================
+   QUICK ACTIONS
+========================================================= */
+
+.teacher-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.teacher-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 17px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 600;
+    background: #2563eb;
+    color: white;
+    transition: .2s;
+}
+
+.teacher-action:hover {
+    background: #1d4ed8;
+    color: white;
+    transform: translateY(-2px);
+}
+
+.teacher-action.secondary {
+    background: #475569;
+}
+
+.teacher-action.secondary:hover {
+    background: #334155;
+}
+
+.teacher-action.success {
+    background: #16a34a;
+}
+
+.teacher-action.warning {
+    background: #d97706;
+}
+
+
+/* =========================================================
+   ASSIGNMENTS
+========================================================= */
+
+.assignment-list {
+    display: grid;
+    gap: 12px;
+}
+
+.assignment-item {
+    padding: 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #f8fafc;
+}
+
+.assignment-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+}
+
+.assignment-title {
+    font-weight: 700;
+    color: #111827;
+}
+
+.assignment-type {
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: #dbeafe;
+    color: #1d4ed8;
+    font-size: .75rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.assignment-meta {
+    margin-top: 8px;
+    color: #64748b;
+    font-size: .88rem;
+}
+
+
+/* =========================================================
+   BLOG CATEGORIES
+========================================================= */
+
+.category-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+}
+
+.category-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 15px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #fff;
+    color: #1f2937;
+    text-decoration: none;
+    font-weight: 700;
+    transition: .2s;
+}
+
+.category-card:hover {
+    border-color: #2563eb;
+    background: #eff6ff;
+    color: #2563eb;
+    transform: translateY(-2px);
+}
+
+
+/* =========================================================
+   BLOG POSTS GRID
+========================================================= */
+
+.posts-grid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
+    gap: 20px;
+
+    align-items: start;
+
+    transition: .25s ease;
+}
+
+
+/* =========================================================
+   NORMAL BLOG POST
+========================================================= */
+
+.blog-post {
+
+    min-width: 0;
+
+    overflow: hidden;
+
+    border: 1px solid #e5e7eb;
+
+    border-radius: 15px;
+
+    background: #fff;
+
+    box-shadow:
+        0 6px 20px rgba(15, 23, 42, .06);
+
+    transition:
+        box-shadow .25s ease,
+        transform .25s ease;
+}
+
+
+.blog-post:hover {
+
+    transform: translateY(-3px);
+
+    box-shadow:
+        0 10px 28px rgba(15, 23, 42, .10);
+}
+
+
+/* =========================================================
+   EXPANDED POST
+
+   The opened post occupies two columns.
+
+   Example:
+
+   Normal:
+
+   [ Post 1 ][ Post 2 ][ Post 3 ]
+
+   Expanded:
+
+   [     Post 1 Expanded     ][ Post 3 ]
+   [ Post 4 ][ Post 5 ][ Post 6 ]
+========================================================= */
+
+.blog-post.expanded {
+
+    grid-column: span 2;
+
+    transform: none;
+
+    box-shadow:
+        0 12px 35px rgba(15, 23, 42, .14);
+}
+
+
+.blog-post.expanded:hover {
+
+    transform: none;
+}
+
+
+/* =========================================================
+   POST IMAGE
+========================================================= */
+
+.post-image-container {
+
+    width: 100%;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    background: #f3f4f6;
+
+    overflow: hidden;
+}
+
+
+.post-image {
+
+    display: block;
+
+    width: auto;
+
+    height: auto;
+
+    max-width: 100%;
+
+    max-height: 420px;
+
+    object-fit: contain;
+
+    margin: 0 auto;
+}
+
+
+/* Bigger image when expanded */
+
+.blog-post.expanded .post-image {
+
+    max-height: 650px;
+}
+
+
+/* =========================================================
+   POST BODY
+========================================================= */
+
+.post-body {
+
+    padding: 18px;
+}
+
+
+/* =========================================================
+   DETAILS
+========================================================= */
+
+.blog-post details {
+
+    width: 100%;
+}
+
+
+/* =========================================================
+   POST SUMMARY
+========================================================= */
+
+.post-summary {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 15px;
+
+    padding: 4px 0;
+
+    list-style: none;
+
+    color: #2563eb;
+
+    font-weight: 700;
+
+    font-size: 1rem;
+
+    line-height: 1.5;
+
+    cursor: pointer;
+
+    user-select: none;
+}
+
+
+.post-summary::-webkit-details-marker {
+
+    display: none;
+}
+
+
+.post-summary::marker {
+
+    display: none;
+}
+
+
+/* =========================================================
+   EXPAND ICON
+========================================================= */
+
+.post-summary::after {
+
+    content: "＋";
+
+    flex-shrink: 0;
+
+    width: 32px;
+
+    height: 32px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: #eff6ff;
+
+    color: #2563eb;
+
+    font-size: 18px;
+
+    transition:
+        background .2s ease,
+        color .2s ease,
+        transform .2s ease;
+}
+
+
+.blog-post details[open] .post-summary::after {
+
+    content: "−";
+
+    background: #2563eb;
+
+    color: white;
+
+    transform: rotate(180deg);
+}
+
+
+/* =========================================================
+   POST CONTENT
+========================================================= */
+
+.post-content {
+
+    margin-top: 18px;
+
+    padding-top: 18px;
+
+    border-top: 1px solid #e5e7eb;
+
+    color: #374151;
+
+    line-height: 1.7;
+
+    font-size: 15px;
+
+    animation: postExpand .25s ease;
+}
+
+
+@keyframes postExpand {
+
+    from {
+
+        opacity: 0;
+
+        transform: translateY(-8px);
     }
 
-    /* HEADER */
+    to {
 
-    .teacher-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 20px;
-        margin-bottom: 28px;
+        opacity: 1;
+
+        transform: translateY(0);
     }
+}
 
-    .teacher-header h1 {
-        margin: 0;
-        font-size: clamp(1.6rem, 3vw, 2.2rem);
-        color: #111827;
-    }
 
-    .teacher-header p {
-        margin: 6px 0 0;
-        color: #64748b;
-    }
+/* =========================================================
+   POST CONTENT IMAGES
+========================================================= */
 
-    .teacher-badge {
-        padding: 8px 16px;
-        border-radius: 999px;
-        background: #dbeafe;
-        color: #1d4ed8;
-        font-weight: 700;
-        white-space: nowrap;
-    }
+.post-content img {
 
-    /* STATISTICS */
+    display: block;
+
+    max-width: 100%;
+
+    height: auto;
+
+    margin: 15px auto;
+
+    border-radius: 8px;
+}
+
+
+/* =========================================================
+   CONTENT TABLES
+========================================================= */
+
+.post-content table {
+
+    display: block;
+
+    max-width: 100%;
+
+    overflow-x: auto;
+}
+
+
+/* =========================================================
+   CONTENT IFRAMES
+========================================================= */
+
+.post-content iframe {
+
+    display: block;
+
+    width: 100%;
+
+    max-width: 100%;
+
+    min-height: 300px;
+
+    border: 0;
+
+    border-radius: 10px;
+}
+
+
+/* =========================================================
+   CONTENT VIDEO
+========================================================= */
+
+.post-content video {
+
+    display: block;
+
+    width: 100%;
+
+    max-width: 100%;
+
+    height: auto;
+
+    border-radius: 10px;
+
+    background: #000;
+
+    margin: 15px auto;
+}
+
+
+/* =========================================================
+   POST META
+========================================================= */
+
+.post-meta {
+
+    display: block;
+
+    margin-top: 18px;
+
+    padding-top: 12px;
+
+    border-top: 1px solid #e5e7eb;
+
+    color: #64748b;
+
+    font-size: .85rem;
+}
+
+
+/* =========================================================
+   EMPTY
+========================================================= */
+
+.teacher-empty {
+
+    padding: 25px;
+
+    text-align: center;
+
+    border-radius: 12px;
+
+    background: #f8fafc;
+
+    color: #64748b;
+}
+
+
+/* =========================================================
+   LARGE TABLETS
+========================================================= */
+
+@media (max-width: 1100px) {
 
     .teacher-stats {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 18px;
+
+        grid-template-columns:
+            repeat(2, 1fr);
     }
 
-    .teacher-stat {
-        padding: 22px;
-        border-radius: 18px;
-        background: #fff;
-        box-shadow: 0 8px 25px rgba(15, 23, 42, .07);
-    }
-
-    .teacher-stat-icon {
-        width: 44px;
-        height: 44px;
-        display: grid;
-        place-items: center;
-        border-radius: 12px;
-        background: #eff6ff;
-        margin-bottom: 14px;
-        font-size: 1.3rem;
-    }
-
-    .teacher-stat h3 {
-        margin: 0 0 7px;
-        color: #64748b;
-        font-size: .95rem;
-    }
-
-    .teacher-stat-number {
-        font-size: 2rem;
-        font-weight: 800;
-        color: #111827;
-    }
-
-    /* SECTIONS */
-
-    .teacher-section {
-        margin-top: 28px;
-        padding: 24px;
-        border-radius: 18px;
-        background: #fff;
-        box-shadow: 0 8px 25px rgba(15, 23, 42, .07);
-    }
-
-    .teacher-section-header {
-        margin-bottom: 20px;
-    }
-
-    .teacher-section-header h2 {
-        margin: 0;
-        font-size: 1.3rem;
-        color: #111827;
-    }
-
-    .teacher-section-header p {
-        margin: 5px 0 0;
-        color: #64748b;
-        font-size: .92rem;
-    }
-
-    /* QUICK ACTIONS */
-
-    .teacher-actions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
-    }
-
-    .teacher-action {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 11px 17px;
-        border-radius: 10px;
-        text-decoration: none;
-        font-weight: 600;
-        background: #2563eb;
-        color: white;
-        transition: .2s;
-    }
-
-    .teacher-action:hover {
-        background: #1d4ed8;
-        color: white;
-        transform: translateY(-2px);
-    }
-
-    .teacher-action.secondary {
-        background: #475569;
-    }
-
-    .teacher-action.secondary:hover {
-        background: #334155;
-    }
-
-    .teacher-action.success {
-        background: #16a34a;
-    }
-
-    .teacher-action.warning {
-        background: #d97706;
-    }
-
-    /* ASSIGNMENTS */
-
-    .assignment-list {
-        display: grid;
-        gap: 12px;
-    }
-
-    .assignment-item {
-        padding: 16px;
-        border: 1px solid #e5e7eb;
-        border-radius: 12px;
-        background: #f8fafc;
-    }
-
-    .assignment-top {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 15px;
-    }
-
-    .assignment-title {
-        font-weight: 700;
-        color: #111827;
-    }
-
-    .assignment-type {
-        padding: 5px 10px;
-        border-radius: 999px;
-        background: #dbeafe;
-        color: #1d4ed8;
-        font-size: .75rem;
-        font-weight: 700;
-        white-space: nowrap;
-    }
-
-    .assignment-meta {
-        margin-top: 8px;
-        color: #64748b;
-        font-size: .88rem;
-    }
-
-    /* CATEGORIES */
-
-    .category-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 12px;
-    }
-
-    .category-card {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 15px;
-        border: 1px solid #e5e7eb;
-        border-radius: 12px;
-        background: #fff;
-        color: #1f2937;
-        text-decoration: none;
-        font-weight: 700;
-        transition: .2s;
-    }
-
-    .category-card:hover {
-        border-color: #2563eb;
-        background: #eff6ff;
-        color: #2563eb;
-        transform: translateY(-2px);
-    }
-
-    /* BLOG */
 
     .posts-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 20px;
+
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
     }
 
-    .blog-post {
-        overflow: hidden;
-        border: 1px solid #e5e7eb;
-        border-radius: 15px;
-        background: #fff;
+
+    /*
+     * Expanded post fills the entire row
+     * on a 2-column layout.
+     */
+
+    .blog-post.expanded {
+
+        grid-column: span 2;
     }
+}
+
+
+/* =========================================================
+   TABLETS
+========================================================= */
+
+@media (max-width: 800px) {
+
+    .teacher-dashboard {
+
+        padding: 20px;
+    }
+
 
     .post-image {
-        display: block;
-        width: 100%;
-        height: 190px;
-        object-fit: cover;
+
+        max-height: 350px;
+    }
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 700px) {
+
+    .teacher-dashboard {
+
+        padding: 16px;
     }
 
-    .post-body {
+
+    .teacher-header {
+
+        flex-direction: column;
+
+        align-items: flex-start;
+    }
+
+
+    .teacher-stats {
+
+        grid-template-columns: 1fr;
+    }
+
+
+    .teacher-section {
+
         padding: 18px;
     }
 
-    .post-summary {
-        padding: 4px 0;
-        list-style: none;
-        color: #2563eb;
-        font-weight: 700;
-        cursor: pointer;
+
+    .teacher-actions {
+
+        flex-direction: column;
     }
 
-    .post-summary::-webkit-details-marker {
-        display: none;
-    }
 
-    .post-summary::after {
-        content: "＋";
-        float: right;
-        color: #64748b;
-    }
+    .teacher-action {
 
-    details[open] .post-summary::after {
-        content: "−";
-    }
-
-    .post-content {
-        margin-top: 15px;
-        color: #374151;
-        line-height: 1.7;
-    }
-
-    .post-content img {
-        max-width: 100%;
-        height: auto;
-        border-radius: 8px;
-    }
-
-    .post-content iframe {
         width: 100%;
-        max-width: 100%;
-        min-height: 300px;
-        border: 0;
+
+        justify-content: center;
     }
 
-    .post-meta {
-        display: block;
-        margin-top: 15px;
-        padding-top: 12px;
-        border-top: 1px solid #e5e7eb;
-        color: #64748b;
-        font-size: .85rem;
+
+    .category-grid {
+
+        grid-template-columns: 1fr;
     }
 
-    /* EMPTY */
 
-    .teacher-empty {
-        padding: 25px;
-        text-align: center;
-        border-radius: 12px;
-        background: #f8fafc;
-        color: #64748b;
+    /*
+     * One post per row on phones.
+     */
+
+    .posts-grid {
+
+        grid-template-columns: 1fr;
+
+        gap: 18px;
     }
 
-    /* RESPONSIVE */
 
-    @media (max-width: 1100px) {
+    /*
+     * Expanded post stays one column
+     * because there is only one column.
+     */
 
-        .teacher-stats {
-            grid-template-columns: repeat(2, 1fr);
-        }
+    .blog-post.expanded {
+
+        grid-column: span 1;
     }
 
-    @media (max-width: 700px) {
 
-        .teacher-dashboard {
-            padding: 16px;
-        }
+    .blog-post {
 
-        .teacher-header {
-            flex-direction: column;
-            align-items: flex-start;
-        }
-
-        .teacher-stats {
-            grid-template-columns: 1fr;
-        }
-
-        .teacher-section {
-            padding: 18px;
-        }
-
-        .teacher-actions {
-            flex-direction: column;
-        }
-
-        .teacher-action {
-            width: 100%;
-            justify-content: center;
-        }
-
-        .category-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .posts-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .assignment-top {
-            flex-direction: column;
-            align-items: flex-start;
-        }
+        border-radius: 14px;
     }
+
+
+    .post-image {
+
+        max-height: 400px;
+    }
+
+
+    .assignment-top {
+
+        flex-direction: column;
+
+        align-items: flex-start;
+    }
+}
+
+
+/* =========================================================
+   SMALL PHONES
+========================================================= */
+
+@media (max-width: 380px) {
+
+    .teacher-dashboard {
+
+        padding: 10px;
+    }
+
+
+    .teacher-section {
+
+        padding: 15px;
+    }
+
+
+    .post-body {
+
+        padding: 15px;
+    }
+
+
+    .post-summary {
+
+        font-size: .95rem;
+    }
+}
+
 </style>
 
 
 <div class="teacher-dashboard">
+
 
     <!-- =====================================================
          HEADER
@@ -371,6 +833,7 @@ Teacher Dashboard | SmartMind
     <div class="teacher-header">
 
         <div>
+
             <h1>
                 👨‍🏫 Welcome,
                 {{ request.user.first_name|default:request.user.username }}
@@ -380,7 +843,9 @@ Teacher Dashboard | SmartMind
                 Manage your teaching activities, learners,
                 assignments and quizzes.
             </p>
+
         </div>
+
 
         <div class="teacher-badge">
             Teacher
@@ -675,31 +1140,50 @@ Teacher Dashboard | SmartMind
 
         {% if posts %}
 
-            <div class="posts-grid">
+            <div class="posts-grid" id="teacherPostsGrid">
 
                 {% for post in posts %}
 
-                    <article class="blog-post">
+                    <article
+                        class="blog-post"
+                        data-post-id="{{ post.id }}"
+                    >
+
+
+                        <!-- POST IMAGE -->
 
                         {% if post.image %}
 
-                            <img
-                                src="{{ post.image.url }}"
-                                alt="{{ post.title }}"
-                                class="post-image"
-                            >
+                            <div class="post-image-container">
+
+                                <img
+                                    src="{{ post.image.url }}"
+                                    alt="{{ post.title }}"
+                                    class="post-image"
+                                    loading="lazy"
+                                >
+
+                            </div>
 
                         {% endif %}
 
+
+                        <!-- POST BODY -->
 
                         <div class="post-body">
 
                             <details>
 
                                 <summary class="post-summary">
-                                    {{ post.title }}
+
+                                    <span>
+                                        {{ post.title }}
+                                    </span>
+
                                 </summary>
 
+
+                                <!-- POST CONTENT -->
 
                                 <div class="post-content">
 
@@ -714,14 +1198,70 @@ Teacher Dashboard | SmartMind
 
                                     {% if post.content %}
 
-                                        {{ post.content|safe }}
+                                        <div class="rich-content">
+                                            {{ post.content|safe }}
+                                        </div>
 
                                     {% endif %}
 
 
+                                    <!-- VIDEO -->
+
+                                    {% if post.video %}
+
+                                        <video
+                                            controls
+                                            preload="metadata"
+                                        >
+
+                                            <source
+                                                src="{{ post.video.url }}"
+                                                type="video/mp4"
+                                            >
+
+                                            Your browser does not support
+                                            the video tag.
+
+                                        </video>
+
+                                    {% endif %}
+
+
+                                    <!-- YOUTUBE -->
+
+                                    {% if post.youtube_url %}
+
+                                        <div
+                                            style="
+                                                position:relative;
+                                                width:100%;
+                                                padding-bottom:56.25%;
+                                                margin-top:20px;
+                                                overflow:hidden;
+                                                border-radius:10px;
+                                                background:#000;
+                                            "
+                                        >
+
+                                            <iframe
+                                                src="https://www.youtube.com/embed/{{ post.youtube_url|slice:'8:' }}"
+                                                title="{{ post.title }}"
+                                                loading="lazy"
+                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                allowfullscreen
+                                            ></iframe>
+
+                                        </div>
+
+                                    {% endif %}
+
+
+                                    <!-- META -->
+
                                     <small class="post-meta">
 
                                         By
+
                                         <strong>
                                             {{ post.author }}
                                         </strong>
@@ -768,5 +1308,87 @@ Teacher Dashboard | SmartMind
 
 
 </div>
+
+
+<!-- =========================================================
+     POST EXPANSION
+========================================================= -->
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const posts = document.querySelectorAll(
+        "#teacherPostsGrid .blog-post"
+    );
+
+
+    posts.forEach(function (post) {
+
+        const details = post.querySelector("details");
+
+
+        if (!details) {
+            return;
+        }
+
+
+        details.addEventListener("toggle", function () {
+
+            /*
+             * When a post is opened,
+             * close all other posts.
+             */
+
+            if (details.open) {
+
+                posts.forEach(function (otherPost) {
+
+                    if (otherPost !== post) {
+
+                        const otherDetails =
+                            otherPost.querySelector("details");
+
+
+                        if (otherDetails) {
+
+                            otherDetails.removeAttribute("open");
+
+                        }
+
+
+                        otherPost.classList.remove("expanded");
+
+                    }
+
+                });
+
+
+                /*
+                 * Make the selected post
+                 * occupy two columns.
+                 */
+
+                post.classList.add("expanded");
+
+
+            } else {
+
+                /*
+                 * Return it to its
+                 * normal single column.
+                 */
+
+                post.classList.remove("expanded");
+
+            }
+
+        });
+
+    });
+
+});
+
+</script>
 
 {% endblock %}

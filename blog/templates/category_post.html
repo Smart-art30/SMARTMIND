@@ -9,62 +9,97 @@
 
 <div class="category-page">
 
-    <!-- CATEGORY HEADER -->
+    <!-- =====================================================
+         CATEGORY HEADER
+    ====================================================== -->
+
     <div class="category-header">
 
         <div class="category-title">
+
             <div class="category-icon">
                 <i class="bi bi-folder2-open"></i>
             </div>
 
             <div>
-                <h1>{{ category.name }}</h1>
-                <p>Posts and learning resources in this category.</p>
+
+                <h1>
+                    {{ category.name }}
+                </h1>
+
+                <p>
+                    Posts and learning resources in this category.
+                </p>
+
             </div>
+
         </div>
 
     </div>
 
 
-    <!-- ALL CATEGORIES -->
+    <!-- =====================================================
+         ALL CATEGORIES
+    ====================================================== -->
+
     {% if categories %}
-    <div class="categories-section">
 
-        <div class="section-label">
-            <i class="bi bi-collection"></i>
-            Browse Categories
+        <div class="categories-section">
+
+            <div class="section-label">
+
+                <i class="bi bi-collection"></i>
+
+                Browse Categories
+
+            </div>
+
+
+            <div class="categories">
+
+                {% for cat in categories %}
+
+                    <a
+                        href="{% url 'blog:category_posts' cat.slug %}"
+                        class="category-chip {% if cat.id == category.id %}active{% endif %}"
+                    >
+
+                        <i class="bi bi-folder"></i>
+
+                        <span>
+                            {{ cat.name }}
+                        </span>
+
+                    </a>
+
+                {% endfor %}
+
+            </div>
+
         </div>
 
-        <div class="categories">
-
-            {% for cat in categories %}
-
-                <a
-                    href="{% url 'blog:category_posts' cat.slug %}"
-                    class="category-chip {% if cat.id == category.id %}active{% endif %}"
-                >
-                    <i class="bi bi-folder"></i>
-                    <span>{{ cat.name }}</span>
-                </a>
-
-            {% endfor %}
-
-        </div>
-
-    </div>
     {% endif %}
 
 
-    <!-- POSTS -->
-    <div class="posts">
+    <!-- =====================================================
+         POSTS
+    ====================================================== -->
 
-        {% if posts %}
+    {% if posts %}
+
+        <div class="posts" id="postsGrid">
 
             {% for post in posts %}
 
-                <article class="post">
+                <article
+                    class="post"
+                    data-post-id="{{ post.id }}"
+                >
 
-                    <!-- POST IMAGE -->
+                    <!-- =====================================
+                         POST IMAGE
+                    ====================================== -->
+
                     {% if post.image %}
 
                         <div class="post-image-container">
@@ -81,10 +116,15 @@
                     {% endif %}
 
 
-                    <!-- POST BODY -->
+                    <!-- =====================================
+                         POST BODY
+                    ====================================== -->
+
                     <div class="post-body">
 
                         <details>
+
+                            <!-- POST TITLE -->
 
                             <summary>
 
@@ -99,7 +139,10 @@
                             </summary>
 
 
-                            <!-- POST CONTENT -->
+                            <!-- =================================
+                                 POST CONTENT
+                            ================================== -->
+
                             <div class="post-content">
 
                                 {% if post.excerpt %}
@@ -120,7 +163,10 @@
                                 {% endif %}
 
 
-                                <!-- VIDEO -->
+                                <!-- =================================
+                                     VIDEO
+                                ================================== -->
+
                                 {% if post.video %}
 
                                     <div class="video-wrapper">
@@ -130,12 +176,14 @@
                                             class="post-video"
                                             preload="metadata"
                                         >
+
                                             <source
                                                 src="{{ post.video.url }}"
                                                 type="video/mp4"
                                             >
 
-                                            Your browser does not support the video tag.
+                                            Your browser does not support
+                                            the video tag.
 
                                         </video>
 
@@ -144,7 +192,10 @@
                                 {% endif %}
 
 
-                                <!-- YOUTUBE -->
+                                <!-- =================================
+                                     YOUTUBE
+                                ================================== -->
+
                                 {% if post.youtube_url %}
 
                                     <div class="youtube-container">
@@ -154,29 +205,43 @@
                                             title="{{ post.title }}"
                                             loading="lazy"
                                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                            allowfullscreen
-                                        ></iframe>
+                                            allowfullscreen>
+                                        </iframe>
 
                                     </div>
 
                                 {% endif %}
 
 
-                                <!-- META -->
+                                <!-- =================================
+                                     META
+                                ================================== -->
+
                                 <div class="meta">
 
                                     {% if post.author %}
+
                                         <span>
+
                                             <i class="bi bi-person"></i>
+
                                             {{ post.author }}
+
                                         </span>
+
                                     {% endif %}
 
+
                                     {% if post.created_at %}
+
                                         <span>
+
                                             <i class="bi bi-calendar3"></i>
+
                                             {{ post.created_at|date:"d M Y" }}
+
                                         </span>
+
                                     {% endif %}
 
                                 </div>
@@ -191,30 +256,34 @@
 
             {% endfor %}
 
+        </div>
 
-        {% else %}
+    {% else %}
 
-            <!-- EMPTY STATE -->
-            <div class="empty">
+        <!-- =================================================
+             EMPTY STATE
+        ================================================== -->
 
-                <div class="empty-icon">
-                    <i class="bi bi-folder-x"></i>
-                </div>
+        <div class="empty">
 
-                <h3>
-                    No posts in this category yet.
-                </h3>
+            <div class="empty-icon">
 
-                <p>
-                    There are currently no posts under
-                    <strong>{{ category.name }}</strong>.
-                </p>
+                <i class="bi bi-folder-x"></i>
 
             </div>
 
-        {% endif %}
+            <h3>
+                No posts in this category yet.
+            </h3>
 
-    </div>
+            <p>
+                There are currently no posts under
+                <strong>{{ category.name }}</strong>.
+            </p>
+
+        </div>
+
+    {% endif %}
 
 </div>
 
@@ -225,14 +294,12 @@
    GLOBAL
 ========================================================= */
 
-* {
-    box-sizing: border-box;
-}
-
 .category-page {
     width: 100%;
-    max-width: 1100px;
+    max-width: 1200px;
+
     margin: 35px auto 60px;
+
     padding: 0 20px;
 }
 
@@ -242,88 +309,126 @@
 ========================================================= */
 
 .category-header {
+
     background: #ffffff;
+
     border-radius: 18px;
+
     padding: 28px 30px;
-    margin-bottom: 24px;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.07);
+
+    margin-bottom: 25px;
+
+    box-shadow:
+        0 8px 25px rgba(0, 0, 0, 0.07);
+
     border: 1px solid #eef0f3;
 }
 
+
 .category-title {
+
     display: flex;
+
     align-items: center;
+
     gap: 18px;
 }
 
+
 .category-icon {
+
     width: 58px;
     height: 58px;
+
     flex-shrink: 0;
 
     display: flex;
+
     align-items: center;
     justify-content: center;
 
     border-radius: 15px;
 
     background: #eff6ff;
+
     color: #2563eb;
 
     font-size: 27px;
 }
 
+
 .category-header h1 {
+
     margin: 0 0 5px;
 
     font-size: 30px;
+
     line-height: 1.2;
 
     color: #111827;
 }
 
+
 .category-header p {
+
     margin: 0;
 
     color: #6b7280;
+
     font-size: 15px;
 }
 
 
 /* =========================================================
-   CATEGORY SECTION
+   CATEGORIES
 ========================================================= */
 
 .categories-section {
+
     margin-bottom: 28px;
 }
 
+
 .section-label {
+
     display: flex;
+
     align-items: center;
+
     gap: 7px;
 
     margin-bottom: 12px;
 
     font-size: 14px;
+
     font-weight: 700;
 
     color: #4b5563;
 }
 
+
 .section-label i {
+
     color: #2563eb;
 }
 
+
 .categories {
+
     display: flex;
+
     flex-wrap: wrap;
+
     gap: 9px;
 }
 
+
 .category-chip {
+
     display: inline-flex;
+
     align-items: center;
+
     gap: 7px;
 
     padding: 9px 15px;
@@ -339,6 +444,7 @@
     text-decoration: none;
 
     font-size: 14px;
+
     font-weight: 600;
 
     transition:
@@ -348,34 +454,52 @@
         transform .2s ease;
 }
 
+
 .category-chip:hover {
+
     background: #eff6ff;
+
     border-color: #bfdbfe;
+
     color: #2563eb;
+
     transform: translateY(-1px);
 }
 
-.category-chip.active {
-    background: #2563eb;
-    border-color: #2563eb;
-    color: #ffffff;
-}
 
-.category-chip i {
-    font-size: 14px;
+.category-chip.active {
+
+    background: #2563eb;
+
+    border-color: #2563eb;
+
+    color: #ffffff;
 }
 
 
 /* =========================================================
-   POSTS
+   POSTS GRID
 ========================================================= */
 
 .posts {
+
     display: grid;
+
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
     gap: 22px;
+
+    align-items: start;
 }
 
+
+/* =========================================================
+   NORMAL POST
+========================================================= */
+
 .post {
+
     background: #ffffff;
 
     border-radius: 18px;
@@ -384,35 +508,56 @@
 
     border: 1px solid #eef0f3;
 
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.07);
+    box-shadow:
+        0 8px 25px rgba(0, 0, 0, 0.07);
+
+    min-width: 0;
 
     transition:
-        transform .2s ease,
-        box-shadow .2s ease;
+        transform .25s ease,
+        box-shadow .25s ease;
 }
 
+
 .post:hover {
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.10);
+
+    transform: translateY(-3px);
+
+    box-shadow:
+        0 12px 30px rgba(0, 0, 0, 0.10);
+}
+
+
+/* =========================================================
+   EXPANDED POST
+
+   The opened post occupies two columns.
+========================================================= */
+
+.post.expanded {
+
+    grid-column: span 2;
+
+    transform: none;
+}
+
+
+.post.expanded:hover {
+
+    transform: none;
 }
 
 
 /* =========================================================
    POST IMAGE
-
-   IMPORTANT:
-   The image is NOT forced into a fixed aspect ratio.
-   Therefore:
-   - portrait images remain portrait
-   - landscape images remain landscape
-   - square images remain square
-   - no distortion
-   - no unnecessary cropping
 ========================================================= */
 
 .post-image-container {
+
     width: 100%;
 
     display: flex;
+
     justify-content: center;
     align-items: center;
 
@@ -421,19 +566,33 @@
     overflow: hidden;
 }
 
+
 .post-image {
+
     display: block;
 
     width: auto;
     height: auto;
 
     max-width: 100%;
+
     max-height: 520px;
 
     object-fit: contain;
+
     object-position: center;
 
     margin: 0 auto;
+}
+
+
+/* =========================================================
+   EXPANDED IMAGE
+========================================================= */
+
+.post.expanded .post-image {
+
+    max-height: 650px;
 }
 
 
@@ -442,22 +601,31 @@
 ========================================================= */
 
 .post-body {
+
     padding: 22px 24px;
 }
 
 
 /* =========================================================
-   COLLAPSIBLE TITLE
+   DETAILS
 ========================================================= */
 
 .post details {
+
     width: 100%;
 }
 
+
+/* =========================================================
+   SUMMARY
+========================================================= */
+
 .post summary {
+
     display: flex;
 
     align-items: center;
+
     justify-content: space-between;
 
     gap: 15px;
@@ -469,6 +637,7 @@
     color: #111827;
 
     font-size: 20px;
+
     font-weight: 700;
 
     line-height: 1.4;
@@ -476,25 +645,40 @@
     user-select: none;
 }
 
+
 .post summary::-webkit-details-marker {
+
     display: none;
 }
+
 
 .post summary::marker {
+
     display: none;
 }
 
+
 .post-title {
+
     flex: 1;
+
+    min-width: 0;
 }
 
+
+/* =========================================================
+   EXPAND ICON
+========================================================= */
+
 .expand-icon {
-    width: 34px;
-    height: 34px;
+
+    width: 36px;
+    height: 36px;
 
     flex-shrink: 0;
 
     display: flex;
+
     align-items: center;
     justify-content: center;
 
@@ -507,17 +691,19 @@
     font-size: 15px;
 
     transition:
-        transform .2s ease,
-        background .2s ease;
+        background .2s ease,
+        color .2s ease,
+        transform .2s ease;
 }
+
 
 .post details[open] .expand-icon {
-    background: #2563eb;
-    color: #ffffff;
-}
 
-.post details[open] .expand-icon i::before {
-    content: "\f2ea";
+    background: #2563eb;
+
+    color: #ffffff;
+
+    transform: rotate(180deg);
 }
 
 
@@ -526,6 +712,7 @@
 ========================================================= */
 
 .post-content {
+
     padding-top: 22px;
 
     color: #374151;
@@ -533,9 +720,35 @@
     line-height: 1.8;
 
     font-size: 16px;
+
+    animation: expandPost .25s ease;
 }
 
+
+@keyframes expandPost {
+
+    from {
+
+        opacity: 0;
+
+        transform: translateY(-8px);
+    }
+
+    to {
+
+        opacity: 1;
+
+        transform: translateY(0);
+    }
+}
+
+
+/* =========================================================
+   EXCERPT
+========================================================= */
+
 .excerpt {
+
     margin: 0 0 18px;
 
     padding: 14px 16px;
@@ -551,18 +764,23 @@
 
 
 /* =========================================================
-   RICH TEXT CONTENT
+   RICH CONTENT
 ========================================================= */
 
 .rich-content {
+
     overflow-wrap: anywhere;
+
     word-break: normal;
 }
 
+
 .rich-content img {
+
     display: block;
 
     max-width: 100%;
+
     height: auto;
 
     margin: 18px auto;
@@ -570,18 +788,27 @@
     border-radius: 10px;
 }
 
+
 .rich-content iframe {
+
     max-width: 100%;
 }
 
+
 .rich-content table {
-    width: 100%;
+
+    display: block;
+
     max-width: 100%;
+
     overflow-x: auto;
 }
 
+
 .rich-content pre {
+
     max-width: 100%;
+
     overflow-x: auto;
 }
 
@@ -591,15 +818,20 @@
 ========================================================= */
 
 .video-wrapper {
+
     width: 100%;
+
     margin: 25px auto;
 }
 
+
 .post-video {
+
     display: block;
 
     width: 100%;
-    max-width: 850px;
+
+    max-width: 900px;
 
     height: auto;
 
@@ -616,6 +848,7 @@
 ========================================================= */
 
 .youtube-container {
+
     position: relative;
 
     width: 100%;
@@ -631,7 +864,9 @@
     background: #000;
 }
 
+
 .youtube-container iframe {
+
     position: absolute;
 
     inset: 0;
@@ -648,6 +883,7 @@
 ========================================================= */
 
 .meta {
+
     display: flex;
 
     flex-wrap: wrap;
@@ -657,6 +893,7 @@
     gap: 15px;
 
     margin-top: 25px;
+
     padding-top: 15px;
 
     border-top: 1px solid #e5e7eb;
@@ -666,7 +903,9 @@
     font-size: 13px;
 }
 
+
 .meta span {
+
     display: inline-flex;
 
     align-items: center;
@@ -674,16 +913,19 @@
     gap: 6px;
 }
 
+
 .meta i {
+
     color: #2563eb;
 }
 
 
 /* =========================================================
-   EMPTY
+   EMPTY STATE
 ========================================================= */
 
 .empty {
+
     background: #ffffff;
 
     padding: 60px 25px;
@@ -694,18 +936,22 @@
 
     border: 1px solid #eef0f3;
 
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
+    box-shadow:
+        0 8px 25px rgba(0, 0, 0, 0.06);
 
     color: #6b7280;
 }
 
+
 .empty-icon {
+
     width: 65px;
     height: 65px;
 
     margin: 0 auto 18px;
 
     display: flex;
+
     align-items: center;
     justify-content: center;
 
@@ -718,7 +964,9 @@
     font-size: 28px;
 }
 
+
 .empty h3 {
+
     margin: 0 0 8px;
 
     color: #374151;
@@ -726,10 +974,33 @@
     font-size: 20px;
 }
 
+
 .empty p {
+
     margin: 0;
 
     font-size: 15px;
+}
+
+
+/* =========================================================
+   LARGE TABLETS
+========================================================= */
+
+@media (max-width: 1100px) {
+
+    .posts {
+
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+
+    .post.expanded {
+
+        grid-column: span 2;
+    }
+
 }
 
 
@@ -740,11 +1011,15 @@
 @media (max-width: 800px) {
 
     .category-page {
+
         margin-top: 25px;
+
         padding: 0 15px;
     }
 
+
     .post-image {
+
         max-height: 450px;
     }
 
@@ -758,21 +1033,31 @@
 @media (max-width: 600px) {
 
     .category-page {
+
         margin-top: 18px;
+
         padding: 0 10px;
     }
 
+
     .category-header {
+
         padding: 20px;
+
         border-radius: 15px;
     }
 
+
     .category-title {
+
         align-items: flex-start;
+
         gap: 13px;
     }
 
+
     .category-icon {
+
         width: 45px;
         height: 45px;
 
@@ -781,62 +1066,98 @@
         font-size: 21px;
     }
 
+
     .category-header h1 {
+
         font-size: 23px;
     }
 
+
     .category-header p {
+
         font-size: 14px;
+
         line-height: 1.5;
     }
 
-    .categories {
-        gap: 7px;
-    }
 
     .category-chip {
+
         padding: 8px 12px;
+
         font-size: 13px;
     }
 
+
+    /* One post per row on phones */
+
+    .posts {
+
+        grid-template-columns: 1fr;
+
+        gap: 18px;
+    }
+
+
+    .post.expanded {
+
+        grid-column: span 1;
+    }
+
+
     .post {
+
         border-radius: 14px;
     }
 
-    /*
-       On phones we still don't force an aspect ratio.
-       Portrait images remain portrait.
-    */
+
     .post-image-container {
+
         max-height: 450px;
     }
+
 
     .post-image {
+
         max-width: 100%;
+
         max-height: 450px;
     }
 
+
     .post-body {
+
         padding: 17px;
     }
 
+
     .post summary {
+
         font-size: 17px;
     }
 
+
     .expand-icon {
-        width: 30px;
-        height: 30px;
+
+        width: 31px;
+        height: 31px;
+
         font-size: 13px;
     }
 
+
     .post-content {
+
         padding-top: 18px;
+
         font-size: 15px;
+
         line-height: 1.7;
     }
 
+
     .meta {
+
         gap: 10px;
     }
 
@@ -850,22 +1171,31 @@
 @media (max-width: 380px) {
 
     .category-page {
+
         padding: 0 8px;
     }
 
+
     .category-header {
+
         padding: 17px;
     }
 
+
     .category-header h1 {
+
         font-size: 21px;
     }
 
+
     .post-body {
+
         padding: 15px;
     }
 
+
     .post summary {
+
         font-size: 16px;
     }
 
@@ -873,4 +1203,87 @@
 
 </style>
 
+
+<!-- =========================================================
+     POST EXPANSION SCRIPT
+========================================================= -->
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const posts = document.querySelectorAll(".post");
+
+
+    posts.forEach(function (post) {
+
+        const details = post.querySelector("details");
+
+
+        if (!details) {
+            return;
+        }
+
+
+        details.addEventListener("toggle", function () {
+
+
+            /*
+             * When this post opens,
+             * close every other post.
+             */
+
+            if (details.open) {
+
+
+                posts.forEach(function (otherPost) {
+
+                    if (otherPost !== post) {
+
+                        const otherDetails =
+                            otherPost.querySelector("details");
+
+
+                        if (otherDetails) {
+
+                            otherDetails.removeAttribute("open");
+
+                        }
+
+
+                        otherPost.classList.remove("expanded");
+
+                    }
+
+                });
+
+
+                /*
+                 * Make this post occupy
+                 * two grid columns.
+                 */
+
+                post.classList.add("expanded");
+
+
+            } else {
+
+                /*
+                 * Return the post to
+                 * normal width.
+                 */
+
+                post.classList.remove("expanded");
+
+            }
+
+        });
+
+    });
+
+});
+
+</script>
+
 {% endblock %}
+
