@@ -1,8 +1,10 @@
 {% extends "base.html" %}
 
+
 {% block title %}
     {{ category.name }} - Learning Blog
 {% endblock %}
+
 
 {% block content %}
 
@@ -16,13 +18,14 @@
         </p>
     </header>
 
+
     {% if posts %}
 
         <section class="posts-grid" aria-label="Posts in {{ category.name }}">
 
             {% for post in posts %}
 
-                <article class="post-card">
+                <article class="post-card" id="post-{{ post.pk }}">
 
                     <h2 class="post-title">
                         {{ post.title }}
@@ -32,22 +35,82 @@
                         {{ post.created_at|date:"M d, Y" }}
                     </p>
 
+
                     <div class="post-excerpt">
                         {{ post.content|truncatewords:25|safe }}
                     </div>
 
-                    <a
-                        href="{% url 'blog:post_detail' post.slug %}"
+
+                    <!-- COLLAPSE BUTTON -->
+                    <button
+                        type="button"
                         class="read-more"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#post-content-{{ post.pk }}"
+                        aria-expanded="false"
+                        aria-controls="post-content-{{ post.pk }}"
                     >
-                        Read More →
-                    </a>
+                        Show content →
+                    </button>
+
+
+                    <!-- FULL POST CONTENT -->
+                    <div
+                        class="collapse post-full-content"
+                        id="post-content-{{ post.pk }}"
+                    >
+
+                        <hr>
+
+                        <div class="post-content">
+                            {{ post.content|safe }}
+                        </div>
+
+
+                        {% if post.image %}
+                            <img
+                                src="{{ post.image.url }}"
+                                class="post-image"
+                                alt="{{ post.title }}"
+                            >
+                        {% endif %}
+
+
+                        {% if post.video %}
+                            <video
+                                controls
+                                class="post-video"
+                            >
+                                <source
+                                    src="{{ post.video.url }}"
+                                    type="video/mp4"
+                                >
+                                Your browser does not support the video tag.
+                            </video>
+                        {% endif %}
+
+
+                        {% if post.youtube_url %}
+                            <div class="youtube-container">
+
+                                <iframe
+                                    class="youtube-video"
+                                    src="https://www.youtube.com/embed/{{ post.youtube_url|slice:'8:' }}"
+                                    frameborder="0"
+                                    allowfullscreen
+                                ></iframe>
+
+                            </div>
+                        {% endif %}
+
+                    </div>
 
                 </article>
 
             {% endfor %}
 
         </section>
+
 
     {% else %}
 
@@ -59,18 +122,15 @@
 
 </div>
 
+
 <style>
-    /*
-    ==========================
-       Global sizing rules
-    ==========================
-    */
 
     *,
     *::before,
     *::after {
         box-sizing: border-box;
     }
+
 
     html,
     body {
@@ -80,11 +140,6 @@
         overflow-x: hidden;
     }
 
-    /*
-    ==========================
-       Full-width category page
-    ==========================
-    */
 
     .category-page {
         width: 100%;
@@ -93,10 +148,12 @@
         padding: 24px;
     }
 
+
     .category-header {
         width: 100%;
         margin-bottom: 25px;
     }
+
 
     .category-header h1 {
         margin: 0 0 10px;
@@ -106,17 +163,13 @@
         overflow-wrap: anywhere;
     }
 
+
     .post-count {
         margin: 0;
         color: #6c757d;
         font-size: 1rem;
     }
 
-    /*
-    ==========================
-       Responsive post grid
-    ==========================
-    */
 
     .posts-grid {
         display: grid;
@@ -128,11 +181,6 @@
         gap: 20px;
     }
 
-    /*
-    ==========================
-       Post card
-    ==========================
-    */
 
     .post-card {
         width: 100%;
@@ -144,6 +192,7 @@
         overflow: hidden;
     }
 
+
     .post-title {
         margin: 0 0 8px;
         color: #212529;
@@ -153,11 +202,13 @@
         word-break: break-word;
     }
 
+
     .post-date {
         margin: 0 0 15px;
         color: #6c757d;
         font-size: 0.9rem;
     }
+
 
     .post-excerpt {
         color: #343a40;
@@ -166,13 +217,50 @@
         word-break: break-word;
     }
 
-    /*
-    ==========================
-       Responsive images
-    ==========================
-    */
 
-    .post-excerpt img {
+    .read-more {
+        display: inline-block;
+        margin-top: 15px;
+        padding: 10px 18px;
+        color: #ffffff;
+        background: #0d6efd;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        transition: 0.2s ease;
+    }
+
+
+    .read-more:hover {
+        background: #0b5ed7;
+        color: #ffffff;
+    }
+
+
+    .post-full-content {
+        margin-top: 15px;
+        color: #343a40;
+        line-height: 1.7;
+    }
+
+
+    .post-full-content hr {
+        margin: 15px 0;
+        border: 0;
+        border-top: 1px solid #dee2e6;
+    }
+
+
+    .post-content {
+        width: 100%;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+    }
+
+
+    .post-content img {
         display: block;
         width: 100%;
         max-width: 100%;
@@ -182,22 +270,16 @@
         object-fit: contain;
     }
 
-    /*
-    ==========================
-       Other wide content
-    ==========================
-    */
 
-    .post-excerpt iframe,
-    .post-excerpt video,
-    .post-excerpt canvas,
-    .post-excerpt table {
-        display: block;
+    .post-content iframe,
+    .post-content video,
+    .post-content canvas,
+    .post-content table {
         max-width: 100%;
-        height: auto;
     }
 
-    .post-excerpt pre {
+
+    .post-content pre {
         max-width: 100%;
         padding: 10px;
         overflow-x: auto;
@@ -207,33 +289,46 @@
         border-radius: 6px;
     }
 
-    .post-excerpt a {
-        overflow-wrap: anywhere;
-    }
 
-    /*
-    ==========================
-       Read-more link
-    ==========================
-    */
-
-    .read-more {
-        display: inline-block;
+    .post-image {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        height: auto;
         margin-top: 15px;
-        color: #0d6efd;
-        font-weight: 600;
-        text-decoration: none;
+        border-radius: 8px;
     }
 
-    .read-more:hover {
-        text-decoration: underline;
+
+    .post-video {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        height: auto;
+        margin-top: 15px;
+        border-radius: 8px;
     }
 
-    /*
-    ==========================
-       Empty category message
-    ==========================
-    */
+
+    .youtube-container {
+        position: relative;
+        width: 100%;
+        padding-bottom: 56.25%;
+        margin-top: 15px;
+        overflow: hidden;
+        border-radius: 8px;
+    }
+
+
+    .youtube-video {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border: 0;
+    }
+
 
     .empty-message {
         width: 100%;
@@ -244,13 +339,9 @@
         border-radius: 8px;
     }
 
-    /*
-    ==========================
-       Tablet screens
-    ==========================
-    */
 
     @media (max-width: 768px) {
+
         .category-page {
             padding: 18px;
         }
@@ -262,15 +353,12 @@
         .post-card {
             padding: 16px;
         }
+
     }
 
-    /*
-    ==========================
-       Mobile screens
-    ==========================
-    */
 
     @media (max-width: 576px) {
+
         .category-page {
             padding: 12px;
         }
@@ -287,7 +375,15 @@
         .post-title {
             font-size: 1.15rem;
         }
+
+        .read-more {
+            width: 100%;
+            text-align: center;
+        }
+
     }
+
 </style>
+
 
 {% endblock %}

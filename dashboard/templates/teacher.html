@@ -1,469 +1,885 @@
 {% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Teacher Dashboard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-      background: #f4f7fb;
-    }
+    <title>Student Dashboard | SmartMind</title>
 
-    .top-nav {
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-      height: 68px;
-      background: #111827;
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 20px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.12);
-    }
+    <style>
+        * {
+            box-sizing: border-box;
+        }
 
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 1.2rem;
-      font-weight: 700;
-      white-space: nowrap;
-    }
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --dark: #111827;
+            --dark-light: #1f2937;
+            --text: #1f2937;
+            --muted: #64748b;
+            --border: #e5e7eb;
+            --background: #f4f7fb;
+            --white: #ffffff;
+        }
 
-    .brand-badge {
-      width: 38px;
-      height: 38px;
-      border-radius: 12px;
-      background: #2563eb;
-      display: grid;
-      place-items: center;
-      font-weight: 800;
-      flex-shrink: 0;
-    }
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont,
+                "Segoe UI", Roboto, sans-serif;
+            background: var(--background);
+            color: var(--text);
+        }
 
-    .nav-links {
-      display: flex;
-      align-items: center;
-      gap: 18px;
-      flex-wrap: wrap;
-    }
+        a {
+            color: inherit;
+        }
 
-    .nav-links a {
-      color: #cbd5e1;
-      text-decoration: none;
-      font-weight: 500;
-      padding: 8px 10px;
-      border-radius: 8px;
-    }
+        button,
+        a {
+            -webkit-tap-highlight-color: transparent;
+        }
 
-    .nav-links a:hover {
-      background: #1f2937;
-      color: white;
-    }
+        /* Top navigation */
 
-    .nav-actions {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
+        .top-nav {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            min-height: 68px;
+            padding: 10px 20px;
 
-    .nav-user {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      color: #e5e7eb;
-      font-weight: 600;
-    }
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
 
-    .avatar {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: #2563eb;
-      display: grid;
-      place-items: center;
-      color: white;
-      font-weight: 700;
-      flex-shrink: 0;
-    }
+            background: var(--dark);
+            color: white;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+        }
 
-    .btn-pill {
-      display: inline-block;
-      padding: 10px 16px;
-      border-radius: 999px;
-      border: 1px solid #334155;
-      color: white;
-      text-decoration: none;
-      background: transparent;
-      font-weight: 600;
-      cursor: pointer;
-    }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
 
-    .btn-pill:hover {
-      background: #2563eb;
-      border-color: #2563eb;
-    }
+            font-size: 1.2rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
 
-    .layout {
-      display: flex;
-      min-height: calc(100vh - 68px);
-    }
+        .brand-badge {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
 
-    /* SIDEBAR */
-    .sidebar {
-      width: 250px;
-      background: #111827;
-      color: white;
-      padding: 20px;
-    }
+            display: grid;
+            place-items: center;
 
-    .sidebar h2 {
-      margin-bottom: 30px;
-    }
+            background: var(--primary);
+            font-weight: 800;
+        }
 
-    .sidebar a {
-      display: block;
-      color: #cbd5e1;
-      text-decoration: none;
-      margin: 10px 0;
-      padding: 10px;
-      border-radius: 8px;
-    }
+        .nav-links {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            flex: 1;
+        }
 
-    .sidebar a:hover {
-      background: #1f2937;
-      color: white;
-    }
+        .nav-links a {
+            padding: 8px 10px;
+            border-radius: 8px;
 
-    .logout-btn {
-      display: block;
-      width: 100%;
-      background: none;
-      border: none;
-      color: #cbd5e1;
-      text-align: left;
-      padding: 10px;
-      border-radius: 8px;
-      cursor: pointer;
-      font: inherit;
-    }
+            color: #cbd5e1;
+            text-decoration: none;
+            font-weight: 500;
+            transition: 0.2s ease;
+        }
 
-    .logout-btn:hover {
-      background: #1f2937;
-      color: white;
-    }
+        .nav-links a:hover {
+            background: var(--dark-light);
+            color: white;
+        }
 
-    /* MAIN */
-    .main {
-      flex: 1;
-      padding: 30px;
-    }
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
 
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 30px;
-    }
+        .nav-user {
+            display: flex;
+            align-items: center;
+            gap: 9px;
 
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 20px;
-    }
+            color: #e5e7eb;
+            font-weight: 600;
+        }
 
-    .card {
-      background: white;
-      padding: 20px;
-      border-radius: 16px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-    }
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
 
-    .card h3 {
-      margin: 0 0 10px;
-    }
+            display: grid;
+            place-items: center;
 
-    .card p {
-      font-size: 24px;
-      font-weight: bold;
-    }
+            background: var(--primary);
+            color: white;
+            font-weight: 700;
+        }
 
-    .section {
-      margin-top: 40px;
-      background: white;
-      padding: 20px;
-      border-radius: 16px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-    }
+        .btn-pill {
+            display: inline-block;
+            padding: 9px 15px;
 
-    @media (max-width: 768px) {
-      .top-nav {
-        flex-direction: column;
-        height: auto;
-        padding: 12px 16px;
-        gap: 10px;
-      }
+            border: 1px solid #334155;
+            border-radius: 999px;
 
-      .nav-links,
-      .nav-actions {
-        width: 100%;
-        justify-content: center;
-        flex-wrap: wrap;
-      }
+            background: transparent;
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
 
-      .sidebar {
-        display: none;
-      }
+        .btn-pill:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
 
-      .main {
-        padding: 16px;
-      }
+        /* Main layout */
 
-      .header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-      }
-    }
+        .layout {
+            display: flex;
+            min-height: calc(100vh - 68px);
+        }
 
-    .btn{
-      display:inline-block;
-      padding:12px 18px;
-      margin-right:10px;
-      background:#2563eb;
-      color:white;
-      text-decoration:none;
-      border-radius:8px;
-      font-weight:600;
-    }
+        /* Sidebar */
 
-    .btn:hover{
-      background:#1d4ed8;
-    }
-  </style>
+        .sidebar {
+            width: 250px;
+            flex-shrink: 0;
+            padding: 22px 18px;
+
+            background: var(--dark);
+            color: white;
+        }
+
+        .sidebar h2 {
+            margin: 0 0 25px;
+            font-size: 1.25rem;
+        }
+
+        .sidebar a {
+            display: block;
+            margin: 7px 0;
+            padding: 11px 12px;
+
+            border-radius: 8px;
+            color: #cbd5e1;
+            text-decoration: none;
+            transition: 0.2s ease;
+        }
+
+        .sidebar a:hover,
+        .sidebar a.active {
+            background: var(--dark-light);
+            color: white;
+        }
+
+        .logout-btn {
+            display: block;
+            width: 100%;
+            padding: 11px 12px;
+
+            border: none;
+            border-radius: 8px;
+
+            background: transparent;
+            color: #cbd5e1;
+            text-align: left;
+            font: inherit;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+        .logout-btn:hover {
+            background: var(--dark-light);
+            color: white;
+        }
+
+        /* Main content */
+
+        .main {
+            flex: 1;
+            min-width: 0;
+            padding: 30px;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 28px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 1.8rem;
+            color: var(--dark);
+        }
+
+        .role-badge {
+            padding: 7px 14px;
+            border-radius: 999px;
+
+            background: #dbeafe;
+            color: #1d4ed8;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        /* Statistic cards */
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 18px;
+            margin-bottom: 25px;
+        }
+
+        .card {
+            padding: 20px;
+            border-radius: 16px;
+
+            background: var(--white);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+        }
+
+        .card h3 {
+            margin: 0 0 10px;
+            color: #475569;
+            font-size: 1rem;
+        }
+
+        .card p {
+            margin: 0;
+            color: var(--dark);
+            font-size: 28px;
+            font-weight: 800;
+        }
+
+        /* Sections */
+
+        .section {
+            margin-top: 25px;
+            padding: 22px;
+            border-radius: 16px;
+
+            background: var(--white);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+        }
+
+        .section h2 {
+            margin: 0 0 18px;
+            color: var(--dark);
+            font-size: 1.25rem;
+        }
+
+        /* Buttons and actions */
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 11px 17px;
+            border-radius: 8px;
+
+            background: var(--primary);
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.2s ease;
+        }
+
+        .btn:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn.secondary {
+            background: #475569;
+        }
+
+        .btn.secondary:hover {
+            background: #334155;
+        }
+
+        /* Assignments */
+
+        .assignment-item {
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .assignment-item:first-of-type {
+            padding-top: 0;
+        }
+
+        .assignment-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .assignment-item strong {
+            color: var(--dark);
+        }
+
+        .assignment-meta {
+            margin-top: 5px;
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        /* Blog posts */
+
+        .posts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .blog-post {
+            overflow: hidden;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: white;
+            transition: 0.2s ease;
+        }
+
+        .blog-post:hover {
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.07);
+            transform: translateY(-2px);
+        }
+
+        .post-image {
+            display: block;
+            width: 100%;
+            height: 190px;
+            object-fit: cover;
+        }
+
+        .post-body {
+            padding: 18px;
+        }
+
+        .post-summary {
+            padding: 4px 0;
+            list-style: none;
+
+            color: var(--primary);
+            font-size: 1.05rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .post-summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .post-summary::after {
+            content: "＋";
+            float: right;
+            color: var(--muted);
+            font-size: 1.2rem;
+        }
+
+        details[open] .post-summary::after {
+            content: "−";
+        }
+
+        .post-content {
+            margin-top: 16px;
+            color: #374151;
+            line-height: 1.7;
+        }
+
+        .post-content p:first-child {
+            margin-top: 0;
+        }
+
+        .post-content p:last-child {
+            margin-bottom: 0;
+        }
+
+        .post-content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+
+        .post-content iframe {
+            max-width: 100%;
+        }
+
+        .post-meta {
+            display: block;
+            margin-top: 15px;
+            padding-top: 12px;
+
+            border-top: 1px solid var(--border);
+            color: var(--muted);
+            font-size: 0.85rem;
+        }
+
+        /* Empty state */
+
+        .empty {
+            padding: 25px;
+            border-radius: 10px;
+
+            background: #f8fafc;
+            color: var(--muted);
+            text-align: center;
+        }
+
+        /* Responsive layout */
+
+        @media (max-width: 900px) {
+            .nav-links {
+                display: none;
+            }
+
+            .sidebar {
+                width: 220px;
+            }
+
+            .main {
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .top-nav {
+                min-height: auto;
+                padding: 12px 15px;
+            }
+
+            .nav-user span {
+                display: none;
+            }
+
+            .sidebar {
+                display: none;
+            }
+
+            .main {
+                padding: 16px;
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .posts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 450px) {
+            .cards {
+                grid-template-columns: 1fr;
+            }
+
+            .actions {
+                flex-direction: column;
+            }
+
+            .actions .btn {
+                width: 100%;
+                text-align: center;
+            }
+
+            .nav-actions {
+                gap: 6px;
+            }
+        }
+    </style>
 </head>
+
 <body>
 
-  <!-- TOP NAVIGATION BAR -->
-  <div class="top-nav">
-    <div class="brand">
-      <div class="brand-badge">🎓</div>
-      <span>SmartMind</span>
-    </div>
+    <!-- Top navigation -->
 
-    <div class="nav-links">
-      {% if user.is_authenticated %}
-        <a href="{% url 'teacher_dashboard' %}">Dashboard</a>
-      {% else %}
-        <a href="{% url 'blog:home' %}">Home</a>
-      {% endif %}
-      <a href="#">Categories</a>
-      <a href="#">Trending</a>
-      <a href="#">About</a>
-      <a href="{% url 'library:home' %}">Library</a>
-      <a href="{% url 'blog:add_post' %}">+ Post</a>
-    </div>
+    <nav class="top-nav">
 
-    <div class="nav-actions">
-      {% if user.is_authenticated %}
-        <div class="nav-user">
-          <div class="avatar">{{ request.user.username|first|upper }}</div>
-          <span>{{ request.user.username }}</span>
-        </div>
-        <form action="{% url 'logout' %}" method="post" class="m-0">
-          {% csrf_token %}
-          <button type="submit" class="btn-pill">Logout</button>
-        </form>
-      {% else %}
-        <a href="{% url 'login' %}" class="btn-pill">Login</a>
-      {% endif %}
-    </div>
-  </div>
-
-  <div class="layout">
-
-    <!-- SIDEBAR -->
-<div class="sidebar">
-    <h2>🎓 SmartMind</h2>
-
-    <a href="{% url 'teacher_dashboard' %}">
-        🏠 Dashboard
-    </a>
-
-    <a href="{% url 'blog:add_post' %}">
-        ➕ Add Post
-    </a>
-
-    <a href="{% url 'library:resource_list' %}">
-        📚 Resources
-    </a>
-    
-    <a href="{% url 'manage_assignments' %}">
-        📝 Assignments
-    </a>
-   
-
-    <a href="{% url 'manage_quizzes' %}">
-        ❓ Quizzes
-    </a>
-
-    <a href="{% url 'submission_list' %}">
-        📥 Student Submissions
-    </a>
-
-    <a href="{% url 'gradebook' %}">
-        📊 Results
-    </a>
-
-    <a href="{% url 'school_subjects' request.user.school.id %}">
-        📖 Subjects
-    </a>
-
-    <a href="#">
-        👨‍🎓 Students
-    </a>
-
-    <a href="#">
-        💬 Messages
-    </a>
-
-    <form method="post" action="{% url 'logout' %}" style="margin-top:20px;">
-        {% csrf_token %}
-        <button type="submit" class="logout-btn">
-            🚪 Logout
-        </button>
-    </form>
-</div>
-    <!-- MAIN -->
-    <div class="main">
-
-      <div class="header">
-        <h1>Welcome, {{ request.user.username }}</h1>
-        <span>Teacher</span>
-      </div>
-
-      <!-- STATS -->
-      <div class="cards">
-        <div class="card">
-            <h3>📝 Assignments</h3>
-            <p>{{ assignment_count }}</p>
+        <div class="brand">
+            <div class="brand-badge">🎓</div>
+            <span>SmartMind</span>
         </div>
 
-        <div class="card">
-            <h3>❓ Quizzes</h3>
-            <p>{{ quiz_count }}</p>
+        <div class="nav-links">
+            <a href="{% url 'dashboard' %}">Dashboard</a>
+            <a href="{% url 'blog:home' %}">Home</a>
+            <a href="{% url 'library:home' %}">Library</a>
         </div>
 
-        <div class="section">
-          <h2>Quick Actions</h2>
+        <div class="nav-actions">
 
-          <p>
-            <a href="{% url 'create_assignment' %}" class="btn">
-                ➕ New Assignment
+            {% if user.is_authenticated %}
+
+                <div class="nav-user">
+                    <div class="avatar">
+                        {{ request.user.username|first|upper }}
+                    </div>
+
+                    <span>
+                        {{ request.user.username }}
+                    </span>
+                </div>
+
+                <form action="{% url 'logout' %}" method="post">
+                    {% csrf_token %}
+
+                    <button type="submit" class="btn-pill">
+                        Logout
+                    </button>
+                </form>
+
+            {% else %}
+
+                <a href="{% url 'login' %}" class="btn-pill">
+                    Login
+                </a>
+
+            {% endif %}
+
+        </div>
+
+    </nav>
+
+    <!-- Page layout -->
+
+    <div class="layout">
+
+        <!-- Sidebar -->
+
+        <aside class="sidebar">
+
+            <h2>🎓 SmartMind</h2>
+
+            <a href="{% url 'dashboard' %}" class="active">
+                🏠 Dashboard
             </a>
 
-            <a href="{% url 'create_quiz' %}" class="btn">
-                ❓ New Quiz
+            <a href="{% url 'library:home' %}">
+                📚 Library
             </a>
-          </p>
-        </div>
 
-        <div class="card">
-            <h3>👨‍🎓 Students</h3>
-            <p>{{ student_count }}</p>
-        </div>
+            <a href="{% url 'blog:home' %}">
+                📰 Posts
+            </a>
 
-        <div class="card">
-            <h3>📥 Pending Essays</h3>
-            <p>{{ pending_submissions }}</p>
-        </div>
-      </div>
+            <a href="#">
+                📝 Assignments
+            </a>
 
-      <!-- TEACHER SECTION -->
-      <div class="section">
-        <h2>Teaching Overview</h2>
-        <p>Manage your classes, upload assignments, and track student performance.</p>
+            <a href="#">
+                ❓ Quizzes
+            </a>
 
-        <ul>
-          <li>Upload new assignments</li>
-          <li>Review student submissions</li>
-          <li>Mark attendance</li>
-          <li>Send announcements</li>
-        </ul>
-      </div>
+            <a href="#">
+                📊 Results
+            </a>
 
-      <div class="section">
-        <h2>Recent Assignments</h2>
+            <a href="#">
+                💬 Messages
+            </a>
 
-        {% for assignment in assignments %}
-        <div style="padding:12px;border-bottom:1px solid #eee;">
-          <strong>{{ assignment.title }}</strong><br>
-          {{ assignment.subject }}
-          |
-          {{ assignment.school_class }}
-          |
-          {{ assignment.get_assignment_type_display }}
-          <br>
-          <small>
-            Due:
-            {{ assignment.due_date|date:"d M Y H:i" }}
-          </small>
-        </div>
-        {% empty %}
-        <p>No assignments created.</p>
-        {% endfor %}
-      </div>
+            <form
+                method="post"
+                action="{% url 'logout' %}"
+                style="margin-top: 20px;"
+            >
+                {% csrf_token %}
 
-      <div class="section">
-        <a href="{% url 'create_assignment' %}">
-            ➕ Create Assignment
-        </a>
+                <button type="submit" class="logout-btn">
+                    🚪 Logout
+                </button>
+            </form>
 
-        <a href="{% url 'create_quiz' %}">
-            📝 Create Quiz
-        </a>
+        </aside>
 
-        <a href="{% url 'manage_assignments' %}">
-            📂 Manage Assignments
-        </a>
+        <!-- Main content -->
 
-        <a href="{% url 'manage_quizzes' %}">
-            📚 Manage Quizzes
-        </a>
+        <main class="main">
 
-        <h2>📚 Latest Blog Posts</h2>
+            <!-- Header -->
 
-        {% for post in posts %}
-          <div class="assignment-item">
-            <h3>
-              <a href="{{ post.get_absolute_url }}">
-                {{ post.title }}
-              </a>
-            </h3>
+            <header class="header">
 
-            <p>
-              {{ post.excerpt|truncatewords:20 }}
-            </p>
+                <h1>
+                    Welcome, {{ request.user.username }}
+                </h1>
 
-            <small>
-              {{ post.author }}
-              •
-              {{ post.created_at|date:"M d, Y" }}
-            </small>
-          </div>
-        {% empty %}
-          <p>No blog posts available.</p>
-        {% endfor %}
-      </div>
+                <span class="role-badge">
+                    Student
+                </span>
+
+            </header>
+
+            <!-- Statistics -->
+
+            <section class="cards">
+
+                <div class="card">
+                    <h3>📝 Assignments</h3>
+                    <p>{{ assignment_count|default:0 }}</p>
+                </div>
+
+                <div class="card">
+                    <h3>❓ Quizzes</h3>
+                    <p>{{ quiz_count|default:0 }}</p>
+                </div>
+
+                <div class="card">
+                    <h3>📊 Performance</h3>
+                    <p>{{ performance|default:0 }}%</p>
+                </div>
+
+                <div class="card">
+                    <h3>📚 Posts</h3>
+                    <p>{{ posts|length }}</p>
+                </div>
+
+            </section>
+
+            <!-- Quick actions -->
+
+            <section class="section">
+
+                <h2>Quick Actions</h2>
+
+                <div class="actions">
+
+                    <a
+                        href="{% url 'library:home' %}"
+                        class="btn"
+                    >
+                        📚 Open Library
+                    </a>
+
+                    <a
+                        href="{% url 'blog:home' %}"
+                        class="btn secondary"
+                    >
+                        📰 Browse Posts
+                    </a>
+
+                </div>
+
+            </section>
+
+            <!-- Categories -->
+
+            <section class="section">
+
+                <h2>📂 Categories</h2>
+
+                {% if categories %}
+
+                    <div class="actions">
+
+                        {% for category in categories %}
+
+                            <a
+                                href="{% url 'blog:home' %}"
+                                class="btn secondary"
+                            >
+                                {{ category.name }}
+                            </a>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% else %}
+
+                    <div class="empty">
+                        No categories available.
+                    </div>
+
+                {% endif %}
+
+            </section>
+
+            <!-- Assignments -->
+
+            <section class="section">
+
+                <h2>📝 My Assignments</h2>
+
+                {% if assignments %}
+
+                    {% for assignment in assignments %}
+
+                        <div class="assignment-item">
+
+                            <strong>
+                                {{ assignment.title }}
+                            </strong>
+
+                            <div class="assignment-meta">
+
+                                {% if assignment.subject %}
+                                    {{ assignment.subject }}
+                                {% endif %}
+
+                                {% if assignment.school_class %}
+                                    • {{ assignment.school_class }}
+                                {% endif %}
+
+                                {% if assignment.due_date %}
+                                    • Due:
+                                    {{ assignment.due_date|date:"d M Y H:i" }}
+                                {% endif %}
+
+                            </div>
+
+                        </div>
+
+                    {% endfor %}
+
+                {% else %}
+
+                    <div class="empty">
+                        No assignments available.
+                    </div>
+
+                {% endif %}
+
+            </section>
+
+            <!-- Blog posts -->
+
+            <section class="section">
+
+                <h2>📰 Latest Posts</h2>
+
+                {% if posts %}
+
+                    <div class="posts-grid">
+
+                        {% for post in posts %}
+
+                            <article class="blog-post">
+
+                                {% if post.image %}
+                                    <img
+                                        src="{{ post.image.url }}"
+                                        alt="{{ post.title }}"
+                                        class="post-image"
+                                    >
+                                {% endif %}
+
+                                <div class="post-body">
+
+                                    <!--
+                                        The title expands the post.
+                                        It does not use post.get_absolute_url.
+                                    -->
+
+                                    <details>
+
+                                        <summary class="post-summary">
+                                            {{ post.title }}
+                                        </summary>
+
+                                        <div class="post-content">
+
+                                            {% if post.excerpt %}
+                                                <p>
+                                                    {{ post.excerpt }}
+                                                </p>
+                                            {% endif %}
+
+                                            {% if post.content %}
+                                                {{ post.content|safe }}
+                                            {% endif %}
+
+                                            <small class="post-meta">
+
+                                                By
+                                                <strong>
+                                                    {{ post.author }}
+                                                </strong>
+
+                                                {% if post.created_at %}
+                                                    •
+                                                    {{ post.created_at|date:"d M Y" }}
+                                                {% endif %}
+
+                                            </small>
+
+                                        </div>
+
+                                    </details>
+
+                                </div>
+
+                            </article>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% else %}
+
+                    <div class="empty">
+                        No blog posts available.
+                    </div>
+
+                {% endif %}
+
+            </section>
+
+            <!-- Performance -->
+
+            <section class="section">
+
+                <h2>📊 My Performance</h2>
+
+                <p>
+                    Keep working hard and complete your assignments
+                    and quizzes to improve your performance.
+                </p>
+
+            </section>
+
+        </main>
 
     </div>
-  </div>
 
 </body>
 </html>

@@ -253,6 +253,71 @@ html{
 }
 
 }
+
+.post-image {
+    display: block;
+    width: 100%;
+    max-height: 220px;
+    margin-bottom: 12px;
+    border-radius: 10px;
+    object-fit: cover;
+}
+
+.post-summary {
+    padding: 5px 0;
+    list-style: none;
+
+    color: #2563eb;
+    font-size: 1.05rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.post-summary::-webkit-details-marker {
+    display: none;
+}
+
+.post-summary::after {
+    content: "＋";
+    float: right;
+    color: #64748b;
+    font-size: 1.2rem;
+}
+
+details[open] .post-summary::after {
+    content: "−";
+}
+
+.post-content {
+    margin-top: 14px;
+    color: #374151;
+    line-height: 1.7;
+}
+
+.post-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+}
+
+.post-content iframe {
+    max-width: 100%;
+}
+
+.small {
+    display: block;
+    margin-top: 14px;
+    padding-top: 10px;
+    border-top: 1px solid #e5e7eb;
+    color: #64748b;
+    font-size: 0.85rem;
+}
+
+.empty {
+    padding: 20px;
+    color: #64748b;
+    text-align: center;
+}
 </style>
 
 <div class="container">
@@ -437,23 +502,57 @@ html{
 
         <h4>📚 Latest Blog Posts</h4>
 
-        {% for post in posts %}
-            <div class="item">
-                <h5>
-                    <a href="{{ post.get_absolute_url }}">
-                        {{ post.title }}
-                    </a>
-                </h5>
+     {% for post in posts %}
 
-                <p>{{ post.excerpt|truncatewords:20 }}</p>
+    <div class="item">
+
+        {% if post.image %}
+            <img
+                src="{{ post.image.url }}"
+                alt="{{ post.title }}"
+                class="post-image"
+            >
+        {% endif %}
+
+        <details>
+
+            <summary class="post-summary">
+                {{ post.title }}
+            </summary>
+
+            <div class="post-content">
+
+                {% if post.excerpt %}
+                    <p>
+                        {{ post.excerpt }}
+                    </p>
+                {% endif %}
+
+                {% if post.content %}
+                    {{ post.content|safe }}
+                {% endif %}
 
                 <span class="small">
-                    {{ post.author }} • {{ post.created_at|date:"M d, Y" }}
+                    {{ post.author }}
+
+                    {% if post.created_at %}
+                        • {{ post.created_at|date:"M d, Y" }}
+                    {% endif %}
                 </span>
+
             </div>
-        {% empty %}
-            <div class="item">No blog posts available.</div>
-        {% endfor %}
+
+        </details>
+
+    </div>
+
+{% empty %}
+
+    <p class="empty">
+        No blog posts available.
+    </p>
+
+{% endfor %}
 
     </div>
 

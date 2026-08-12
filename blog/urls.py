@@ -19,24 +19,7 @@ urlpatterns = [
     ),
 
 
-    # =========================================================
-    # POST DETAIL
-    # Example:
-    # /posts/g-2ade23/
-    # =========================================================
 
-    path(
-        "posts/<slug:slug>/",
-        views.post_detail,
-        name="post_detail"
-    ),
-
-
-    # =========================================================
-    # LIKE POST
-    # Example:
-    # /posts/g-2ade23/like/
-    # =========================================================
 
     path(
         "posts/<slug:slug>/like/",
@@ -45,12 +28,7 @@ urlpatterns = [
     ),
 
 
-    # =========================================================
-    # ADD COMMENT
-    # Example:
-    # /posts/g-2ade23/comment/
-    # =========================================================
-
+  
     path(
         "posts/<slug:slug>/comment/",
         views.add_comment,

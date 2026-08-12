@@ -605,30 +605,71 @@ body{
     <br>
 
     <div class="posts-grid">
-        {% if posts %}
-            {% for post in posts %}
-                <div class="blog-post">
-                    {% if post.image %}
-                        <img src="{{ post.image.url }}" alt="{{ post.title }}">
-                    {% endif %}
+      {% if posts %}
 
-                    <h3>
-                        <a href="{{ post.get_absolute_url }}" style="text-decoration:none;color:#2563eb;">
+    <div class="posts-grid">
+
+        {% for post in posts %}
+
+            <article class="blog-post">
+
+                {% if post.image %}
+                    <img
+                        src="{{ post.image.url }}"
+                        alt="{{ post.title }}"
+                        class="post-image"
+                    >
+                {% endif %}
+
+                <div class="post-body">
+
+                    <details>
+
+                        <summary class="post-summary">
                             {{ post.title }}
-                        </a>
-                    </h3>
+                        </summary>
 
-                    <br>
-                    <p>{{ post.excerpt|truncatewords:30 }}</p>
-                    <br>
-                    <small>
-                        By <strong>{{ post.author }}</strong> • {{ post.created_at|date:"d M Y" }}
-                    </small>
+                        <div class="post-content">
+
+                            {% if post.excerpt %}
+                                <p>
+                                    {{ post.excerpt }}
+                                </p>
+                            {% endif %}
+
+                            {% if post.content %}
+                                {{ post.content|safe }}
+                            {% endif %}
+
+                            <small class="post-meta">
+                                By
+                                <strong>{{ post.author }}</strong>
+
+                                {% if post.created_at %}
+                                    •
+                                    {{ post.created_at|date:"d M Y" }}
+                                {% endif %}
+                            </small>
+
+                        </div>
+
+                    </details>
+
                 </div>
-            {% endfor %}
-        {% else %}
-            <p>No blog posts available.</p>
-        {% endif %}
+
+            </article>
+
+        {% endfor %}
+
+    </div>
+
+{% else %}
+
+    <div class="empty">
+        No blog posts available.
+    </div>
+
+{% endif %}
     </div>
 </div>
 
