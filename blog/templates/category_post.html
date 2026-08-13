@@ -1,3 +1,4 @@
+
 {% extends "base.html" %}
 {% load static %}
 
@@ -15,21 +16,23 @@
 
     <div class="category-header">
 
-        <div class="category-title">
+        <div class="category-header-inner">
 
-            <div class="category-icon">
-                <i class="bi bi-folder2-open"></i>
-            </div>
+            <div class="category-title">
 
-            <div>
+                <div class="category-icon">
+                    <i class="bi bi-folder2-open"></i>
+                </div>
 
-                <h1>
-                    {{ category.name }}
-                </h1>
+                <div class="category-heading">
 
-                <p>
-                    Posts and learning resources in this category.
-                </p>
+                    <h1>{{ category.name }}</h1>
+
+                    <p>
+                        Posts and learning resources in this category.
+                    </p>
+
+                </div>
 
             </div>
 
@@ -46,33 +49,33 @@
 
         <div class="categories-section">
 
-            <div class="section-label">
+            <div class="categories-inner">
 
-                <i class="bi bi-collection"></i>
+                <div class="section-label">
+                    <i class="bi bi-collection"></i>
+                    <span>Browse Categories</span>
+                </div>
 
-                Browse Categories
+                <div class="categories">
 
-            </div>
+                    {% for cat in categories %}
 
+                        <a
+                            href="{% url 'blog:category_posts' cat.slug %}"
+                            class="category-chip {% if cat.id == category.id %}active{% endif %}"
+                        >
 
-            <div class="categories">
+                            <i class="bi bi-folder"></i>
 
-                {% for cat in categories %}
+                            <span>
+                                {{ cat.name }}
+                            </span>
 
-                    <a
-                        href="{% url 'blog:category_posts' cat.slug %}"
-                        class="category-chip {% if cat.id == category.id %}active{% endif %}"
-                    >
+                        </a>
 
-                        <i class="bi bi-folder"></i>
+                    {% endfor %}
 
-                        <span>
-                            {{ cat.name }}
-                        </span>
-
-                    </a>
-
-                {% endfor %}
+                </div>
 
             </div>
 
@@ -85,205 +88,200 @@
          POSTS
     ====================================================== -->
 
-    {% if posts %}
+    <main class="posts-container">
 
-        <div class="posts" id="postsGrid">
+        {% if posts %}
 
-            {% for post in posts %}
+            <div class="posts" id="postsGrid">
 
-                <article
-                    class="post"
-                    data-post-id="{{ post.id }}"
-                >
+                {% for post in posts %}
 
-                    <!-- =====================================
-                         POST IMAGE
-                    ====================================== -->
+                    <article
+                        class="post"
+                        data-post-id="{{ post.id }}"
+                    >
 
-                    {% if post.image %}
+                        <!-- =====================================
+                             POST IMAGE
+                        ====================================== -->
 
-                        <div class="post-image-container">
+                        {% if post.image %}
 
-                            <img
-                                src="{{ post.image.url }}"
-                                alt="{{ post.title }}"
-                                class="post-image"
-                                loading="lazy"
-                            >
+                            <div class="post-image-container">
 
-                        </div>
-
-                    {% endif %}
-
-
-                    <!-- =====================================
-                         POST BODY
-                    ====================================== -->
-
-                    <div class="post-body">
-
-                        <details>
-
-                            <!-- POST TITLE -->
-
-                            <summary>
-
-                                <span class="post-title">
-                                    {{ post.title }}
-                                </span>
-
-                                <span class="expand-icon">
-                                    <i class="bi bi-plus-lg"></i>
-                                </span>
-
-                            </summary>
-
-
-                            <!-- =================================
-                                 POST CONTENT
-                            ================================== -->
-
-                            <div class="post-content">
-
-                                {% if post.excerpt %}
-
-                                    <p class="excerpt">
-                                        {{ post.excerpt }}
-                                    </p>
-
-                                {% endif %}
-
-
-                                {% if post.content %}
-
-                                    <div class="rich-content">
-                                        {{ post.content|safe }}
-                                    </div>
-
-                                {% endif %}
-
-
-                                <!-- =================================
-                                     VIDEO
-                                ================================== -->
-
-                                {% if post.video %}
-
-                                    <div class="video-wrapper">
-
-                                        <video
-                                            controls
-                                            class="post-video"
-                                            preload="metadata"
-                                        >
-
-                                            <source
-                                                src="{{ post.video.url }}"
-                                                type="video/mp4"
-                                            >
-
-                                            Your browser does not support
-                                            the video tag.
-
-                                        </video>
-
-                                    </div>
-
-                                {% endif %}
-
-
-                                <!-- =================================
-                                     YOUTUBE
-                                ================================== -->
-
-                                {% if post.youtube_url %}
-
-                                    <div class="youtube-container">
-
-                                        <iframe
-                                            src="https://www.youtube.com/embed/{{ post.youtube_url|slice:'8:' }}"
-                                            title="{{ post.title }}"
-                                            loading="lazy"
-                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                            allowfullscreen>
-                                        </iframe>
-
-                                    </div>
-
-                                {% endif %}
-
-
-                                <!-- =================================
-                                     META
-                                ================================== -->
-
-                                <div class="meta">
-
-                                    {% if post.author %}
-
-                                        <span>
-
-                                            <i class="bi bi-person"></i>
-
-                                            {{ post.author }}
-
-                                        </span>
-
-                                    {% endif %}
-
-
-                                    {% if post.created_at %}
-
-                                        <span>
-
-                                            <i class="bi bi-calendar3"></i>
-
-                                            {{ post.created_at|date:"d M Y" }}
-
-                                        </span>
-
-                                    {% endif %}
-
-                                </div>
+                                <img
+                                    src="{{ post.image.url }}"
+                                    alt="{{ post.title }}"
+                                    class="post-image"
+                                    loading="lazy"
+                                >
 
                             </div>
 
-                        </details>
+                        {% endif %}
 
-                    </div>
 
-                </article>
+                        <!-- =====================================
+                             POST BODY
+                        ====================================== -->
 
-            {% endfor %}
+                        <div class="post-body">
 
-        </div>
+                            <details>
 
-    {% else %}
+                                <summary>
 
-        <!-- =================================================
-             EMPTY STATE
-        ================================================== -->
+                                    <span class="post-title">
+                                        {{ post.title }}
+                                    </span>
 
-        <div class="empty">
+                                    <span class="expand-icon">
+                                        <i class="bi bi-plus-lg"></i>
+                                    </span>
 
-            <div class="empty-icon">
+                                </summary>
 
-                <i class="bi bi-folder-x"></i>
+
+                                <!-- =================================
+                                     POST CONTENT
+                                ================================== -->
+
+                                <div class="post-content">
+
+                                    {% if post.excerpt %}
+
+                                        <p class="excerpt">
+                                            {{ post.excerpt }}
+                                        </p>
+
+                                    {% endif %}
+
+
+                                    {% if post.content %}
+
+                                        <div class="rich-content">
+                                            {{ post.content|safe }}
+                                        </div>
+
+                                    {% endif %}
+
+
+                                    <!-- =================================
+                                         UPLOADED VIDEO
+                                    ================================== -->
+
+                                    {% if post.video %}
+
+                                        <div class="video-wrapper">
+
+                                            <video
+                                                controls
+                                                class="post-video"
+                                                preload="metadata"
+                                            >
+
+                                                <source
+                                                    src="{{ post.video.url }}"
+                                                    type="video/mp4"
+                                                >
+
+                                                Your browser does not support
+                                                the video tag.
+
+                                            </video>
+
+                                        </div>
+
+                                    {% endif %}
+
+
+                                    <!-- =================================
+                                         YOUTUBE VIDEO
+                                    ================================== -->
+
+                                    {% if post.youtube_url %}
+
+                                        <div class="youtube-container">
+
+                                            <iframe
+                                                src="https://www.youtube.com/embed/{{ post.youtube_url|slice:'8:' }}"
+                                                title="{{ post.title }}"
+                                                loading="lazy"
+                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                allowfullscreen>
+                                            </iframe>
+
+                                        </div>
+
+                                    {% endif %}
+
+
+                                    <!-- =================================
+                                         META
+                                    ================================== -->
+
+                                    <div class="meta">
+
+                                        {% if post.author %}
+
+                                            <span>
+                                                <i class="bi bi-person"></i>
+                                                {{ post.author }}
+                                            </span>
+
+                                        {% endif %}
+
+
+                                        {% if post.created_at %}
+
+                                            <span>
+                                                <i class="bi bi-calendar3"></i>
+                                                {{ post.created_at|date:"d M Y" }}
+                                            </span>
+
+                                        {% endif %}
+
+                                    </div>
+
+                                </div>
+
+                            </details>
+
+                        </div>
+
+                    </article>
+
+                {% endfor %}
 
             </div>
 
-            <h3>
-                No posts in this category yet.
-            </h3>
 
-            <p>
-                There are currently no posts under
-                <strong>{{ category.name }}</strong>.
-            </p>
+        {% else %}
 
-        </div>
+            <!-- =================================================
+                 EMPTY STATE
+            ================================================== -->
 
-    {% endif %}
+            <div class="empty">
+
+                <div class="empty-icon">
+                    <i class="bi bi-folder-x"></i>
+                </div>
+
+                <h3>
+                    No posts in this category yet.
+                </h3>
+
+                <p>
+                    There are currently no posts under
+                    <strong>{{ category.name }}</strong>.
+                </p>
+
+            </div>
+
+        {% endif %}
+
+    </main>
 
 </div>
 
@@ -294,49 +292,72 @@
    GLOBAL
 ========================================================= */
 
+* {
+    box-sizing: border-box;
+}
+
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+}
+
+
 .category-page {
     width: 100%;
-    max-width: 1200px;
+    max-width: none;
 
-    margin: 35px auto 60px;
+    margin: 0;
+    padding: 0;
 
-    padding: 0 20px;
+    overflow-x: hidden;
 }
 
 
 /* =========================================================
    CATEGORY HEADER
+   FULL WIDTH + CENTERED
 ========================================================= */
 
 .category-header {
+    width: 100%;
+
+    margin: 0;
+    padding: 30px 20px;
 
     background: #ffffff;
 
-    border-radius: 18px;
-
-    padding: 28px 30px;
-
-    margin-bottom: 25px;
+    border-bottom: 1px solid #eef0f3;
 
     box-shadow:
-        0 8px 25px rgba(0, 0, 0, 0.07);
+        0 4px 18px rgba(0, 0, 0, 0.05);
+}
 
-    border: 1px solid #eef0f3;
+
+.category-header-inner {
+    width: 100%;
+    max-width: 1500px;
+
+    margin: 0 auto;
 }
 
 
 .category-title {
-
     display: flex;
 
-    align-items: center;
+    flex-direction: column;
 
-    gap: 18px;
+    align-items: center;
+    justify-content: center;
+
+    gap: 10px;
+
+    text-align: center;
 }
 
 
 .category-icon {
-
     width: 58px;
     height: 58px;
 
@@ -357,8 +378,14 @@
 }
 
 
-.category-header h1 {
+.category-heading {
+    width: 100%;
 
+    text-align: center;
+}
+
+
+.category-header h1 {
     margin: 0 0 5px;
 
     font-size: 30px;
@@ -366,31 +393,52 @@
     line-height: 1.2;
 
     color: #111827;
+
+    text-align: center;
 }
 
 
 .category-header p {
-
     margin: 0;
 
     color: #6b7280;
 
     font-size: 15px;
+
+    text-align: center;
 }
 
 
 /* =========================================================
    CATEGORIES
+   FULL WIDTH
 ========================================================= */
 
 .categories-section {
+    width: 100%;
 
-    margin-bottom: 28px;
+    margin: 0;
+
+    padding: 18px 30px;
+
+    background: #ffffff;
+
+    border-bottom: 1px solid #e5e7eb;
+
+    box-shadow:
+        0 3px 12px rgba(0, 0, 0, 0.04);
+}
+
+
+.categories-inner {
+    width: 100%;
+    max-width: 1500px;
+
+    margin: 0 auto;
 }
 
 
 .section-label {
-
     display: flex;
 
     align-items: center;
@@ -408,12 +456,12 @@
 
 
 .section-label i {
-
     color: #2563eb;
 }
 
 
 .categories {
+    width: 100%;
 
     display: flex;
 
@@ -424,7 +472,6 @@
 
 
 .category-chip {
-
     display: inline-flex;
 
     align-items: center;
@@ -451,12 +498,12 @@
         background .2s ease,
         color .2s ease,
         border-color .2s ease,
-        transform .2s ease;
+        transform .2s ease,
+        box-shadow .2s ease;
 }
 
 
 .category-chip:hover {
-
     background: #eff6ff;
 
     border-color: #bfdbfe;
@@ -464,16 +511,36 @@
     color: #2563eb;
 
     transform: translateY(-1px);
+
+    box-shadow:
+        0 4px 10px rgba(37, 99, 235, 0.08);
 }
 
 
 .category-chip.active {
-
     background: #2563eb;
 
     border-color: #2563eb;
 
     color: #ffffff;
+
+    box-shadow:
+        0 4px 12px rgba(37, 99, 235, 0.20);
+}
+
+
+/* =========================================================
+   POSTS CONTAINER
+========================================================= */
+
+.posts-container {
+    width: 100%;
+
+    max-width: 1500px;
+
+    margin: 0 auto;
+
+    padding: 28px 30px 60px;
 }
 
 
@@ -482,6 +549,7 @@
 ========================================================= */
 
 .posts {
+    width: 100%;
 
     display: grid;
 
@@ -499,6 +567,7 @@
 ========================================================= */
 
 .post {
+    width: 100%;
 
     background: #ffffff;
 
@@ -520,7 +589,6 @@
 
 
 .post:hover {
-
     transform: translateY(-3px);
 
     box-shadow:
@@ -530,21 +598,54 @@
 
 /* =========================================================
    EXPANDED POST
-
-   The opened post occupies two columns.
+   FULL WIDTH — SIDE TO SIDE
 ========================================================= */
 
 .post.expanded {
+    grid-column: 1 / -1;
 
-    grid-column: span 2;
+    width: 100%;
 
     transform: none;
 }
 
 
 .post.expanded:hover {
-
     transform: none;
+}
+
+
+.post.expanded .post-body {
+    width: 100%;
+}
+
+
+.post.expanded .post-content {
+    width: 100%;
+}
+
+
+.post.expanded .post-image-container {
+    width: 100%;
+}
+
+
+.post.expanded .post-image {
+    max-width: 100%;
+
+    max-height: 700px;
+}
+
+
+.post.expanded .post-video {
+    width: 100%;
+
+    max-width: 1200px;
+}
+
+
+.post.expanded .youtube-container {
+    width: 100%;
 }
 
 
@@ -553,7 +654,6 @@
 ========================================================= */
 
 .post-image-container {
-
     width: 100%;
 
     display: flex;
@@ -568,7 +668,6 @@
 
 
 .post-image {
-
     display: block;
 
     width: auto;
@@ -587,20 +686,11 @@
 
 
 /* =========================================================
-   EXPANDED IMAGE
-========================================================= */
-
-.post.expanded .post-image {
-
-    max-height: 650px;
-}
-
-
-/* =========================================================
    POST BODY
 ========================================================= */
 
 .post-body {
+    width: 100%;
 
     padding: 22px 24px;
 }
@@ -611,7 +701,6 @@
 ========================================================= */
 
 .post details {
-
     width: 100%;
 }
 
@@ -621,7 +710,6 @@
 ========================================================= */
 
 .post summary {
-
     display: flex;
 
     align-items: center;
@@ -647,19 +735,16 @@
 
 
 .post summary::-webkit-details-marker {
-
     display: none;
 }
 
 
 .post summary::marker {
-
     display: none;
 }
 
 
 .post-title {
-
     flex: 1;
 
     min-width: 0;
@@ -671,7 +756,6 @@
 ========================================================= */
 
 .expand-icon {
-
     width: 36px;
     height: 36px;
 
@@ -698,7 +782,6 @@
 
 
 .post details[open] .expand-icon {
-
     background: #2563eb;
 
     color: #ffffff;
@@ -712,6 +795,7 @@
 ========================================================= */
 
 .post-content {
+    width: 100%;
 
     padding-top: 22px;
 
@@ -728,18 +812,17 @@
 @keyframes expandPost {
 
     from {
-
         opacity: 0;
 
         transform: translateY(-8px);
     }
 
     to {
-
         opacity: 1;
 
         transform: translateY(0);
     }
+
 }
 
 
@@ -748,7 +831,6 @@
 ========================================================= */
 
 .excerpt {
-
     margin: 0 0 18px;
 
     padding: 14px 16px;
@@ -768,6 +850,7 @@
 ========================================================= */
 
 .rich-content {
+    width: 100%;
 
     overflow-wrap: anywhere;
 
@@ -776,7 +859,6 @@
 
 
 .rich-content img {
-
     display: block;
 
     max-width: 100%;
@@ -790,13 +872,11 @@
 
 
 .rich-content iframe {
-
     max-width: 100%;
 }
 
 
 .rich-content table {
-
     display: block;
 
     max-width: 100%;
@@ -806,7 +886,6 @@
 
 
 .rich-content pre {
-
     max-width: 100%;
 
     overflow-x: auto;
@@ -818,7 +897,6 @@
 ========================================================= */
 
 .video-wrapper {
-
     width: 100%;
 
     margin: 25px auto;
@@ -826,7 +904,6 @@
 
 
 .post-video {
-
     display: block;
 
     width: 100%;
@@ -848,7 +925,6 @@
 ========================================================= */
 
 .youtube-container {
-
     position: relative;
 
     width: 100%;
@@ -866,7 +942,6 @@
 
 
 .youtube-container iframe {
-
     position: absolute;
 
     inset: 0;
@@ -883,7 +958,6 @@
 ========================================================= */
 
 .meta {
-
     display: flex;
 
     flex-wrap: wrap;
@@ -905,7 +979,6 @@
 
 
 .meta span {
-
     display: inline-flex;
 
     align-items: center;
@@ -915,7 +988,6 @@
 
 
 .meta i {
-
     color: #2563eb;
 }
 
@@ -925,7 +997,6 @@
 ========================================================= */
 
 .empty {
-
     background: #ffffff;
 
     padding: 60px 25px;
@@ -944,7 +1015,6 @@
 
 
 .empty-icon {
-
     width: 65px;
     height: 65px;
 
@@ -966,7 +1036,6 @@
 
 
 .empty h3 {
-
     margin: 0 0 8px;
 
     color: #374151;
@@ -976,7 +1045,6 @@
 
 
 .empty p {
-
     margin: 0;
 
     font-size: 15px;
@@ -990,15 +1058,13 @@
 @media (max-width: 1100px) {
 
     .posts {
-
         grid-template-columns:
             repeat(2, minmax(0, 1fr));
     }
 
 
     .post.expanded {
-
-        grid-column: span 2;
+        grid-column: 1 / -1;
     }
 
 }
@@ -1010,17 +1076,28 @@
 
 @media (max-width: 800px) {
 
-    .category-page {
+    .category-header {
+        padding: 25px 18px;
+    }
 
-        margin-top: 25px;
 
-        padding: 0 15px;
+    .categories-section {
+        padding: 16px 18px;
+    }
+
+
+    .posts-container {
+        padding: 22px 18px 50px;
     }
 
 
     .post-image {
-
         max-height: 450px;
+    }
+
+
+    .post.expanded .post-image {
+        max-height: 550px;
     }
 
 }
@@ -1032,32 +1109,30 @@
 
 @media (max-width: 600px) {
 
-    .category-page {
-
-        margin-top: 18px;
-
-        padding: 0 10px;
-    }
-
-
     .category-header {
+        padding: 20px 15px;
 
-        padding: 20px;
-
-        border-radius: 15px;
+        border-radius: 0;
     }
 
+
+    /* Center category heading */
 
     .category-title {
+        display: flex;
 
-        align-items: flex-start;
+        flex-direction: column;
 
-        gap: 13px;
+        align-items: center;
+        justify-content: center;
+
+        text-align: center;
+
+        gap: 10px;
     }
 
 
     .category-icon {
-
         width: 45px;
         height: 45px;
 
@@ -1067,32 +1142,54 @@
     }
 
 
-    .category-header h1 {
+    .category-heading {
+        width: 100%;
 
+        text-align: center;
+    }
+
+
+    .category-header h1 {
         font-size: 23px;
+
+        text-align: center;
     }
 
 
     .category-header p {
-
         font-size: 14px;
 
         line-height: 1.5;
+
+        text-align: center;
+    }
+
+
+    .categories-section {
+        padding: 15px 12px;
+    }
+
+
+    .section-label {
+        font-size: 13px;
     }
 
 
     .category-chip {
-
         padding: 8px 12px;
 
         font-size: 13px;
     }
 
 
+    .posts-container {
+        padding: 18px 10px 40px;
+    }
+
+
     /* One post per row on phones */
 
     .posts {
-
         grid-template-columns: 1fr;
 
         gap: 18px;
@@ -1100,45 +1197,43 @@
 
 
     .post.expanded {
-
-        grid-column: span 1;
+        grid-column: 1 / -1;
     }
 
 
     .post {
-
         border-radius: 14px;
     }
 
 
     .post-image-container {
-
         max-height: 450px;
     }
 
 
     .post-image {
-
         max-width: 100%;
 
         max-height: 450px;
     }
 
 
-    .post-body {
+    .post.expanded .post-image {
+        max-height: 500px;
+    }
 
+
+    .post-body {
         padding: 17px;
     }
 
 
     .post summary {
-
         font-size: 17px;
     }
 
 
     .expand-icon {
-
         width: 31px;
         height: 31px;
 
@@ -1147,7 +1242,6 @@
 
 
     .post-content {
-
         padding-top: 18px;
 
         font-size: 15px;
@@ -1157,7 +1251,6 @@
 
 
     .meta {
-
         gap: 10px;
     }
 
@@ -1170,33 +1263,54 @@
 
 @media (max-width: 380px) {
 
-    .category-page {
-
-        padding: 0 8px;
-    }
-
-
     .category-header {
-
-        padding: 17px;
+        padding: 17px 12px;
     }
 
 
     .category-header h1 {
-
         font-size: 21px;
     }
 
 
-    .post-body {
+    .categories-section {
+        padding: 13px 10px;
+    }
 
+
+    .posts-container {
+        padding-left: 8px;
+
+        padding-right: 8px;
+    }
+
+
+    .post-body {
         padding: 15px;
     }
 
 
     .post summary {
-
         font-size: 16px;
+    }
+
+}
+
+
+/* =========================================================
+   FULL VIEWPORT BREAKOUT
+   Ensures the header and categories reach the screen edges
+   even if base.html has a centered content wrapper.
+========================================================= */
+
+@media (min-width: 601px) {
+
+    .category-page {
+        width: 100vw;
+
+        margin-left: calc(50% - 50vw);
+
+        margin-right: calc(50% - 50vw);
     }
 
 }
@@ -1227,14 +1341,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
         details.addEventListener("toggle", function () {
 
-
             /*
              * When this post opens,
              * close every other post.
              */
 
             if (details.open) {
-
 
                 posts.forEach(function (otherPost) {
 
@@ -1259,8 +1371,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
                 /*
-                 * Make this post occupy
-                 * two grid columns.
+                 * Expand the currently opened post
+                 * across the entire posts grid.
                  */
 
                 post.classList.add("expanded");
@@ -1269,8 +1381,7 @@ document.addEventListener("DOMContentLoaded", function () {
             } else {
 
                 /*
-                 * Return the post to
-                 * normal width.
+                 * Return post to normal width.
                  */
 
                 post.classList.remove("expanded");
@@ -1285,5 +1396,5 @@ document.addEventListener("DOMContentLoaded", function () {
 
 </script>
 
-{% endblock %}
 
+{% endblock %}
