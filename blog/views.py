@@ -411,7 +411,9 @@ def add_post(request):
             # Required for ManyToMany fields such as tags.
             form.save_m2m()
 
-            return redirect(post.get_absolute_url())
+            # Return to the home page instead of post detail.
+            return redirect("blog:home")
+
     else:
         form = PostForm()
 
@@ -422,7 +424,6 @@ def add_post(request):
             "form": form,
         },
     )
-
 
 # ============================================================
 # EDIT POST
