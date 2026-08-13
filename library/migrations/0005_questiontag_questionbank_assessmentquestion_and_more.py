@@ -61,8 +61,9 @@ def migrate_old_questions(apps, schema_editor):
             ON q.assessment_id = a.id
     """)
 
-    schema_editor.execute("""
-        SELECT setval(
+    if schema_editor.connection.vendor == 'postgresql':
+       schema_editor.execute("""
+            SELECT setval(
             pg_get_serial_sequence(
                 'library_questionbank',
                 'id'
