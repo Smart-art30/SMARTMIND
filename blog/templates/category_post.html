@@ -1,4 +1,3 @@
-
 {% extends "base.html" %}
 {% load static %}
 
@@ -42,7 +41,7 @@
 
 
     <!-- =====================================================
-         ALL CATEGORIES
+         CATEGORIES
     ====================================================== -->
 
     {% if categories %}
@@ -157,10 +156,105 @@
                                     {% endif %}
 
 
+                                    <!-- =================================
+                                         AUTOMATIC PAGINATION
+                                    ================================== -->
+
                                     {% if post.content %}
 
-                                        <div class="rich-content">
-                                            {{ post.content|safe }}
+                                        <div
+                                            class="paginated-post"
+                                            data-post-id="{{ post.id }}"
+                                        >
+
+                                            <!--
+                                                Hidden source.
+
+                                                JavaScript uses this content
+                                                to automatically create pages.
+                                            -->
+
+                                            <div class="post-source-content">
+
+                                                {{ post.content|safe }}
+
+                                            </div>
+
+
+                                            <!--
+                                                Generated pages appear here.
+                                            -->
+
+                                            <div class="post-pages"></div>
+
+
+                                            <!-- =================================
+                                                 PAGINATION CONTROLS
+                                            ================================== -->
+
+                                            <div
+                                                class="pagination-area"
+                                                style="display:none;"
+                                            >
+
+                                                <div class="pagination-wrapper">
+
+                                                    <button
+                                                        type="button"
+                                                        class="page-button previous-page"
+                                                        disabled
+                                                    >
+
+                                                        <i class="bi bi-chevron-left"></i>
+
+                                                        <span>
+                                                            Previous
+                                                        </span>
+
+                                                    </button>
+
+
+                                                    <div class="page-indicator">
+
+                                                        <span class="current-page">
+                                                            1
+                                                        </span>
+
+                                                        <span class="page-separator">
+                                                            /
+                                                        </span>
+
+                                                        <span class="total-pages">
+                                                            1
+                                                        </span>
+
+                                                    </div>
+
+
+                                                    <button
+                                                        type="button"
+                                                        class="page-button next-page"
+                                                    >
+
+                                                        <span>
+                                                            Next
+                                                        </span>
+
+                                                        <i class="bi bi-chevron-right"></i>
+
+                                                    </button>
+
+                                                </div>
+
+
+                                                <!-- =================================
+                                                     PAGE NUMBERS
+                                                ================================== -->
+
+                                                <div class="page-numbers"></div>
+
+                                            </div>
+
                                         </div>
 
                                     {% endif %}
@@ -217,7 +311,7 @@
 
 
                                     <!-- =================================
-                                         META
+                                         POST META
                                     ================================== -->
 
                                     <div class="meta">
@@ -296,13 +390,20 @@
     box-sizing: border-box;
 }
 
-
 html,
 body {
     margin: 0;
     padding: 0;
 }
 
+body {
+    overflow-x: hidden;
+}
+
+
+/* =========================================================
+   CATEGORY PAGE
+========================================================= */
 
 .category-page {
     width: 100%;
@@ -317,13 +418,13 @@ body {
 
 /* =========================================================
    CATEGORY HEADER
-   FULL WIDTH + CENTERED
 ========================================================= */
 
 .category-header {
     width: 100%;
 
     margin: 0;
+
     padding: 30px 20px;
 
     background: #ffffff;
@@ -334,14 +435,13 @@ body {
         0 4px 18px rgba(0, 0, 0, 0.05);
 }
 
-
 .category-header-inner {
     width: 100%;
+
     max-width: 1500px;
 
     margin: 0 auto;
 }
-
 
 .category-title {
     display: flex;
@@ -355,7 +455,6 @@ body {
 
     text-align: center;
 }
-
 
 .category-icon {
     width: 58px;
@@ -377,13 +476,11 @@ body {
     font-size: 27px;
 }
 
-
 .category-heading {
     width: 100%;
 
     text-align: center;
 }
-
 
 .category-header h1 {
     margin: 0 0 5px;
@@ -396,7 +493,6 @@ body {
 
     text-align: center;
 }
-
 
 .category-header p {
     margin: 0;
@@ -411,7 +507,6 @@ body {
 
 /* =========================================================
    CATEGORIES
-   FULL WIDTH
 ========================================================= */
 
 .categories-section {
@@ -429,14 +524,13 @@ body {
         0 3px 12px rgba(0, 0, 0, 0.04);
 }
 
-
 .categories-inner {
     width: 100%;
+
     max-width: 1500px;
 
     margin: 0 auto;
 }
-
 
 .section-label {
     display: flex;
@@ -454,11 +548,9 @@ body {
     color: #4b5563;
 }
 
-
 .section-label i {
     color: #2563eb;
 }
-
 
 .categories {
     width: 100%;
@@ -469,7 +561,6 @@ body {
 
     gap: 9px;
 }
-
 
 .category-chip {
     display: inline-flex;
@@ -502,7 +593,6 @@ body {
         box-shadow .2s ease;
 }
 
-
 .category-chip:hover {
     background: #eff6ff;
 
@@ -515,7 +605,6 @@ body {
     box-shadow:
         0 4px 10px rgba(37, 99, 235, 0.08);
 }
-
 
 .category-chip.active {
     background: #2563eb;
@@ -563,11 +652,13 @@ body {
 
 
 /* =========================================================
-   NORMAL POST
+   POST
 ========================================================= */
 
 .post {
     width: 100%;
+
+    min-width: 0;
 
     background: #ffffff;
 
@@ -580,13 +671,10 @@ body {
     box-shadow:
         0 8px 25px rgba(0, 0, 0, 0.07);
 
-    min-width: 0;
-
     transition:
         transform .25s ease,
         box-shadow .25s ease;
 }
-
 
 .post:hover {
     transform: translateY(-3px);
@@ -598,7 +686,6 @@ body {
 
 /* =========================================================
    EXPANDED POST
-   FULL WIDTH — SIDE TO SIDE
 ========================================================= */
 
 .post.expanded {
@@ -609,42 +696,15 @@ body {
     transform: none;
 }
 
-
 .post.expanded:hover {
     transform: none;
 }
-
 
 .post.expanded .post-body {
     width: 100%;
 }
 
-
 .post.expanded .post-content {
-    width: 100%;
-}
-
-
-.post.expanded .post-image-container {
-    width: 100%;
-}
-
-
-.post.expanded .post-image {
-    max-width: 100%;
-
-    max-height: 700px;
-}
-
-
-.post.expanded .post-video {
-    width: 100%;
-
-    max-width: 1200px;
-}
-
-
-.post.expanded .youtube-container {
     width: 100%;
 }
 
@@ -665,7 +725,6 @@ body {
 
     overflow: hidden;
 }
-
 
 .post-image {
     display: block;
@@ -733,16 +792,13 @@ body {
     user-select: none;
 }
 
-
 .post summary::-webkit-details-marker {
     display: none;
 }
 
-
 .post summary::marker {
     display: none;
 }
-
 
 .post-title {
     flex: 1;
@@ -780,7 +836,6 @@ body {
         transform .2s ease;
 }
 
-
 .post details[open] .expand-icon {
     background: #2563eb;
 
@@ -807,7 +862,6 @@ body {
 
     animation: expandPost .25s ease;
 }
-
 
 @keyframes expandPost {
 
@@ -846,17 +900,60 @@ body {
 
 
 /* =========================================================
-   RICH CONTENT
+   SOURCE CONTENT
 ========================================================= */
+
+.post-source-content {
+    display: none;
+}
+
+
+/* =========================================================
+   GENERATED PAGES
+========================================================= */
+
+.post-pages {
+    width: 100%;
+}
+
+.post-page {
+    width: 100%;
+
+    display: none;
+
+    animation: postPageIn .25s ease;
+}
+
+.post-page.active {
+    display: block;
+}
 
 .rich-content {
     width: 100%;
 
     overflow-wrap: anywhere;
-
-    word-break: normal;
 }
 
+@keyframes postPageIn {
+
+    from {
+        opacity: 0;
+
+        transform: translateX(10px);
+    }
+
+    to {
+        opacity: 1;
+
+        transform: translateX(0);
+    }
+
+}
+
+
+/* =========================================================
+   RICH CONTENT
+========================================================= */
 
 .rich-content img {
     display: block;
@@ -870,25 +967,278 @@ body {
     border-radius: 10px;
 }
 
-
 .rich-content iframe {
     max-width: 100%;
 }
 
-
 .rich-content table {
-    display: block;
+    width: 100%;
 
     max-width: 100%;
 
-    overflow-x: auto;
+    border-collapse: collapse;
+
+    margin: 20px 0;
 }
 
+.rich-content th,
+.rich-content td {
+    border: 1px solid #d1d5db;
+
+    padding: 10px 12px;
+
+    vertical-align: top;
+}
+
+.rich-content th {
+    background: #f3f4f6;
+
+    color: #111827;
+
+    font-weight: 700;
+}
+
+.rich-content h1,
+.rich-content h2,
+.rich-content h3,
+.rich-content h4,
+.rich-content h5,
+.rich-content h6 {
+    color: #111827;
+
+    line-height: 1.35;
+
+    margin-top: 25px;
+
+    margin-bottom: 12px;
+}
+
+.rich-content h1 {
+    font-size: 30px;
+}
+
+.rich-content h2 {
+    font-size: 26px;
+}
+
+.rich-content h3 {
+    font-size: 22px;
+}
+
+.rich-content h4 {
+    font-size: 19px;
+}
+
+.rich-content ul,
+.rich-content ol {
+    padding-left: 25px;
+
+    margin-top: 12px;
+
+    margin-bottom: 18px;
+}
+
+.rich-content li {
+    margin-bottom: 7px;
+}
+
+.rich-content a {
+    color: #2563eb;
+
+    text-decoration: underline;
+
+    word-break: break-word;
+}
 
 .rich-content pre {
     max-width: 100%;
 
     overflow-x: auto;
+}
+
+
+/* =========================================================
+   PAGINATION AREA
+========================================================= */
+
+.pagination-area {
+    width: 100%;
+
+    margin-top: 25px;
+}
+
+
+/* =========================================================
+   PAGINATION WRAPPER
+========================================================= */
+
+.pagination-wrapper {
+    width: 100%;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 20px;
+
+    padding-top: 20px;
+
+    border-top: 1px solid #e5e7eb;
+}
+
+.page-button {
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 7px;
+
+    min-width: 110px;
+
+    padding: 10px 16px;
+
+    border: 1px solid #dbe3ef;
+
+    border-radius: 9px;
+
+    background: #ffffff;
+
+    color: #2563eb;
+
+    font-size: 14px;
+
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition:
+        background .2s ease,
+        color .2s ease,
+        border-color .2s ease,
+        transform .2s ease,
+        box-shadow .2s ease;
+}
+
+.page-button:hover:not(:disabled) {
+    background: #eff6ff;
+
+    border-color: #bfdbfe;
+
+    transform: translateY(-1px);
+
+    box-shadow:
+        0 4px 10px rgba(37, 99, 235, 0.10);
+}
+
+.page-button:disabled {
+    opacity: .45;
+
+    cursor: not-allowed;
+
+    background: #f9fafb;
+
+    color: #9ca3af;
+}
+
+
+/* =========================================================
+   PAGE INDICATOR
+========================================================= */
+
+.page-indicator {
+    min-width: 75px;
+
+    text-align: center;
+
+    color: #374151;
+
+    font-size: 15px;
+
+    font-weight: 700;
+}
+
+.current-page {
+    color: #2563eb;
+
+    font-size: 17px;
+}
+
+.page-separator {
+    margin: 0 4px;
+
+    color: #9ca3af;
+}
+
+.total-pages {
+    color: #6b7280;
+}
+
+
+/* =========================================================
+   PAGE NUMBERS
+========================================================= */
+
+.page-numbers {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    flex-wrap: wrap;
+
+    gap: 6px;
+
+    margin-top: 15px;
+}
+
+.page-number {
+    width: 34px;
+    height: 34px;
+
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 8px;
+
+    border: 1px solid #e5e7eb;
+
+    background: #ffffff;
+
+    color: #4b5563;
+
+    font-size: 13px;
+
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition:
+        background .2s ease,
+        color .2s ease,
+        border-color .2s ease;
+}
+
+.page-number:hover {
+    background: #eff6ff;
+
+    color: #2563eb;
+
+    border-color: #bfdbfe;
+}
+
+.page-number.active {
+    background: #2563eb;
+
+    color: #ffffff;
+
+    border-color: #2563eb;
 }
 
 
@@ -901,7 +1251,6 @@ body {
 
     margin: 25px auto;
 }
-
 
 .post-video {
     display: block;
@@ -940,7 +1289,6 @@ body {
     background: #000;
 }
 
-
 .youtube-container iframe {
     position: absolute;
 
@@ -977,7 +1325,6 @@ body {
     font-size: 13px;
 }
 
-
 .meta span {
     display: inline-flex;
 
@@ -985,7 +1332,6 @@ body {
 
     gap: 6px;
 }
-
 
 .meta i {
     color: #2563eb;
@@ -1013,7 +1359,6 @@ body {
     color: #6b7280;
 }
 
-
 .empty-icon {
     width: 65px;
     height: 65px;
@@ -1034,7 +1379,6 @@ body {
     font-size: 28px;
 }
 
-
 .empty h3 {
     margin: 0 0 8px;
 
@@ -1042,7 +1386,6 @@ body {
 
     font-size: 20px;
 }
-
 
 .empty p {
     margin: 0;
@@ -1062,7 +1405,6 @@ body {
             repeat(2, minmax(0, 1fr));
     }
 
-
     .post.expanded {
         grid-column: 1 / -1;
     }
@@ -1080,24 +1422,16 @@ body {
         padding: 25px 18px;
     }
 
-
     .categories-section {
         padding: 16px 18px;
     }
-
 
     .posts-container {
         padding: 22px 18px 50px;
     }
 
-
     .post-image {
         max-height: 450px;
-    }
-
-
-    .post.expanded .post-image {
-        max-height: 550px;
     }
 
 }
@@ -1115,22 +1449,15 @@ body {
         border-radius: 0;
     }
 
-
-    /* Center category heading */
-
     .category-title {
-        display: flex;
-
         flex-direction: column;
 
         align-items: center;
-        justify-content: center;
 
         text-align: center;
 
         gap: 10px;
     }
-
 
     .category-icon {
         width: 45px;
@@ -1141,20 +1468,17 @@ body {
         font-size: 21px;
     }
 
-
     .category-heading {
         width: 100%;
 
         text-align: center;
     }
 
-
     .category-header h1 {
         font-size: 23px;
 
         text-align: center;
     }
-
 
     .category-header p {
         font-size: 14px;
@@ -1164,16 +1488,13 @@ body {
         text-align: center;
     }
 
-
     .categories-section {
         padding: 15px 12px;
     }
 
-
     .section-label {
         font-size: 13px;
     }
-
 
     .category-chip {
         padding: 8px 12px;
@@ -1181,13 +1502,9 @@ body {
         font-size: 13px;
     }
 
-
     .posts-container {
         padding: 18px 10px 40px;
     }
-
-
-    /* One post per row on phones */
 
     .posts {
         grid-template-columns: 1fr;
@@ -1195,21 +1512,17 @@ body {
         gap: 18px;
     }
 
-
     .post.expanded {
         grid-column: 1 / -1;
     }
-
 
     .post {
         border-radius: 14px;
     }
 
-
     .post-image-container {
         max-height: 450px;
     }
-
 
     .post-image {
         max-width: 100%;
@@ -1217,21 +1530,13 @@ body {
         max-height: 450px;
     }
 
-
-    .post.expanded .post-image {
-        max-height: 500px;
-    }
-
-
     .post-body {
         padding: 17px;
     }
 
-
     .post summary {
         font-size: 17px;
     }
-
 
     .expand-icon {
         width: 31px;
@@ -1239,7 +1544,6 @@ body {
 
         font-size: 13px;
     }
-
 
     .post-content {
         padding-top: 18px;
@@ -1249,6 +1553,37 @@ body {
         line-height: 1.7;
     }
 
+
+    /* -----------------------------------------
+       MOBILE PAGINATION
+    ----------------------------------------- */
+
+    .pagination-wrapper {
+        gap: 8px;
+
+        justify-content: space-between;
+    }
+
+    .page-button {
+        min-width: 0;
+
+        padding: 9px 11px;
+
+        font-size: 13px;
+    }
+
+    .page-button span {
+        display: none;
+    }
+
+    .page-indicator {
+        flex: 1;
+    }
+
+    .page-number {
+        width: 31px;
+        height: 31px;
+    }
 
     .meta {
         gap: 10px;
@@ -1267,16 +1602,13 @@ body {
         padding: 17px 12px;
     }
 
-
     .category-header h1 {
         font-size: 21px;
     }
 
-
     .categories-section {
         padding: 13px 10px;
     }
-
 
     .posts-container {
         padding-left: 8px;
@@ -1284,11 +1616,9 @@ body {
         padding-right: 8px;
     }
 
-
     .post-body {
         padding: 15px;
     }
-
 
     .post summary {
         font-size: 16px;
@@ -1299,8 +1629,6 @@ body {
 
 /* =========================================================
    FULL VIEWPORT BREAKOUT
-   Ensures the header and categories reach the screen edges
-   even if base.html has a centered content wrapper.
 ========================================================= */
 
 @media (min-width: 601px) {
@@ -1318,83 +1646,1249 @@ body {
 </style>
 
 
-<!-- =========================================================
-     POST EXPANSION SCRIPT
-========================================================= -->
-
 <script>
 
-document.addEventListener("DOMContentLoaded", function () {
+/* =========================================================
+   SMARTMIND AUTOMATIC POST PAGINATION
 
-    const posts = document.querySelectorAll(".post");
+   Each post is automatically divided into approximately
+   50 rendered lines.
+
+   IMPORTANT:
+   This is based on rendered height, not simply the number
+   of <p> elements.
+
+   Therefore a paragraph that wraps onto multiple lines
+   contributes multiple lines.
+========================================================= */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
 
 
-    posts.forEach(function (post) {
+        /* =================================================
+           SETTINGS
+        ================================================= */
 
-        const details = post.querySelector("details");
-
-
-        if (!details) {
-            return;
-        }
+        const LINES_PER_PAGE = 50;
 
 
-        details.addEventListener("toggle", function () {
+        /* =================================================
+           ALL POSTS
+        ================================================= */
+
+        const posts =
+            document.querySelectorAll(
+                ".post"
+            );
+
+
+        /* =================================================
+           PAGINATION INITIALISATION
+        ================================================= */
+
+        function initialisePagination(
+            paginatedPost
+        ) {
+
+            if (!paginatedPost) {
+                return;
+            }
+
+
+            if (
+                paginatedPost.dataset.initialised ===
+                "true"
+            ) {
+                return;
+            }
+
+
+            paginatedPost.dataset.initialised =
+                "true";
+
+
+            const source =
+                paginatedPost.querySelector(
+                    ".post-source-content"
+                );
+
+
+            const pagesContainer =
+                paginatedPost.querySelector(
+                    ".post-pages"
+                );
+
+
+            const paginationArea =
+                paginatedPost.querySelector(
+                    ".pagination-area"
+                );
+
+
+            const previousButton =
+                paginatedPost.querySelector(
+                    ".previous-page"
+                );
+
+
+            const nextButton =
+                paginatedPost.querySelector(
+                    ".next-page"
+                );
+
+
+            const currentPageElement =
+                paginatedPost.querySelector(
+                    ".current-page"
+                );
+
+
+            const totalPagesElement =
+                paginatedPost.querySelector(
+                    ".total-pages"
+                );
+
+
+            const pageNumbersContainer =
+                paginatedPost.querySelector(
+                    ".page-numbers"
+                );
+
+
+            if (
+                !source ||
+                !pagesContainer
+            ) {
+                return;
+            }
+
+
+            /* =================================================
+               CREATE MEASUREMENT CONTAINER
+
+               The browser needs to render the content so
+               we can determine how many actual lines it
+               occupies.
+            ================================================= */
+
+            const measurement =
+                document.createElement(
+                    "div"
+                );
+
+
+            measurement.className =
+                "pagination-measurement";
+
+
+            measurement.style.position =
+                "absolute";
+
+            measurement.style.visibility =
+                "hidden";
+
+            measurement.style.pointerEvents =
+                "none";
+
+            measurement.style.left =
+                "-99999px";
+
+            measurement.style.top =
+                "0";
+
+            measurement.style.width =
+                paginatedPost.clientWidth +
+                "px";
+
+            measurement.style.maxWidth =
+                "100%";
+
+            measurement.style.fontSize =
+                getComputedStyle(
+                    paginatedPost
+                ).fontSize;
+
+
+            document.body.appendChild(
+                measurement
+            );
+
+
+            /* =================================================
+               GET LINE HEIGHT
+            ================================================= */
+
+            const contentStyle =
+                getComputedStyle(
+                    paginatedPost.closest(
+                        ".post-content"
+                    )
+                );
+
+
+            let lineHeight =
+                parseFloat(
+                    contentStyle.lineHeight
+                );
+
 
             /*
-             * When this post opens,
-             * close every other post.
+             * If line-height is "normal",
+             * estimate it from font size.
              */
 
-            if (details.open) {
+            if (
+                isNaN(lineHeight)
+            ) {
 
-                posts.forEach(function (otherPost) {
-
-                    if (otherPost !== post) {
-
-                        const otherDetails =
-                            otherPost.querySelector("details");
-
-
-                        if (otherDetails) {
-
-                            otherDetails.removeAttribute("open");
-
-                        }
+                const fontSize =
+                    parseFloat(
+                        contentStyle.fontSize
+                    ) || 16;
 
 
-                        otherPost.classList.remove("expanded");
-
-                    }
-
-                });
-
-
-                /*
-                 * Expand the currently opened post
-                 * across the entire posts grid.
-                 */
-
-                post.classList.add("expanded");
-
-
-            } else {
-
-                /*
-                 * Return post to normal width.
-                 */
-
-                post.classList.remove("expanded");
+                lineHeight =
+                    fontSize * 1.8;
 
             }
 
-        });
 
-    });
+            /*
+             * Maximum height for approximately
+             * 50 lines.
+             */
 
-});
+            const MAX_PAGE_HEIGHT =
+                lineHeight *
+                LINES_PER_PAGE;
+
+
+            /* =================================================
+               SOURCE CHILDREN
+            ================================================= */
+
+            const children =
+                Array.from(
+                    source.children
+                );
+
+
+            /*
+             * If the CKEditor content does not have
+             * child elements, use the complete HTML.
+             */
+
+            if (
+                children.length === 0 &&
+                source.innerHTML.trim()
+            ) {
+
+                const fallbackPage =
+                    document.createElement(
+                        "div"
+                    );
+
+                fallbackPage.className =
+                    "post-page active";
+
+
+                const fallbackContent =
+                    document.createElement(
+                        "div"
+                    );
+
+                fallbackContent.className =
+                    "rich-content";
+
+
+                fallbackContent.innerHTML =
+                    source.innerHTML;
+
+
+                fallbackPage.appendChild(
+                    fallbackContent
+                );
+
+
+                pagesContainer.appendChild(
+                    fallbackPage
+                );
+
+            }
+
+
+            /* =================================================
+               PAGE BUILDER
+            ================================================= */
+
+            let currentPage =
+                createPage();
+
+
+            function createPage() {
+
+                const page =
+                    document.createElement(
+                        "div"
+                    );
+
+                page.className =
+                    "post-page";
+
+
+                const content =
+                    document.createElement(
+                        "div"
+                    );
+
+                content.className =
+                    "rich-content";
+
+
+                page.appendChild(
+                    content
+                );
+
+
+                return page;
+
+            }
+
+
+            function getPageContent(
+                page
+            ) {
+
+                return page.querySelector(
+                    ".rich-content"
+                );
+
+            }
+
+
+            function pageHeight(
+                page
+            ) {
+
+                measurement.innerHTML = "";
+
+                measurement.appendChild(
+                    page.cloneNode(true)
+                );
+
+
+                return measurement
+                    .firstElementChild
+                    .getBoundingClientRect()
+                    .height;
+
+            }
+
+
+            function savePage(
+                page
+            ) {
+
+                const content =
+                    getPageContent(
+                        page
+                    );
+
+
+                if (
+                    content &&
+                    content.innerHTML.trim()
+                ) {
+
+                    pagesContainer.appendChild(
+                        page
+                    );
+
+                }
+
+            }
+
+
+            /* =================================================
+               SPLIT VERY LARGE ELEMENTS
+
+               This handles paragraphs, lists, etc. that
+               themselves exceed 50 lines.
+            ================================================= */
+
+            function splitLargeElement(
+                element
+            ) {
+
+                /*
+                 * Clone first.
+                 */
+
+                const working =
+                    element.cloneNode(
+                        true
+                    );
+
+
+                /*
+                 * If it contains images, tables,
+                 * videos or other complex elements,
+                 * keep the element intact rather than
+                 * destroying its structure.
+                 */
+
+                const complexContent =
+                    working.querySelector(
+                        "img, table, iframe, video, pre, blockquote"
+                    );
+
+
+                if (
+                    complexContent
+                ) {
+
+                    return [
+                        working
+                    ];
+
+                }
+
+
+                /*
+                 * Extract text.
+                 */
+
+                const text =
+                    working.textContent ||
+                    "";
+
+
+                /*
+                 * If the text is not very long,
+                 * return it unchanged.
+                 */
+
+                if (
+                    text.trim().length === 0
+                ) {
+
+                    return [
+                        working
+                    ];
+
+                }
+
+
+                /*
+                 * Estimate whether the element
+                 * could exceed the page.
+                 */
+
+                measurement.innerHTML =
+                    "";
+
+                measurement.appendChild(
+                    working.cloneNode(true)
+                );
+
+
+                const estimatedHeight =
+                    measurement
+                        .firstElementChild
+                        .getBoundingClientRect()
+                        .height;
+
+
+                if (
+                    estimatedHeight <=
+                    MAX_PAGE_HEIGHT
+                ) {
+
+                    return [
+                        working
+                    ];
+
+                }
+
+
+                /*
+                 * Split long text into smaller
+                 * word groups.
+                 */
+
+                const words =
+                    text.trim().split(
+                        /\s+/
+                    );
+
+
+                const pieces = [];
+
+                let currentText = "";
+
+
+                words.forEach(
+                    function (word) {
+
+                        const testText =
+                            currentText
+                                ? currentText +
+                                  " " +
+                                  word
+                                : word;
+
+
+                        const test =
+                            element.cloneNode(
+                                false
+                            );
+
+
+                        test.textContent =
+                            testText;
+
+
+                        measurement.innerHTML =
+                            "";
+
+
+                        measurement.appendChild(
+                            test
+                        );
+
+
+                        const height =
+                            test
+                                .getBoundingClientRect()
+                                .height;
+
+
+                        if (
+                            height >
+                                MAX_PAGE_HEIGHT &&
+                            currentText
+                        ) {
+
+                            const piece =
+                                element.cloneNode(
+                                    false
+                                );
+
+
+                            piece.textContent =
+                                currentText;
+
+
+                            pieces.push(
+                                piece
+                            );
+
+
+                            currentText =
+                                word;
+
+                        } else {
+
+                            currentText =
+                                testText;
+
+                        }
+
+                    }
+                );
+
+
+                if (
+                    currentText.trim()
+                ) {
+
+                    const piece =
+                        element.cloneNode(
+                            false
+                        );
+
+
+                    piece.textContent =
+                        currentText;
+
+
+                    pieces.push(
+                        piece
+                    );
+
+                }
+
+
+                return pieces;
+
+            }
+
+
+            /* =================================================
+               BUILD PAGES FROM CONTENT
+            ================================================= */
+
+            children.forEach(
+                function (originalElement) {
+
+                    /*
+                     * Ignore empty elements.
+                     */
+
+                    if (
+                        !originalElement
+                            .outerHTML
+                            .trim()
+                    ) {
+
+                        return;
+
+                    }
+
+
+                    const pieces =
+                        splitLargeElement(
+                            originalElement
+                        );
+
+
+                    pieces.forEach(
+                        function (piece) {
+
+                            const pageContent =
+                                getPageContent(
+                                    currentPage
+                                );
+
+
+                            /*
+                             * Temporarily add the
+                             * element to determine
+                             * whether the page has
+                             * exceeded 50 lines.
+                             */
+
+                            pageContent.appendChild(
+                                piece
+                            );
+
+
+                            const height =
+                                pageHeight(
+                                    currentPage
+                                );
+
+
+                            /*
+                             * If the page is too tall
+                             * and already contains
+                             * something, move the
+                             * element to a new page.
+                             */
+
+                            if (
+                                height >
+                                    MAX_PAGE_HEIGHT &&
+                                pageContent.children.length >
+                                    1
+                            ) {
+
+                                pageContent.removeChild(
+                                    piece
+                                );
+
+
+                                savePage(
+                                    currentPage
+                                );
+
+
+                                currentPage =
+                                    createPage();
+
+
+                                getPageContent(
+                                    currentPage
+                                ).appendChild(
+                                    piece
+                                );
+
+                            }
+
+                        }
+                    );
+
+                }
+            );
+
+
+            /*
+             * Save final page.
+             */
+
+            savePage(
+                currentPage
+            );
+
+
+            /* =================================================
+               FALLBACK
+            ================================================= */
+
+            let pages =
+                Array.from(
+                    pagesContainer.querySelectorAll(
+                        ".post-page"
+                    )
+                );
+
+
+            if (
+                pages.length === 0
+            ) {
+
+                const fallback =
+                    createPage();
+
+
+                getPageContent(
+                    fallback
+                ).innerHTML =
+                    source.innerHTML;
+
+
+                fallback.classList.add(
+                    "active"
+                );
+
+
+                pagesContainer.appendChild(
+                    fallback
+                );
+
+
+                pages =
+                    [
+                        fallback
+                    ];
+
+            }
+
+
+            /* =================================================
+               REMOVE MEASUREMENT CONTAINER
+            ================================================= */
+
+            measurement.remove();
+
+
+            /* =================================================
+               PAGE STATE
+            ================================================= */
+
+            let currentPageIndex = 0;
+
+
+            /* =================================================
+               SHOW/HIDE PAGINATION
+
+               If the post fits on one page,
+               pagination controls remain hidden.
+            ================================================= */
+
+            if (
+                pages.length <= 1
+            ) {
+
+                paginationArea.style.display =
+                    "none";
+
+            } else {
+
+                paginationArea.style.display =
+                    "block";
+
+            }
+
+
+            /* =================================================
+               PAGE NUMBERS
+            ================================================= */
+
+            pageNumbersContainer.innerHTML =
+                "";
+
+
+            pages.forEach(
+                function (
+                    page,
+                    index
+                ) {
+
+                    const button =
+                        document.createElement(
+                            "button"
+                        );
+
+
+                    button.type =
+                        "button";
+
+
+                    button.className =
+                        "page-number";
+
+
+                    button.textContent =
+                        index + 1;
+
+
+                    button.setAttribute(
+                        "aria-label",
+                        "Go to page " +
+                        (index + 1)
+                    );
+
+
+                    button.addEventListener(
+                        "click",
+                        function () {
+
+                            showPage(
+                                index,
+                                true
+                            );
+
+                        }
+                    );
+
+
+                    pageNumbersContainer.appendChild(
+                        button
+                    );
+
+                }
+            );
+
+
+            const pageButtons =
+                Array.from(
+                    pageNumbersContainer
+                        .querySelectorAll(
+                            ".page-number"
+                        )
+                );
+
+
+            /* =================================================
+               SHOW PAGE
+            ================================================= */
+
+            function showPage(
+                index,
+                scroll
+            ) {
+
+                if (
+                    index < 0
+                ) {
+
+                    index = 0;
+
+                }
+
+
+                if (
+                    index >= pages.length
+                ) {
+
+                    index =
+                        pages.length - 1;
+
+                }
+
+
+                currentPageIndex =
+                    index;
+
+
+                pages.forEach(
+                    function (
+                        page,
+                        pageIndex
+                    ) {
+
+                        page.classList.toggle(
+                            "active",
+                            pageIndex ===
+                            currentPageIndex
+                        );
+
+                    }
+                );
+
+
+                pageButtons.forEach(
+                    function (
+                        button,
+                        buttonIndex
+                    ) {
+
+                        button.classList.toggle(
+                            "active",
+                            buttonIndex ===
+                            currentPageIndex
+                        );
+
+                    }
+                );
+
+
+                currentPageElement.textContent =
+                    currentPageIndex + 1;
+
+
+                totalPagesElement.textContent =
+                    pages.length;
+
+
+                previousButton.disabled =
+                    currentPageIndex === 0;
+
+
+                nextButton.disabled =
+                    currentPageIndex ===
+                    pages.length - 1;
+
+
+                /*
+                 * Scroll only when the learner
+                 * deliberately changes page.
+                 */
+
+                if (
+                    scroll
+                ) {
+
+                    const rect =
+                        paginatedPost
+                            .getBoundingClientRect();
+
+
+                    if (
+                        rect.top < 70 ||
+                        rect.top >
+                        window.innerHeight * 0.35
+                    ) {
+
+                        window.scrollTo({
+
+                            top:
+                                window.scrollY +
+                                rect.top -
+                                75,
+
+                            behavior:
+                                "smooth"
+
+                        });
+
+                    }
+
+                }
+
+            }
+
+
+            /* =================================================
+               PREVIOUS BUTTON
+            ================================================= */
+
+            previousButton.addEventListener(
+                "click",
+                function () {
+
+                    if (
+                        currentPageIndex >
+                        0
+                    ) {
+
+                        showPage(
+                            currentPageIndex -
+                            1,
+                            true
+                        );
+
+                    }
+
+                }
+            );
+
+
+            /* =================================================
+               NEXT BUTTON
+            ================================================= */
+
+            nextButton.addEventListener(
+                "click",
+                function () {
+
+                    if (
+                        currentPageIndex <
+                        pages.length - 1
+                    ) {
+
+                        showPage(
+                            currentPageIndex +
+                            1,
+                            true
+                        );
+
+                    }
+
+                }
+            );
+
+
+            /* =================================================
+               INITIAL PAGE
+            ================================================= */
+
+            showPage(
+                0,
+                false
+            );
+
+        }
+
+
+        /* =====================================================
+           POST EXPANSION
+        ===================================================== */
+
+        posts.forEach(
+            function (post) {
+
+                const details =
+                    post.querySelector(
+                        "details"
+                    );
+
+
+                if (!details) {
+                    return;
+                }
+
+
+                const paginatedPost =
+                    post.querySelector(
+                        ".paginated-post"
+                    );
+
+
+                /*
+                 * Prepare pagination.
+                 */
+
+                if (
+                    paginatedPost
+                ) {
+
+                    initialisePagination(
+                        paginatedPost
+                    );
+
+                }
+
+
+                /* =================================================
+                   OPEN / CLOSE
+                ================================================= */
+
+                details.addEventListener(
+                    "toggle",
+                    function () {
+
+
+                        if (
+                            details.open
+                        ) {
+
+
+                            /*
+                             * Close every other post.
+                             */
+
+                            posts.forEach(
+                                function (
+                                    otherPost
+                                ) {
+
+                                    if (
+                                        otherPost !==
+                                        post
+                                    ) {
+
+                                        const otherDetails =
+                                            otherPost
+                                                .querySelector(
+                                                    "details"
+                                                );
+
+
+                                        if (
+                                            otherDetails
+                                        ) {
+
+                                            otherDetails
+                                                .removeAttribute(
+                                                    "open"
+                                                );
+
+                                        }
+
+
+                                        otherPost
+                                            .classList
+                                            .remove(
+                                                "expanded"
+                                            );
+
+                                    }
+
+                                }
+                            );
+
+
+                            /*
+                             * Expand this post
+                             * across the grid.
+                             */
+
+                            post.classList.add(
+                                "expanded"
+                            );
+
+
+                            /*
+                             * Make sure pagination
+                             * is available.
+                             */
+
+                            if (
+                                paginatedPost
+                            ) {
+
+                                initialisePagination(
+                                    paginatedPost
+                                );
+
+                            }
+
+                        } else {
+
+                            post.classList.remove(
+                                "expanded"
+                            );
+
+                        }
+
+                    }
+                );
+
+            }
+        );
+
+
+        /* =====================================================
+           REBUILD PAGINATION ON RESIZE
+
+           Because "50 lines" depends on the screen width,
+           a mobile screen may have more lines than desktop.
+
+           When the browser changes size, rebuild each post.
+        ===================================================== */
+
+        let resizeTimer;
+
+
+        window.addEventListener(
+            "resize",
+            function () {
+
+                clearTimeout(
+                    resizeTimer
+                );
+
+
+                resizeTimer =
+                    setTimeout(
+                        function () {
+
+                            document
+                                .querySelectorAll(
+                                    ".paginated-post"
+                                )
+                                .forEach(
+                                    function (
+                                        paginatedPost
+                                    ) {
+
+                                        /*
+                                         * Remove generated
+                                         * pagination.
+                                         */
+
+                                        const pages =
+                                            paginatedPost
+                                                .querySelector(
+                                                    ".post-pages"
+                                                );
+
+
+                                        if (
+                                            pages
+                                        ) {
+
+                                            pages.innerHTML =
+                                                "";
+
+                                        }
+
+
+                                        /*
+                                         * Reset state.
+                                         */
+
+                                        paginatedPost
+                                            .dataset
+                                            .initialised =
+                                            "false";
+
+
+                                        /*
+                                         * Rebuild.
+                                         */
+
+                                        initialisePagination(
+                                            paginatedPost
+                                        );
+
+                                    }
+                                );
+
+                        },
+                        300
+                    );
+
+            }
+        );
+
+    }
+);
 
 </script>
-
 
 {% endblock %}
