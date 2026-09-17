@@ -34,6 +34,10 @@ from .models import (
 )
 
 from .widgets import MultipleFileInput
+from django.db.models import (
+    F,
+    Prefetch,
+)
 # ============================================================
 # COMMENT FORM
 # ============================================================
@@ -121,10 +125,12 @@ class PostForm(forms.ModelForm):
                 'rows': 3,
                 'placeholder': 'Write a brief summary...'
             }),
-            'content': forms.Textarea(attrs={
-                'class': 'form-control',
-                'placeholder': 'Write your post content...'
-            }),
+        'content': CKEditor5Widget(
+                attrs={
+                    'class': 'django_ckeditor_5',
+                },
+                config_name='extends',
+            ),
             'school': forms.Select(attrs={
                 'class': 'form-select'
             }),
@@ -217,11 +223,7 @@ def get_post_comments(
     request,
     post
 ):
-    """
-    Fetch the latest comments and mark whether
-    the current user liked each comment.
-    """
-
+  
     comments = list(
         Comment.objects
         .filter(post=post)
@@ -250,18 +252,30 @@ def get_post_comments(
     return comments
 
 
-# ============================================================
-# HOME
-# ============================================================
-
 def home(request):
 
+    # ========================================================
+    # USER INFORMATION
+    # ========================================================
+
+    user_id = (
+        request.user.pk
+        if request.user.is_authenticated
+        else None
+    )
+
+
+    comments_queryset = (
+        Comment.objects
+        .select_related("author")
+        .prefetch_related("liked_by")
+        .order_by("created_at")
+    )
+
+
+    
     posts_qs = (
         Post.objects
-        .filter(
-            status="published",
-            approved=True,
-        )
         .select_related(
             "author",
             "category",
@@ -269,60 +283,83 @@ def home(request):
         .prefetch_related(
             "tags",
             "images",
+            "likes",
+            Prefetch(
+                "comments",
+                queryset=comments_queryset[:20],
+                to_attr="home_comments",
+            ),
         )
         .order_by(
             "-created_at"
         )
     )
 
+
     posts = []
 
+
+   
     for post in posts_qs:
 
         # ----------------------------------------------------
         # COMMENTS
         # ----------------------------------------------------
 
-        comments = list(
-            Comment.objects
-            .filter(post=post)
-            .select_related("author")
-            .prefetch_related("liked_by")
-            .order_by("created_at")[:20]
+        comments = getattr(
+            post,
+            "home_comments",
+            []
         )
 
-        if request.user.is_authenticated:
 
-            user_id = request.user.pk
+     
+        for comment in comments:
 
-            for comment in comments:
+            if user_id:
 
                 comment.liked_by_current_user = any(
                     user.pk == user_id
                     for user in comment.liked_by.all()
                 )
 
-        else:
-
-            for comment in comments:
+            else:
 
                 comment.liked_by_current_user = False
 
-        # ----------------------------------------------------
-        # POST LIKE STATUS
-        # ----------------------------------------------------
 
+            # Total likes for this comment
+
+            comment.likes_count = (
+                comment.liked_by.count()
+            )
+
+
+       
+        comments_count = (
+            Comment.objects
+            .filter(post=post)
+            .count()
+        )
+
+
+       
         is_liked = (
-            request.user.is_authenticated
+            bool(user_id)
             and post.likes.filter(
-                pk=request.user.pk
+                pk=user_id
             ).exists()
         )
 
-        # ----------------------------------------------------
-        # PERMISSIONS
-        # ----------------------------------------------------
 
+        likes_count = post.likes.count()
+
+
+       
+        views_count = post.view_count
+
+
+       
         can_edit = can_manage_post(
             request,
             post
@@ -330,34 +367,53 @@ def home(request):
 
         can_delete = can_edit
 
+
         # ----------------------------------------------------
         # ADD POST DATA
         # ----------------------------------------------------
 
         posts.append({
+
             "post": post,
+
             "comments": comments,
+
+            "comments_count": comments_count,
+
+            "likes_count": likes_count,
+
+            "views_count": views_count,
+
             "is_liked": is_liked,
+
             "can_edit": can_edit,
+
             "can_delete": can_delete,
+
         })
 
-    # --------------------------------------------------------
+
+    # ========================================================
     # CATEGORIES
-    # --------------------------------------------------------
+    # ========================================================
 
-    categories = Category.objects.all()
+    categories = (
+        Category.objects
+        .all()
+        .order_by("name")
+    )
 
-    # --------------------------------------------------------
+
+    # ========================================================
     # FEATURED POST
-    # --------------------------------------------------------
+    #
+    # No status/approval filter.
+    # ========================================================
 
     featured_post = (
         Post.objects
         .filter(
-            status="published",
-            approved=True,
-            is_featured=True,
+            is_featured=True
         )
         .select_related(
             "author",
@@ -373,15 +429,25 @@ def home(request):
         .first()
     )
 
-    # --------------------------------------------------------
+
+    # ========================================================
     # CONTEXT
-    # --------------------------------------------------------
+    # ========================================================
 
     context = {
+
         "posts": posts,
+
         "categories": categories,
+
         "featured_post": featured_post,
+
     }
+
+
+    # ========================================================
+    # RENDER HOME PAGE
+    # ========================================================
 
     return render(
         request,
@@ -390,21 +456,167 @@ def home(request):
     )
 
 
-# ============================================================
-# CATEGORY POSTS
-# ============================================================
+from django.db.models import F
+from django.shortcuts import get_object_or_404, render
 
-def category_post(
-    request,
-    slug
-):
+# Make sure these are already imported in your views.py:
+# from .models import Post, Comment
 
-    category = get_object_or_404(
-        Category,
+
+def post_detail(request, slug):
+    """
+    Display a single post with:
+    - post information
+    - images
+    - likes
+    - comments
+    - view count
+    - edit/delete permissions
+    """
+
+    # ---------------------------------------------------------
+    # GET THE POST
+    # ---------------------------------------------------------
+
+    post = get_object_or_404(
+        Post.objects
+        .select_related(
+            "author",
+            "category",
+            "school",
+        )
+        .prefetch_related(
+            "tags",
+            "images",
+            "likes",
+        ),
         slug=slug,
     )
 
-    posts = (
+    # ---------------------------------------------------------
+    # INCREASE VIEW COUNT
+    # ---------------------------------------------------------
+
+    Post.objects.filter(
+        pk=post.pk
+    ).update(
+        view_count=F("view_count") + 1
+    )
+
+    # Refresh the object so the template receives the new count
+    post.refresh_from_db()
+
+    # ---------------------------------------------------------
+    # GET COMMENTS
+    # ---------------------------------------------------------
+
+    comments = list(
+        Comment.objects
+        .filter(post=post)
+        .select_related("author")
+        .prefetch_related("liked_by")
+        .order_by("created_at")
+    )
+
+    # ---------------------------------------------------------
+    # COMMENT LIKE INFORMATION
+    # ---------------------------------------------------------
+
+    if request.user.is_authenticated:
+
+        user_id = request.user.pk
+
+        for comment in comments:
+
+            comment.likes_count = (
+                comment.liked_by.count()
+            )
+
+            comment.liked_by_current_user = (
+                comment.liked_by
+                .filter(pk=user_id)
+                .exists()
+            )
+
+    else:
+
+        for comment in comments:
+
+            comment.likes_count = (
+                comment.liked_by.count()
+            )
+
+            comment.liked_by_current_user = False
+
+    # ---------------------------------------------------------
+    # POST LIKE INFORMATION
+    # ---------------------------------------------------------
+
+    is_liked = (
+        request.user.is_authenticated
+        and post.likes.filter(
+            pk=request.user.pk
+        ).exists()
+    )
+
+    likes_count = post.likes.count()
+
+    comments_count = len(comments)
+
+    views_count = post.view_count
+
+    # ---------------------------------------------------------
+    # EDIT / DELETE PERMISSION
+    # ---------------------------------------------------------
+
+    can_edit = can_manage_post(
+        request,
+        post
+    )
+
+    can_delete = can_edit
+
+    # ---------------------------------------------------------
+    # CONTEXT
+    # ---------------------------------------------------------
+
+    context = {
+        "post": post,
+        "comments": comments,
+        "comments_count": comments_count,
+        "likes_count": likes_count,
+        "views_count": views_count,
+        "is_liked": is_liked,
+        "can_edit": can_edit,
+        "can_delete": can_delete,
+    }
+
+    return render(request,"post_detail.html",context)
+
+
+def category_post(request, slug):
+    """
+    Display all posts belonging to a specific category.
+
+    Posts are displayed immediately after creation.
+    There is intentionally no status='published'
+    or approved=True visibility filter.
+    """
+
+    # --------------------------------------------------------
+    # GET THE SELECTED CATEGORY
+    # --------------------------------------------------------
+
+    category = get_object_or_404(
+        Category,
+        slug=slug
+    )
+
+    # --------------------------------------------------------
+    # GET ALL POSTS BELONGING TO THIS CATEGORY
+    # --------------------------------------------------------
+
+    posts_qs = (
         Post.objects
         .filter(
             category=category
@@ -412,20 +624,170 @@ def category_post(
         .select_related(
             "author",
             "category",
+            "school",
         )
         .prefetch_related(
             "tags",
             "images",
+            "likes",
         )
         .order_by(
             "-created_at"
         )
     )
 
+    # --------------------------------------------------------
+    # PREPARE POSTS
+    # --------------------------------------------------------
+
+    posts = []
+
+    for post in posts_qs:
+
+        # ----------------------------------------------------
+        # COMMENTS
+        # ----------------------------------------------------
+
+        comments = list(
+            Comment.objects
+            .filter(
+                post=post
+            )
+            .select_related(
+                "author"
+            )
+            .prefetch_related(
+                "liked_by"
+            )
+            .order_by(
+                "created_at"
+            )
+        )
+
+        # ----------------------------------------------------
+        # COMMENT LIKE STATUS
+        # ----------------------------------------------------
+
+        if request.user.is_authenticated:
+
+            user_id = request.user.pk
+
+            for comment in comments:
+
+                comment.likes_count = (
+                    comment.liked_by.count()
+                )
+
+                comment.liked_by_current_user = (
+                    comment.liked_by
+                    .filter(pk=user_id)
+                    .exists()
+                )
+
+        else:
+
+            for comment in comments:
+
+                comment.likes_count = (
+                    comment.liked_by.count()
+                )
+
+                comment.liked_by_current_user = False
+
+        # ----------------------------------------------------
+        # POST LIKE STATUS
+        # ----------------------------------------------------
+
+        if request.user.is_authenticated:
+
+            is_liked = (
+                post.likes
+                .filter(pk=request.user.pk)
+                .exists()
+            )
+
+        else:
+
+            is_liked = False
+
+        # ----------------------------------------------------
+        # POST LIKE COUNT
+        # ----------------------------------------------------
+
+        likes_count = post.likes.count()
+
+        # ----------------------------------------------------
+        # COMMENT COUNT
+        # ----------------------------------------------------
+
+        comments_count = Comment.objects.filter(
+            post=post
+        ).count()
+
+        # ----------------------------------------------------
+        # VIEW COUNT
+        # ----------------------------------------------------
+
+        views_count = post.view_count
+
+        # ----------------------------------------------------
+        # EDIT / DELETE PERMISSIONS
+        # ----------------------------------------------------
+
+        can_edit = can_manage_post(
+            request,
+            post
+        )
+
+        can_delete = can_edit
+
+        # ----------------------------------------------------
+        # ATTACH EXTRA DATA TO THE POST OBJECT
+        # ----------------------------------------------------
+
+        post.category_name = (
+            post.category.name
+            if post.category
+            else ""
+        )
+
+        post.comments_list = comments
+        post.comments_count = comments_count
+        post.likes_count = likes_count
+        post.views_count = views_count
+        post.is_liked = is_liked
+        post.can_edit = can_edit
+        post.can_delete = can_delete
+
+        # ----------------------------------------------------
+        # ADD ACTUAL POST OBJECT
+        # ----------------------------------------------------
+
+        posts.append(post)
+
+    # --------------------------------------------------------
+    # GET ALL CATEGORIES FOR NAVIGATION
+    # --------------------------------------------------------
+
+    categories = (
+        Category.objects
+        .all()
+        .order_by("name")
+    )
+
+    # --------------------------------------------------------
+    # CONTEXT
+    # --------------------------------------------------------
+
     context = {
         "category": category,
         "posts": posts,
+        "categories": categories,
     }
+
+    # --------------------------------------------------------
+    # RENDER CATEGORY PAGE
+    # --------------------------------------------------------
 
     return render(
         request,
@@ -434,9 +796,7 @@ def category_post(
     )
 
 
-# ============================================================
-# LIKE OR UNLIKE POST
-# ============================================================
+
 
 @login_required
 @require_POST
@@ -486,11 +846,21 @@ def add_comment(
     slug
 ):
 
+    # --------------------------------------------------------
+    # GET THE POST
+    #
+    # Do NOT require status="published".
+    # All created posts can receive comments.
+    # --------------------------------------------------------
+
     post = get_object_or_404(
         Post,
         slug=slug,
-        status="published",
     )
+
+    # --------------------------------------------------------
+    # PROCESS COMMENT FORM
+    # --------------------------------------------------------
 
     form = CommentForm(
         request.POST
@@ -498,23 +868,37 @@ def add_comment(
 
     if form.is_valid():
 
+        # Create comment without saving immediately
         comment = form.save(
             commit=False
         )
 
+        # Attach post
         comment.post = post
+
+        # Attach logged-in user
         comment.author = request.user
 
+        # Save comment
         comment.save()
 
+        # ----------------------------------------------------
+        # RETURN TO THE COMMENTS SECTION
+        # ----------------------------------------------------
+
         return redirect(
-            f"{reverse('blog:home')}"
-            f"#post-{post.pk}"
+            f"{post.get_absolute_url()}#comments-section"
         )
 
+    # --------------------------------------------------------
+    # IF FORM IS INVALID
+    # RETURN TO THE COMMENTS SECTION TOO
+    # --------------------------------------------------------
+
     return redirect(
-        "blog:home"
+        f"{post.get_absolute_url()}#comments-section"
     )
+
 
 
 # ============================================================
@@ -768,51 +1152,3 @@ def delete_post(
     )
 
 
-# ============================================================
-# CATEGORY POSTS
-# ============================================================
-
-def category_posts(
-    request,
-    slug
-):
-
-    category = get_object_or_404(
-        Category,
-        slug=slug
-    )
-
-    posts = (
-        Post.objects
-        .filter(
-            category=category,
-            status="published"
-        )
-        .select_related(
-            "author",
-            "category"
-        )
-        .prefetch_related(
-            "tags",
-            "images"
-        )
-        .order_by(
-            "-created_at"
-        )
-    )
-
-    categories = (
-        Category.objects
-        .all()
-        .order_by("name")
-    )
-
-    return render(
-        request,
-        "blog/category_posts.html",
-        {
-            "category": category,
-            "posts": posts,
-            "categories": categories,
-        }
-    )

@@ -70,9 +70,7 @@ class Tag(models.Model):
         return self.name
 
 
-# ==========================================================
-# POST
-# ==========================================================
+
 class Post(models.Model):
 
     STATUS_CHOICES = [
@@ -137,7 +135,7 @@ class Post(models.Model):
         default=False
     )
 
-    # NO image field here
+    
 
     video = models.FileField(
         upload_to="videos/",
@@ -213,9 +211,7 @@ class Post(models.Model):
         super().save(*args, **kwargs)
 
 
-# ==========================================================
-# POST IMAGE
-# ==========================================================
+
 class PostImage(models.Model):
 
     post = models.ForeignKey(
@@ -251,9 +247,8 @@ class PostImage(models.Model):
         )
 
 
-# ==========================================================
-# COMMENT
-# ==========================================================
+
+
 
 class Comment(models.Model):
 

@@ -1,0 +1,1049 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+    {{ post.title }} | SmartMind
+{% endblock %}
+
+{% block content %}
+
+<style>
+    /* =========================================================
+       MODERN BLOG POST DETAIL
+       Wide on laptop / desktop • Responsive on mobile
+    ========================================================= */
+
+    .post-container {
+        width: 100%;
+        max-width: 1280px;
+        margin: 40px auto;
+        padding: 0 24px;
+    }
+
+    .post-card {
+        background: #ffffff;
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.03), 0 2px 6px rgba(0, 0, 0, 0.02);
+        border: 1px solid rgba(0, 0, 0, 0.02);
+    }
+
+    .post-container > .mb-3 .btn-outline-secondary {
+        border: 1px solid #dde3ec;
+        border-radius: 12px;
+        color: #2f405c;
+        font-weight: 500;
+        font-size: 0.88rem;
+        padding: 0.55rem 1.1rem;
+        background: #ffffff;
+        transition: all 0.15s ease;
+    }
+
+    .post-container > .mb-3 .btn-outline-secondary:hover {
+        background: #f2f5f9;
+        border-color: #cbd5e1;
+        color: #0b1e33;
+        transform: translateX(-2px);
+    }
+
+    .post-header {
+        padding: 2.5rem 3rem 1.75rem;
+    }
+
+    .post-title {
+        font-weight: 700;
+        font-size: 2.4rem;
+        letter-spacing: -0.02em;
+        line-height: 1.2;
+        margin-bottom: 1rem;
+        color: #0b1e33;
+    }
+
+    .post-header .badge.bg-primary {
+        background: #e8efff !important;
+        color: #2563eb !important;
+        font-weight: 600;
+        font-size: 0.72rem;
+        padding: 0.45rem 0.9rem;
+        border-radius: 30px;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        border: 1px solid rgba(37, 99, 235, 0.08);
+    }
+
+    .post-header .lead {
+        font-size: 1.1rem;
+        line-height: 1.7;
+        color: #5e6f8d !important;
+        font-weight: 400;
+        margin-bottom: 1.25rem;
+    }
+
+    .post-meta {
+        color: #7c8ba3;
+        font-size: 0.88rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+    }
+
+    .post-meta i {
+        color: #2563eb;
+        font-size: 0.9rem;
+    }
+
+    .stats {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        color: #6d7e9c;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .stats span {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.35rem 0.85rem;
+        background: #f9fbfe;
+        border-radius: 30px;
+        border: 1px solid #eef2f7;
+        transition: all 0.15s ease;
+    }
+
+    .stats span:hover {
+        background: #eff4ff;
+        border-color: #d0e0ff;
+    }
+
+    .stats i {
+        color: #2563eb;
+        font-size: 0.95rem;
+    }
+
+    .post-image {
+        width: 100%;
+        max-height: 640px;
+        object-fit: cover;
+        border-radius: 18px;
+        margin-bottom: 1.25rem;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+        display: block;
+    }
+
+    .post-content {
+        padding: 0 3rem 2.5rem;
+        line-height: 1.85;
+        font-size: 1.08rem;
+        color: #2f405c;
+    }
+
+    .post-content p {
+        margin-bottom: 1.25rem;
+    }
+
+    .post-content h1,
+    .post-content h2,
+    .post-content h3,
+    .post-content h4,
+    .post-content h5,
+    .post-content h6 {
+        font-weight: 700;
+        color: #0b1e33;
+        letter-spacing: -0.01em;
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+        line-height: 1.3;
+    }
+
+    .post-content h1 { font-size: 2rem; }
+    .post-content h2 { font-size: 1.65rem; }
+    .post-content h3 { font-size: 1.35rem; }
+
+    .post-content a {
+        color: #2563eb;
+        text-decoration: none;
+        border-bottom: 1px solid rgba(37, 99, 235, 0.25);
+        transition: all 0.15s ease;
+    }
+
+    .post-content a:hover {
+        color: #1d4ed8;
+        border-bottom-color: #1d4ed8;
+    }
+
+    .post-content img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 16px;
+        margin: 1rem 0;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+        display: block;
+    }
+
+    .post-content blockquote {
+        border-left: 4px solid #2563eb;
+        background: #f9fbfe;
+        padding: 1rem 1.5rem;
+        margin: 1.5rem 0;
+        border-radius: 0 12px 12px 0;
+        color: #4a5b78;
+        font-style: italic;
+    }
+
+    .post-content ul,
+    .post-content ol {
+        padding-left: 1.5rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .post-content li {
+        margin-bottom: 0.5rem;
+    }
+
+    .post-content table {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        overflow-x: auto;
+        border-collapse: collapse;
+        margin: 1.5rem 0;
+    }
+
+    .post-content th,
+    .post-content td {
+        border: 1px solid #e2e8f0;
+        padding: 0.75rem 1rem;
+        text-align: left;
+    }
+
+    .post-content th {
+        background: #f8fafc;
+        font-weight: 600;
+    }
+
+    .post-content pre {
+        max-width: 100%;
+        overflow-x: auto;
+        padding: 1rem;
+        background: #f8fafc;
+        border-radius: 12px;
+        font-size: 0.9rem;
+    }
+
+    .video-player {
+        width: 100%;
+        max-height: 640px;
+        border-radius: 16px;
+        margin: 1.5rem 0;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+        background: #000;
+        display: block;
+    }
+
+    .youtube-container {
+        position: relative;
+        width: 100%;
+        padding-bottom: 56.25%;
+        margin: 1.5rem 0;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+        background: #000;
+    }
+
+    .youtube-container iframe {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        left: 0;
+        top: 0;
+        border: 0;
+    }
+
+    .tag {
+        display: inline-block;
+        background: #f9fbfe;
+        color: #4a5b78;
+        padding: 0.4rem 0.85rem;
+        border-radius: 30px;
+        margin: 0.2rem 0.2rem 0.2rem 0;
+        font-size: 0.78rem;
+        font-weight: 500;
+        border: 1px solid #eef2f7;
+        transition: all 0.15s ease;
+    }
+
+    .tag:hover {
+        background: #eff4ff;
+        border-color: #d0e0ff;
+        color: #2563eb;
+    }
+
+    .post-actions {
+        padding: 1.5rem 3rem;
+        border-top: 1px solid #f0f3f9;
+        border-bottom: 1px solid #f0f3f9;
+        display: flex;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+        background: #fbfcff;
+    }
+
+    .post-actions .btn {
+        border-radius: 12px;
+        font-weight: 500;
+        font-size: 0.88rem;
+        padding: 0.55rem 1.15rem;
+        transition: all 0.15s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .post-actions .btn-outline-danger {
+        border: 1px solid #f1d7db;
+        color: #b91c1c;
+        background: #ffffff;
+    }
+
+    .post-actions .btn-outline-danger:hover {
+        background: #fee9e9;
+        border-color: #dc2626;
+        color: #b91c1c;
+        transform: translateY(-1px);
+    }
+
+    .post-actions .btn-danger {
+        background: #dc2626;
+        border: none;
+        color: #ffffff;
+        box-shadow: 0 2px 6px rgba(220, 38, 38, 0.15);
+    }
+
+    .post-actions .btn-danger:hover {
+        background: #b91c1c;
+        transform: translateY(-1px);
+        box-shadow: 0 8px 16px rgba(220, 38, 38, 0.2);
+    }
+
+    .post-actions .btn-outline-primary {
+        border: 1px solid #cbd9f0;
+        color: #1e3a8a;
+        background: #ffffff;
+    }
+
+    .post-actions .btn-outline-primary:hover {
+        background: #e8f0fe;
+        border-color: #2563eb;
+        color: #1e3a8a;
+        transform: translateY(-1px);
+    }
+
+    .post-actions .btn-outline-warning {
+        border: 1px solid #f5e0b7;
+        color: #b45309;
+        background: #ffffff;
+    }
+
+    .post-actions .btn-outline-warning:hover {
+        background: #fef3c7;
+        border-color: #f59e0b;
+        color: #92400e;
+        transform: translateY(-1px);
+    }
+
+    .comment-section {
+        padding: 2.5rem 3rem;
+    }
+
+    .comment-section h3 {
+        font-weight: 700;
+        font-size: 1.3rem;
+        letter-spacing: -0.01em;
+        color: #0b1e33;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .comment-section h3 i {
+        color: #2563eb;
+    }
+
+    .comment-section h3 .badge.bg-primary {
+        background: #e8efff !important;
+        color: #2563eb !important;
+        font-weight: 600;
+        font-size: 0.75rem;
+        padding: 0.35rem 0.7rem;
+        border-radius: 30px;
+    }
+
+    .comment-section .form-label {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        color: #5e6f8d;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .comment-section .form-control {
+        border-radius: 14px;
+        border: 1px solid #e2e8f0;
+        padding: 0.85rem 1rem;
+        font-size: 0.95rem;
+        color: #0b1e33;
+        background: #ffffff;
+        transition: all 0.15s ease;
+        resize: vertical;
+        box-shadow: none;
+    }
+
+    .comment-section .form-control:focus {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+
+    .comment-section .form-control::placeholder {
+        color: #a3b0c4;
+    }
+
+    .comment-section .btn-primary {
+        background: #2563eb;
+        border: none;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        padding: 0.65rem 1.35rem;
+        transition: all 0.15s ease;
+        box-shadow: 0 2px 6px rgba(37, 99, 235, 0.15);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .comment-section .btn-primary:hover {
+        background: #1d4ed8;
+        transform: translateY(-1px);
+        box-shadow: 0 8px 16px rgba(37, 99, 235, 0.2);
+    }
+
+    .comment-section .alert-info {
+        background: #e8efff;
+        border: 1px solid #d0e0ff;
+        color: #1e3a8a;
+        border-radius: 14px;
+        padding: 1rem 1.25rem;
+        font-size: 0.9rem;
+    }
+
+    .comment-section .alert-info a {
+        color: #2563eb;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .comment-section .alert-info a:hover {
+        text-decoration: underline;
+    }
+
+    .comment-card {
+        background: #f9fbfe;
+        border-radius: 16px;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        border: 1px solid #eef2f7;
+        transition: all 0.15s ease;
+    }
+
+    .comment-card:hover {
+        border-color: #d0e0ff;
+        background: #fbfcff;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.04);
+    }
+
+    .comment-author {
+        font-weight: 600;
+        color: #0b1e33;
+        font-size: 0.92rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .comment-author i {
+        color: #2563eb;
+        font-size: 1.1rem;
+    }
+
+    .comment-date {
+        font-size: 0.78rem;
+        color: #8896ab;
+        font-weight: 500;
+        white-space: nowrap;
+    }
+
+    .comment-text {
+        margin-top: 0.85rem;
+        line-height: 1.7;
+        color: #2f405c;
+        font-size: 0.95rem;
+    }
+
+    .comment-like-button {
+        border-radius: 10px;
+        font-size: 0.78rem;
+        font-weight: 500;
+        padding: 0.35rem 0.75rem;
+        border: 1px solid #dde3ec;
+        color: #4a5b78;
+        background: #ffffff;
+        transition: all 0.15s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+
+    .comment-like-button:hover {
+        background: #eff4ff;
+        border-color: #2563eb;
+        color: #2563eb;
+        transform: translateY(-1px);
+    }
+
+    .comment-like-button span {
+        font-weight: 600;
+    }
+
+    .comment-section .text-center.py-4 .bi-chat-square-text {
+        color: #c3cede;
+        font-size: 3rem;
+    }
+
+    .comment-section .text-center.py-4 .text-muted {
+        color: #8896ab !important;
+        font-size: 0.9rem;
+    }
+
+    @media (min-width: 1400px) {
+        .post-container {
+            max-width: 1360px;
+        }
+    }
+
+    @media (min-width: 1700px) {
+        .post-container {
+            max-width: 1500px;
+        }
+
+        .post-title {
+            font-size: 2.65rem;
+        }
+
+        .post-content {
+            font-size: 1.12rem;
+        }
+    }
+
+    @media (max-width: 992px) {
+        .post-container {
+            padding: 0 18px;
+        }
+
+        .post-header {
+            padding: 2rem 1.75rem 1.5rem;
+        }
+
+        .post-content {
+            padding: 0 1.75rem 2rem;
+        }
+
+        .post-actions {
+            padding: 1.25rem 1.75rem;
+        }
+
+        .comment-section {
+            padding: 2rem 1.75rem;
+        }
+
+        .post-title {
+            font-size: 2rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .post-container {
+            margin: 15px auto;
+            padding: 0 12px;
+        }
+
+        .post-card {
+            border-radius: 18px;
+        }
+
+        .post-header {
+            padding: 1.5rem 1.25rem 1rem;
+        }
+
+        .post-title {
+            font-size: 1.5rem;
+            line-height: 1.25;
+        }
+
+        .post-header .lead {
+            font-size: 0.98rem;
+        }
+
+        .post-content {
+            padding: 0 1.25rem 1.5rem;
+            font-size: 1rem;
+            line-height: 1.75;
+        }
+
+        .post-content h1 { font-size: 1.5rem; }
+        .post-content h2 { font-size: 1.3rem; }
+        .post-content h3 { font-size: 1.15rem; }
+
+        .post-image {
+            max-height: 380px;
+            border-radius: 14px;
+        }
+
+        .video-player {
+            max-height: 380px;
+            border-radius: 14px;
+        }
+
+        .post-actions {
+            padding: 1.15rem 1.25rem;
+            gap: 0.5rem;
+        }
+
+        .post-actions .btn {
+            flex: 1 1 auto;
+            justify-content: center;
+            font-size: 0.85rem;
+            padding: 0.55rem 0.9rem;
+        }
+
+        .comment-section {
+            padding: 1.5rem 1.25rem;
+        }
+
+        .comment-section h3 {
+            font-size: 1.15rem;
+        }
+
+        .stats {
+            gap: 0.5rem;
+        }
+
+        .stats span {
+            padding: 0.3rem 0.65rem;
+            font-size: 0.78rem;
+        }
+    }
+
+    @media (max-width: 420px) {
+        .post-container {
+            padding: 0 8px;
+            margin: 10px auto;
+        }
+
+        .post-header {
+            padding: 1.25rem 1rem 0.85rem;
+        }
+
+        .post-title {
+            font-size: 1.35rem;
+        }
+
+        .post-content {
+            padding: 0 1rem 1.25rem;
+            font-size: 0.96rem;
+        }
+
+        .post-actions {
+            padding: 1rem;
+        }
+
+        .comment-section {
+            padding: 1.25rem 1rem;
+        }
+
+        .post-image {
+            max-height: 300px;
+        }
+
+        .video-player {
+            max-height: 280px;
+        }
+    }
+</style>
+
+
+<div class="post-container">
+
+    <!-- =====================================================
+         BACK BUTTON
+    ====================================================== -->
+
+    <div class="mb-3">
+        <a href="{% url 'blog:category_post' post.category.slug %}"
+           class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i>
+            Back to {{ post.category.name }}
+        </a>
+    </div>
+
+
+    <!-- =====================================================
+         POST CARD
+    ====================================================== -->
+
+    <article class="post-card">
+
+        <!-- =================================================
+             POST HEADER
+        ================================================== -->
+
+        <div class="post-header">
+
+            {% if post.category %}
+                <span class="badge bg-primary mb-3">
+                    {{ post.category.name }}
+                </span>
+            {% endif %}
+
+            <h1 class="post-title">
+                {{ post.title }}
+            </h1>
+
+            {% if post.excerpt %}
+                <p class="lead text-muted">
+                    {{ post.excerpt }}
+                </p>
+            {% endif %}
+
+            <div class="post-meta">
+                <i class="bi bi-person"></i>
+                {{ post.author.get_full_name|default:post.author.username }}
+                &nbsp; • &nbsp;
+                <i class="bi bi-calendar"></i>
+                {{ post.created_at|date:"M d, Y" }}
+            </div>
+
+            <div class="stats mt-3">
+
+                <span>
+                    <i class="bi bi-eye"></i>
+                    {{ views_count }} views
+                </span>
+
+                <span>
+                    <i class="bi bi-heart"></i>
+                    <span id="like-count">{{ likes_count }}</span>
+                    likes
+                </span>
+
+                <span>
+                    <i class="bi bi-chat"></i>
+                    {{ comments_count }} comments
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             POST IMAGES
+        ================================================== -->
+
+        {% if post.images.all %}
+            <div class="px-3 px-md-4">
+                {% for image in post.images.all %}
+                    <img src="{{ image.image.url }}"
+                         alt="{{ post.title }}"
+                         class="post-image">
+                {% endfor %}
+            </div>
+        {% endif %}
+
+
+        <!-- =================================================
+             POST CONTENT
+        ================================================== -->
+
+        <div class="post-content">
+
+            {{ post.content|safe }}
+
+            {% if post.video %}
+                <video class="video-player" controls preload="metadata">
+                    <source src="{{ post.video.url }}" type="video/mp4">
+                    Your browser does not support video playback.
+                </video>
+            {% endif %}
+
+            {% if post.youtube_url %}
+                <div id="youtube-container" class="youtube-container"></div>
+            {% endif %}
+
+            {% if post.tags.all %}
+                <div class="mt-4">
+                    <strong>
+                        <i class="bi bi-tags"></i>
+                        Tags:
+                    </strong>
+                    <div class="mt-2">
+                        {% for tag in post.tags.all %}
+                            <span class="tag">#{{ tag.name }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+
+        </div>
+
+
+        <!-- =================================================
+             POST ACTIONS
+        ================================================== -->
+
+        <div class="post-actions">
+
+            {% if user.is_authenticated %}
+                <button type="button"
+                        id="like-button"
+                        class="btn {% if is_liked %}btn-danger{% else %}btn-outline-danger{% endif %}">
+                    <i class="bi bi-heart{% if is_liked %}-fill{% endif %}"></i>
+                    <span id="like-text">
+                        {% if is_liked %}Unlike{% else %}Like{% endif %}
+                    </span>
+                </button>
+            {% else %}
+                <a href="{% url 'login' %}?next={{ request.path }}"
+                   class="btn btn-outline-danger">
+                    <i class="bi bi-heart"></i>
+                    Login to Like
+                </a>
+            {% endif %}
+
+            <a href="#comments-section" class="btn btn-outline-primary">
+                <i class="bi bi-chat"></i>
+                Comments
+            </a>
+
+            {% if can_edit %}
+                <a href="{% url 'blog:edit_post' post.pk %}"
+                   class="btn btn-outline-warning">
+                    <i class="bi bi-pencil"></i>
+                    Edit
+                </a>
+            {% endif %}
+
+            {% if can_delete %}
+                <a href="{% url 'blog:delete_post' post.pk %}"
+                   class="btn btn-outline-danger">
+                    <i class="bi bi-trash"></i>
+                    Delete
+                </a>
+            {% endif %}
+
+        </div>
+
+
+        <!-- =================================================
+             COMMENTS SECTION
+        ================================================== -->
+
+        <section id="comments-section" class="comment-section">
+
+            <h3 class="mb-4">
+                <i class="bi bi-chat-dots"></i>
+                Comments
+                <span class="badge bg-primary">{{ comments_count }}</span>
+            </h3>
+
+            {% if user.is_authenticated %}
+                <form method="post"
+                      action="{% url 'blog:add_comment' post.slug %}"
+                      class="mb-4">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label for="comment-text" class="form-label fw-semibold">
+                            Share your view
+                        </label>
+                        <textarea id="comment-text"
+                                  name="text"
+                                  class="form-control"
+                                  rows="4"
+                                  placeholder="Write your comment..."
+                                  required></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-send"></i>
+                        Comment
+                    </button>
+                </form>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i>
+                    Please
+                    <a href="{% url 'login' %}?next={{ request.path }}">login</a>
+                    to leave a comment.
+                </div>
+            {% endif %}
+
+            {% for comment in comments %}
+                <div class="comment-card">
+
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <span class="comment-author">
+                                <i class="bi bi-person-circle"></i>
+                                {{ comment.author.get_full_name|default:comment.author.username }}
+                            </span>
+                        </div>
+                        <span class="comment-date">
+                            {{ comment.created_at|date:"M d, Y H:i" }}
+                        </span>
+                    </div>
+
+                    <div class="comment-text">
+                        {{ comment.text|safe }}
+                    </div>
+
+                    {% if user.is_authenticated %}
+                        <div class="mt-3">
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-secondary comment-like-button"
+                                    data-comment-id="{{ comment.pk }}">
+                                <i class="bi bi-hand-thumbs-up"></i>
+                                Like
+                                {% if comment.likes_count %}
+                                    <span>{{ comment.likes_count }}</span>
+                                {% endif %}
+                            </button>
+                        </div>
+                    {% endif %}
+
+                </div>
+            {% empty %}
+                <div class="text-center py-4">
+                    <i class="bi bi-chat-square-text fs-1 text-muted"></i>
+                    <p class="text-muted mt-2">No comments yet.</p>
+                    {% if user.is_authenticated %}
+                        <p class="text-muted">Be the first person to share your view.</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+
+        </section>
+
+    </article>
+
+</div>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    /* LIKE POST */
+    const likeButton = document.getElementById("like-button");
+
+    if (likeButton) {
+        likeButton.addEventListener("click", function () {
+            fetch("{% url 'blog:like_toggle' post.slug %}", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": getCookie("csrftoken"),
+                    "X-Requested-With": "XMLHttpRequest"
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                const likeCount = document.getElementById("like-count");
+                const likeText = document.getElementById("like-text");
+                const icon = likeButton.querySelector("i");
+
+                likeCount.textContent = data.like_count;
+
+                if (data.is_liked) {
+                    likeButton.classList.remove("btn-outline-danger");
+                    likeButton.classList.add("btn-danger");
+                    likeText.textContent = "Unlike";
+                    icon.className = "bi bi-heart-fill";
+                } else {
+                    likeButton.classList.remove("btn-danger");
+                    likeButton.classList.add("btn-outline-danger");
+                    likeText.textContent = "Like";
+                    icon.className = "bi bi-heart";
+                }
+            })
+            .catch(error => console.error("Like error:", error));
+        });
+    }
+
+
+    /* YOUTUBE VIDEO */
+    const youtubeContainer = document.getElementById("youtube-container");
+
+    {% if post.youtube_url %}
+        if (youtubeContainer) {
+            const youtubeUrl = "{{ post.youtube_url|escapejs }}";
+            let videoId = "";
+
+            try {
+                const url = new URL(youtubeUrl);
+                if (url.hostname.includes("youtube.com")) {
+                    videoId = url.searchParams.get("v");
+                } else if (url.hostname.includes("youtu.be")) {
+                    videoId = url.pathname.substring(1);
+                }
+            } catch (error) {
+                console.error("Invalid YouTube URL:", error);
+            }
+
+            if (videoId) {
+                youtubeContainer.innerHTML = `
+                    <iframe
+                        src="https://www.youtube.com/embed/${encodeURIComponent(videoId)}"
+                        title="{{ post.title|escapejs }}"
+                        allowfullscreen
+                    ></iframe>
+                `;
+            }
+        }
+    {% endif %}
+
+
+    /* CSRF COOKIE */
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie) {
+            const cookies = document.cookie.split(";");
+            for (let cookie of cookies) {
+                cookie = cookie.trim();
+                if (cookie.substring(0, name.length + 1) === (name + "=")) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+});
+</script>
+
+{% endblock %}

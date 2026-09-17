@@ -1,3 +1,4 @@
+
 {% extends "base.html" %}
 
 {% block title %}Learning Blog – Home{% endblock %}
@@ -10,10 +11,12 @@
          HERO
     ====================================================== -->
 
-    <div class="home-hero">
+    <section class="home-hero">
+
         <div class="hero-content">
 
             <span class="hero-badge">
+                <i class="bi bi-book-half"></i>
                 Learning Blog
             </span>
 
@@ -22,18 +25,27 @@
             </h1>
 
             <p>
-                Explore posts, ideas, and classroom projects
-                in one clean, responsive space.
+                Explore posts, lessons, ideas, projects,
+                classroom resources, and educational content
+                in one place.
             </p>
 
             {% if user.is_authenticated %}
+
                 <div class="hero-user">
-                    Logged in as <strong>{{ user.username }}</strong>
+
+                    <i class="bi bi-person-circle"></i>
+
+                    Logged in as
+                    <strong>{{ user.username }}</strong>
+
                 </div>
+
             {% endif %}
 
         </div>
-    </div>
+
+    </section>
 
 
     <!-- =====================================================
@@ -45,44 +57,101 @@
     <section class="featured-section">
 
         <div class="section-head">
-            <h2>Featured Post</h2>
-            <p>Highlighted content you may want to read first.</p>
+
+            <h2>
+                <i class="bi bi-star-fill"></i>
+                Featured Post
+            </h2>
+
+            <p>
+                Highlighted content you may want to read first.
+            </p>
+
         </div>
+
 
         <article class="featured-card">
 
             <div class="featured-content">
 
                 <span class="featured-label">
-                    Editor's pick
+                    <i class="bi bi-star-fill"></i>
+                    Featured
                 </span>
+
+
+                <!-- CATEGORY -->
+
+                {% if featured_post.category %}
+
+                    <div class="featured-category">
+
+                        <i class="bi bi-folder2-open"></i>
+
+                        <a href="{% url 'blog:category_post' featured_post.category.slug %}">
+
+                            {{ featured_post.category.name }}
+
+                        </a>
+
+                    </div>
+
+                {% endif %}
+
+
+                <!-- TITLE -->
 
                 <h3>
                     {{ featured_post.title }}
                 </h3>
 
+
+                <!-- EXCERPT -->
+
                 {% if featured_post.excerpt %}
-                    <p>
+
+                    <p class="featured-excerpt">
+
                         {{ featured_post.excerpt|truncatewords:40 }}
+
                     </p>
+
                 {% endif %}
+
+
+                <!-- META -->
 
                 <div class="post-meta">
 
                     <span>
+
                         <i class="bi bi-person"></i>
+
                         {{ featured_post.author }}
+
                     </span>
 
                     <span>
+
                         <i class="bi bi-clock"></i>
+
                         {{ featured_post.created_at|date:"M d, Y H:i" }}
+
+                    </span>
+
+                    <span>
+
+                        <i class="bi bi-eye"></i>
+
+                        {{ featured_post.view_count }}
+                        views
+
                     </span>
 
                 </div>
 
 
-                <!-- COLLAPSIBLE CONTENT -->
+                <!-- SHOW CONTENT -->
 
                 <button
                     class="read-more-btn"
@@ -92,15 +161,21 @@
                     aria-expanded="false"
                     aria-controls="featured-post-content"
                 >
+
                     <span class="show-text">
                         Show content
+                        <i class="bi bi-chevron-down"></i>
                     </span>
 
                     <span class="hide-text">
                         Hide content
+                        <i class="bi bi-chevron-up"></i>
                     </span>
+
                 </button>
 
+
+                <!-- CONTENT -->
 
                 <div
                     class="collapse post-collapse"
@@ -109,52 +184,95 @@
 
                     <hr>
 
+
                     {% if featured_post.content %}
+
                         <div class="post-content">
+
                             {{ featured_post.content|safe }}
+
                         </div>
-                    {% endif %}
-
-
-                    {% if featured_post.image %}
-
-                        <img
-                            src="{{ featured_post.image.url }}"
-                            class="post-media"
-                            alt="{{ featured_post.title }}"
-                        >
 
                     {% endif %}
 
+
+                    <!-- FEATURED IMAGES -->
+
+                    {% if featured_post.images.all %}
+
+                        <div class="post-images">
+
+                            {% for image in featured_post.images.all %}
+
+                                <img
+                                    src="{{ image.image.url }}"
+                                    class="post-media"
+                                    alt="{{ featured_post.title }}"
+                                    loading="lazy"
+                                >
+
+                            {% endfor %}
+
+                        </div>
+
+                    {% endif %}
+
+
+                    <!-- FEATURED VIDEO -->
 
                     {% if featured_post.video %}
 
                         <video
                             controls
                             class="post-video"
+                            preload="metadata"
                         >
+
                             <source
                                 src="{{ featured_post.video.url }}"
                                 type="video/mp4"
                             >
 
-                            Your browser does not support the video tag.
+                            Your browser does not support
+                            the video tag.
+
                         </video>
 
                     {% endif %}
 
+
+                    <!-- FEATURED YOUTUBE -->
 
                     {% if featured_post.youtube_url %}
 
                         <div class="youtube-container">
 
                             <iframe
-                                src="https://www.youtube.com/embed/{{ featured_post.youtube_url|slice:'8:' }}"
+                                src="{{ featured_post.youtube_url }}"
                                 title="{{ featured_post.title }}"
                                 frameborder="0"
                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                 allowfullscreen
                             ></iframe>
+
+                        </div>
+
+                    {% endif %}
+
+
+                    <!-- TAGS -->
+
+                    {% if featured_post.tags.all %}
+
+                        <div class="post-tags">
+
+                            {% for tag in featured_post.tags.all %}
+
+                                <span class="post-tag">
+                                    #{{ tag.name }}
+                                </span>
+
+                            {% endfor %}
 
                         </div>
 
@@ -183,6 +301,7 @@
         <div class="section-head">
 
             <h2>
+                <i class="bi bi-grid"></i>
                 Browse Categories
             </h2>
 
@@ -203,8 +322,11 @@
                 >
 
                     <div class="category-icon">
+
                         <i class="bi bi-folder2-open"></i>
+
                     </div>
+
 
                     <div class="category-info">
 
@@ -212,20 +334,17 @@
                             {{ category.name }}
                         </h3>
 
-                        {% if category.description %}
-                            <p>
-                                {{ category.description|truncatewords:12 }}
-                            </p>
-                        {% else %}
-                            <p>
-                                Explore posts in this category.
-                            </p>
-                        {% endif %}
+                        <p>
+                            Explore posts in this category.
+                        </p>
 
                     </div>
 
+
                     <div class="category-arrow">
+
                         <i class="bi bi-arrow-right"></i>
+
                     </div>
 
                 </a>
@@ -249,11 +368,13 @@
         <div class="section-head">
 
             <h2>
+                <i class="bi bi-journal-text"></i>
                 Recent Posts
             </h2>
 
             <p>
-                Fresh content from teachers, learners, and contributors.
+                Fresh content from teachers, learners,
+                and contributors.
             </p>
 
         </div>
@@ -263,108 +384,276 @@
 
             <div class="posts-grid">
 
-                {% for post in posts %}
+                {% for item in posts %}
 
                     <article
                         class="post-card"
-                        id="post-{{ post.pk }}"
+                        id="post-{{ item.post.pk }}"
                     >
 
                         <div class="post-card-body">
 
+
+                            <!-- =================================
+                                 CATEGORY
+                            ================================== -->
+
+                            {% if item.post.category %}
+
+                                <div class="post-category">
+
+                                    <i class="bi bi-folder2-open"></i>
+
+                                    <a
+                                        href="{% url 'blog:category_post' item.post.category.slug %}"
+                                    >
+                                        {{ item.post.category.name }}
+                                    </a>
+
+                                </div>
+
+                            {% endif %}
+
+
+                            <!-- =================================
+                                 TITLE
+                            ================================== -->
+
                             <h3 class="post-title">
-                                {{ post.title }}
+
+                                {{ item.post.title }}
+
                             </h3>
 
 
-                            {% if post.excerpt %}
+                            <!-- =================================
+                                 EXCERPT
+                            ================================== -->
+
+                            {% if item.post.excerpt %}
 
                                 <p class="post-excerpt">
-                                    {{ post.excerpt|truncatewords:30 }}
+
+                                    {{ item.post.excerpt|truncatewords:30 }}
+
                                 </p>
 
                             {% endif %}
 
 
-                            <!-- COLLAPSE BUTTON -->
+                            <!-- =================================
+                                 POST META
+                            ================================== -->
+
+                            <div class="post-meta">
+
+                                <span>
+
+                                    <i class="bi bi-person"></i>
+
+                                    {{ item.post.author }}
+
+                                </span>
+
+
+                                <span>
+
+                                    <i class="bi bi-clock"></i>
+
+                                    {{ item.post.created_at|date:"M d, Y H:i" }}
+
+                                </span>
+
+                            </div>
+
+
+                            <!-- =================================
+                                 POST STATISTICS
+                            ================================== -->
+
+                            <div class="post-statistics">
+
+                                <span class="post-stat">
+
+                                    <i class="bi bi-heart-fill"></i>
+
+                                    {{ item.likes_count }}
+
+                                    {% if item.likes_count == 1 %}
+                                        like
+                                    {% else %}
+                                        likes
+                                    {% endif %}
+
+                                </span>
+
+
+                                <span class="post-stat">
+
+                                    <i class="bi bi-eye-fill"></i>
+
+                                    {{ item.views_count }}
+
+                                    {% if item.views_count == 1 %}
+                                        view
+                                    {% else %}
+                                        views
+                                    {% endif %}
+
+                                </span>
+
+
+                                <span class="post-stat">
+
+                                    <i class="bi bi-chat-fill"></i>
+
+                                    {{ item.comments_count }}
+
+                                    {% if item.comments_count == 1 %}
+                                        comment
+                                    {% else %}
+                                        comments
+                                    {% endif %}
+
+                                </span>
+
+                            </div>
+
+
+                            <!-- =================================
+                                 SHOW CONTENT BUTTON
+                            ================================== -->
 
                             <button
                                 class="read-more-btn"
                                 type="button"
                                 data-bs-toggle="collapse"
-                                data-bs-target="#post-content-{{ post.pk }}"
+                                data-bs-target="#post-content-{{ item.post.pk }}"
                                 aria-expanded="false"
-                                aria-controls="post-content-{{ post.pk }}"
+                                aria-controls="post-content-{{ item.post.pk }}"
                             >
+
                                 <span class="show-text">
-                                    Show content →
+
+                                    Show content
+                                    <i class="bi bi-chevron-down"></i>
+
                                 </span>
 
                                 <span class="hide-text">
-                                    Hide content ↑
+
+                                    Hide content
+                                    <i class="bi bi-chevron-up"></i>
+
                                 </span>
+
                             </button>
 
 
-                            <!-- POST CONTENT -->
+                            <!-- =================================
+                                 COLLAPSIBLE CONTENT
+                            ================================== -->
 
                             <div
                                 class="collapse post-collapse"
-                                id="post-content-{{ post.pk }}"
+                                id="post-content-{{ item.post.pk }}"
                             >
 
                                 <hr>
 
-                                {% if post.content %}
+
+                                <!-- POST CONTENT -->
+
+                                {% if item.post.content %}
 
                                     <div class="post-content">
-                                        {{ post.content|safe }}
+
+                                        {{ item.post.content|safe }}
+
                                     </div>
 
                                 {% endif %}
 
 
-                                {% if post.image %}
+                                <!-- POST IMAGES -->
 
-                                    <img
-                                        src="{{ post.image.url }}"
-                                        class="post-media"
-                                        alt="{{ post.title }}"
-                                    >
+                                {% if item.post.images.all %}
+
+                                    <div class="post-images">
+
+                                        {% for image in item.post.images.all %}
+
+                                            <img
+                                                src="{{ image.image.url }}"
+                                                class="post-media"
+                                                alt="{{ item.post.title }}"
+                                                loading="lazy"
+                                            >
+
+                                        {% endfor %}
+
+                                    </div>
 
                                 {% endif %}
 
 
-                                {% if post.video %}
+                                <!-- VIDEO -->
+
+                                {% if item.post.video %}
 
                                     <video
                                         controls
                                         class="post-video"
+                                        preload="metadata"
                                     >
 
                                         <source
-                                            src="{{ post.video.url }}"
+                                            src="{{ item.post.video.url }}"
                                             type="video/mp4"
                                         >
 
-                                        Your browser does not support the video tag.
+                                        Your browser does not support
+                                        the video tag.
 
                                     </video>
 
                                 {% endif %}
 
 
-                                {% if post.youtube_url %}
+                                <!-- YOUTUBE -->
+
+                                {% if item.post.youtube_url %}
 
                                     <div class="youtube-container">
 
                                         <iframe
-                                            src="https://www.youtube.com/embed/{{ post.youtube_url|slice:'8:' }}"
-                                            title="{{ post.title }}"
+                                            src="{{ item.post.youtube_url }}"
+                                            title="{{ item.post.title }}"
                                             frameborder="0"
                                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                             allowfullscreen
                                         ></iframe>
+
+                                    </div>
+
+                                {% endif %}
+
+
+                                <!-- TAGS -->
+
+                                {% if item.post.tags.all %}
+
+                                    <div class="post-tags">
+
+                                        {% for tag in item.post.tags.all %}
+
+                                            <span class="post-tag">
+
+                                                #{{ tag.name }}
+
+                                            </span>
+
+                                        {% endfor %}
 
                                     </div>
 
@@ -375,19 +664,294 @@
                         </div>
 
 
-                        <!-- POST META -->
+                        <!-- =========================================
+                             POST ACTIONS
+                        ========================================== -->
 
-                        <div class="post-meta">
+                        <div class="post-actions">
 
-                            <span>
-                                <i class="bi bi-person"></i>
-                                {{ post.author }}
-                            </span>
 
-                            <span>
-                                <i class="bi bi-clock"></i>
-                                {{ post.created_at|date:"M d, Y H:i" }}
-                            </span>
+                            <!-- LIKE -->
+
+                            {% if user.is_authenticated %}
+
+                                <form
+                                    method="post"
+                                    action="{% url 'blog:like_toggle' item.post.slug %}"
+                                    class="like-form"
+                                >
+
+                                    {% csrf_token %}
+
+                                    <button
+                                        type="submit"
+                                        class="like-btn {% if item.is_liked %}liked{% endif %}"
+                                    >
+
+                                        {% if item.is_liked %}
+
+                                            <i class="bi bi-heart-fill"></i>
+
+                                            Liked
+
+                                        {% else %}
+
+                                            <i class="bi bi-heart"></i>
+
+                                            Like
+
+                                        {% endif %}
+
+                                        <span class="like-count">
+
+                                            {{ item.likes_count }}
+
+                                        </span>
+
+                                    </button>
+
+                                </form>
+
+                            {% else %}
+
+                                <a
+                                    href="{% url 'login' %}"
+                                    class="like-btn"
+                                >
+
+                                    <i class="bi bi-heart"></i>
+
+                                    Like
+
+                                    <span class="like-count">
+
+                                        {{ item.likes_count }}
+
+                                    </span>
+
+                                </a>
+
+                            {% endif %}
+
+
+                            <!-- EDIT -->
+
+                            {% if item.can_edit %}
+
+                                <a
+                                    href="{% url 'blog:edit_post' item.post.slug %}"
+                                    class="post-action-btn edit-btn"
+                                >
+
+                                    <i class="bi bi-pencil"></i>
+
+                                    Edit
+
+                                </a>
+
+                            {% endif %}
+
+
+                            <!-- DELETE -->
+
+                            {% if item.can_delete %}
+
+                                <a
+                                    href="{% url 'blog:delete_post' item.post.slug %}"
+                                    class="post-action-btn delete-btn"
+                                >
+
+                                    <i class="bi bi-trash"></i>
+
+                                    Delete
+
+                                </a>
+
+                            {% endif %}
+
+                        </div>
+
+
+
+                        <!-- =========================================
+                             COMMENTS
+                        ========================================== -->
+
+                        <div class="comments-section">
+
+                            <div class="comments-heading">
+
+                                <h4>
+
+                                    <i class="bi bi-chat-dots"></i>
+
+                                    Comments
+
+                                </h4>
+
+                                <span class="comment-count">
+
+                                    {{ item.comments_count }}
+
+                                </span>
+
+                            </div>
+
+
+                            <!-- =====================================
+                                 COMMENT FORM
+                            ====================================== -->
+
+                            {% if user.is_authenticated %}
+
+                                <form
+                                    method="post"
+                                    action="{% url 'blog:add_comment' item.post.slug %}"
+                                    class="comment-form"
+                                >
+
+                                    {% csrf_token %}
+
+
+                                    <textarea
+                                        name="text"
+                                        class="comment-input"
+                                        rows="3"
+                                        placeholder="Write a comment..."
+                                        required
+                                    ></textarea>
+
+
+                                    <div class="comment-submit-row">
+
+                                        <button
+                                            type="submit"
+                                            class="comment-submit-btn"
+                                        >
+
+                                            <i class="bi bi-send"></i>
+
+                                            Post Comment
+
+                                        </button>
+
+                                    </div>
+
+                                </form>
+
+                            {% else %}
+
+                                <div class="login-comment-message">
+
+                                    <i class="bi bi-lock"></i>
+
+                                    <span>
+
+                                        Please
+
+                                        <a href="{% url 'login' %}">
+                                            log in
+                                        </a>
+
+                                        to leave a comment.
+
+                                    </span>
+
+                                </div>
+
+                            {% endif %}
+
+
+
+                            <!-- =====================================
+                                 EXISTING COMMENTS
+                            ====================================== -->
+
+                            {% if item.comments %}
+
+                                <div class="comments-list">
+
+                                    {% for comment in item.comments %}
+
+                                        <div class="comment">
+
+                                            <div class="comment-header">
+
+                                                <div class="comment-author">
+
+                                                    <i class="bi bi-person-circle"></i>
+
+                                                    <strong>
+
+                                                        {{ comment.author.username }}
+
+                                                    </strong>
+
+                                                </div>
+
+
+                                                <small>
+
+                                                    {{ comment.created_at|date:"M d, Y H:i" }}
+
+                                                </small>
+
+                                            </div>
+
+
+                                            <div class="comment-text">
+
+                                                {{ comment.text|safe }}
+
+                                            </div>
+
+
+                                            <!-- COMMENT LIKE DISPLAY -->
+
+                                            <div class="comment-actions">
+
+                                                <button
+                                                    type="button"
+                                                    class="comment-like-btn"
+                                                >
+
+                                                    <i class="bi bi-heart"></i>
+
+                                                    Like
+
+                                                    <span>
+
+                                                        {{ comment.likes_count }}
+
+                                                    </span>
+
+                                                </button>
+
+                                            </div>
+
+                                        </div>
+
+                                    {% endfor %}
+
+                                </div>
+
+                            {% else %}
+
+                                <div class="no-comments">
+
+                                    <i class="bi bi-chat"></i>
+
+                                    <p>
+                                        No comments yet.
+                                    </p>
+
+                                    <span>
+                                        Be the first person to comment!
+                                    </span>
+
+                                </div>
+
+                            {% endif %}
 
                         </div>
 
@@ -399,12 +963,21 @@
 
         {% else %}
 
+            <!-- =============================================
+                 EMPTY STATE
+            ============================================== -->
+
             <div class="empty-state">
 
                 <i class="bi bi-journal-x"></i>
 
+                <h3>
+                    No posts yet
+                </h3>
+
                 <p>
-                    No posts yet.
+                    New learning posts will appear here
+                    after they are created.
                 </p>
 
             </div>
@@ -424,10 +997,15 @@
 ========================================================= */
 
 .home-container {
+
     width: 100%;
+
     max-width: 1600px;
+
     margin: 0 auto;
+
     padding: 20px;
+
 }
 
 
@@ -436,11 +1014,13 @@
 ========================================================= */
 
 .home-hero {
-    background: linear-gradient(
-        135deg,
-        #2563eb,
-        #1e293b
-    );
+
+    background:
+        linear-gradient(
+            135deg,
+            #2563eb,
+            #1e293b
+        );
 
     color: #fff;
 
@@ -448,23 +1028,33 @@
 
     padding: 56px 24px;
 
-    box-shadow:
-        0 12px 35px rgba(15, 23, 42, 0.12);
-
     margin-bottom: 32px;
+
+    box-shadow:
+        0 12px 35px
+        rgba(15,23,42,.12);
+
 }
 
 
 .hero-content {
+
     max-width: 760px;
+
     margin: 0 auto;
+
     text-align: center;
+
 }
 
 
-.hero-badge,
-.featured-label {
-    display: inline-block;
+.hero-badge {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 7px;
 
     margin-bottom: 14px;
 
@@ -472,40 +1062,51 @@
 
     border-radius: 999px;
 
-    background: rgba(255,255,255,.14);
+    background:
+        rgba(255,255,255,.14);
 
     font-size: .85rem;
 
     letter-spacing: .04em;
 
     text-transform: uppercase;
+
 }
 
 
 .home-hero h1 {
+
     margin: 0;
 
     font-size:
         clamp(2rem,5vw,3.5rem);
 
     line-height: 1.1;
+
 }
 
 
 .home-hero p {
-    margin: 16px auto 0;
 
     max-width: 62ch;
 
-    font-size:
-        clamp(1rem,2.1vw,1.15rem);
+    margin: 16px auto 0;
 
-    color: rgba(255,255,255,.9);
+    color:
+        rgba(255,255,255,.9);
+
+    line-height: 1.7;
+
 }
 
 
 .hero-user {
-    display: inline-block;
+
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 7px;
 
     margin-top: 18px;
 
@@ -513,9 +1114,9 @@
 
     border-radius: 999px;
 
-    background: rgba(255,255,255,.12);
+    background:
+        rgba(255,255,255,.12);
 
-    backdrop-filter: blur(10px);
 }
 
 
@@ -527,42 +1128,60 @@
 .featured-section,
 .categories-section,
 .posts-section {
+
     margin-top: 28px;
+
 }
 
 
 .section-head {
+
     margin-bottom: 18px;
+
 }
 
 
 .section-head h2 {
+
     margin: 0;
 
     font-size: 1.5rem;
 
     font-weight: 800;
+
+    color: #1e293b;
+
+}
+
+
+.section-head h2 i {
+
+    color: #2563eb;
+
 }
 
 
 .section-head p {
+
     margin: 6px 0 0;
 
     color: #64748b;
+
 }
 
 
 
 /* =========================================================
-   FEATURED POST
+   FEATURED
 ========================================================= */
 
 .featured-card {
+
     background:
         linear-gradient(
             135deg,
             rgba(37,99,235,.10),
-            rgba(255,255,255,.92)
+            rgba(255,255,255,.95)
         );
 
     border: 1px solid
@@ -575,28 +1194,91 @@
     box-shadow:
         0 10px 30px
         rgba(15,23,42,.08);
+
+}
+
+
+.featured-label {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 6px;
+
+    margin-bottom: 12px;
+
+    padding: 7px 13px;
+
+    border-radius: 999px;
+
+    background: #eff6ff;
+
+    color: #2563eb;
+
+    font-size: .8rem;
+
+    font-weight: 700;
+
+}
+
+
+.featured-category {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 6px;
+
+    margin-bottom: 10px;
+
+    font-size: .9rem;
+
+}
+
+
+.featured-category a {
+
+    color: #2563eb;
+
+    font-weight: 700;
+
+    text-decoration: none;
+
+}
+
+
+.featured-category a:hover {
+
+    text-decoration: underline;
+
 }
 
 
 .featured-content h3 {
+
     margin: 0 0 12px;
 
-    font-size: 1.5rem;
+    font-size: 1.6rem;
+
+    color: #1e293b;
+
 }
 
 
-.featured-content > p {
-    margin: 0;
+.featured-excerpt {
 
     color: #64748b;
 
     line-height: 1.7;
+
 }
 
 
 
 /* =========================================================
-   CATEGORY GRID
+   CATEGORIES
 ========================================================= */
 
 .category-grid {
@@ -606,10 +1288,11 @@
     grid-template-columns:
         repeat(
             auto-fit,
-            minmax(220px, 1fr)
+            minmax(220px,1fr)
         );
 
     gap: 16px;
+
 }
 
 
@@ -644,12 +1327,14 @@
         transform .2s ease,
         box-shadow .2s ease,
         border-color .2s ease;
+
 }
 
 
 .category-card:hover {
 
-    transform: translateY(-4px);
+    transform:
+        translateY(-4px);
 
     border-color: #2563eb;
 
@@ -657,9 +1342,6 @@
         0 14px 30px
         rgba(37,99,235,.14);
 
-    color: #2563eb;
-
-    text-decoration: none;
 }
 
 
@@ -668,11 +1350,13 @@
     flex: 0 0 46px;
 
     width: 46px;
+
     height: 46px;
 
     display: flex;
 
     align-items: center;
+
     justify-content: center;
 
     border-radius: 12px;
@@ -682,6 +1366,7 @@
     color: #2563eb;
 
     font-size: 1.3rem;
+
 }
 
 
@@ -690,6 +1375,7 @@
     min-width: 0;
 
     flex: 1;
+
 }
 
 
@@ -700,6 +1386,7 @@
     font-size: 1rem;
 
     font-weight: 700;
+
 }
 
 
@@ -711,27 +1398,13 @@
 
     font-size: .85rem;
 
-    line-height: 1.4;
 }
 
 
 .category-arrow {
 
-    flex: 0 0 auto;
-
     color: #94a3b8;
 
-    font-size: 1.1rem;
-
-    transition: transform .2s ease;
-}
-
-
-.category-card:hover .category-arrow {
-
-    transform: translateX(4px);
-
-    color: #2563eb;
 }
 
 
@@ -747,17 +1420,17 @@
     grid-template-columns:
         repeat(
             auto-fit,
-            minmax(280px, 1fr)
+            minmax(280px,1fr)
         );
 
     gap: 20px;
+
 }
 
 
 .post-card {
 
-    background:
-        rgba(255,255,255,.95);
+    background: #fff;
 
     border: 1px solid
         rgba(148,163,184,.18);
@@ -770,27 +1443,55 @@
         0 10px 30px
         rgba(15,23,42,.08);
 
-    display: flex;
-
-    flex-direction: column;
-
-    justify-content: space-between;
-
-    min-height: 220px;
-
     transition:
         transform .2s ease,
         box-shadow .2s ease;
+
 }
 
 
 .post-card:hover {
 
-    transform: translateY(-4px);
+    transform:
+        translateY(-3px);
 
     box-shadow:
         0 16px 35px
         rgba(15,23,42,.12);
+
+}
+
+
+.post-category {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 6px;
+
+    margin-bottom: 10px;
+
+    font-size: .85rem;
+
+}
+
+
+.post-category a {
+
+    color: #2563eb;
+
+    font-weight: 700;
+
+    text-decoration: none;
+
+}
+
+
+.post-category a:hover {
+
+    text-decoration: underline;
+
 }
 
 
@@ -798,9 +1499,12 @@
 
     margin: 0 0 12px;
 
+    color: #1e293b;
+
     font-size: 1.25rem;
 
     line-height: 1.3;
+
 }
 
 
@@ -811,103 +1515,7 @@
     color: #64748b;
 
     line-height: 1.7;
-}
 
-
-
-/* =========================================================
-   POST CONTENT
-========================================================= */
-
-.post-collapse {
-
-    margin-top: 14px;
-}
-
-
-.post-content {
-
-    color: #374151;
-
-    line-height: 1.75;
-
-    overflow-wrap: break-word;
-}
-
-
-.post-content img {
-
-    max-width: 100%;
-
-    height: auto;
-
-    border-radius: 10px;
-}
-
-
-.post-content iframe {
-
-    max-width: 100%;
-}
-
-
-.post-media {
-
-    display: block;
-
-    width: 100%;
-
-    max-height: 450px;
-
-    margin-top: 16px;
-
-    object-fit: contain;
-
-    border-radius: 10px;
-}
-
-
-.post-video {
-
-    display: block;
-
-    width: 100%;
-
-    max-height: 450px;
-
-    margin-top: 16px;
-
-    border-radius: 10px;
-}
-
-
-.youtube-container {
-
-    position: relative;
-
-    width: 100%;
-
-    padding-bottom: 56.25%;
-
-    height: 0;
-
-    margin-top: 16px;
-
-    overflow: hidden;
-
-    border-radius: 10px;
-}
-
-
-.youtube-container iframe {
-
-    position: absolute;
-
-    inset: 0;
-
-    width: 100%;
-
-    height: 100%;
 }
 
 
@@ -924,9 +1532,9 @@
 
     gap: 10px 16px;
 
-    margin-top: 20px;
+    margin-top: 18px;
 
-    padding-top: 16px;
+    padding-top: 14px;
 
     border-top:
         1px solid
@@ -934,7 +1542,8 @@
 
     color: #64748b;
 
-    font-size: .92rem;
+    font-size: .82rem;
+
 }
 
 
@@ -945,35 +1554,245 @@
     align-items: center;
 
     gap: 6px;
+
 }
 
 
 
 /* =========================================================
-   BUTTON
+   STATISTICS
+========================================================= */
+
+.post-statistics {
+
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 10px;
+
+    margin-top: 14px;
+
+    padding: 11px 0;
+
+    border-bottom:
+        1px solid
+        rgba(148,163,184,.18);
+
+}
+
+
+.post-stat {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 5px;
+
+    color: #64748b;
+
+    font-size: .82rem;
+
+    font-weight: 600;
+
+}
+
+
+.post-stat i {
+
+    color: #2563eb;
+
+}
+
+
+.post-stat:first-child i {
+
+    color: #dc2626;
+
+}
+
+
+
+/* =========================================================
+   CONTENT
+========================================================= */
+
+.post-collapse {
+
+    margin-top: 14px;
+
+}
+
+
+.post-content {
+
+    color: #374151;
+
+    line-height: 1.75;
+
+    overflow-wrap: break-word;
+
+}
+
+
+.post-content img {
+
+    max-width: 100%;
+
+    height: auto;
+
+    border-radius: 10px;
+
+}
+
+
+.post-content iframe {
+
+    max-width: 100%;
+
+}
+
+
+.post-images {
+
+    margin-top: 16px;
+
+}
+
+
+.post-media {
+
+    display: block;
+
+    width: 100%;
+
+    max-height: 450px;
+
+    margin-top: 12px;
+
+    object-fit: contain;
+
+    border-radius: 10px;
+
+}
+
+
+.post-video {
+
+    display: block;
+
+    width: 100%;
+
+    max-height: 450px;
+
+    margin-top: 16px;
+
+    border-radius: 10px;
+
+}
+
+
+.youtube-container {
+
+    position: relative;
+
+    width: 100%;
+
+    height: 0;
+
+    padding-bottom: 56.25%;
+
+    margin-top: 16px;
+
+    overflow: hidden;
+
+    border-radius: 10px;
+
+}
+
+
+.youtube-container iframe {
+
+    position: absolute;
+
+    inset: 0;
+
+    width: 100%;
+
+    height: 100%;
+
+}
+
+
+
+/* =========================================================
+   TAGS
+========================================================= */
+
+.post-tags {
+
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 7px;
+
+    margin-top: 18px;
+
+}
+
+
+.post-tag {
+
+    display: inline-block;
+
+    padding: 5px 9px;
+
+    border-radius: 999px;
+
+    background: #eff6ff;
+
+    color: #2563eb;
+
+    font-size: .78rem;
+
+    font-weight: 600;
+
+}
+
+
+
+/* =========================================================
+   READ MORE
 ========================================================= */
 
 .read-more-btn {
 
-    display: inline-block;
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 6px;
 
     margin-top: 15px;
 
-    padding: 10px 18px;
-
-    background: #2563eb;
-
-    color: #fff;
+    padding: 9px 15px;
 
     border: none;
 
     border-radius: 8px;
 
+    background: #2563eb;
+
+    color: #fff;
+
     font-weight: 600;
 
-    transition: .3s;
-
     cursor: pointer;
+
+    transition: background .2s ease;
+
 }
 
 
@@ -981,26 +1800,560 @@
 
     background: #1d4ed8;
 
-    color: #fff;
 }
 
-
-/* Hide "hide" text initially */
 
 .hide-text {
+
     display: none;
+
 }
 
 
-/* When opened, swap text */
+.read-more-btn[aria-expanded="true"]
+.show-text {
 
-.read-more-btn[aria-expanded="true"] .show-text {
     display: none;
+
 }
 
 
-.read-more-btn[aria-expanded="true"] .hide-text {
+.read-more-btn[aria-expanded="true"]
+.hide-text {
+
     display: inline;
+
+}
+
+
+
+/* =========================================================
+   ACTIONS
+========================================================= */
+
+.post-actions {
+
+    display: flex;
+
+    flex-wrap: wrap;
+
+    align-items: center;
+
+    gap: 8px;
+
+    margin-top: 18px;
+
+}
+
+
+.like-form {
+
+    margin: 0;
+
+}
+
+
+.like-btn,
+.post-action-btn {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 6px;
+
+    min-height: 38px;
+
+    padding: 8px 13px;
+
+    border-radius: 8px;
+
+    font-size: .84rem;
+
+    font-weight: 600;
+
+    text-decoration: none;
+
+    cursor: pointer;
+
+}
+
+
+.like-btn {
+
+    border: 1px solid
+        rgba(148,163,184,.25);
+
+    background: #fff;
+
+    color: #64748b;
+
+}
+
+
+.like-btn:hover,
+.like-btn.liked {
+
+    color: #dc2626;
+
+    border-color: #fecaca;
+
+    background: #fef2f2;
+
+}
+
+
+.like-count {
+
+    font-weight: 700;
+
+}
+
+
+.edit-btn {
+
+    background: #eff6ff;
+
+    color: #2563eb;
+
+}
+
+
+.edit-btn:hover {
+
+    background: #dbeafe;
+
+    color: #1d4ed8;
+
+}
+
+
+.delete-btn {
+
+    background: #fef2f2;
+
+    color: #dc2626;
+
+}
+
+
+.delete-btn:hover {
+
+    background: #fee2e2;
+
+    color: #b91c1c;
+
+}
+
+
+
+/* =========================================================
+   COMMENTS
+========================================================= */
+
+.comments-section {
+
+    margin-top: 20px;
+
+    padding-top: 18px;
+
+    border-top:
+        1px solid
+        rgba(148,163,184,.20);
+
+}
+
+
+.comments-heading {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    margin-bottom: 14px;
+
+}
+
+
+.comments-heading h4 {
+
+    margin: 0;
+
+    color: #1e293b;
+
+    font-size: 1rem;
+
+}
+
+
+.comments-heading h4 i {
+
+    color: #2563eb;
+
+}
+
+
+.comment-count {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    min-width: 24px;
+
+    height: 24px;
+
+    padding: 0 7px;
+
+    border-radius: 999px;
+
+    background: #eff6ff;
+
+    color: #2563eb;
+
+    font-size: .75rem;
+
+    font-weight: 700;
+
+}
+
+
+
+/* =========================================================
+   COMMENT FORM
+========================================================= */
+
+.comment-form {
+
+    margin-bottom: 18px;
+
+}
+
+
+.comment-input {
+
+    display: block;
+
+    width: 100%;
+
+    min-height: 90px;
+
+    padding: 12px 14px;
+
+    border: 1px solid
+        rgba(148,163,184,.30);
+
+    border-radius: 10px;
+
+    background: #fff;
+
+    color: #1e293b;
+
+    font-family: inherit;
+
+    line-height: 1.6;
+
+    resize: vertical;
+
+    outline: none;
+
+    box-sizing: border-box;
+
+}
+
+
+.comment-input:focus {
+
+    border-color: #2563eb;
+
+    box-shadow:
+        0 0 0 3px
+        rgba(37,99,235,.10);
+
+}
+
+
+.comment-input::placeholder {
+
+    color: #94a3b8;
+
+}
+
+
+.comment-submit-row {
+
+    display: flex;
+
+    justify-content: flex-end;
+
+    margin-top: 8px;
+
+}
+
+
+.comment-submit-btn {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 7px;
+
+    padding: 9px 16px;
+
+    border: none;
+
+    border-radius: 8px;
+
+    background: #2563eb;
+
+    color: #fff;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+}
+
+
+.comment-submit-btn:hover {
+
+    background: #1d4ed8;
+
+}
+
+
+
+/* =========================================================
+   LOGIN MESSAGE
+========================================================= */
+
+.login-comment-message {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    margin-bottom: 18px;
+
+    padding: 12px 14px;
+
+    border-radius: 10px;
+
+    background: #f8fafc;
+
+    color: #64748b;
+
+    font-size: .88rem;
+
+}
+
+
+.login-comment-message a {
+
+    color: #2563eb;
+
+    font-weight: 700;
+
+    text-decoration: none;
+
+}
+
+
+.login-comment-message a:hover {
+
+    text-decoration: underline;
+
+}
+
+
+
+/* =========================================================
+   COMMENTS LIST
+========================================================= */
+
+.comments-list {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 10px;
+
+}
+
+
+.comment {
+
+    padding: 14px;
+
+    background: #f8fafc;
+
+    border: 1px solid
+        rgba(148,163,184,.15);
+
+    border-radius: 10px;
+
+}
+
+
+.comment-header {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 10px;
+
+    margin-bottom: 8px;
+
+}
+
+
+.comment-author {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 7px;
+
+}
+
+
+.comment-author i {
+
+    color: #2563eb;
+
+    font-size: 1.1rem;
+
+}
+
+
+.comment-header strong {
+
+    color: #1e293b;
+
+}
+
+
+.comment-header small {
+
+    color: #94a3b8;
+
+    font-size: .75rem;
+
+}
+
+
+.comment-text {
+
+    color: #475569;
+
+    line-height: 1.6;
+
+    overflow-wrap: break-word;
+
+}
+
+
+.comment-actions {
+
+    margin-top: 8px;
+
+}
+
+
+.comment-like-btn {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 5px;
+
+    padding: 5px 8px;
+
+    border: none;
+
+    background: transparent;
+
+    color: #64748b;
+
+    font-size: .8rem;
+
+    cursor: pointer;
+
+}
+
+
+.comment-like-btn:hover {
+
+    color: #dc2626;
+
+}
+
+
+
+/* =========================================================
+   NO COMMENTS
+========================================================= */
+
+.no-comments {
+
+    padding: 20px 15px;
+
+    text-align: center;
+
+    border-radius: 10px;
+
+    background: #f8fafc;
+
+    color: #64748b;
+
+}
+
+
+.no-comments i {
+
+    display: block;
+
+    margin-bottom: 7px;
+
+    color: #94a3b8;
+
+    font-size: 1.4rem;
+
+}
+
+
+.no-comments p {
+
+    margin: 0 0 3px;
+
+    color: #475569;
+
+    font-weight: 600;
+
+}
+
+
+.no-comments span {
+
+    font-size: .82rem;
+
 }
 
 
@@ -1015,8 +2368,7 @@
 
     text-align: center;
 
-    background:
-        rgba(255,255,255,.9);
+    background: #fff;
 
     border: 1px dashed
         rgba(148,163,184,.3);
@@ -1024,18 +2376,29 @@
     border-radius: 18px;
 
     color: #64748b;
+
 }
 
 
 .empty-state i {
-
-    font-size: 2rem;
 
     display: block;
 
     margin-bottom: 12px;
 
     color: #2563eb;
+
+    font-size: 2rem;
+
+}
+
+
+.empty-state h3 {
+
+    margin-bottom: 8px;
+
+    color: #334155;
+
 }
 
 
@@ -1047,27 +2410,25 @@
 @media (max-width: 768px) {
 
     .home-container {
+
         padding: 14px;
+
     }
 
 
     .home-hero {
 
-        padding: 32px 16px;
+        padding: 34px 16px;
 
         border-radius: 18px;
+
     }
 
 
     .home-hero h1 {
 
-        font-size: 1.8rem;
-    }
+        font-size: 1.9rem;
 
-
-    .home-hero p {
-
-        font-size: 1rem;
     }
 
 
@@ -1075,12 +2436,7 @@
     .post-card {
 
         padding: 18px;
-    }
 
-
-    .section-head h2 {
-
-        font-size: 1.3rem;
     }
 
 
@@ -1089,6 +2445,7 @@
         grid-template-columns: 1fr;
 
         gap: 16px;
+
     }
 
 
@@ -1096,13 +2453,6 @@
 
         grid-template-columns: 1fr;
 
-        gap: 12px;
-    }
-
-
-    .category-card {
-
-        min-height: 80px;
     }
 
 
@@ -1111,6 +2461,14 @@
         flex-direction: column;
 
         gap: 6px;
+
+    }
+
+
+    .post-statistics {
+
+        gap: 8px 12px;
+
     }
 
 
@@ -1118,7 +2476,46 @@
 
         width: 100%;
 
-        text-align: center;
+        justify-content: center;
+
+    }
+
+
+    .post-actions {
+
+        flex-direction: column;
+
+        align-items: stretch;
+
+    }
+
+
+    .like-form {
+
+        width: 100%;
+
+    }
+
+
+    .like-btn,
+    .post-action-btn {
+
+        width: 100%;
+
+    }
+
+
+    .comment-submit-row {
+
+        justify-content: stretch;
+
+    }
+
+
+    .comment-submit-btn {
+
+        width: 100%;
+
     }
 
 }
@@ -1129,21 +2526,21 @@
     .home-container {
 
         padding: 10px;
+
     }
 
 
     .home-hero {
 
-        padding: 24px 14px;
+        padding: 26px 14px;
+
     }
 
 
-    .hero-badge,
-    .featured-label {
+    .home-hero h1 {
 
-        font-size: .75rem;
+        font-size: 1.65rem;
 
-        padding: 6px 12px;
     }
 
 
@@ -1151,6 +2548,18 @@
     .post-title {
 
         font-size: 1.1rem;
+
+    }
+
+
+    .comment-header {
+
+        align-items: flex-start;
+
+        flex-direction: column;
+
+        gap: 4px;
+
     }
 
 }
@@ -1158,3 +2567,4 @@
 </style>
 
 {% endblock %}
+
