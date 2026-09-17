@@ -8,18 +8,43 @@ Teacher Dashboard | SmartMind
 {% block content %}
 
 <style>
-
 /* =========================================================
-   TEACHER DASHBOARD
+   MODERN TEACHER DASHBOARD
+   Clean • Card‑based • Responsive
 ========================================================= */
+
+:root {
+    --bg: #f6f8fc;
+    --surface: #ffffff;
+    --text-primary: #0b1c33;
+    --text-secondary: #5b6f88;
+    --accent: #3b82f6;
+    --accent-soft: #e8f0fe;
+    --accent-hover: #2563eb;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --slate: #64748b;
+    --border: #e2e8f0;
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, .02), 0 4px 16px rgba(0, 0, 0, .02);
+    --shadow-md: 0 8px 30px rgba(0, 0, 0, .06);
+    --radius: 24px;
+    --radius-sm: 16px;
+    --radius-xs: 12px;
+    --transition: all .2s cubic-bezier(.4, 0, .2, 1);
+}
+
+* {
+    box-sizing: border-box;
+}
 
 .teacher-dashboard {
     width: 100%;
-    max-width: 1600px;
+    max-width: 1560px;
     margin: 0 auto;
-    padding: 25px;
+    padding: 28px 32px;
+    background: var(--bg);
+    min-height: 100vh;
 }
-
 
 /* =========================================================
    HEADER
@@ -29,71 +54,97 @@ Teacher Dashboard | SmartMind
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 20px;
-    margin-bottom: 28px;
+    gap: 24px;
+    margin-bottom: 32px;
+    padding: 0 4px;
 }
 
 .teacher-header h1 {
     margin: 0;
-    font-size: clamp(1.6rem, 3vw, 2.2rem);
-    color: #111827;
+    font-size: clamp(1.75rem, 3vw, 2.4rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+}
+
+.teacher-header h1 span {
+    display: inline-block;
+    margin-right: 10px;
 }
 
 .teacher-header p {
     margin: 6px 0 0;
-    color: #64748b;
+    color: var(--text-secondary);
+    font-size: 1rem;
+    font-weight: 400;
 }
 
 .teacher-badge {
-    padding: 8px 16px;
-    border-radius: 999px;
-    background: #dbeafe;
-    color: #1d4ed8;
-    font-weight: 700;
+    padding: 10px 22px;
+    border-radius: 100px;
+    background: var(--accent-soft);
+    color: var(--accent-hover);
+    font-weight: 600;
+    font-size: .9rem;
+    letter-spacing: .01em;
     white-space: nowrap;
+    box-shadow: inset 0 0 0 1px rgba(59, 130, 246, .15);
 }
 
-
 /* =========================================================
-   STATISTICS
+   STATS
 ========================================================= */
 
 .teacher-stats {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 18px;
+    gap: 20px;
+    margin-bottom: 32px;
 }
 
 .teacher-stat {
-    padding: 22px;
-    border-radius: 18px;
-    background: #fff;
-    box-shadow: 0 8px 25px rgba(15, 23, 42, .07);
+    padding: 24px 22px;
+    border-radius: var(--radius);
+    background: var(--surface);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid rgba(226, 232, 240, .6);
+    transition: var(--transition);
+}
+
+.teacher-stat:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-3px);
+    border-color: rgba(59, 130, 246, .2);
 }
 
 .teacher-stat-icon {
-    width: 44px;
-    height: 44px;
+    width: 48px;
+    height: 48px;
     display: grid;
     place-items: center;
-    border-radius: 12px;
-    background: #eff6ff;
-    margin-bottom: 14px;
-    font-size: 1.3rem;
+    border-radius: 16px;
+    background: var(--accent-soft);
+    margin-bottom: 16px;
+    font-size: 1.4rem;
+    color: var(--accent-hover);
 }
 
 .teacher-stat h3 {
-    margin: 0 0 7px;
-    color: #64748b;
-    font-size: .95rem;
+    margin: 0 0 6px;
+    color: var(--text-secondary);
+    font-size: .875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .04em;
 }
 
 .teacher-stat-number {
-    font-size: 2rem;
-    font-weight: 800;
-    color: #111827;
+    font-size: 2.25rem;
+    font-weight: 750;
+    color: var(--text-primary);
+    line-height: 1.2;
+    letter-spacing: -0.02em;
 }
-
 
 /* =========================================================
    SECTIONS
@@ -101,28 +152,35 @@ Teacher Dashboard | SmartMind
 
 .teacher-section {
     margin-top: 28px;
-    padding: 24px;
-    border-radius: 18px;
-    background: #fff;
-    box-shadow: 0 8px 25px rgba(15, 23, 42, .07);
+    padding: 28px 30px;
+    border-radius: var(--radius);
+    background: var(--surface);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid rgba(226, 232, 240, .6);
+    transition: var(--transition);
+}
+
+.teacher-section:hover {
+    box-shadow: var(--shadow-md);
 }
 
 .teacher-section-header {
-    margin-bottom: 20px;
+    margin-bottom: 24px;
 }
 
 .teacher-section-header h2 {
     margin: 0;
-    font-size: 1.3rem;
-    color: #111827;
+    font-size: 1.35rem;
+    font-weight: 650;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
 }
 
 .teacher-section-header p {
-    margin: 5px 0 0;
-    color: #64748b;
-    font-size: .92rem;
+    margin: 4px 0 0;
+    color: var(--text-secondary);
+    font-size: .95rem;
 }
-
 
 /* =========================================================
    QUICK ACTIONS
@@ -131,44 +189,61 @@ Teacher Dashboard | SmartMind
 .teacher-actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 12px;
+    gap: 14px;
 }
 
 .teacher-action {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    padding: 11px 17px;
-    border-radius: 10px;
+    gap: 10px;
+    padding: 12px 24px;
+    border-radius: var(--radius-xs);
     text-decoration: none;
     font-weight: 600;
-    background: #2563eb;
+    font-size: .95rem;
+    background: var(--accent);
     color: white;
-    transition: .2s;
+    transition: var(--transition);
+    border: none;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, .2);
 }
 
 .teacher-action:hover {
-    background: #1d4ed8;
+    background: var(--accent-hover);
     color: white;
     transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(59, 130, 246, .3);
 }
 
 .teacher-action.secondary {
-    background: #475569;
+    background: var(--slate);
+    box-shadow: 0 2px 8px rgba(100, 116, 139, .2);
 }
 
 .teacher-action.secondary:hover {
-    background: #334155;
+    background: #475569;
+    box-shadow: 0 6px 18px rgba(100, 116, 139, .3);
 }
 
 .teacher-action.success {
-    background: #16a34a;
+    background: var(--success);
+    box-shadow: 0 2px 8px rgba(16, 185, 129, .2);
+}
+
+.teacher-action.success:hover {
+    background: #059669;
+    box-shadow: 0 6px 18px rgba(16, 185, 129, .3);
 }
 
 .teacher-action.warning {
-    background: #d97706;
+    background: var(--warning);
+    box-shadow: 0 2px 8px rgba(245, 158, 11, .2);
 }
 
+.teacher-action.warning:hover {
+    background: #d97706;
+    box-shadow: 0 6px 18px rgba(245, 158, 11, .3);
+}
 
 /* =========================================================
    ASSIGNMENTS
@@ -180,40 +255,52 @@ Teacher Dashboard | SmartMind
 }
 
 .assignment-item {
-    padding: 16px;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
-    background: #f8fafc;
+    padding: 18px 20px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: #fafcff;
+    transition: var(--transition);
+}
+
+.assignment-item:hover {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    transform: translateX(4px);
 }
 
 .assignment-top {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 15px;
+    gap: 16px;
 }
 
 .assignment-title {
-    font-weight: 700;
-    color: #111827;
+    font-weight: 650;
+    color: var(--text-primary);
+    font-size: 1rem;
 }
 
 .assignment-type {
-    padding: 5px 10px;
-    border-radius: 999px;
-    background: #dbeafe;
-    color: #1d4ed8;
-    font-size: .75rem;
+    padding: 6px 14px;
+    border-radius: 100px;
+    background: var(--accent-soft);
+    color: var(--accent-hover);
+    font-size: .7rem;
     font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
     white-space: nowrap;
 }
 
 .assignment-meta {
     margin-top: 8px;
-    color: #64748b;
-    font-size: .88rem;
+    color: var(--text-secondary);
+    font-size: .875rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
 }
-
 
 /* =========================================================
    BLOG CATEGORIES
@@ -228,629 +315,446 @@ Teacher Dashboard | SmartMind
 .category-card {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 15px;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
-    background: #fff;
-    color: #1f2937;
+    gap: 12px;
+    padding: 16px 20px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--text-primary);
     text-decoration: none;
-    font-weight: 700;
-    transition: .2s;
+    font-weight: 600;
+    font-size: .95rem;
+    transition: var(--transition);
 }
 
 .category-card:hover {
-    border-color: #2563eb;
-    background: #eff6ff;
-    color: #2563eb;
-    transform: translateY(-2px);
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--accent-hover);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(59, 130, 246, .1);
 }
 
+.category-card span:first-child {
+    font-size: 1.3rem;
+}
 
 /* =========================================================
    BLOG POSTS GRID
 ========================================================= */
 
 .posts-grid {
-
     display: grid;
-
-    grid-template-columns:
-        repeat(3, minmax(0, 1fr));
-
-    gap: 20px;
-
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
     align-items: start;
-
-    transition: .25s ease;
+    transition: var(--transition);
 }
 
-
 /* =========================================================
-   NORMAL BLOG POST
+   BLOG POST CARD
 ========================================================= */
 
 .blog-post {
-
     min-width: 0;
-
     overflow: hidden;
-
-    border: 1px solid #e5e7eb;
-
-    border-radius: 15px;
-
-    background: #fff;
-
-    box-shadow:
-        0 6px 20px rgba(15, 23, 42, .06);
-
-    transition:
-        box-shadow .25s ease,
-        transform .25s ease;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+    display: flex;
+    flex-direction: column;
 }
-
 
 .blog-post:hover {
-
-    transform: translateY(-3px);
-
-    box-shadow:
-        0 10px 28px rgba(15, 23, 42, .10);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+    border-color: rgba(59, 130, 246, .3);
 }
-
 
 /* =========================================================
    EXPANDED POST
-
-   The opened post occupies two columns.
-
-   Example:
-
-   Normal:
-
-   [ Post 1 ][ Post 2 ][ Post 3 ]
-
-   Expanded:
-
-   [     Post 1 Expanded     ][ Post 3 ]
-   [ Post 4 ][ Post 5 ][ Post 6 ]
 ========================================================= */
 
 .blog-post.expanded {
-
     grid-column: span 2;
-
     transform: none;
-
-    box-shadow:
-        0 12px 35px rgba(15, 23, 42, .14);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, .1);
+    border-color: var(--accent);
 }
-
 
 .blog-post.expanded:hover {
-
     transform: none;
 }
-
 
 /* =========================================================
    POST IMAGE
 ========================================================= */
 
 .post-image-container {
-
     width: 100%;
-
     display: flex;
-
     justify-content: center;
-
     align-items: center;
-
-    background: #f3f4f6;
-
+    background: #f1f5f9;
     overflow: hidden;
+    border-bottom: 1px solid var(--border);
 }
-
 
 .post-image {
-
     display: block;
-
     width: auto;
-
     height: auto;
-
     max-width: 100%;
-
-    max-height: 420px;
-
+    max-height: 360px;
     object-fit: contain;
-
     margin: 0 auto;
+    transition: var(--transition);
 }
-
-
-/* Bigger image when expanded */
 
 .blog-post.expanded .post-image {
-
-    max-height: 650px;
+    max-height: 600px;
 }
-
 
 /* =========================================================
    POST BODY
 ========================================================= */
 
 .post-body {
-
-    padding: 18px;
+    padding: 20px 22px 22px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 
-
 /* =========================================================
-   DETAILS
+   DETAILS / SUMMARY
 ========================================================= */
 
 .blog-post details {
-
     width: 100%;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 }
-
-
-/* =========================================================
-   POST SUMMARY
-========================================================= */
 
 .post-summary {
-
     display: flex;
-
     align-items: center;
-
     justify-content: space-between;
-
-    gap: 15px;
-
-    padding: 4px 0;
-
+    gap: 16px;
+    padding: 2px 0;
     list-style: none;
-
-    color: #2563eb;
-
-    font-weight: 700;
-
-    font-size: 1rem;
-
+    color: var(--accent);
+    font-weight: 650;
+    font-size: 1.05rem;
     line-height: 1.5;
-
     cursor: pointer;
-
     user-select: none;
+    transition: var(--transition);
 }
 
+.post-summary:hover {
+    color: var(--accent-hover);
+}
 
 .post-summary::-webkit-details-marker {
-
     display: none;
 }
-
 
 .post-summary::marker {
-
     display: none;
 }
-
 
 /* =========================================================
    EXPAND ICON
 ========================================================= */
 
 .post-summary::after {
-
     content: "＋";
-
     flex-shrink: 0;
-
-    width: 32px;
-
-    height: 32px;
-
+    width: 34px;
+    height: 34px;
     display: flex;
-
     align-items: center;
-
     justify-content: center;
-
     border-radius: 50%;
-
-    background: #eff6ff;
-
-    color: #2563eb;
-
+    background: var(--accent-soft);
+    color: var(--accent);
     font-size: 18px;
-
-    transition:
-        background .2s ease,
-        color .2s ease,
-        transform .2s ease;
+    font-weight: 400;
+    transition: var(--transition);
 }
-
 
 .blog-post details[open] .post-summary::after {
-
     content: "−";
-
-    background: #2563eb;
-
+    background: var(--accent);
     color: white;
-
     transform: rotate(180deg);
 }
-
 
 /* =========================================================
    POST CONTENT
 ========================================================= */
 
 .post-content {
-
-    margin-top: 18px;
-
-    padding-top: 18px;
-
-    border-top: 1px solid #e5e7eb;
-
-    color: #374151;
-
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    color: #334155;
     line-height: 1.7;
-
-    font-size: 15px;
-
-    animation: postExpand .25s ease;
+    font-size: .95rem;
+    animation: postExpand .3s cubic-bezier(.4, 0, .2, 1);
+    flex: 1;
 }
 
-
 @keyframes postExpand {
-
     from {
-
         opacity: 0;
-
-        transform: translateY(-8px);
+        transform: translateY(-10px);
     }
-
     to {
-
         opacity: 1;
-
         transform: translateY(0);
     }
 }
 
-
 /* =========================================================
-   POST CONTENT IMAGES
+   POST CONTENT ELEMENTS
 ========================================================= */
 
 .post-content img {
-
     display: block;
-
     max-width: 100%;
-
     height: auto;
-
-    margin: 15px auto;
-
-    border-radius: 8px;
+    margin: 16px auto;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, .06);
 }
-
-
-/* =========================================================
-   CONTENT TABLES
-========================================================= */
 
 .post-content table {
-
     display: block;
-
     max-width: 100%;
-
     overflow-x: auto;
+    border-collapse: collapse;
+    border-radius: 12px;
 }
-
-
-/* =========================================================
-   CONTENT IFRAMES
-========================================================= */
 
 .post-content iframe {
-
     display: block;
-
     width: 100%;
-
     max-width: 100%;
-
     min-height: 300px;
-
     border: 0;
-
-    border-radius: 10px;
+    border-radius: 12px;
 }
-
-
-/* =========================================================
-   CONTENT VIDEO
-========================================================= */
 
 .post-content video {
-
     display: block;
-
     width: 100%;
-
     max-width: 100%;
-
     height: auto;
-
-    border-radius: 10px;
-
+    border-radius: 12px;
     background: #000;
-
-    margin: 15px auto;
+    margin: 16px auto;
 }
 
+.post-content .rich-content {
+    line-height: 1.8;
+}
 
 /* =========================================================
    POST META
 ========================================================= */
 
 .post-meta {
-
     display: block;
-
-    margin-top: 18px;
-
-    padding-top: 12px;
-
-    border-top: 1px solid #e5e7eb;
-
-    color: #64748b;
-
+    margin-top: 20px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+    color: var(--text-secondary);
     font-size: .85rem;
+    font-weight: 500;
 }
 
+.post-meta strong {
+    color: var(--text-primary);
+    font-weight: 650;
+}
 
 /* =========================================================
-   EMPTY
+   EMPTY STATE
 ========================================================= */
 
 .teacher-empty {
-
-    padding: 25px;
-
+    padding: 40px 24px;
     text-align: center;
-
-    border-radius: 12px;
-
+    border-radius: var(--radius-sm);
     background: #f8fafc;
-
-    color: #64748b;
+    color: var(--text-secondary);
+    font-size: .95rem;
+    border: 1px dashed var(--border);
 }
-
 
 /* =========================================================
    LARGE TABLETS
 ========================================================= */
 
 @media (max-width: 1100px) {
-
     .teacher-stats {
-
-        grid-template-columns:
-            repeat(2, 1fr);
+        grid-template-columns: repeat(2, 1fr);
     }
-
 
     .posts-grid {
-
-        grid-template-columns:
-            repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-
-    /*
-     * Expanded post fills the entire row
-     * on a 2-column layout.
-     */
-
     .blog-post.expanded {
-
         grid-column: span 2;
     }
 }
-
 
 /* =========================================================
    TABLETS
 ========================================================= */
 
 @media (max-width: 800px) {
-
     .teacher-dashboard {
-
-        padding: 20px;
+        padding: 20px 18px;
     }
 
+    .teacher-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .teacher-section {
+        padding: 22px 20px;
+    }
 
     .post-image {
+        max-height: 300px;
+    }
 
-        max-height: 350px;
+    .blog-post.expanded .post-image {
+        max-height: 450px;
     }
 }
-
 
 /* =========================================================
    MOBILE
 ========================================================= */
 
 @media (max-width: 700px) {
-
     .teacher-dashboard {
-
-        padding: 16px;
+        padding: 16px 14px;
     }
-
-
-    .teacher-header {
-
-        flex-direction: column;
-
-        align-items: flex-start;
-    }
-
 
     .teacher-stats {
-
         grid-template-columns: 1fr;
+        gap: 14px;
     }
-
-
-    .teacher-section {
-
-        padding: 18px;
-    }
-
 
     .teacher-actions {
-
         flex-direction: column;
     }
 
-
     .teacher-action {
-
         width: 100%;
-
         justify-content: center;
     }
 
-
     .category-grid {
-
         grid-template-columns: 1fr;
     }
-
-
-    /*
-     * One post per row on phones.
-     */
 
     .posts-grid {
-
         grid-template-columns: 1fr;
-
-        gap: 18px;
+        gap: 20px;
     }
 
-
-    /*
-     * Expanded post stays one column
-     * because there is only one column.
-     */
-
     .blog-post.expanded {
-
         grid-column: span 1;
     }
 
-
     .blog-post {
-
-        border-radius: 14px;
+        border-radius: var(--radius-xs);
     }
-
 
     .post-image {
-
-        max-height: 400px;
+        max-height: 280px;
     }
 
+    .blog-post.expanded .post-image {
+        max-height: 380px;
+    }
 
     .assignment-top {
-
         flex-direction: column;
-
         align-items: flex-start;
     }
-}
 
+    .teacher-section-header h2 {
+        font-size: 1.2rem;
+    }
+}
 
 /* =========================================================
    SMALL PHONES
 ========================================================= */
 
 @media (max-width: 380px) {
-
     .teacher-dashboard {
-
-        padding: 10px;
+        padding: 12px 10px;
     }
-
 
     .teacher-section {
-
-        padding: 15px;
+        padding: 16px 14px;
     }
-
 
     .post-body {
-
-        padding: 15px;
+        padding: 16px;
     }
-
 
     .post-summary {
-
         font-size: .95rem;
     }
-}
 
+    .teacher-stat {
+        padding: 18px;
+    }
+
+    .teacher-stat-number {
+        font-size: 1.8rem;
+    }
+}
 </style>
 
 
 <div class="teacher-dashboard">
-
 
     <!-- =====================================================
          HEADER
     ====================================================== -->
 
     <div class="teacher-header">
-
         <div>
-
             <h1>
-                👨‍🏫 Welcome,
+                <span>👨‍🏫</span>
+                Welcome,
                 {{ request.user.first_name|default:request.user.username }}
             </h1>
-
             <p>
                 Manage your teaching activities, learners,
                 assignments and quizzes.
             </p>
-
         </div>
-
 
         <div class="teacher-badge">
             Teacher
         </div>
-
     </div>
 
 
@@ -861,70 +765,35 @@ Teacher Dashboard | SmartMind
     <div class="teacher-stats">
 
         <div class="teacher-stat">
-
-            <div class="teacher-stat-icon">
-                📝
-            </div>
-
-            <h3>
-                Assignments
-            </h3>
-
+            <div class="teacher-stat-icon">📝</div>
+            <h3>Assignments</h3>
             <div class="teacher-stat-number">
                 {{ assignment_count|default:0 }}
             </div>
-
         </div>
 
-
         <div class="teacher-stat">
-
-            <div class="teacher-stat-icon">
-                ❓
-            </div>
-
-            <h3>
-                Quizzes
-            </h3>
-
+            <div class="teacher-stat-icon">❓</div>
+            <h3>Quizzes</h3>
             <div class="teacher-stat-number">
                 {{ quiz_count|default:0 }}
             </div>
-
         </div>
 
-
         <div class="teacher-stat">
-
-            <div class="teacher-stat-icon">
-                👨‍🎓
-            </div>
-
-            <h3>
-                My Students
-            </h3>
-
+            <div class="teacher-stat-icon">👨‍🎓</div>
+            <h3>My Students</h3>
             <div class="teacher-stat-number">
                 {{ student_count|default:0 }}
             </div>
-
         </div>
 
-
         <div class="teacher-stat">
-
-            <div class="teacher-stat-icon">
-                ⏳
-            </div>
-
-            <h3>
-                Pending Submissions
-            </h3>
-
+            <div class="teacher-stat-icon">⏳</div>
+            <h3>Pending Submissions</h3>
             <div class="teacher-stat-number">
                 {{ pending_submissions|default:0 }}
             </div>
-
         </div>
 
     </div>
@@ -937,48 +806,25 @@ Teacher Dashboard | SmartMind
     <section class="teacher-section">
 
         <div class="teacher-section-header">
-
-            <h2>
-                ⚡ Quick Actions
-            </h2>
-
-            <p>
-                Frequently used teaching tools.
-            </p>
-
+            <h2>⚡ Quick Actions</h2>
+            <p>Frequently used teaching tools.</p>
         </div>
-
 
         <div class="teacher-actions">
 
-            <a
-                href="{% url 'assignment_list' %}"
-                class="teacher-action"
-            >
+            <a href="{% url 'assignment_list' %}" class="teacher-action">
                 📝 Assignments
             </a>
 
-
-            <a
-                href="{% url 'quiz_home' %}"
-                class="teacher-action secondary"
-            >
+            <a href="{% url 'quiz_home' %}" class="teacher-action secondary">
                 ❓ Quizzes
             </a>
 
-
-            <a
-                href="{% url 'library:home' %}"
-                class="teacher-action success"
-            >
+            <a href="{% url 'library:home' %}" class="teacher-action success">
                 📚 Library
             </a>
 
-
-            <a
-                href="{% url 'blog:home' %}"
-                class="teacher-action warning"
-            >
+            <a href="{% url 'blog:home' %}" class="teacher-action warning">
                 📰 Blog
             </a>
 
@@ -994,17 +840,9 @@ Teacher Dashboard | SmartMind
     <section class="teacher-section">
 
         <div class="teacher-section-header">
-
-            <h2>
-                📝 Recent Assignments
-            </h2>
-
-            <p>
-                Your latest assignments and quizzes.
-            </p>
-
+            <h2>📝 Recent Assignments</h2>
+            <p>Your latest assignments and quizzes.</p>
         </div>
-
 
         {% if assignments %}
 
@@ -1015,38 +853,28 @@ Teacher Dashboard | SmartMind
                     <div class="assignment-item">
 
                         <div class="assignment-top">
-
                             <div class="assignment-title">
                                 {{ assignment.title }}
                             </div>
-
                             <span class="assignment-type">
-
                                 {% if assignment.assignment_type == "quiz" %}
                                     Quiz
                                 {% else %}
                                     Assignment
                                 {% endif %}
-
                             </span>
-
                         </div>
 
-
                         <div class="assignment-meta">
-
                             {% if assignment.subject %}
                                 📚 {{ assignment.subject }}
                             {% endif %}
-
                             {% if assignment.school_class %}
                                 • 🏫 {{ assignment.school_class }}
                             {% endif %}
-
                             {% if assignment.created_at %}
                                 • {{ assignment.created_at|date:"d M Y" }}
                             {% endif %}
-
                         </div>
 
                     </div>
@@ -1073,17 +901,9 @@ Teacher Dashboard | SmartMind
     <section class="teacher-section">
 
         <div class="teacher-section-header">
-
-            <h2>
-                📂 Blog Categories
-            </h2>
-
-            <p>
-                Browse learning content by category.
-            </p>
-
+            <h2>📂 Blog Categories</h2>
+            <p>Browse learning content by category.</p>
         </div>
-
 
         {% if categories %}
 
@@ -1091,17 +911,10 @@ Teacher Dashboard | SmartMind
 
                 {% for category in categories %}
 
-                    <a
-                        href="{% url 'blog:category_post' category.slug %}"
-                        class="category-card"
-                    >
-
+                    <a href="{% url 'blog:category_post' category.slug %}"
+                       class="category-card">
                         <span>📁</span>
-
-                        <span>
-                            {{ category.name }}
-                        </span>
-
+                        <span>{{ category.name }}</span>
                     </a>
 
                 {% endfor %}
@@ -1126,17 +939,9 @@ Teacher Dashboard | SmartMind
     <section class="teacher-section">
 
         <div class="teacher-section-header">
-
-            <h2>
-                📰 Latest Blog Posts
-            </h2>
-
-            <p>
-                Click a post title to expand its content.
-            </p>
-
+            <h2>📰 Latest Blog Posts</h2>
+            <p>Click a post title to expand its content.</p>
         </div>
-
 
         {% if posts %}
 
@@ -1144,144 +949,69 @@ Teacher Dashboard | SmartMind
 
                 {% for post in posts %}
 
-                    <article
-                        class="blog-post"
-                        data-post-id="{{ post.id }}"
-                    >
-
+                    <article class="blog-post" data-post-id="{{ post.id }}">
 
                         <!-- POST IMAGE -->
-
                         {% if post.image %}
-
                             <div class="post-image-container">
-
-                                <img
-                                    src="{{ post.image.url }}"
-                                    alt="{{ post.title }}"
-                                    class="post-image"
-                                    loading="lazy"
-                                >
-
+                                <img src="{{ post.image.url }}"
+                                     alt="{{ post.title }}"
+                                     class="post-image"
+                                     loading="lazy">
                             </div>
-
                         {% endif %}
 
-
                         <!-- POST BODY -->
-
                         <div class="post-body">
 
                             <details>
 
                                 <summary class="post-summary">
-
-                                    <span>
-                                        {{ post.title }}
-                                    </span>
-
+                                    <span>{{ post.title }}</span>
                                 </summary>
 
-
                                 <!-- POST CONTENT -->
-
                                 <div class="post-content">
 
                                     {% if post.excerpt %}
-
-                                        <p>
-                                            {{ post.excerpt }}
-                                        </p>
-
+                                        <p>{{ post.excerpt }}</p>
                                     {% endif %}
 
-
                                     {% if post.content %}
-
                                         <div class="rich-content">
                                             {{ post.content|safe }}
                                         </div>
-
                                     {% endif %}
-
 
                                     <!-- VIDEO -->
-
                                     {% if post.video %}
-
-                                        <video
-                                            controls
-                                            preload="metadata"
-                                        >
-
-                                            <source
-                                                src="{{ post.video.url }}"
-                                                type="video/mp4"
-                                            >
-
-                                            Your browser does not support
-                                            the video tag.
-
+                                        <video controls preload="metadata">
+                                            <source src="{{ post.video.url }}" type="video/mp4">
+                                            Your browser does not support the video tag.
                                         </video>
-
                                     {% endif %}
-
 
                                     <!-- YOUTUBE -->
-
                                     {% if post.youtube_url %}
-
-                                        <div
-                                            style="
-                                                position:relative;
-                                                width:100%;
-                                                padding-bottom:56.25%;
-                                                margin-top:20px;
-                                                overflow:hidden;
-                                                border-radius:10px;
-                                                background:#000;
-                                            "
-                                        >
-
-                                            <iframe
-                                                src="https://www.youtube.com/embed/{{ post.youtube_url|slice:'8:' }}"
-                                                title="{{ post.title }}"
-                                                loading="lazy"
-                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                                allowfullscreen
-                                            ></iframe>
-
+                                        <div style="position:relative; width:100%; padding-bottom:56.25%; margin-top:20px; overflow:hidden; border-radius:12px; background:#000;">
+                                            <iframe src="https://www.youtube.com/embed/{{ post.youtube_url|slice:'8:' }}"
+                                                    title="{{ post.title }}"
+                                                    loading="lazy"
+                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                    allowfullscreen>
+                                            </iframe>
                                         </div>
-
                                     {% endif %}
 
-
                                     <!-- META -->
-
                                     <small class="post-meta">
-
-                                        By
-
-                                        <strong>
-                                            {{ post.author }}
-                                        </strong>
-
-
+                                        By <strong>{{ post.author }}</strong>
                                         {% if post.category %}
-
-                                            •
-                                            {{ post.category.name }}
-
+                                            • {{ post.category.name }}
                                         {% endif %}
-
-
                                         {% if post.created_at %}
-
-                                            •
-                                            {{ post.created_at|date:"d M Y" }}
-
+                                            • {{ post.created_at|date:"d M Y" }}
                                         {% endif %}
-
                                     </small>
 
                                 </div>
@@ -1306,81 +1036,45 @@ Teacher Dashboard | SmartMind
 
     </section>
 
-
 </div>
 
 
 <!-- =========================================================
-     POST EXPANSION
+     POST EXPANSION SCRIPT
 ========================================================= -->
 
 <script>
-
 document.addEventListener("DOMContentLoaded", function () {
 
-    const posts = document.querySelectorAll(
-        "#teacherPostsGrid .blog-post"
-    );
-
+    const posts = document.querySelectorAll("#teacherPostsGrid .blog-post");
 
     posts.forEach(function (post) {
 
         const details = post.querySelector("details");
 
-
-        if (!details) {
-            return;
-        }
-
+        if (!details) return;
 
         details.addEventListener("toggle", function () {
 
-            /*
-             * When a post is opened,
-             * close all other posts.
-             */
-
             if (details.open) {
 
+                // Close all other posts
                 posts.forEach(function (otherPost) {
-
                     if (otherPost !== post) {
-
-                        const otherDetails =
-                            otherPost.querySelector("details");
-
-
+                        const otherDetails = otherPost.querySelector("details");
                         if (otherDetails) {
-
                             otherDetails.removeAttribute("open");
-
                         }
-
-
                         otherPost.classList.remove("expanded");
-
                     }
-
                 });
 
-
-                /*
-                 * Make the selected post
-                 * occupy two columns.
-                 */
-
+                // Expand this post to two columns
                 post.classList.add("expanded");
 
-
             } else {
-
-                /*
-                 * Return it to its
-                 * normal single column.
-                 */
-
+                // Return to single column
                 post.classList.remove("expanded");
-
             }
 
         });
@@ -1388,7 +1082,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
 });
-
 </script>
 
 {% endblock %}
