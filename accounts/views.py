@@ -464,14 +464,16 @@ def school_admin_dashboard(request):
     )
 
 
-# ============================================================
-# TEACHER DASHBOARD
-# ============================================================
-
 @login_required
 def teacher_dashboard(request):
 
     teacher = request.user
+
+    # ---- Role gate (optional but recommended) ----
+    if getattr(teacher, "role", None) not in ("teacher", "school_admin"):
+        return HttpResponseForbidden(
+            "Only teachers and school admins can access this dashboard."
+        )
 
     assignments = Assignment.objects.filter(
         teacher=teacher
@@ -490,36 +492,36 @@ def teacher_dashboard(request):
 
     student_count = Enrollment.objects.filter(
         school_class__assignments__teacher=teacher
-    ).values(
-        "student"
-    ).distinct().count()
+    ).values("student").distinct().count()
 
     pending_submissions = Submission.objects.filter(
         assignment__teacher=teacher,
         graded=False,
     ).count()
 
-    # --------------------------------------------------------
-    # BLOG DATA
-    # --------------------------------------------------------
-
     blog_context = get_blog_context()
+
+    # ---- Role label helper ----
+    role = getattr(teacher, "role", "") or "unknown"
+    role_labels = {
+        "teacher": "Teacher",
+        "school_admin": "School Admin",
+        "student": "Student",
+        "parent": "Parent",
+    }
+    role_label = role_labels.get(role, role.replace("_", " ").title())
 
     return render(
         request,
         "teacher.html",
         {
             "assignments": assignments[:5],
-
             "assignment_count": assignment_count,
-
             "quiz_count": quiz_count,
-
             "student_count": student_count,
-
             "pending_submissions": pending_submissions,
-
-            # Blog
+            "role": role,
+            "role_label": role_label,
             **blog_context,
         }
     )

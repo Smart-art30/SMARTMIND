@@ -1,21 +1,233 @@
 {% extends "base.html" %}
 
-{% block title %}Quiz Home{% endblock %}
+{% block title %}Quizzes | SmartMind{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <h2>Quiz Home</h2>
+
+<style>
+  .quiz-home { max-width: 1100px; margin: 0 auto; padding: 28px 24px; }
+
+  .quiz-home-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+  }
+
+  .quiz-home-header h2 {
+    margin: 0;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #0b1c33;
+    letter-spacing: -0.02em;
+  }
+
+  .quiz-home-header p {
+    margin: 4px 0 0;
+    color: #5b6f88;
+    font-size: .95rem;
+  }
+
+  .btn-create {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #10b981;
+    color: #fff;
+    padding: 12px 22px;
+    border-radius: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    box-shadow: 0 2px 8px rgba(16,185,129,.25);
+    transition: all .15s ease;
+  }
+  .btn-create:hover {
+    background: #059669;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(16,185,129,.3);
+    color: #fff;
+  }
+
+  .panel {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    padding: 8px 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,.03);
+    overflow: hidden;
+  }
+
+  .row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 22px;
+    border-bottom: 1px solid #f1f5f9;
+    text-decoration: none;
+    color: inherit;
+    transition: background .15s ease;
+  }
+  .row:last-child { border-bottom: none; }
+  .row:hover { background: #f8fafc; }
+
+  .row-title { font-weight: 650; color: #0b1c33; font-size: .98rem; }
+  .row-meta {
+    margin-top: 4px;
+    color: #64748b;
+    font-size: .82rem;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 4px 10px;
+    font-size: .72rem;
+    font-weight: 700;
+    border-radius: 100px;
+    background: #ede9fe;
+    color: #6d28d9;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+
+  .actions { display: flex; gap: 8px; }
+
+  .actions a {
+    font-size: .82rem;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all .15s ease;
+  }
+  .actions .edit   { background:#eff6ff; color:#1d4ed8; }
+  .actions .edit:hover { background:#dbeafe; }
+  .actions .delete { background:#fee2e2; color:#b91c1c; }
+  .actions .delete:hover { background:#fecaca; }
+
+  .empty {
+    text-align: center;
+    padding: 44px 24px;
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 18px;
+    color: #64748b;
+  }
+  .empty .icon { font-size: 2rem; display: block; margin-bottom: 8px; }
+</style>
+
+<div class="quiz-home">
+
+  {# ============================================== #}
+  {#  TEACHER / ADMIN VIEW                          #}
+  {# ============================================== #}
+  {% if role == "teacher" or role == "school_admin" %}
+
+    <div class="quiz-home-header">
+      <div>
+        <h2>❓ My Quizzes</h2>
+        <p>
+          {% if role == "school_admin" %}
+            All quizzes across your school.
+          {% else %}
+            Create, edit and manage your quizzes.
+          {% endif %}
+        </p>
+      </div>
+
+      {% if role == "teacher" %}
+        <a href="{% url 'create_quiz' %}" class="btn-create">
+          ➕ Create Quiz
+        </a>
+      {% endif %}
+    </div>
+
+    {% if quizzes %}
+      <div class="panel">
+        {% for quiz in quizzes %}
+          <div class="row">
+            <div>
+              <div class="row-title">{{ quiz.title }}</div>
+              <div class="row-meta">
+                {% if quiz.subject %}📚 {{ quiz.subject }}{% endif %}
+                {% if quiz.school_class %}🏫 {{ quiz.school_class }}{% endif %}
+                {% if quiz.due_date %}⏰ {{ quiz.due_date|date:"d M Y" }}{% endif %}
+                {% if role == "school_admin" and quiz.teacher %}
+                  👨‍🏫 {{ quiz.teacher.get_full_name|default:quiz.teacher.username }}
+                {% endif %}
+              </div>
+            </div>
+
+            <div style="display:flex;align-items:center;gap:12px;">
+              <span class="badge">Quiz</span>
+
+              {% if role == "teacher" %}
+                <div class="actions">
+                  <a href="{% url 'edit_quiz' quiz.id %}" class="edit">Edit</a>
+                  <a href="{% url 'delete_quiz' quiz.id %}" class="delete">Delete</a>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty">
+        <span class="icon">📭</span>
+        <p>You haven't created any quizzes yet.</p>
+        {% if role == "teacher" %}
+          <a href="{% url 'create_quiz' %}" class="btn-create" style="margin-top:12px;">
+            ➕ Create your first quiz
+          </a>
+        {% endif %}
+      </div>
+    {% endif %}
+
+  {# ============================================== #}
+  {#  STUDENT VIEW                                  #}
+  {# ============================================== #}
+  {% elif role == "student" %}
+
+    <div class="quiz-home-header">
+      <div>
+        <h2>❓ Quizzes</h2>
+        <p>Pick a class to see your quizzes.</p>
+      </div>
+    </div>
 
     {% if enrollments %}
-        <ul class="list-group">
-            {% for enrollment in enrollments %}
-                <li class="list-group-item">
-                    {{ enrollment.school_class }}
-                </li>
-            {% endfor %}
-        </ul>
+      <div class="panel">
+        {% for enrollment in enrollments %}
+          <a class="row" href="{% url 'quiz_class_subjects' enrollment.school_class.id %}">
+            <div>
+              <div class="row-title">🏫 {{ enrollment.school_class }}</div>
+              <div class="row-meta">Tap to view quizzes</div>
+            </div>
+            <span class="badge">Open →</span>
+          </a>
+        {% endfor %}
+      </div>
     {% else %}
-        <p>No enrollments found.</p>
+      <div class="empty">
+        <span class="icon">📭</span>
+        <p>You aren't enrolled in any classes yet.</p>
+      </div>
     {% endif %}
+
+  {% else %}
+
+    <div class="empty">
+      <span class="icon">🚫</span>
+      <p>You do not have permission to view quizzes.</p>
+    </div>
+
+  {% endif %}
+
 </div>
+
 {% endblock %}

@@ -150,18 +150,13 @@
                 </div>
 
 
-                <!-- READ FULL POST -->
+                <!-- READ FULL POST (simple link) -->
 
                 <a
                     href="{% url 'blog:post_detail' featured_post.slug %}"
-                    class="read-more-btn"
+                    class="read-more-link"
                 >
-
-                    <span class="show-text">
-                        Read full post
-                        <i class="bi bi-arrow-right"></i>
-                    </span>
-
+                    Read full post
                 </a>
 
             </div>
@@ -390,21 +385,14 @@
 
 
                             <!-- =================================
-                                 READ FULL POST
+                                 READ FULL POST (simple link)
                             ================================== -->
 
                             <a
                                 href="{% url 'blog:post_detail' item.post.slug %}"
-                                class="read-more-btn"
+                                class="read-more-link"
                             >
-
-                                <span class="show-text">
-
-                                    Read full post
-                                    <i class="bi bi-arrow-right"></i>
-
-                                </span>
-
+                                Read full post
                             </a>
 
                         </div>
@@ -1198,45 +1186,33 @@
 
 
 /* =========================================================
-   READ MORE (LINK TO DETAIL)
+   READ MORE (SIMPLE LINK)
 ========================================================= */
 
-.read-more-btn {
+.read-more-link {
 
-    display: inline-flex;
+    display: inline-block;
 
-    align-items: center;
+    margin-top: 14px;
 
-    gap: 6px;
-
-    margin-top: 15px;
-
-    padding: 9px 15px;
-
-    border: none;
-
-    border-radius: 8px;
-
-    background: #2563eb;
-
-    color: #fff;
+    color: #2563eb;
 
     font-weight: 600;
 
+    font-size: .9rem;
+
     text-decoration: none;
 
-    cursor: pointer;
-
-    transition: background .2s ease;
+    transition: color .2s ease;
 
 }
 
 
-.read-more-btn:hover {
+.read-more-link:hover {
 
-    background: #1d4ed8;
+    color: #1d4ed8;
 
-    color: #fff;
+    text-decoration: underline;
 
 }
 
@@ -1658,15 +1634,6 @@
     }
 
 
-    .read-more-btn {
-
-        width: 100%;
-
-        justify-content: center;
-
-    }
-
-
     .post-actions {
 
         flex-direction: column;
@@ -1711,7 +1678,7 @@
     .featured-content h3,
     .post-title {
 
-        font-size: 1.65rem;
+        font-size: 1.1rem;
 
     }
 

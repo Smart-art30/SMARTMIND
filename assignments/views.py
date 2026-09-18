@@ -30,10 +30,50 @@ def get_student_assignments(user):
 
 @login_required
 def quiz_home(request):
-    enrollments = Enrollment.objects.filter(student=request.user).select_related("school_class")
-    return render(request, "quiz_home.html", {
-        "enrollments": enrollments
-    })
+    user = request.user
+
+    # ---------- TEACHER ----------
+    if user.role == "teacher":
+        quizzes = (
+            Assignment.objects
+            .filter(teacher=user, assignment_type="quiz")
+            .select_related("school_class", "subject")
+            .order_by("-created_at")
+        )
+        return render(request, "quiz_home.html", {
+            "role": "teacher",
+            "role_label": "Teacher",
+            "quizzes": quizzes,
+        })
+
+    # ---------- SCHOOL ADMIN ----------
+    if user.role == "school_admin":
+        quizzes = (
+            Assignment.objects
+            .filter(school_class__school=user.school, assignment_type="quiz")
+            .select_related("school_class", "subject", "teacher")
+            .order_by("-created_at")
+        )
+        return render(request, "quiz_home.html", {
+            "role": "school_admin",
+            "role_label": "School Admin",
+            "quizzes": quizzes,
+        })
+
+    # ---------- STUDENT ----------
+    if user.role == "student":
+        enrollments = (
+            Enrollment.objects
+            .filter(student=user)
+            .select_related("school_class")
+        )
+        return render(request, "quiz_home.html", {
+            "role": "student",
+            "role_label": "Student",
+            "enrollments": enrollments,
+        })
+
+    return HttpResponseForbidden("You do not have permission to view quizzes.")
 
 
 @login_required
@@ -467,10 +507,68 @@ def create_assignment(request):
         "form": form,
     })
 
-
 @login_required
 def create_quiz(request):
-    return render(request, "create_quiz.html")
+    if request.user.role != "teacher":
+        return HttpResponseForbidden("Only teachers can create quizzes.")
+
+    if request.method == "POST":
+        title = request.POST.get("title", "").strip()
+        description = request.POST.get("description", "").strip()
+        subject_id = request.POST.get("subject")
+        class_id = request.POST.get("school_class")
+        due_date = request.POST.get("due_date") or None
+        duration = request.POST.get("duration_minutes") or 30
+
+        errors = []
+        if not title:
+            errors.append("Title is required.")
+        if not subject_id:
+            errors.append("Subject is required.")
+        if not class_id:
+            errors.append("Class is required.")
+
+        # ✅ teacher is linked to class through assignments
+        school_class = None
+        if class_id:
+            school_class = SchoolClass.objects.filter(
+                id=class_id,
+                assignments__teacher=request.user,
+            ).distinct().first()
+
+            if not school_class:
+                errors.append("You can only create quizzes for your own classes.")
+
+        if errors:
+            return render(request, "create_quiz.html", {
+                "errors": errors,
+                "subjects": Subject.objects.filter(school=request.user.school),
+                "classes": SchoolClass.objects.filter(
+                    assignments__teacher=request.user
+                ).distinct(),
+                "form_data": request.POST,
+            })
+
+        with transaction.atomic():
+            quiz = Assignment.objects.create(
+                title=title,
+                description=description,
+                subject_id=subject_id,
+                school_class=school_class,
+                teacher=request.user,
+                assignment_type="quiz",
+                due_date=due_date,
+                duration_minutes=duration,
+            )
+
+        return redirect("edit_quiz", pk=quiz.id)
+
+    return render(request, "create_quiz.html", {
+        "subjects": Subject.objects.filter(school=request.user.school),
+        "classes": SchoolClass.objects.filter(
+            assignments__teacher=request.user
+        ).distinct(),
+    })
 
 
 @login_required
@@ -538,4 +636,48 @@ def autosave_submission(request, pk):
     return JsonResponse({
         "success": True,
         "saved_at": timezone.localtime().strftime("%H:%M:%S")
+    })
+
+
+# views.py
+@login_required
+def edit_quiz(request, pk):
+    if request.user.role != "teacher":
+        return HttpResponseForbidden()
+
+    quiz = get_object_or_404(
+        Assignment, pk=pk, teacher=request.user, assignment_type="quiz"
+    )
+
+    if request.method == "POST":
+        action = request.POST.get("action", "add_question")
+
+        if action == "delete_question":
+            Question.objects.filter(
+                id=request.POST.get("question_id"), assignment=quiz
+            ).delete()
+
+        elif action == "add_question":
+            text = request.POST.get("text", "").strip()
+            a = request.POST.get("option_a", "").strip()
+            b = request.POST.get("option_b", "").strip()
+            c = request.POST.get("option_c", "").strip()
+            d = request.POST.get("option_d", "").strip()
+            correct = request.POST.get("correct_option")
+            marks = request.POST.get("marks") or 1
+
+            if text and a and b and c and d and correct:
+                Question.objects.create(
+                    assignment=quiz,
+                    text=text,
+                    option_a=a, option_b=b, option_c=c, option_d=d,
+                    correct_option=correct,
+                    marks=marks,
+                )
+
+        return redirect("edit_quiz", pk=pk)
+
+    return render(request, "edit_quiz.html", {
+        "quiz": quiz,
+        "questions": quiz.questions.all(),
     })
