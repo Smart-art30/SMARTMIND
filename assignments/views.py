@@ -8,11 +8,7 @@ from .forms import SubmissionForm
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from .forms import AssignmentForm
-from .models import (
-    Assignment,
-    Enrollment,
-    SchoolClass,
-    Subject,
+from .models import (Assignment,Enrollment,SchoolClass,Subject,
     Question,
     QuizAttempt,
     QuizAnswer,
@@ -20,7 +16,8 @@ from .models import (
 )
 from schools.models import School
 import random
-
+from django.contrib import messages
+from datetime import datetime
 
 def get_student_assignments(user):
     return Assignment.objects.filter(
@@ -506,70 +503,204 @@ def create_assignment(request):
     return render(request, "create_assignment.html", {
         "form": form,
     })
-
 @login_required
 def create_quiz(request):
+    # ---------- Permission ----------
     if request.user.role != "teacher":
         return HttpResponseForbidden("Only teachers can create quizzes.")
 
+    school = getattr(request.user, "school", None)
+
+    if school is None:
+        messages.error(
+            request,
+            "Your account is not linked to a school."
+        )
+        return redirect("manage_quizzes")
+
+    # ---------- Dropdown data ----------
+    teacher_classes = (
+        SchoolClass.objects
+        .filter(
+            school=school,
+            is_active=True
+        )
+        .order_by("name")
+    )
+
+    teacher_subjects = (
+        Subject.objects
+        .filter(school=school)
+        .order_by("name")
+    )
+
+    # ---------- Empty-state guard ----------
+    if not teacher_classes.exists():
+        messages.warning(
+            request,
+            "No classes exist for your school yet. "
+            "Ask your school admin to create at least one class "
+            "before adding a quiz."
+        )
+
+    if not teacher_subjects.exists():
+        messages.warning(
+            request,
+            "No subjects exist for your school yet. "
+            "Ask your school admin to create at least one subject "
+            "before adding a quiz."
+        )
+
+    # ---------- POST ----------
     if request.method == "POST":
+
         title = request.POST.get("title", "").strip()
         description = request.POST.get("description", "").strip()
+
         subject_id = request.POST.get("subject")
         class_id = request.POST.get("school_class")
-        due_date = request.POST.get("due_date") or None
-        duration = request.POST.get("duration_minutes") or 30
+
+        due_date_input = request.POST.get("due_date", "").strip()
+
+        duration_input = request.POST.get(
+            "duration_minutes",
+            "30"
+        ).strip()
 
         errors = []
+
+        # ---------- Basic validation ----------
         if not title:
             errors.append("Title is required.")
+
         if not subject_id:
             errors.append("Subject is required.")
+
         if not class_id:
             errors.append("Class is required.")
 
-        # ✅ teacher is linked to class through assignments
+        if not due_date_input:
+            errors.append("Due date and time are required.")
+
+        # ---------- Class validation ----------
         school_class = None
+
         if class_id:
-            school_class = SchoolClass.objects.filter(
-                id=class_id,
-                assignments__teacher=request.user,
-            ).distinct().first()
+            school_class = teacher_classes.filter(
+                id=class_id
+            ).first()
 
             if not school_class:
-                errors.append("You can only create quizzes for your own classes.")
+                errors.append(
+                    "You can only create quizzes for classes "
+                    "in your school."
+                )
 
+        # ---------- Subject validation ----------
+        subject = None
+
+        if subject_id:
+            subject = teacher_subjects.filter(
+                id=subject_id
+            ).first()
+
+            if not subject:
+                errors.append(
+                    "You can only use subjects from your school."
+                )
+
+        # ---------- Duration validation ----------
+        try:
+            duration = int(duration_input or 30)
+
+            if duration <= 0:
+                errors.append(
+                    "Duration must be greater than zero."
+                )
+
+        except (TypeError, ValueError):
+            duration = 30
+            errors.append(
+                "Duration must be a valid number."
+            )
+
+        # ---------- Due date validation ----------
+        due_date = None
+
+        if due_date_input:
+            try:
+                # HTML <input type="datetime-local">
+                # sends: 2026-09-24T18:18
+                naive_due_date = datetime.strptime(
+                    due_date_input,
+                    "%Y-%m-%dT%H:%M"
+                )
+
+                # Interpret the teacher's entered time
+                # as Kenyan local time.
+                due_date = timezone.make_aware(
+                    naive_due_date,
+                    timezone.get_current_timezone()
+                )
+
+                # Check against current timezone-aware time.
+                if due_date <= timezone.now():
+                    errors.append(
+                        "Due date and time must be in the future."
+                    )
+
+            except ValueError:
+                errors.append(
+                    "Please enter a valid due date and time."
+                )
+
+        # ---------- Return form with errors ----------
         if errors:
-            return render(request, "create_quiz.html", {
-                "errors": errors,
-                "subjects": Subject.objects.filter(school=request.user.school),
-                "classes": SchoolClass.objects.filter(
-                    assignments__teacher=request.user
-                ).distinct(),
-                "form_data": request.POST,
-            })
+            return render(
+                request,
+                "create_quiz.html",
+                {
+                    "errors": errors,
+                    "subjects": teacher_subjects,
+                    "classes": teacher_classes,
+                    "form_data": request.POST,
+                }
+            )
 
+        # ---------- Create quiz ----------
         with transaction.atomic():
+
             quiz = Assignment.objects.create(
                 title=title,
                 description=description,
-                subject_id=subject_id,
+                subject=subject,
                 school_class=school_class,
                 teacher=request.user,
                 assignment_type="quiz",
                 due_date=due_date,
                 duration_minutes=duration,
+                is_timed=True,
             )
 
-        return redirect("edit_quiz", pk=quiz.id)
+        messages.success(
+            request,
+            "Quiz created successfully. You can now add questions."
+        )
 
-    return render(request, "create_quiz.html", {
-        "subjects": Subject.objects.filter(school=request.user.school),
-        "classes": SchoolClass.objects.filter(
-            assignments__teacher=request.user
-        ).distinct(),
-    })
+        return redirect(
+            "edit_quiz",
+            pk=quiz.id
+        )
 
+    # ---------- GET ----------
+    return render(
+        request,
+        "create_quiz.html",
+        {
+            "subjects": teacher_subjects,
+            "classes": teacher_classes,
+        }
+    )
 
 @login_required
 def submission_detail(request, pk):
@@ -681,3 +812,24 @@ def edit_quiz(request, pk):
         "quiz": quiz,
         "questions": quiz.questions.all(),
     })
+
+
+@login_required
+def delete_quiz(request, pk):
+    if request.user.role != "teacher":
+        return HttpResponseForbidden("Only teachers can delete quizzes.")
+
+    quiz = get_object_or_404(
+        Assignment,
+        pk=pk,
+        teacher=request.user,
+        assignment_type="quiz",
+    )
+
+    if request.method == "POST":
+        title = quiz.title
+        quiz.delete()
+        messages.success(request, f'Quiz "{title}" deleted.')
+        return redirect("manage_quizzes")
+
+    return render(request, "delete_quiz.html", {"quiz": quiz})

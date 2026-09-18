@@ -60,12 +60,27 @@ class Assignment(models.Model):
         ]
 
     def clean(self):
-        if self.due_date and self.due_date <= timezone.now():
-            raise ValidationError({"due_date": "Due date must be in the future."})
+            super().clean()
 
-        if self.is_timed:
-            if not self.duration_minutes or self.duration_minutes <= 0:
-                raise ValidationError({"duration_minutes": "Enter a valid duration."})
+
+            if self.due_date:
+                
+                if timezone.is_naive(self.due_date):
+                    self.due_date = timezone.make_aware(
+                        self.due_date,
+                        timezone.get_current_timezone()
+                    )
+
+                if self.due_date <= timezone.now():
+                    raise ValidationError({
+                        "due_date": "Due date must be in the future."
+                    })
+
+            if self.is_timed:
+                if not self.duration_minutes or self.duration_minutes <= 0:
+                    raise ValidationError({
+                        "duration_minutes": "Enter a valid duration."
+                    })
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -158,15 +173,24 @@ class Submission(models.Model):
     graded = models.BooleanField(default=False)
 
     def clean(self):
-    # Only block NEW submissions after the deadline
-        if (
-            self.assignment_id
-            and self.assignment.due_date < timezone.now()
-            and not self.pk
-        ):
-            raise ValidationError("Submission deadline has passed.")
+        super().clean()
 
-        # Don't require content while saving drafts
+        # Only block NEW submissions after the deadline
+        if self.assignment_id:
+            due_date = self.assignment.due_date
+
+            if timezone.is_naive(due_date):
+                due_date = timezone.make_aware(
+                    due_date,
+                    timezone.get_current_timezone()
+                )
+
+            if due_date < timezone.now() and not self.pk:
+                raise ValidationError(
+                    "Submission deadline has passed."
+                )
+
+    
         if self.graded:
             return
 
@@ -182,8 +206,14 @@ class Submission(models.Model):
 
     @property
     def is_open(self):
-        return timezone.now() <= self.assignment.due_date
+        due_date = self.assignment.due_date
 
+        if timezone.is_naive(due_date):
+            due_date = timezone.make_aware(
+                due_date,
+                timezone.get_current_timezone()
+            )
+            return timezone.now() <= due_date
     class Meta:
         unique_together = ('assignment', 'student')
         ordering = ['-submitted_at']

@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Delete Quiz | SmartMind{% endblock %}
+
+{% block content %}
+
+<style>
+  .dq-wrap {
+    max-width: 520px;
+    margin: 60px auto;
+    padding: 20px;
+  }
+
+  .dq-card {
+    background: #fff;
+    border: 1px solid #fecaca;
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, .06);
+    text-align: center;
+  }
+
+  .dq-icon {
+    font-size: 2.2rem;
+    margin-bottom: 12px;
+  }
+
+  .dq-card h1 {
+    margin: 0 0 10px;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: -0.01em;
+  }
+
+  .dq-card p {
+    margin: 0 0 22px;
+    color: #475569;
+    font-size: .95rem;
+    line-height: 1.55;
+  }
+
+  .dq-card strong {
+    color: #b91c1c;
+  }
+
+  .dq-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .dq-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 11px 22px;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: .9rem;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all .15s ease;
+  }
+
+  .dq-danger {
+    background: #dc2626;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(220, 38, 38, .25);
+  }
+  .dq-danger:hover { background: #b91c1c; }
+
+  .dq-cancel {
+    background: #f1f5f9;
+    color: #334155;
+    border: 1px solid #e2e8f0;
+  }
+  .dq-cancel:hover { background: #e2e8f0; }
+
+  @media (max-width: 480px) {
+    .dq-actions { flex-direction: column; }
+    .dq-btn { width: 100%; }
+  }
+</style>
+
+<div class="dq-wrap">
+  <div class="dq-card">
+
+    <div class="dq-icon">⚠️</div>
+    <h1>Delete this quiz?</h1>
+
+    <p>
+      You are about to permanently delete
+      <strong>{{ quiz.title }}</strong>.
+      This will also remove all its questions and any student attempts.
+      <br>This action cannot be undone.
+    </p>
+
+    <form method="post">
+      {% csrf_token %}
+      <div class="dq-actions">
+        <button type="submit" class="dq-btn dq-danger">
+          Yes, delete it
+        </button>
+        <a href="{% url 'manage_quizzes' %}" class="dq-btn dq-cancel">
+          Cancel
+        </a>
+      </div>
+    </form>
+
+  </div>
+</div>
+
+{% endblock %}

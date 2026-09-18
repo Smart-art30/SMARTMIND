@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+
 {% load static %}
 
 {% block title %}Create Quiz | SmartMind{% endblock %}
@@ -6,232 +7,350 @@
 {% block content %}
 
 <style>
-  .cq-container {
-    max-width: 950px;
-    margin: 40px auto;
-    padding: 20px;
-  }
+    .cq-container {
+        max-width: 950px;
+        margin: 40px auto;
+        padding: 20px;
+    }
 
-  .cq-card {
-    background: #fff;
-    padding: 32px;
-    border-radius: 16px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, .08);
-    border: 1px solid #e2e8f0;
-  }
+    .cq-card {
+        background: #fff;
+        padding: 32px;
+        border-radius: 16px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, .08);
+        border: 1px solid #e2e8f0;
+    }
 
-  .cq-card h1 {
-    margin: 0 0 8px;
-    font-size: 1.6rem;
-    color: #111827;
-    letter-spacing: -0.02em;
-  }
+    .cq-card h1 {
+        margin: 0 0 8px;
+        font-size: 1.6rem;
+        color: #111827;
+        letter-spacing: -0.02em;
+    }
 
-  .cq-info {
-    background: #eff6ff;
-    border-left: 5px solid #2563eb;
-    padding: 14px 16px;
-    border-radius: 8px;
-    margin-bottom: 26px;
-    color: #1e40af;
-    font-size: .92rem;
-    line-height: 1.5;
-  }
+    .cq-info {
+        background: #eff6ff;
+        border-left: 5px solid #2563eb;
+        padding: 14px 16px;
+        border-radius: 8px;
+        margin-bottom: 26px;
+        color: #1e40af;
+        font-size: .92rem;
+        line-height: 1.5;
+    }
 
-  .cq-form-group {
-    margin-bottom: 20px;
-  }
+    .cq-form-group {
+        margin-bottom: 20px;
+    }
 
-  .cq-form-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 600;
-    color: #374151;
-    font-size: .9rem;
-  }
+    .cq-form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #374151;
+        font-size: .9rem;
+    }
 
-  .cq-form-group input,
-  .cq-form-group select,
-  .cq-form-group textarea {
-    width: 100%;
-    padding: 12px 14px;
-    border: 1px solid #d1d5db;
-    border-radius: 10px;
-    font-size: 15px;
-    font-family: inherit;
-    color: #111827;
-    background: #fff;
-    box-sizing: border-box;
-    transition: border-color .15s ease, box-shadow .15s ease;
-  }
+    .cq-form-group input,
+    .cq-form-group select,
+    .cq-form-group textarea {
+        width: 100%;
+        padding: 12px 14px;
+        border: 1px solid #d1d5db;
+        border-radius: 10px;
+        font-size: 15px;
+        font-family: inherit;
+        color: #111827;
+        background: #fff;
+        box-sizing: border-box;
+        transition: border-color .15s ease, box-shadow .15s ease;
+    }
 
-  .cq-form-group input:focus,
-  .cq-form-group select:focus,
-  .cq-form-group textarea:focus {
-    outline: none;
-    border-color: #2563eb;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, .15);
-  }
+    .cq-form-group input:focus,
+    .cq-form-group select:focus,
+    .cq-form-group textarea:focus {
+        outline: none;
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, .15);
+    }
 
-  .cq-form-group textarea {
-    min-height: 120px;
-    resize: vertical;
-  }
+    .cq-form-group textarea {
+        min-height: 120px;
+        resize: vertical;
+    }
 
-  .cq-errorlist {
-    list-style: none;
-    padding: 12px 16px;
-    margin: 0 0 22px;
-    background: #fef2f2;
-    border: 1px solid #fecaca;
-    border-radius: 10px;
-    color: #b91c1c;
-    font-size: .9rem;
-  }
+    .cq-errorlist {
+        list-style: none;
+        padding: 12px 16px;
+        margin: 0 0 22px;
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 10px;
+        color: #b91c1c;
+        font-size: .9rem;
+    }
 
-  .cq-errorlist li + li {
-    margin-top: 4px;
-  }
+    .cq-errorlist li + li {
+        margin-top: 4px;
+    }
 
-  .cq-buttons {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin-top: 28px;
-  }
+    .cq-buttons {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 28px;
+    }
 
-  .cq-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 12px 22px;
-    border: none;
-    border-radius: 10px;
-    font-weight: 600;
-    font-size: .95rem;
-    text-decoration: none;
-    cursor: pointer;
-    transition: all .15s ease;
-  }
+    .cq-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 12px 22px;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: .95rem;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all .15s ease;
+    }
 
-  .cq-save {
-    background: #2563eb;
-    color: #fff;
-    box-shadow: 0 2px 8px rgba(37, 99, 235, .25);
-  }
+    .cq-save {
+        background: #2563eb;
+        color: #fff;
+        box-shadow: 0 2px 8px rgba(37, 99, 235, .25);
+    }
 
-  .cq-save:hover {
-    background: #1d4ed8;
-    transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(37, 99, 235, .3);
-    color: #fff;
-  }
+    .cq-save:hover {
+        background: #1d4ed8;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(37, 99, 235, .3);
+        color: #fff;
+    }
 
-  .cq-cancel {
-    background: #f1f5f9;
-    color: #475569;
-    border: 1px solid #e2e8f0;
-  }
+    .cq-cancel {
+        background: #f1f5f9;
+        color: #475569;
+        border: 1px solid #e2e8f0;
+    }
 
-  .cq-cancel:hover {
-    background: #e2e8f0;
-    color: #334155;
-  }
+    .cq-cancel:hover {
+        background: #e2e8f0;
+        color: #334155;
+    }
 
-  @media (max-width: 500px) {
-    .cq-container { padding: 12px; }
-    .cq-card { padding: 22px; }
-    .cq-buttons { flex-direction: column; }
-    .cq-btn { width: 100%; }
-  }
+    @media (max-width: 500px) {
+        .cq-container {
+            padding: 12px;
+        }
+
+        .cq-card {
+            padding: 22px;
+        }
+
+        .cq-buttons {
+            flex-direction: column;
+        }
+
+        .cq-btn {
+            width: 100%;
+        }
+    }
 </style>
 
 <div class="cq-container">
-  <div class="cq-card">
 
-    <h1>❓ Create Quiz</h1>
+    <div class="cq-card">
 
-    <div class="cq-info">
-      Fill in the quiz details below. After saving, you'll be taken to a page
-      where you can add questions, correct answers, marks, and time limits.
+        <h1>❓ Create Quiz</h1>
+
+        <div class="cq-info">
+            Fill in the quiz details below. After saving, you'll be taken
+            to a page where you can add questions, correct answers,
+            marks, and time limits.
+        </div>
+
+        {% if errors %}
+            <ul class="cq-errorlist">
+                {% for e in errors %}
+                    <li>• {{ e }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        <form method="post" enctype="multipart/form-data">
+
+            {% csrf_token %}
+
+            <!-- Quiz title -->
+            <div class="cq-form-group">
+
+                <label for="title">Title</label>
+
+                <input
+                    type="text"
+                    id="title"
+                    name="title"
+                    required
+                    placeholder="e.g. Algebra Basics Quiz"
+                    value="{{ form_data.title|default:'' }}"
+                >
+
+            </div>
+
+
+            <!-- Description -->
+            <div class="cq-form-group">
+
+                <label for="description">Description</label>
+
+                <textarea
+                    id="description"
+                    name="description"
+                    placeholder="Briefly describe what this quiz covers"
+                >{{ form_data.description|default:'' }}</textarea>
+
+            </div>
+
+
+            <!-- Class -->
+            <div class="cq-form-group">
+
+                <label for="school_class">Class</label>
+
+                <select
+                    id="school_class"
+                    name="school_class"
+                    required
+                >
+
+                    <option value="">
+                        — Select class —
+                    </option>
+
+                    {% for c in classes %}
+
+                        <option
+                            value="{{ c.id }}"
+                            {% if form_data.school_class == c.id|stringformat:"s" %}
+                                selected
+                            {% endif %}
+                        >
+                            {{ c }}
+                        </option>
+
+                    {% empty %}
+
+                        <option value="" disabled>
+                            No classes available
+                        </option>
+
+                    {% endfor %}
+
+                </select>
+
+            </div>
+
+
+            <!-- Subject -->
+            <div class="cq-form-group">
+
+                <label for="subject">Subject</label>
+
+                <select
+                    id="subject"
+                    name="subject"
+                    required
+                >
+
+                    <option value="">
+                        — Select subject —
+                    </option>
+
+                    {% for s in subjects %}
+
+                        <option
+                            value="{{ s.id }}"
+                            {% if form_data.subject == s.id|stringformat:"s" %}
+                                selected
+                            {% endif %}
+                        >
+                            {{ s.name }}
+                        </option>
+
+                    {% empty %}
+
+                        <option value="" disabled>
+                            No subjects available
+                        </option>
+
+                    {% endfor %}
+
+                </select>
+
+            </div>
+
+
+            <!-- Due date -->
+            <div class="cq-form-group">
+
+                <label for="due_date">
+                    Due date
+                </label>
+
+                <input
+                    type="datetime-local"
+                    id="due_date"
+                    name="due_date"
+                    value="{{ form_data.due_date|default:'' }}"
+                >
+
+            </div>
+
+
+            <!-- Duration -->
+            <div class="cq-form-group">
+
+                <label for="duration_minutes">
+                    Duration (minutes)
+                </label>
+
+                <input
+                    type="number"
+                    id="duration_minutes"
+                    name="duration_minutes"
+                    min="1"
+                    value="{{ form_data.duration_minutes|default:30 }}"
+                >
+
+            </div>
+
+
+            <!-- Buttons -->
+            <div class="cq-buttons">
+
+                <button
+                    type="submit"
+                    class="cq-btn cq-save"
+                >
+                    💾 Save Quiz
+                </button>
+
+                <a
+                    href="{% url 'manage_quizzes' %}"
+                    class="cq-btn cq-cancel"
+                >
+                    ← Back
+                </a>
+
+            </div>
+
+        </form>
+
     </div>
 
-    {% if errors %}
-      <ul class="cq-errorlist">
-        {% for e in errors %}
-          <li>• {{ e }}</li>
-        {% endfor %}
-      </ul>
-    {% endif %}
-
-    <form method="post" enctype="multipart/form-data">
-
-      {% csrf_token %}
-
-      <div class="cq-form-group">
-        <label for="title">Title</label>
-        <input type="text" id="title" name="title" required
-               placeholder="e.g. Algebra Basics Quiz"
-               value="{{ form_data.title|default:'' }}">
-      </div>
-
-      <div class="cq-form-group">
-        <label for="description">Description</label>
-        <textarea id="description" name="description"
-                  placeholder="Briefly describe what this quiz covers">{{ form_data.description|default:'' }}</textarea>
-      </div>
-
-      <div class="cq-form-group">
-        <label for="school_class">Class</label>
-        <select id="school_class" name="school_class" required>
-          <option value="">— Select class —</option>
-          {% for c in classes %}
-            <option value="{{ c.id }}"
-              {% if form_data.school_class == c.id|stringformat:"s" %}selected{% endif %}>
-              {{ c }}
-            </option>
-          {% empty %}
-            <option value="" disabled>No classes available</option>
-          {% endfor %}
-        </select>
-      </div>
-
-      <div class="cq-form-group">
-        <label for="subject">Subject</label>
-        <select id="subject" name="subject" required>
-          <option value="">— Select subject —</option>
-          {% for s in subjects %}
-            <option value="{{ s.id }}"
-              {% if form_data.subject == s.id|stringformat:"s" %}selected{% endif %}>
-              {{ s.name }}
-            </option>
-          {% empty %}
-            <option value="" disabled>No subjects available</option>
-          {% endfor %}
-        </select>
-      </div>
-
-      <div class="cq-form-group">
-        <label for="due_date">Due date</label>
-        <input type="datetime-local" id="due_date" name="due_date"
-               value="{{ form_data.due_date|default:'' }}">
-      </div>
-
-      <div class="cq-form-group">
-        <label for="duration_minutes">Duration (minutes)</label>
-        <input type="number" id="duration_minutes" name="duration_minutes"
-               min="1" value="{{ form_data.duration_minutes|default:30 }}">
-      </div>
-
-      <div class="cq-buttons">
-        <button type="submit" class="cq-btn cq-save">💾 Save Quiz</button>
-        <a href="{% url 'manage_quizzes' %}" class="cq-btn cq-cancel">← Back</a>
-      </div>
-
-    </form>
-
-  </div>
 </div>
 
 {% endblock %}
+
