@@ -24,9 +24,9 @@ urlpatterns = [
     path("quizzes/submit/<int:pk>/", views.submit_quiz, name="submit_quiz"),
 
     path("quizzes/result/<int:attempt_id>/", views.quiz_result, name="quiz_result"),
-
+    path("dashboard/quiz/<int:pk>/delete/", views.delete_quiz, name="delete_quiz"),
     path("schools/<int:school_id>/subjects/", views.school_subjects, name="school_subjects"),
-
+    path("dashboard/quiz/<int:pk>/edit/",views.edit_quiz,name="edit_quiz",),
     path("schools/<int:school_id>/subjects/create/", views.create_subject, name="create_subject"),
     path("dashboard/assignments/", views.manage_assignments, name="manage_assignments"),
     path("dashboard/quizzes/", views.manage_quizzes, name="manage_quizzes"),
