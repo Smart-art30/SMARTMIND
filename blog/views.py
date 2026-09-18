@@ -456,11 +456,7 @@ def home(request):
     )
 
 
-from django.db.models import F
-from django.shortcuts import get_object_or_404, render
 
-# Make sure these are already imported in your views.py:
-# from .models import Post, Comment
 
 
 def post_detail(request, slug):

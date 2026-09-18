@@ -1,4 +1,3 @@
-
 {% extends "base.html" %}
 
 {% block title %}Learning Blog – Home{% endblock %}
@@ -151,134 +150,19 @@
                 </div>
 
 
-                <!-- SHOW CONTENT -->
+                <!-- READ FULL POST -->
 
-                <button
+                <a
+                    href="{% url 'blog:post_detail' featured_post.slug %}"
                     class="read-more-btn"
-                    type="button"
-                    data-bs-toggle="collapse"
-                    data-bs-target="#featured-post-content"
-                    aria-expanded="false"
-                    aria-controls="featured-post-content"
                 >
 
                     <span class="show-text">
-                        Show content
-                        <i class="bi bi-chevron-down"></i>
+                        Read full post
+                        <i class="bi bi-arrow-right"></i>
                     </span>
 
-                    <span class="hide-text">
-                        Hide content
-                        <i class="bi bi-chevron-up"></i>
-                    </span>
-
-                </button>
-
-
-                <!-- CONTENT -->
-
-                <div
-                    class="collapse post-collapse"
-                    id="featured-post-content"
-                >
-
-                    <hr>
-
-
-                    {% if featured_post.content %}
-
-                        <div class="post-content">
-
-                            {{ featured_post.content|safe }}
-
-                        </div>
-
-                    {% endif %}
-
-
-                    <!-- FEATURED IMAGES -->
-
-                    {% if featured_post.images.all %}
-
-                        <div class="post-images">
-
-                            {% for image in featured_post.images.all %}
-
-                                <img
-                                    src="{{ image.image.url }}"
-                                    class="post-media"
-                                    alt="{{ featured_post.title }}"
-                                    loading="lazy"
-                                >
-
-                            {% endfor %}
-
-                        </div>
-
-                    {% endif %}
-
-
-                    <!-- FEATURED VIDEO -->
-
-                    {% if featured_post.video %}
-
-                        <video
-                            controls
-                            class="post-video"
-                            preload="metadata"
-                        >
-
-                            <source
-                                src="{{ featured_post.video.url }}"
-                                type="video/mp4"
-                            >
-
-                            Your browser does not support
-                            the video tag.
-
-                        </video>
-
-                    {% endif %}
-
-
-                    <!-- FEATURED YOUTUBE -->
-
-                    {% if featured_post.youtube_url %}
-
-                        <div class="youtube-container">
-
-                            <iframe
-                                src="{{ featured_post.youtube_url }}"
-                                title="{{ featured_post.title }}"
-                                frameborder="0"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                allowfullscreen
-                            ></iframe>
-
-                        </div>
-
-                    {% endif %}
-
-
-                    <!-- TAGS -->
-
-                    {% if featured_post.tags.all %}
-
-                        <div class="post-tags">
-
-                            {% for tag in featured_post.tags.all %}
-
-                                <span class="post-tag">
-                                    #{{ tag.name }}
-                                </span>
-
-                            {% endfor %}
-
-                        </div>
-
-                    {% endif %}
-
-                </div>
+                </a>
 
             </div>
 
@@ -475,21 +359,6 @@
 
                                 <span class="post-stat">
 
-                                    <i class="bi bi-heart-fill"></i>
-
-                                    {{ item.likes_count }}
-
-                                    {% if item.likes_count == 1 %}
-                                        like
-                                    {% else %}
-                                        likes
-                                    {% endif %}
-
-                                </span>
-
-
-                                <span class="post-stat">
-
                                     <i class="bi bi-eye-fill"></i>
 
                                     {{ item.views_count }}
@@ -521,145 +390,22 @@
 
 
                             <!-- =================================
-                                 SHOW CONTENT BUTTON
+                                 READ FULL POST
                             ================================== -->
 
-                            <button
+                            <a
+                                href="{% url 'blog:post_detail' item.post.slug %}"
                                 class="read-more-btn"
-                                type="button"
-                                data-bs-toggle="collapse"
-                                data-bs-target="#post-content-{{ item.post.pk }}"
-                                aria-expanded="false"
-                                aria-controls="post-content-{{ item.post.pk }}"
                             >
 
                                 <span class="show-text">
 
-                                    Show content
-                                    <i class="bi bi-chevron-down"></i>
+                                    Read full post
+                                    <i class="bi bi-arrow-right"></i>
 
                                 </span>
 
-                                <span class="hide-text">
-
-                                    Hide content
-                                    <i class="bi bi-chevron-up"></i>
-
-                                </span>
-
-                            </button>
-
-
-                            <!-- =================================
-                                 COLLAPSIBLE CONTENT
-                            ================================== -->
-
-                            <div
-                                class="collapse post-collapse"
-                                id="post-content-{{ item.post.pk }}"
-                            >
-
-                                <hr>
-
-
-                                <!-- POST CONTENT -->
-
-                                {% if item.post.content %}
-
-                                    <div class="post-content">
-
-                                        {{ item.post.content|safe }}
-
-                                    </div>
-
-                                {% endif %}
-
-
-                                <!-- POST IMAGES -->
-
-                                {% if item.post.images.all %}
-
-                                    <div class="post-images">
-
-                                        {% for image in item.post.images.all %}
-
-                                            <img
-                                                src="{{ image.image.url }}"
-                                                class="post-media"
-                                                alt="{{ item.post.title }}"
-                                                loading="lazy"
-                                            >
-
-                                        {% endfor %}
-
-                                    </div>
-
-                                {% endif %}
-
-
-                                <!-- VIDEO -->
-
-                                {% if item.post.video %}
-
-                                    <video
-                                        controls
-                                        class="post-video"
-                                        preload="metadata"
-                                    >
-
-                                        <source
-                                            src="{{ item.post.video.url }}"
-                                            type="video/mp4"
-                                        >
-
-                                        Your browser does not support
-                                        the video tag.
-
-                                    </video>
-
-                                {% endif %}
-
-
-                                <!-- YOUTUBE -->
-
-                                {% if item.post.youtube_url %}
-
-                                    <div class="youtube-container">
-
-                                        <iframe
-                                            src="{{ item.post.youtube_url }}"
-                                            title="{{ item.post.title }}"
-                                            frameborder="0"
-                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                            allowfullscreen
-                                        ></iframe>
-
-                                    </div>
-
-                                {% endif %}
-
-
-                                <!-- TAGS -->
-
-                                {% if item.post.tags.all %}
-
-                                    <div class="post-tags">
-
-                                        {% for tag in item.post.tags.all %}
-
-                                            <span class="post-tag">
-
-                                                #{{ tag.name }}
-
-                                            </span>
-
-                                        {% endfor %}
-
-                                    </div>
-
-                                {% endif %}
-
-                            </div>
+                            </a>
 
                         </div>
 
@@ -669,69 +415,6 @@
                         ========================================== -->
 
                         <div class="post-actions">
-
-
-                            <!-- LIKE -->
-
-                            {% if user.is_authenticated %}
-
-                                <form
-                                    method="post"
-                                    action="{% url 'blog:like_toggle' item.post.slug %}"
-                                    class="like-form"
-                                >
-
-                                    {% csrf_token %}
-
-                                    <button
-                                        type="submit"
-                                        class="like-btn {% if item.is_liked %}liked{% endif %}"
-                                    >
-
-                                        {% if item.is_liked %}
-
-                                            <i class="bi bi-heart-fill"></i>
-
-                                            Liked
-
-                                        {% else %}
-
-                                            <i class="bi bi-heart"></i>
-
-                                            Like
-
-                                        {% endif %}
-
-                                        <span class="like-count">
-
-                                            {{ item.likes_count }}
-
-                                        </span>
-
-                                    </button>
-
-                                </form>
-
-                            {% else %}
-
-                                <a
-                                    href="{% url 'login' %}"
-                                    class="like-btn"
-                                >
-
-                                    <i class="bi bi-heart"></i>
-
-                                    Like
-
-                                    <span class="like-count">
-
-                                        {{ item.likes_count }}
-
-                                    </span>
-
-                                </a>
-
-                            {% endif %}
 
 
                             <!-- EDIT -->
@@ -774,7 +457,7 @@
 
 
                         <!-- =========================================
-                             COMMENTS
+                             LATEST COMMENT (SINGLE)
                         ========================================== -->
 
                         <div class="comments-section">
@@ -785,7 +468,7 @@
 
                                     <i class="bi bi-chat-dots"></i>
 
-                                    Comments
+                                    Latest Comment
 
                                 </h4>
 
@@ -798,80 +481,11 @@
                             </div>
 
 
-                            <!-- =====================================
-                                 COMMENT FORM
-                            ====================================== -->
+                            {% with latest=item.comments|last %}
 
-                            {% if user.is_authenticated %}
+                                {% if latest %}
 
-                                <form
-                                    method="post"
-                                    action="{% url 'blog:add_comment' item.post.slug %}"
-                                    class="comment-form"
-                                >
-
-                                    {% csrf_token %}
-
-
-                                    <textarea
-                                        name="text"
-                                        class="comment-input"
-                                        rows="3"
-                                        placeholder="Write a comment..."
-                                        required
-                                    ></textarea>
-
-
-                                    <div class="comment-submit-row">
-
-                                        <button
-                                            type="submit"
-                                            class="comment-submit-btn"
-                                        >
-
-                                            <i class="bi bi-send"></i>
-
-                                            Post Comment
-
-                                        </button>
-
-                                    </div>
-
-                                </form>
-
-                            {% else %}
-
-                                <div class="login-comment-message">
-
-                                    <i class="bi bi-lock"></i>
-
-                                    <span>
-
-                                        Please
-
-                                        <a href="{% url 'login' %}">
-                                            log in
-                                        </a>
-
-                                        to leave a comment.
-
-                                    </span>
-
-                                </div>
-
-                            {% endif %}
-
-
-
-                            <!-- =====================================
-                                 EXISTING COMMENTS
-                            ====================================== -->
-
-                            {% if item.comments %}
-
-                                <div class="comments-list">
-
-                                    {% for comment in item.comments %}
+                                    <div class="comments-list">
 
                                         <div class="comment">
 
@@ -883,7 +497,7 @@
 
                                                     <strong>
 
-                                                        {{ comment.author.username }}
+                                                        {{ latest.author.username }}
 
                                                     </strong>
 
@@ -892,7 +506,7 @@
 
                                                 <small>
 
-                                                    {{ comment.created_at|date:"M d, Y H:i" }}
+                                                    {{ latest.created_at|date:"M d, Y H:i" }}
 
                                                 </small>
 
@@ -901,57 +515,33 @@
 
                                             <div class="comment-text">
 
-                                                {{ comment.text|safe }}
-
-                                            </div>
-
-
-                                            <!-- COMMENT LIKE DISPLAY -->
-
-                                            <div class="comment-actions">
-
-                                                <button
-                                                    type="button"
-                                                    class="comment-like-btn"
-                                                >
-
-                                                    <i class="bi bi-heart"></i>
-
-                                                    Like
-
-                                                    <span>
-
-                                                        {{ comment.likes_count }}
-
-                                                    </span>
-
-                                                </button>
+                                                {{ latest.text|safe }}
 
                                             </div>
 
                                         </div>
 
-                                    {% endfor %}
+                                    </div>
 
-                                </div>
+                                {% else %}
 
-                            {% else %}
+                                    <div class="no-comments">
 
-                                <div class="no-comments">
+                                        <i class="bi bi-chat"></i>
 
-                                    <i class="bi bi-chat"></i>
+                                        <p>
+                                            No comments yet.
+                                        </p>
 
-                                    <p>
-                                        No comments yet.
-                                    </p>
+                                        <span>
+                                            Be the first person to comment!
+                                        </span>
 
-                                    <span>
-                                        Be the first person to comment!
-                                    </span>
+                                    </div>
 
-                                </div>
+                                {% endif %}
 
-                            {% endif %}
+                            {% endwith %}
 
                         </div>
 
@@ -1606,165 +1196,9 @@
 }
 
 
-.post-stat:first-child i {
-
-    color: #dc2626;
-
-}
-
-
 
 /* =========================================================
-   CONTENT
-========================================================= */
-
-.post-collapse {
-
-    margin-top: 14px;
-
-}
-
-
-.post-content {
-
-    color: #374151;
-
-    line-height: 1.75;
-
-    overflow-wrap: break-word;
-
-}
-
-
-.post-content img {
-
-    max-width: 100%;
-
-    height: auto;
-
-    border-radius: 10px;
-
-}
-
-
-.post-content iframe {
-
-    max-width: 100%;
-
-}
-
-
-.post-images {
-
-    margin-top: 16px;
-
-}
-
-
-.post-media {
-
-    display: block;
-
-    width: 100%;
-
-    max-height: 450px;
-
-    margin-top: 12px;
-
-    object-fit: contain;
-
-    border-radius: 10px;
-
-}
-
-
-.post-video {
-
-    display: block;
-
-    width: 100%;
-
-    max-height: 450px;
-
-    margin-top: 16px;
-
-    border-radius: 10px;
-
-}
-
-
-.youtube-container {
-
-    position: relative;
-
-    width: 100%;
-
-    height: 0;
-
-    padding-bottom: 56.25%;
-
-    margin-top: 16px;
-
-    overflow: hidden;
-
-    border-radius: 10px;
-
-}
-
-
-.youtube-container iframe {
-
-    position: absolute;
-
-    inset: 0;
-
-    width: 100%;
-
-    height: 100%;
-
-}
-
-
-
-/* =========================================================
-   TAGS
-========================================================= */
-
-.post-tags {
-
-    display: flex;
-
-    flex-wrap: wrap;
-
-    gap: 7px;
-
-    margin-top: 18px;
-
-}
-
-
-.post-tag {
-
-    display: inline-block;
-
-    padding: 5px 9px;
-
-    border-radius: 999px;
-
-    background: #eff6ff;
-
-    color: #2563eb;
-
-    font-size: .78rem;
-
-    font-weight: 600;
-
-}
-
-
-
-/* =========================================================
-   READ MORE
+   READ MORE (LINK TO DETAIL)
 ========================================================= */
 
 .read-more-btn {
@@ -1789,6 +1223,8 @@
 
     font-weight: 600;
 
+    text-decoration: none;
+
     cursor: pointer;
 
     transition: background .2s ease;
@@ -1800,28 +1236,7 @@
 
     background: #1d4ed8;
 
-}
-
-
-.hide-text {
-
-    display: none;
-
-}
-
-
-.read-more-btn[aria-expanded="true"]
-.show-text {
-
-    display: none;
-
-}
-
-
-.read-more-btn[aria-expanded="true"]
-.hide-text {
-
-    display: inline;
+    color: #fff;
 
 }
 
@@ -1846,14 +1261,6 @@
 }
 
 
-.like-form {
-
-    margin: 0;
-
-}
-
-
-.like-btn,
 .post-action-btn {
 
     display: inline-flex;
@@ -1877,37 +1284,6 @@
     text-decoration: none;
 
     cursor: pointer;
-
-}
-
-
-.like-btn {
-
-    border: 1px solid
-        rgba(148,163,184,.25);
-
-    background: #fff;
-
-    color: #64748b;
-
-}
-
-
-.like-btn:hover,
-.like-btn.liked {
-
-    color: #dc2626;
-
-    border-color: #fecaca;
-
-    background: #fef2f2;
-
-}
-
-
-.like-count {
-
-    font-weight: 700;
 
 }
 
@@ -1950,7 +1326,7 @@
 
 
 /* =========================================================
-   COMMENTS
+   LATEST COMMENT SECTION
 ========================================================= */
 
 .comments-section {
@@ -2026,160 +1402,7 @@
 
 
 /* =========================================================
-   COMMENT FORM
-========================================================= */
-
-.comment-form {
-
-    margin-bottom: 18px;
-
-}
-
-
-.comment-input {
-
-    display: block;
-
-    width: 100%;
-
-    min-height: 90px;
-
-    padding: 12px 14px;
-
-    border: 1px solid
-        rgba(148,163,184,.30);
-
-    border-radius: 10px;
-
-    background: #fff;
-
-    color: #1e293b;
-
-    font-family: inherit;
-
-    line-height: 1.6;
-
-    resize: vertical;
-
-    outline: none;
-
-    box-sizing: border-box;
-
-}
-
-
-.comment-input:focus {
-
-    border-color: #2563eb;
-
-    box-shadow:
-        0 0 0 3px
-        rgba(37,99,235,.10);
-
-}
-
-
-.comment-input::placeholder {
-
-    color: #94a3b8;
-
-}
-
-
-.comment-submit-row {
-
-    display: flex;
-
-    justify-content: flex-end;
-
-    margin-top: 8px;
-
-}
-
-
-.comment-submit-btn {
-
-    display: inline-flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    gap: 7px;
-
-    padding: 9px 16px;
-
-    border: none;
-
-    border-radius: 8px;
-
-    background: #2563eb;
-
-    color: #fff;
-
-    font-weight: 600;
-
-    cursor: pointer;
-
-}
-
-
-.comment-submit-btn:hover {
-
-    background: #1d4ed8;
-
-}
-
-
-
-/* =========================================================
-   LOGIN MESSAGE
-========================================================= */
-
-.login-comment-message {
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 8px;
-
-    margin-bottom: 18px;
-
-    padding: 12px 14px;
-
-    border-radius: 10px;
-
-    background: #f8fafc;
-
-    color: #64748b;
-
-    font-size: .88rem;
-
-}
-
-
-.login-comment-message a {
-
-    color: #2563eb;
-
-    font-weight: 700;
-
-    text-decoration: none;
-
-}
-
-
-.login-comment-message a:hover {
-
-    text-decoration: underline;
-
-}
-
-
-
-/* =========================================================
-   COMMENTS LIST
+   COMMENTS LIST (SINGLE)
 ========================================================= */
 
 .comments-list {
@@ -2265,43 +1488,6 @@
     line-height: 1.6;
 
     overflow-wrap: break-word;
-
-}
-
-
-.comment-actions {
-
-    margin-top: 8px;
-
-}
-
-
-.comment-like-btn {
-
-    display: inline-flex;
-
-    align-items: center;
-
-    gap: 5px;
-
-    padding: 5px 8px;
-
-    border: none;
-
-    background: transparent;
-
-    color: #64748b;
-
-    font-size: .8rem;
-
-    cursor: pointer;
-
-}
-
-
-.comment-like-btn:hover {
-
-    color: #dc2626;
 
 }
 
@@ -2490,29 +1676,7 @@
     }
 
 
-    .like-form {
-
-        width: 100%;
-
-    }
-
-
-    .like-btn,
     .post-action-btn {
-
-        width: 100%;
-
-    }
-
-
-    .comment-submit-row {
-
-        justify-content: stretch;
-
-    }
-
-
-    .comment-submit-btn {
 
         width: 100%;
 
@@ -2547,7 +1711,7 @@
     .featured-content h3,
     .post-title {
 
-        font-size: 1.1rem;
+        font-size: 1.65rem;
 
     }
 
@@ -2567,4 +1731,3 @@
 </style>
 
 {% endblock %}
-
