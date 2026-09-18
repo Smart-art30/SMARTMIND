@@ -86,7 +86,7 @@ def quiz_class_subjects(request, class_id):
         assignments__assignment_type="quiz"
     ).distinct()
 
-    return render(request, "quizzes/subjects.html", {
+    return render(request, "subjects.html", {
         "school_class": school_class,
         "subjects": subjects
     })
@@ -113,7 +113,7 @@ def quiz_list(request, class_id, subject_id):
         assignment_type="quiz"
     ).select_related("teacher", "subject", "school_class")
 
-    return render(request, "quizzes/list.html", {
+    return render(request, "list.html", {
         "school_class": school_class,
         "subject": subject,
         "quizzes": quizzes
@@ -270,19 +270,53 @@ def start_quiz(request, pk):
         Assignment,
         pk=pk,
         assignment_type="quiz",
-        school_class__enrollments__student=request.user
+        school_class__enrollments__student=request.user,
     )
 
-    attempt, created = QuizAttempt.objects.get_or_create(
-        assignment=assignment,
-        student=request.user
+   
+    passed_attempt = (
+        QuizAttempt.objects
+        .filter(
+            assignment=assignment,
+            student=request.user,
+            passed=True,
+        )
+        .order_by("-id")
+        .first()
     )
 
-    if attempt.submitted_at:
-        return redirect("quiz_result", attempt_id=attempt.id)
+    if passed_attempt:
+        messages.info(
+            request,
+            "You've already passed this quiz. Retakes are locked."
+        )
+        return redirect("quiz_result", attempt_id=passed_attempt.id)
 
-    if created or not attempt.question_order:
-        question_ids = list(assignment.questions.values_list("id", flat=True)[:20])
+    in_progress = (
+        QuizAttempt.objects
+        .filter(
+            assignment=assignment,
+            student=request.user,
+            submitted_at__isnull=True,
+        )
+        .order_by("-id")
+        .first()
+    )
+
+    if in_progress:
+        attempt = in_progress
+    else:
+        
+        attempt = QuizAttempt.objects.create(
+            assignment=assignment,
+            student=request.user,
+        )
+
+    
+    if not attempt.question_order:
+        question_ids = list(
+            assignment.questions.values_list("id", flat=True)[:20]
+        )
         random.shuffle(question_ids)
         attempt.question_order = question_ids
         attempt.save(update_fields=["question_order"])
@@ -302,9 +336,8 @@ def start_quiz(request, pk):
         "assignment": assignment,
         "attempt": attempt,
         "questions": ordered_questions,
-        "duration": assignment.duration_minutes
+        "duration": assignment.duration_minutes,
     })
-
 
 @login_required
 def submit_quiz(request, pk):
@@ -350,7 +383,7 @@ def quiz_result(request, attempt_id):
         student=request.user
     )
 
-    return render(request, "assignments/result.html", {
+    return render(request, "result.html", {
         "attempt": attempt
     })
 

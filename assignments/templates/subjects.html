@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ school_class }} Subjects | SmartMind{% endblock %}
+
+{% block content %}
+
+<style>
+  .qs-wrap {
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 20px;
+  }
+
+  .qs-header {
+    margin-bottom: 26px;
+  }
+
+  .qs-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #64748b;
+    font-size: .85rem;
+    font-weight: 600;
+    text-decoration: none;
+    margin-bottom: 12px;
+    transition: color .15s ease;
+  }
+  .qs-back:hover { color: #2563eb; }
+
+  .qs-header h1 {
+    margin: 0 0 6px;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+  }
+
+  .qs-header p {
+    margin: 0;
+    color: #64748b;
+    font-size: .95rem;
+  }
+
+  .qs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+  }
+
+  .qs-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 20px 22px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, .03);
+    transition: all .18s ease;
+  }
+
+  .qs-card:hover {
+    border-color: #3b82f6;
+    background: #f8faff;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 24px rgba(59, 130, 246, .12);
+  }
+
+  .qs-card-icon {
+    width: 46px;
+    height: 46px;
+    display: grid;
+    place-items: center;
+    background: #dbeafe;
+    color: #1d4ed8;
+    border-radius: 12px;
+    font-size: 1.3rem;
+    flex-shrink: 0;
+  }
+
+  .qs-card-body {
+    min-width: 0;
+  }
+
+  .qs-card-title {
+    font-weight: 650;
+    color: #0f172a;
+    font-size: 1rem;
+    margin-bottom: 2px;
+    overflow-wrap: break-word;
+  }
+
+  .qs-card-meta {
+    font-size: .8rem;
+    color: #64748b;
+    font-weight: 500;
+  }
+
+  .qs-empty {
+    padding: 60px 24px;
+    text-align: center;
+    border: 1px dashed #cbd5e1;
+    border-radius: 16px;
+    background: #f8fafc;
+    color: #64748b;
+  }
+
+  .qs-empty .icon {
+    font-size: 2.4rem;
+    display: block;
+    margin-bottom: 10px;
+  }
+
+  .qs-empty h3 {
+    margin: 0 0 6px;
+    font-size: 1.05rem;
+    color: #0f172a;
+    font-weight: 650;
+  }
+
+  .qs-empty p {
+    margin: 0;
+    font-size: .9rem;
+  }
+
+  @media (max-width: 500px) {
+    .qs-wrap { padding: 12px; }
+    .qs-grid { grid-template-columns: 1fr; }
+    .qs-header h1 { font-size: 1.35rem; }
+  }
+</style>
+
+<div class="qs-wrap">
+
+  <!-- =====================
+       HEADER
+  ====================== -->
+  <div class="qs-header">
+    <a href="{% url 'quiz_home' %}" class="qs-back">← Back to classes</a>
+    <h1>🏫 {{ school_class }}</h1>
+    <p>Choose a subject to see available quizzes.</p>
+  </div>
+
+  <!-- =====================
+       SUBJECTS
+  ====================== -->
+  {% if subjects %}
+    <div class="qs-grid">
+      {% for subject in subjects %}
+        <a href="{% url 'quiz_list' school_class.id subject.id %}" class="qs-card">
+          <div class="qs-card-icon">📚</div>
+          <div class="qs-card-body">
+            <div class="qs-card-title">{{ subject.name }}</div>
+            <div class="qs-card-meta">View quizzes →</div>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="qs-empty">
+      <span class="icon">📭</span>
+      <h3>No quizzes yet</h3>
+      <p>There are no quizzes for this class at the moment.</p>
+    </div>
+  {% endif %}
+
+</div>
+
+{% endblock %}

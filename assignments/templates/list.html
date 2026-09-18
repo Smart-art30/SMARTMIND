@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ subject.name }} Quizzes | SmartMind{% endblock %}
+
+{% block content %}
+
+<style>
+  .ql-wrap {
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 20px;
+  }
+
+  .ql-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #64748b;
+    font-size: .85rem;
+    font-weight: 600;
+    text-decoration: none;
+    margin-bottom: 12px;
+    transition: color .15s ease;
+  }
+  .ql-back:hover { color: #2563eb; }
+
+  .ql-header {
+    margin-bottom: 26px;
+  }
+
+  .ql-header h1 {
+    margin: 0 0 6px;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+  }
+
+  .ql-header p {
+    margin: 0;
+    color: #64748b;
+    font-size: .95rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+  }
+
+  .ql-list {
+    display: grid;
+    gap: 14px;
+  }
+
+  .ql-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 22px 24px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, .03);
+    transition: all .18s ease;
+    flex-wrap: wrap;
+  }
+
+  .ql-card:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 10px 24px rgba(59, 130, 246, .1);
+    transform: translateY(-2px);
+  }
+
+  .ql-card-body {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .ql-card-title {
+    font-weight: 650;
+    color: #0f172a;
+    font-size: 1.05rem;
+    margin-bottom: 6px;
+    overflow-wrap: break-word;
+  }
+
+  .ql-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    font-size: .82rem;
+    color: #64748b;
+    font-weight: 500;
+  }
+
+  .ql-card-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .ql-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 100px;
+    font-size: .7rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    background: #ede9fe;
+    color: #6d28d9;
+    margin-left: 8px;
+  }
+
+  .ql-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 11px 22px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: .9rem;
+    text-decoration: none;
+    background: #2563eb;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, .25);
+    transition: all .15s ease;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .ql-btn:hover {
+    background: #1d4ed8;
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(37, 99, 235, .3);
+  }
+
+  .ql-empty {
+    padding: 60px 24px;
+    text-align: center;
+    border: 1px dashed #cbd5e1;
+    border-radius: 16px;
+    background: #f8fafc;
+    color: #64748b;
+  }
+
+  .ql-empty .icon {
+    font-size: 2.4rem;
+    display: block;
+    margin-bottom: 10px;
+  }
+
+  .ql-empty h3 {
+    margin: 0 0 6px;
+    font-size: 1.05rem;
+    font-weight: 650;
+    color: #0f172a;
+  }
+
+  .ql-empty p {
+    margin: 0;
+    font-size: .9rem;
+  }
+
+  @media (max-width: 640px) {
+    .ql-wrap { padding: 12px; }
+    .ql-card { flex-direction: column; align-items: stretch; }
+    .ql-btn { width: 100%; }
+    .ql-header h1 { font-size: 1.35rem; }
+  }
+</style>
+
+<div class="ql-wrap">
+
+  <a href="{% url 'quiz_class_subjects' school_class.id %}" class="ql-back">
+    ← Back to subjects
+  </a>
+
+  <div class="ql-header">
+    <h1>📚 {{ subject.name }}</h1>
+    <p>
+      <span>🏫 {{ school_class }}</span>
+    </p>
+  </div>
+
+  {% if quizzes %}
+    <div class="ql-list">
+      {% for quiz in quizzes %}
+        <div class="ql-card">
+          <div class="ql-card-body">
+            <div class="ql-card-title">
+              {{ quiz.title }}
+              <span class="ql-badge">Quiz</span>
+            </div>
+
+            <div class="ql-card-meta">
+              {% if quiz.teacher %}
+                <span>👨‍🏫 {{ quiz.teacher.get_full_name|default:quiz.teacher.username }}</span>
+              {% endif %}
+              {% if quiz.due_date %}
+                <span>⏰ Due {{ quiz.due_date|date:"d M Y, H:i" }}</span>
+              {% endif %}
+              {% if quiz.duration_minutes %}
+                <span>⏱️ {{ quiz.duration_minutes }} min</span>
+              {% endif %}
+              {% if quiz.total_marks %}
+                <span>🎯 {{ quiz.total_marks }} marks</span>
+              {% endif %}
+            </div>
+          </div>
+
+          <a href="{% url 'start_quiz' quiz.id %}" class="ql-btn">
+            Start Quiz →
+          </a>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="ql-empty">
+      <span class="icon">📭</span>
+      <h3>No quizzes available</h3>
+      <p>There are no quizzes for this subject yet. Check back later.</p>
+    </div>
+  {% endif %}
+
+</div>
+
+{% endblock %}

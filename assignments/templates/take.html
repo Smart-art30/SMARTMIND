@@ -1,0 +1,467 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ assignment.title }} | SmartMind{% endblock %}
+
+{% block content %}
+
+<style>
+  .qt-wrap {
+    max-width: 860px;
+    margin: 30px auto;
+    padding: 20px;
+  }
+
+  /* ============ STICKY HEADER ============ */
+  .qt-header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 16px 20px;
+    margin-bottom: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, .05);
+    flex-wrap: wrap;
+  }
+
+  .qt-header-info h1 {
+    margin: 0 0 4px;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: -0.01em;
+  }
+
+  .qt-header-info p {
+    margin: 0;
+    font-size: .82rem;
+    color: #64748b;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .qt-timer {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 100px;
+    font-family: ui-monospace, monospace;
+    font-weight: 700;
+    font-size: 1rem;
+    background: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+    white-space: nowrap;
+  }
+
+  .qt-timer.warning {
+    background: #fef3c7;
+    color: #b45309;
+    border-color: #fde68a;
+  }
+
+  .qt-timer.danger {
+    background: #fee2e2;
+    color: #b91c1c;
+    border-color: #fecaca;
+    animation: pulse 1s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .6; }
+  }
+
+  /* ============ PROGRESS ============ */
+  .qt-progress {
+    margin-bottom: 20px;
+  }
+
+  .qt-progress-bar {
+    height: 6px;
+    background: #e2e8f0;
+    border-radius: 100px;
+    overflow: hidden;
+    margin-bottom: 6px;
+  }
+
+  .qt-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6, #2563eb);
+    border-radius: 100px;
+    transition: width .25s ease;
+    width: 0%;
+  }
+
+  .qt-progress-text {
+    font-size: .8rem;
+    color: #64748b;
+    font-weight: 600;
+  }
+
+  /* ============ QUESTION CARD ============ */
+  .qt-question {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 18px;
+    transition: border-color .15s ease, box-shadow .15s ease;
+    scroll-margin-top: 120px;
+  }
+
+  .qt-question.answered {
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, .08);
+  }
+
+  .qt-q-num {
+    display: inline-block;
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: #2563eb;
+    margin-bottom: 10px;
+  }
+
+  .qt-q-text {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #0f172a;
+    line-height: 1.5;
+    margin-bottom: 18px;
+  }
+
+  .qt-q-marks {
+    float: right;
+    font-size: .75rem;
+    font-weight: 600;
+    color: #64748b;
+    background: #f1f5f9;
+    padding: 3px 10px;
+    border-radius: 100px;
+    margin-left: 10px;
+  }
+
+  /* ============ OPTIONS ============ */
+  .qt-options {
+    display: grid;
+    gap: 10px;
+  }
+
+  .qt-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all .15s ease;
+    background: #fff;
+  }
+
+  .qt-option:hover {
+    border-color: #93c5fd;
+    background: #f8fbff;
+  }
+
+  .qt-option input[type="radio"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #cbd5e1;
+    border-radius: 50%;
+    margin: 0;
+    flex-shrink: 0;
+    position: relative;
+    cursor: pointer;
+    transition: all .15s ease;
+  }
+
+  .qt-option input[type="radio"]:checked {
+    border-color: #2563eb;
+    background: #2563eb;
+  }
+
+  .qt-option input[type="radio"]:checked::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 8px;
+    height: 8px;
+    background: #fff;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .qt-option:has(input:checked) {
+    border-color: #2563eb;
+    background: #eff6ff;
+  }
+
+  .qt-option-label {
+    font-size: .95rem;
+    color: #1e293b;
+    line-height: 1.45;
+    font-weight: 500;
+  }
+
+  .qt-option-letter {
+    display: inline-grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    background: #f1f5f9;
+    color: #475569;
+    font-size: .75rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .qt-option:has(input:checked) .qt-option-letter {
+    background: #2563eb;
+    color: #fff;
+  }
+
+  /* ============ SUBMIT ============ */
+  .qt-submit-wrap {
+    margin-top: 24px;
+    padding: 20px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    text-align: center;
+  }
+
+  .qt-submit-note {
+    font-size: .82rem;
+    color: #64748b;
+    margin-bottom: 14px;
+  }
+
+  .qt-submit-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 32px;
+    border: none;
+    border-radius: 10px;
+    background: #10b981;
+    color: #fff;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, .3);
+    transition: all .15s ease;
+  }
+
+  .qt-submit-btn:hover {
+    background: #059669;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(16, 185, 129, .35);
+  }
+
+  .qt-submit-btn:disabled {
+    background: #cbd5e1;
+    box-shadow: none;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  @media (max-width: 600px) {
+    .qt-wrap { padding: 12px; }
+    .qt-question { padding: 18px; }
+    .qt-header { padding: 14px; }
+    .qt-q-text { font-size: 1rem; }
+    .qt-timer { padding: 6px 12px; font-size: .9rem; }
+  }
+</style>
+
+<div class="qt-wrap">
+
+  <!-- ============ STICKY HEADER ============ -->
+  <div class="qt-header">
+    <div class="qt-header-info">
+      <h1>📝 {{ assignment.title }}</h1>
+      <p>
+        <span>📚 {{ assignment.subject }}</span>
+        <span>🏫 {{ assignment.school_class }}</span>
+        <span>🎯 {{ questions|length }} questions</span>
+      </p>
+    </div>
+
+    {% if duration %}
+      <div class="qt-timer" id="timer" data-seconds="{{ duration|floatformat:0|add:'0' }}"
+           data-duration="{{ duration|floatformat:0|add:'0' }}">
+        ⏱️ <span id="timerText">{{ duration }}:00</span>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- ============ PROGRESS ============ -->
+  <div class="qt-progress">
+    <div class="qt-progress-bar">
+      <div class="qt-progress-fill" id="progressFill"></div>
+    </div>
+    <div class="qt-progress-text">
+      <span id="answeredCount">0</span> of {{ questions|length }} answered
+    </div>
+  </div>
+
+  <!-- ============ FORM ============ -->
+  <form method="post" id="quizForm"
+        action="{% url 'submit_quiz' assignment.id %}">
+    {% csrf_token %}
+
+    {% for question in questions %}
+      <div class="qt-question" data-qid="{{ question.id }}" id="q-{{ question.id }}">
+        <span class="qt-q-marks">{{ question.marks }} mark{{ question.marks|pluralize }}</span>
+        <div class="qt-q-num">Question {{ forloop.counter }}</div>
+        <div class="qt-q-text">{{ question.text }}</div>
+
+        <div class="qt-options">
+          {% for letter, text in question.option_a|yesno:","|slice:":1"|default_if_none:"" %}{% endfor %}
+
+          <label class="qt-option">
+            <input type="radio" name="{{ question.id }}" value="A">
+            <span class="qt-option-letter">A</span>
+            <span class="qt-option-label">{{ question.option_a }}</span>
+          </label>
+
+          <label class="qt-option">
+            <input type="radio" name="{{ question.id }}" value="B">
+            <span class="qt-option-letter">B</span>
+            <span class="qt-option-label">{{ question.option_b }}</span>
+          </label>
+
+          <label class="qt-option">
+            <input type="radio" name="{{ question.id }}" value="C">
+            <span class="qt-option-letter">C</span>
+            <span class="qt-option-label">{{ question.option_c }}</span>
+          </label>
+
+          <label class="qt-option">
+            <input type="radio" name="{{ question.id }}" value="D">
+            <span class="qt-option-letter">D</span>
+            <span class="qt-option-label">{{ question.option_d }}</span>
+          </label>
+        </div>
+      </div>
+    {% endfor %}
+
+    <div class="qt-submit-wrap">
+      <p class="qt-submit-note">
+        ⚠️ Once submitted, you cannot change your answers.
+      </p>
+      <button type="submit" class="qt-submit-btn" id="submitBtn">
+        ✅ Submit Quiz
+      </button>
+    </div>
+  </form>
+
+</div>
+
+<script>
+  (function() {
+    // ============ PROGRESS TRACKING ============
+    const form = document.getElementById('quizForm');
+    const progressFill = document.getElementById('progressFill');
+    const answeredCount = document.getElementById('answeredCount');
+    const totalQuestions = document.querySelectorAll('.qt-question').length;
+
+    function updateProgress() {
+      let answered = 0;
+      document.querySelectorAll('.qt-question').forEach(q => {
+        const hasAnswer = q.querySelector('input[type="radio"]:checked');
+        if (hasAnswer) {
+          q.classList.add('answered');
+          answered++;
+        } else {
+          q.classList.remove('answered');
+        }
+      });
+      answeredCount.textContent = answered;
+      progressFill.style.width = (answered / totalQuestions * 100) + '%';
+    }
+
+    form.addEventListener('change', updateProgress);
+    updateProgress();
+
+    // ============ TIMER ============
+    const timerEl = document.getElementById('timer');
+    if (timerEl) {
+      const totalSeconds = parseInt(timerEl.dataset.seconds, 10);
+      const timerText = document.getElementById('timerText');
+      let remaining = totalSeconds;
+
+      const tick = () => {
+        if (remaining <= 0) {
+          timerText.textContent = "0:00";
+          timerEl.classList.add('danger');
+          // auto-submit
+          form.submit();
+          return;
+        }
+
+        const m = Math.floor(remaining / 60);
+        const s = remaining % 60;
+        timerText.textContent = m + ":" + String(s).padStart(2, '0');
+
+        // warn at 5 min, danger at 1 min
+        if (remaining <= 60) {
+          timerEl.classList.add('danger');
+          timerEl.classList.remove('warning');
+        } else if (remaining <= 300) {
+          timerEl.classList.add('warning');
+        }
+
+        remaining--;
+        setTimeout(tick, 1000);
+      };
+
+      tick();
+    }
+
+    // ============ SUBMIT CONFIRM ============
+    form.addEventListener('submit', function(e) {
+      const unanswered = totalQuestions - parseInt(answeredCount.textContent, 10);
+      if (unanswered > 0) {
+        const ok = confirm(
+          `You have ${unanswered} unanswered question${unanswered > 1 ? 's' : ''}. ` +
+          `Submit anyway?`
+        );
+        if (!ok) {
+          e.preventDefault();
+          return false;
+        }
+      }
+      document.getElementById('submitBtn').disabled = true;
+      document.getElementById('submitBtn').textContent = 'Submitting…';
+    });
+
+    // ============ PREVENT ACCIDENTAL NAVIGATION ============
+    window.addEventListener('beforeunload', function(e) {
+      const answered = parseInt(answeredCount.textContent, 10);
+      if (answered > 0 && answered < totalQuestions) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    });
+  })();
+</script>
+
+{% endblock %}
