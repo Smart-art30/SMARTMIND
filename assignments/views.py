@@ -263,7 +263,6 @@ def submit_assignment(request, pk):
         "form": form,
         "now": timezone.now(),
     })
-
 @login_required
 def start_quiz(request, pk):
     assignment = get_object_or_404(
@@ -273,16 +272,19 @@ def start_quiz(request, pk):
         school_class__enrollments__student=request.user,
     )
 
-   
-    passed_attempt = (
-        QuizAttempt.objects
-        .filter(
-            assignment=assignment,
-            student=request.user,
-            passed=True,
-        )
-        .order_by("-id")
-        .first()
+    # Check for a passing attempt in Python (since passed is a property)
+    passed_attempt = next(
+        (
+            a for a in QuizAttempt.objects
+            .filter(
+                assignment=assignment,
+                student=request.user,
+                submitted_at__isnull=False,
+            )
+            .order_by("-id")
+            if a.passed
+        ),
+        None,
     )
 
     if passed_attempt:
@@ -292,6 +294,7 @@ def start_quiz(request, pk):
         )
         return redirect("quiz_result", attempt_id=passed_attempt.id)
 
+    # Resume in-progress attempt
     in_progress = (
         QuizAttempt.objects
         .filter(
@@ -306,13 +309,11 @@ def start_quiz(request, pk):
     if in_progress:
         attempt = in_progress
     else:
-        
         attempt = QuizAttempt.objects.create(
             assignment=assignment,
             student=request.user,
         )
 
-    
     if not attempt.question_order:
         question_ids = list(
             assignment.questions.values_list("id", flat=True)[:20]
@@ -323,21 +324,20 @@ def start_quiz(request, pk):
 
     questions = Question.objects.filter(
         id__in=attempt.question_order
-    ).only(
-        "id", "text", "option_a", "option_b", "option_c", "option_d", "marks"
-    )
+    ).only("id", "text", "option_a", "option_b", "option_c", "option_d", "marks")
 
     ordered_questions = sorted(
         questions,
         key=lambda q: attempt.question_order.index(q.id)
     )
 
-    return render(request, "quizzes/take.html", {
+    return render(request, "take.html", {
         "assignment": assignment,
         "attempt": attempt,
         "questions": ordered_questions,
         "duration": assignment.duration_minutes,
     })
+
 
 @login_required
 def submit_quiz(request, pk):
@@ -345,17 +345,24 @@ def submit_quiz(request, pk):
         Assignment,
         pk=pk,
         assignment_type="quiz",
-        school_class__enrollments__student=request.user
+        school_class__enrollments__student=request.user,
     )
 
-    attempt = get_object_or_404(
-        QuizAttempt,
-        assignment=assignment,
-        student=request.user
+    # Grab the active (unsubmitted) attempt — safe with multiple attempts
+    attempt = (
+        QuizAttempt.objects
+        .filter(
+            assignment=assignment,
+            student=request.user,
+            submitted_at__isnull=True,
+        )
+        .order_by("-id")
+        .first()
     )
 
-    if attempt.submitted_at:
-        return redirect("quiz_result", attempt_id=attempt.id)
+    if not attempt:
+        messages.warning(request, "No active quiz attempt found.")
+        return redirect("quiz_home")
 
     question_ids = attempt.question_order
     questions = list(Question.objects.filter(id__in=question_ids))
@@ -367,10 +374,23 @@ def submit_quiz(request, pk):
             QuizAnswer.objects.update_or_create(
                 attempt=attempt,
                 question=q,
-                defaults={"selected_option": selected}
+                defaults={"selected_option": selected},
             )
 
         attempt.grade()
+
+    if attempt.passed:
+        messages.success(
+            request,
+            f"🎉 You passed with {attempt.percentage:.0f}%! "
+            f"Retakes are now locked."
+        )
+    else:
+        messages.info(
+            request,
+            f"You scored {attempt.percentage:.0f}%. "
+            f"You need 50% to pass — try again!"
+        )
 
     return redirect("quiz_result", attempt_id=attempt.id)
 
@@ -803,7 +823,7 @@ def autosave_submission(request, pk):
     })
 
 
-# views.py
+
 @login_required
 def edit_quiz(request, pk):
     if request.user.role != "teacher":
@@ -816,11 +836,34 @@ def edit_quiz(request, pk):
     if request.method == "POST":
         action = request.POST.get("action", "add_question")
 
+  
         if action == "delete_question":
             Question.objects.filter(
-                id=request.POST.get("question_id"), assignment=quiz
+                id=request.POST.get("question_id"),
+                assignment=quiz,
             ).delete()
 
+       
+        elif action == "update_question":
+            question = Question.objects.filter(
+                id=request.POST.get("question_id"),
+                assignment=quiz,
+            ).first()
+
+            if question:
+                question.text = request.POST.get("text", "").strip()
+                question.option_a = request.POST.get("option_a", "").strip()
+                question.option_b = request.POST.get("option_b", "").strip()
+                question.option_c = request.POST.get("option_c", "").strip()
+                question.option_d = request.POST.get("option_d", "").strip()
+                question.correct_option = request.POST.get("correct_option")
+                question.marks = request.POST.get("marks") or 1
+                question.explanation = request.POST.get(
+                    "explanation", ""
+                ).strip()
+                question.save()
+
+        
         elif action == "add_question":
             text = request.POST.get("text", "").strip()
             a = request.POST.get("option_a", "").strip()
@@ -829,14 +872,19 @@ def edit_quiz(request, pk):
             d = request.POST.get("option_d", "").strip()
             correct = request.POST.get("correct_option")
             marks = request.POST.get("marks") or 1
+            explanation = request.POST.get("explanation", "").strip()
 
             if text and a and b and c and d and correct:
                 Question.objects.create(
                     assignment=quiz,
                     text=text,
-                    option_a=a, option_b=b, option_c=c, option_d=d,
+                    option_a=a,
+                    option_b=b,
+                    option_c=c,
+                    option_d=d,
                     correct_option=correct,
                     marks=marks,
+                    explanation=explanation,
                 )
 
         return redirect("edit_quiz", pk=pk)

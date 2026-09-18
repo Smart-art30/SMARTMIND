@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>SmartMind Student Dashboard</title>
+    <title>SmartMind · Student Dashboard</title>
 
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -15,30 +15,57 @@
           href="{% static 'smartmind_ai/chatbot.css' %}">
 
     <style>
+        /* =====================================================
+           DESIGN TOKENS
+        ===================================================== */
+        :root {
+            --primary: #4f46e5;
+            --primary-soft: #eef2ff;
+            --primary-dark: #4338ca;
+            --accent: #06b6d4;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+
+            --sidebar: #0f172a;
+            --sidebar-hover: #1e293b;
+            --sidebar-muted: #94a3b8;
+
+            --bg: #f6f8fc;
+            --surface: #ffffff;
+            --surface-alt: #f8fafc;
+
+            --text: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --border-soft: #f1f5f9;
+
+            --radius-sm: 10px;
+            --radius: 14px;
+            --radius-lg: 20px;
+
+            --shadow-xs: 0 1px 2px rgba(15, 23, 42, .04);
+            --shadow-sm: 0 2px 8px rgba(15, 23, 42, .05);
+            --shadow: 0 8px 24px rgba(15, 23, 42, .06);
+            --shadow-lg: 0 20px 40px rgba(15, 23, 42, .12);
+
+            --ease: cubic-bezier(.4, 0, .2, 1);
+
+            --sidebar-w: 264px;
+            --navbar-h: 68px;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
-        :root {
-            --primary: #2563eb;
-            --primary-dark: #1d4ed8;
-            --sidebar: #111827;
-            --sidebar-hover: #1f2937;
-            --bg: #f4f7fb;
-            --card: #ffffff;
-            --text: #1f2937;
-            --muted: #6b7280;
-            --border: #e5e7eb;
-            --radius: 16px;
-            --shadow: 0 10px 25px rgba(0, 0, 0, .08);
-        }
-
         html,
         body {
             min-height: 100%;
             font-family:
+                "Inter",
                 system-ui,
                 -apple-system,
                 BlinkMacSystemFont,
@@ -46,689 +73,763 @@
                 sans-serif;
             background: var(--bg);
             color: var(--text);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         body {
             overflow-x: hidden;
+            line-height: 1.5;
+        }
+
+        a {
+            color: inherit;
         }
 
         /* =====================================================
            NAVBAR
         ===================================================== */
-
         .navbar {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
-
-            height: 70px;
-
-            background: #fff;
-
+            height: var(--navbar-h);
+            background: rgba(255, 255, 255, .9);
+            backdrop-filter: saturate(180%) blur(14px);
+            -webkit-backdrop-filter: saturate(180%) blur(14px);
+            border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
             justify-content: space-between;
-
-            padding: 0 30px;
-
-            box-shadow: 0 3px 12px rgba(0, 0, 0, .08);
-
+            padding: 0 24px;
+            gap: 16px;
             z-index: 1000;
         }
 
+        .navbar-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            min-width: 0;
+        }
+
+        .sidebar-toggle {
+            display: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            font-size: 1.2rem;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            transition: all .15s var(--ease);
+            flex-shrink: 0;
+        }
+
+        .sidebar-toggle:hover {
+            background: var(--primary-soft);
+            color: var(--primary);
+            border-color: #c7d2fe;
+        }
+
         .logo {
-            font-size: 24px;
-            font-weight: 700;
+            font-size: 1.15rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
         }
 
         .logo a {
-            color: var(--primary);
+            color: var(--text);
             text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo a::before {
+            content: "";
+            width: 28px;
+            height: 28px;
+            border-radius: 9px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            display: inline-block;
+            flex-shrink: 0;
+        }
+
+        .logo a span {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
         }
 
         .nav-links {
             display: flex;
-            gap: 20px;
+            gap: 4px;
+            flex: 1;
+            justify-content: center;
         }
 
         .nav-links a {
             text-decoration: none;
-            color: #374151;
+            color: var(--text-muted);
             font-weight: 600;
-            transition: .3s;
+            font-size: .9rem;
+            padding: 8px 14px;
+            border-radius: 10px;
+            transition: all .18s var(--ease);
+            white-space: nowrap;
         }
 
         .nav-links a:hover {
             color: var(--primary);
+            background: var(--primary-soft);
         }
 
         .user-box {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 12px;
+            font-size: .9rem;
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        .user-box > span {
+            font-weight: 600;
+            color: var(--text);
         }
 
         .logout {
             border: none;
-            background: none;
-            color: var(--primary);
+            background: var(--surface-alt);
+            color: var(--text-muted);
             cursor: pointer;
             font-weight: 600;
+            font-size: .85rem;
+            padding: 8px 14px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            transition: all .18s var(--ease);
+        }
+
+        .logout:hover {
+            background: #fef2f2;
+            color: var(--danger);
+            border-color: #fecaca;
         }
 
         /* =====================================================
            LAYOUT
         ===================================================== */
-
         .layout {
             min-height: 100vh;
-            padding-top: 70px;
+            padding-top: var(--navbar-h);
         }
 
         /* =====================================================
            SIDEBAR
         ===================================================== */
-
         .sidebar {
             position: fixed;
-
             left: 0;
-            top: 70px;
-
-            width: 260px;
-            height: calc(100vh - 70px);
-
+            top: var(--navbar-h);
+            width: var(--sidebar-w);
+            height: calc(100vh - var(--navbar-h));
             background: var(--sidebar);
             color: #fff;
-
-            padding: 25px;
-
-            overflow: hidden;
-
+            padding: 24px 18px;
+            overflow-y: auto;
             display: flex;
             flex-direction: column;
-
+            gap: 4px;
             z-index: 900;
+            transition: transform .3s var(--ease);
         }
 
         .sidebar h2 {
-            margin-bottom: 25px;
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+            color: var(--sidebar-muted);
+            margin: 8px 10px 18px;
         }
 
         .sidebar a {
             display: flex;
             align-items: center;
-            gap: 10px;
-
-            padding: 14px 16px;
-            margin-bottom: 8px;
-
-            border-radius: 12px;
-
+            gap: 12px;
+            padding: 11px 14px;
+            border-radius: 10px;
             text-decoration: none;
-            color: #d1d5db;
-
-            transition: .3s;
+            color: #cbd5e1;
+            font-weight: 500;
+            font-size: .93rem;
+            transition: all .18s var(--ease);
         }
 
         .sidebar a:hover {
             background: var(--sidebar-hover);
             color: #fff;
-            transform: translateX(5px);
+            transform: translateX(2px);
+        }
+
+        .sidebar a i {
+            font-size: 1.05rem;
         }
 
         .logout-btn {
             margin-top: auto;
-
             width: 100%;
-
             border: none;
-            padding: 14px;
-
-            border-radius: 12px;
-
-            background: #ef4444;
-            color: #fff;
-
+            padding: 12px;
+            border-radius: 10px;
+            background: rgba(239, 68, 68, .15);
+            color: #fca5a5;
             cursor: pointer;
-
             font-weight: 600;
+            font-size: .9rem;
+            transition: all .18s var(--ease);
         }
 
         .logout-btn:hover {
-            background: #dc2626;
+            background: var(--danger);
+            color: #fff;
+        }
+
+        /* =====================================================
+           BACKDROP (mobile sidebar overlay)
+        ===================================================== */
+        .sidebar-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, .5);
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+            z-index: 899;
+            opacity: 0;
+            transition: opacity .25s var(--ease);
+        }
+
+        .sidebar-backdrop.visible {
+            opacity: 1;
         }
 
         /* =====================================================
            MAIN
         ===================================================== */
-
         .main {
-            margin-left: 260px;
+            margin-left: var(--sidebar-w);
+            width: calc(100% - var(--sidebar-w));
+            min-height: calc(100vh - var(--navbar-h));
+            padding: 36px 40px;
+            animation: fadeIn .35s var(--ease);
+        }
 
-            min-height: calc(100vh - 70px);
-
-            padding: 35px;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
 
         /* =====================================================
            HEADER
         ===================================================== */
-
         .header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-
-            margin-bottom: 30px;
+            align-items: flex-end;
+            margin-bottom: 32px;
+            gap: 20px;
+            flex-wrap: wrap;
         }
 
         .header h1 {
-            font-size: 32px;
-            margin-bottom: 5px;
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            margin-bottom: 4px;
+            color: var(--text);
         }
 
         .header p {
-            color: var(--muted);
+            color: var(--text-muted);
+            font-size: .95rem;
+        }
+
+        .header > div:last-child strong {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 16px;
+            background: var(--primary-soft);
+            color: var(--primary-dark);
+            font-size: .82rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            border-radius: 100px;
+            border: 1px solid #c7d2fe;
         }
 
         /* =====================================================
            STAT CARDS
         ===================================================== */
-
         .cards {
             display: grid;
-
-            grid-template-columns:
-                repeat(3, minmax(0, 1fr));
-
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
             gap: 20px;
         }
 
         .card {
-            background: var(--card);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 24px 26px;
+            box-shadow: var(--shadow-xs);
+            transition: all .22s var(--ease);
+            position: relative;
+            overflow: hidden;
+        }
 
-            border-radius: var(--radius);
-
-            padding: 25px;
-
-            box-shadow: var(--shadow);
-
-            transition: .3s;
+        .card::before {
+            content: "";
+            position: absolute;
+            inset: 0 auto auto 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            opacity: 0;
+            transition: opacity .22s var(--ease);
         }
 
         .card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow);
+            border-color: transparent;
+        }
+
+        .card:hover::before {
+            opacity: 1;
         }
 
         .card h3 {
-            color: var(--muted);
+            font-size: .78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: var(--text-muted);
             margin-bottom: 10px;
         }
 
         .card p {
-            font-size: 34px;
-            font-weight: 700;
-            color: var(--primary);
+            font-size: 2.4rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+            line-height: 1;
         }
 
         /* =====================================================
            SECTIONS
         ===================================================== */
-
         .section {
-            background: #fff;
-
-            margin-top: 30px;
-
-            border-radius: var(--radius);
-
-            padding: 25px;
-
-            box-shadow: var(--shadow);
+            background: var(--surface);
+            margin-top: 28px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            box-shadow: var(--shadow-xs);
         }
 
         .section-title {
             display: flex;
             align-items: center;
             justify-content: space-between;
-
-            margin-bottom: 20px;
+            margin-bottom: 22px;
+            gap: 12px;
         }
 
         .section-title h2 {
-            font-size: 22px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: -0.015em;
+            color: var(--text);
         }
 
         /* =====================================================
            BUTTONS
         ===================================================== */
-
         .btn {
-            display: inline-block;
-
-            padding: 11px 17px;
-
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 11px 20px;
             background: var(--primary);
             color: #fff;
-
-            border-radius: 10px;
-
+            border-radius: var(--radius-sm);
             text-decoration: none;
-
             font-weight: 600;
-
-            transition: .3s;
-
+            font-size: .9rem;
+            transition: all .18s var(--ease);
             margin-top: 10px;
             margin-right: 8px;
+            border: 1px solid transparent;
+            box-shadow: 0 2px 6px rgba(79, 70, 229, .25);
         }
 
         .btn:hover {
             background: var(--primary-dark);
             transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(79, 70, 229, .3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
         }
 
         /* =====================================================
            PROGRESS
         ===================================================== */
-
         .progress {
-            height: 12px;
-
-            background: #e5e7eb;
-
-            border-radius: 20px;
-
+            height: 10px;
+            background: var(--surface-alt);
+            border-radius: 100px;
             overflow: hidden;
-
-            margin-top: 15px;
+            margin-top: 16px;
+            border: 1px solid var(--border-soft);
         }
 
         .progress-bar {
             height: 100%;
-
-            background: #22c55e;
-
+            background: linear-gradient(90deg, var(--success), #34d399);
             border-radius: inherit;
+            transition: width .4s var(--ease);
+            box-shadow: 0 0 12px rgba(16, 185, 129, .4);
         }
 
         /* =====================================================
            DASHBOARD PANELS
         ===================================================== */
-
         .dashboard-panels {
             display: grid;
-
-            grid-template-columns:
-                repeat(3, minmax(0, 1fr));
-
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             gap: 20px;
         }
 
         .dashboard-panels .section {
-            margin-top: 30px;
+            margin-top: 28px;
         }
 
         /* =====================================================
            ASSIGNMENTS
         ===================================================== */
-
         .assignment {
             border: 1px solid var(--border);
-
-            border-radius: 12px;
-
+            border-radius: var(--radius);
             padding: 20px;
-
-            margin-bottom: 15px;
+            margin-bottom: 14px;
+            background: var(--surface-alt);
+            transition: all .2s var(--ease);
         }
 
         .assignment:last-child {
             margin-bottom: 0;
         }
 
+        .assignment:hover {
+            background: #fff;
+            border-color: #c7d2fe;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .assignment h3 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            color: var(--text);
+        }
+
         .assignment p {
-            color: #4b5563;
-            line-height: 1.6;
+            color: var(--text-muted);
+            font-size: .9rem;
+            line-height: 1.7;
         }
 
         /* =====================================================
            CATEGORIES
         ===================================================== */
-
         .category-grid {
             display: flex;
-
             flex-wrap: wrap;
-
-            gap: 15px;
+            gap: 12px;
         }
 
         .category-chip {
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            gap: 10px;
-
-            padding: 14px 22px;
-
-            background: #fff;
-
+            gap: 8px;
+            padding: 10px 20px;
+            background: var(--surface-alt);
             border: 1px solid var(--border);
-
-            border-radius: 50px;
-
+            border-radius: 100px;
             text-decoration: none;
-
-            color: #374151;
-
-            transition: .3s;
+            color: var(--text);
+            font-weight: 600;
+            font-size: .88rem;
+            transition: all .2s var(--ease);
         }
 
         .category-chip:hover {
             background: var(--primary);
             color: #fff;
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(79, 70, 229, .25);
+        }
 
-            transform: translateY(-3px);
+        .category-chip i {
+            font-size: 1rem;
         }
 
         /* =====================================================
            RECENT POSTS
         ===================================================== */
-
         .posts-grid {
             display: grid;
-
-            grid-template-columns:
-                repeat(3, minmax(0, 1fr));
-
-            gap: 24px;
-
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 22px;
             align-items: start;
         }
 
-        /* -----------------------------------------------------
-           NORMAL POST
-        ----------------------------------------------------- */
-
         .blog-post {
-            background: #fff;
-
+            background: var(--surface);
             border: 1px solid var(--border);
-
-            border-radius: 16px;
-
+            border-radius: var(--radius);
             overflow: hidden;
-
-            box-shadow:
-                0 6px 18px rgba(0, 0, 0, .06);
-
+            box-shadow: var(--shadow-xs);
             min-width: 0;
-
-            transition:
-                transform .3s ease,
-                box-shadow .3s ease;
+            transition: transform .25s var(--ease),
+                        box-shadow .25s var(--ease);
         }
 
         .blog-post:hover {
-            transform: translateY(-4px);
-
-            box-shadow:
-                0 14px 30px rgba(0, 0, 0, .10);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow);
         }
-
-        /* -----------------------------------------------------
-           POST IMAGE
-        ----------------------------------------------------- */
 
         .post-image {
             width: 100%;
-
-            height: 200px;
-
+            height: 190px;
             object-fit: cover;
-
             display: block;
         }
-
-        /* -----------------------------------------------------
-           DETAILS
-        ----------------------------------------------------- */
 
         .blog-post details {
             width: 100%;
         }
 
-        /* -----------------------------------------------------
-           POST TITLE
-        ----------------------------------------------------- */
-
         .post-summary {
             list-style: none;
-
             cursor: pointer;
-
             position: relative;
-
             padding: 20px;
-            padding-right: 65px;
-
-            font-size: 18px;
-
+            padding-right: 64px;
+            font-size: 1rem;
             font-weight: 700;
-
             line-height: 1.4;
-
             color: var(--text);
-
-            transition: .25s;
+            transition: color .2s var(--ease);
         }
 
         .post-summary::-webkit-details-marker {
             display: none;
         }
 
-        /* -----------------------------------------------------
-           PLUS BUTTON
-        ----------------------------------------------------- */
-
         .post-summary::after {
             content: "+";
-
             position: absolute;
-
             right: 18px;
             top: 50%;
-
             transform: translateY(-50%);
-
-            width: 34px;
-            height: 34px;
-
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
-
-            background: #eff6ff;
-
+            background: var(--primary-soft);
             color: var(--primary);
-
             display: flex;
             align-items: center;
             justify-content: center;
-
-            font-size: 21px;
-
-            transition: .25s;
+            font-size: 1.2rem;
+            font-weight: 500;
+            transition: all .25s var(--ease);
         }
 
         .post-summary:hover {
             color: var(--primary);
         }
 
-        /* -----------------------------------------------------
-           OPEN BUTTON
-        ----------------------------------------------------- */
-
         .blog-post details[open] .post-summary {
             color: var(--primary);
+            border-bottom: 1px solid var(--border-soft);
         }
 
         .blog-post details[open] .post-summary::after {
             content: "−";
-
             background: var(--primary);
-
             color: #fff;
+            transform: translateY(-50%) rotate(180deg);
         }
-
-        /* -----------------------------------------------------
-           EXPANDED POST
-
-           The opened post becomes twice the width.
-        ----------------------------------------------------- */
 
         .blog-post.expanded {
             grid-column: span 2;
-
             transform: none;
+            box-shadow: var(--shadow);
+            border-color: #c7d2fe;
         }
 
         .blog-post.expanded:hover {
             transform: none;
         }
 
-        /* -----------------------------------------------------
-           EXPANDED IMAGE
-        ----------------------------------------------------- */
-
         .blog-post.expanded .post-image {
-            height: 300px;
+            height: 280px;
         }
 
-        /* -----------------------------------------------------
-           POST CONTENT
-        ----------------------------------------------------- */
-
         .post-content {
-            padding: 0 25px 25px;
-
-            border-top: 1px solid var(--border);
-
-            animation: postExpand .3s ease;
+            padding: 0 22px 22px;
+            animation: postExpand .3s var(--ease);
         }
 
         .post-content p {
-            padding-top: 18px;
-
+            padding-top: 16px;
             line-height: 1.8;
-
-            color: #4b5563;
+            color: var(--text-muted);
         }
 
         .post-content img {
             max-width: 100%;
-
             height: auto;
-
-            border-radius: 10px;
-
+            border-radius: 12px;
             margin: 15px 0;
         }
 
         .post-content iframe,
         .post-content video {
             max-width: 100%;
+            border-radius: 12px;
         }
 
         .post-meta {
             display: block;
-
-            padding-top: 15px;
-
-            margin-top: 20px;
-
-            border-top: 1px solid var(--border);
-
-            color: var(--muted);
-
-            font-size: 13px;
+            padding-top: 14px;
+            margin-top: 18px;
+            border-top: 1px solid var(--border-soft);
+            color: var(--text-muted);
+            font-size: .82rem;
         }
 
         @keyframes postExpand {
-
             from {
                 opacity: 0;
                 transform: translateY(-8px);
             }
-
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
-
         }
 
         /* =====================================================
            EMPTY STATE
         ===================================================== */
-
         .empty {
-            padding: 35px;
-
+            padding: 40px 24px;
             text-align: center;
-
-            color: var(--muted);
-
+            color: var(--text-muted);
             border: 1px dashed var(--border);
-
-            border-radius: 12px;
+            border-radius: var(--radius);
+            background: var(--surface-alt);
+            font-size: .95rem;
         }
 
         /* =====================================================
            STUDY TIPS
         ===================================================== */
-
         .study-tips {
-            padding-left: 20px;
+            padding-left: 0;
+            list-style: none;
+            display: grid;
+            gap: 10px;
+        }
 
-            line-height: 2;
+        .study-tips li {
+            padding: 14px 18px;
+            background: var(--surface-alt);
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius-sm);
+            color: var(--text);
+            font-size: .92rem;
+            transition: all .18s var(--ease);
+        }
 
-            color: #374151;
+        .study-tips li:hover {
+            background: var(--primary-soft);
+            border-color: #c7d2fe;
+            transform: translateX(3px);
         }
 
         /* =====================================================
            FOOTER
         ===================================================== */
-
         .footer {
-            margin-top: 40px;
-
-            padding-bottom: 30px;
-
+            margin-top: 48px;
+            padding-bottom: 32px;
             text-align: center;
-
-            color: var(--muted);
-
-            font-size: 14px;
+            color: var(--text-muted);
+            font-size: .85rem;
         }
 
         .footer hr {
             border: 0;
-
             border-top: 1px solid var(--border);
-
             margin-bottom: 20px;
         }
 
+        .footer p + p {
+            margin-top: 4px;
+            color: #94a3b8;
+            font-size: .8rem;
+        }
+
         /* =====================================================
-           TABLET
+           SCROLLBAR
         ===================================================== */
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
 
+        .sidebar::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, .3);
+            border-radius: 100px;
+        }
+
+        /* =====================================================
+           TABLET (<= 1200px)
+        ===================================================== */
         @media (max-width: 1200px) {
-
             .posts-grid {
-                grid-template-columns:
-                    repeat(2, minmax(0, 1fr));
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             }
 
             .blog-post.expanded {
@@ -736,102 +837,110 @@
             }
 
             .dashboard-panels {
-                grid-template-columns:
-                    repeat(2, minmax(0, 1fr));
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             }
 
+            .nav-links a {
+                padding: 8px 10px;
+                font-size: .85rem;
+            }
         }
 
         /* =====================================================
-           SMALLER TABLET
+           SMALLER TABLET (<= 992px)
         ===================================================== */
-
         @media (max-width: 992px) {
-
-            .sidebar {
-                width: 220px;
+            :root {
+                --sidebar-w: 220px;
             }
 
             .main {
-                margin-left: 220px;
+                padding: 28px 24px;
             }
 
             .cards {
-                grid-template-columns:
-                    repeat(2, minmax(0, 1fr));
+                grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
             }
 
             .posts-grid {
-                grid-template-columns:
-                    repeat(2, minmax(0, 1fr));
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             }
 
             .dashboard-panels {
                 grid-template-columns: 1fr;
             }
 
+            .nav-links {
+                display: none;
+            }
         }
 
         /* =====================================================
-           MOBILE
+           MOBILE (<= 768px) — COLLAPSIBLE SIDEBAR
         ===================================================== */
-
         @media (max-width: 768px) {
 
             .navbar {
-                position: relative;
+                padding: 0 16px;
+            }
 
-                height: auto;
-
-                min-height: 70px;
-
-                padding: 15px;
-
-                flex-direction: column;
-
-                gap: 15px;
+            .sidebar-toggle {
+                display: inline-flex;
             }
 
             .nav-links {
-                flex-wrap: wrap;
-
-                justify-content: center;
+                display: none;
             }
 
-            .user-box {
-                flex-wrap: wrap;
-
-                justify-content: center;
+            .user-box > span {
+                display: none;
             }
 
-            .layout {
-                padding-top: 0;
-            }
-
+            /* Sidebar becomes an off-canvas drawer */
             .sidebar {
-                position: relative;
-
                 top: 0;
-
-                width: 100%;
-
-                height: auto;
-
-                padding: 20px;
+                height: 100vh;
+                width: 280px;
+                max-width: 82vw;
+                padding: 28px 20px 24px;
+                transform: translateX(-100%);
+                box-shadow: var(--shadow-lg);
+                z-index: 1100;
             }
 
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .sidebar h2 {
+                margin-top: 44px;
+            }
+
+            .sidebar-backdrop {
+                display: block;
+                pointer-events: none;
+                z-index: 1050;
+            }
+
+            .sidebar-backdrop.visible {
+                pointer-events: auto;
+            }
+
+            /* Main takes full width */
             .main {
                 margin-left: 0;
-
-                padding: 20px;
+                width: 100%;
+                padding: 24px 16px;
             }
 
             .header {
                 flex-direction: column;
-
                 align-items: flex-start;
+                gap: 14px;
+            }
 
-                gap: 15px;
+            .header h1 {
+                font-size: 1.6rem;
             }
 
             .cards {
@@ -854,42 +963,58 @@
                 height: 220px;
             }
 
+            .section {
+                padding: 22px 18px;
+            }
         }
 
         /* =====================================================
-           SMALL PHONE
+           SMALL PHONE (<= 480px)
         ===================================================== */
-
         @media (max-width: 480px) {
 
             .main {
-                padding: 12px;
+                padding: 18px 12px;
             }
 
             .section {
-                padding: 16px;
+                padding: 18px 16px;
             }
 
             .post-image {
-                height: 180px;
+                height: 170px;
             }
 
             .post-summary {
-                padding: 17px;
+                padding: 16px;
+                padding-right: 54px;
+                font-size: .96rem;
+            }
 
-                padding-right: 55px;
-
-                font-size: 17px;
+            .card p {
+                font-size: 2rem;
             }
 
             .btn {
                 width: 100%;
-
                 text-align: center;
-
+                justify-content: center;
                 margin-right: 0;
             }
 
+            .header h1 {
+                font-size: 1.4rem;
+            }
+        }
+
+        /* =====================================================
+           REDUCED MOTION
+        ===================================================== */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                transition: none !important;
+                animation: none !important;
+            }
         }
     </style>
 </head>
@@ -902,10 +1027,23 @@
 
 <div class="navbar">
 
-    <div class="logo">
-        <a href="{% url 'dashboard' %}">
-            🎓 SmartMind
-        </a>
+    <div class="navbar-left">
+
+        <button type="button"
+                class="sidebar-toggle"
+                id="sidebarToggle"
+                aria-label="Toggle navigation menu"
+                aria-expanded="false"
+                aria-controls="appSidebar">
+            <i class="bi bi-list"></i>
+        </button>
+
+        <div class="logo">
+            <a href="{% url 'dashboard' %}">
+                <span>SmartMind</span>
+            </a>
+        </div>
+
     </div>
 
     <div class="nav-links">
@@ -930,21 +1068,23 @@
 
     <div class="user-box">
 
-        <span>
-            Hi, {{ request.user.username }}
-        </span>
+        <span>Hi, {{ request.user.username }}</span>
 
         <form method="post" action="{% url 'logout' %}">
             {% csrf_token %}
-
-            <button type="submit" class="logout">
-                Logout
-            </button>
+            <button type="submit" class="logout">Logout</button>
         </form>
 
     </div>
 
 </div>
+
+
+<!-- =========================================================
+     SIDEBAR BACKDROP (mobile)
+========================================================= -->
+
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
 
 <div class="layout">
@@ -953,26 +1093,30 @@
          SIDEBAR
     ========================================================= -->
 
-    <aside class="sidebar">
+    <aside class="sidebar" id="appSidebar">
 
         <a href="{% url 'dashboard' %}">
             <h2>SmartMind</h2>
         </a>
 
         <a href="{% url 'dashboard' %}">
-            🏠 Dashboard
+            <i class="bi bi-house-door-fill"></i>
+            Dashboard
         </a>
 
         <a href="{% url 'assignment_list' %}">
-            📝 Assignments
+            <i class="bi bi-journal-text"></i>
+            Assignments
         </a>
 
         <a href="{% url 'quiz_home' %}">
-            ❓ Quizzes
+            <i class="bi bi-patch-question-fill"></i>
+            Quizzes
         </a>
 
         <a href="{% url 'library:home' %}">
-            📚 Library
+            <i class="bi bi-book-fill"></i>
+            Library
         </a>
 
         <a href="{% url 'library:resource_list' %}">
@@ -981,12 +1125,12 @@
         </a>
 
         <a href="#">
-            💬 Messages
+            <i class="bi bi-chat-dots-fill"></i>
+            Messages
         </a>
 
         <form method="post" action="{% url 'logout' %}">
             {% csrf_token %}
-
             <button type="submit" class="logout-btn">
                 Logout
             </button>
@@ -1006,24 +1150,15 @@
         <div class="header">
 
             <div>
-
                 <h1>
-                    Welcome
+                    Welcome back,
                     {{ request.user.first_name|default:request.user.username }}
                 </h1>
-
-                <p>
-                    Ready to learn today?
-                </p>
-
+                <p>Ready to learn something new today?</p>
             </div>
 
             <div>
-
-                <strong>
-                    {{ request.user.role|title }}
-                </strong>
-
+                <strong>{{ request.user.role|title }}</strong>
             </div>
 
         </div>
@@ -1036,50 +1171,23 @@
         <div class="cards">
 
             <div class="card">
-
-                <h3>
-                    Assignments
-                </h3>
-
-                <p>
-                    {{ assignment_count|default:0 }}
-                </p>
-
+                <h3>Assignments</h3>
+                <p>{{ assignment_count|default:0 }}</p>
             </div>
 
-
             <div class="card">
-
-                <h3>
-                    Quizzes
-                </h3>
-
-                <p>
-                    {{ quiz_count|default:0 }}
-                </p>
-
+                <h3>Quizzes</h3>
+                <p>{{ quiz_count|default:0 }}</p>
             </div>
 
-
             <div class="card">
-
-                <h3>
-                    Performance
-                </h3>
-
-                <p>
-                    {{ performance|default:0 }}%
-                </p>
+                <h3>Performance</h3>
+                <p>{{ performance|default:0 }}%</p>
 
                 <div class="progress">
-
-                    <div
-                        class="progress-bar"
-                        style="width:{{ performance|default:0 }}%;">
-                    </div>
-
+                    <div class="progress-bar"
+                         style="width:{{ performance|default:0 }}%;"></div>
                 </div>
-
             </div>
 
         </div>
@@ -1092,29 +1200,22 @@
         <section class="section">
 
             <div class="section-title">
-
-                <h2>
-                    ⚡ Quick Actions
-                </h2>
-
+                <h2>⚡ Quick Actions</h2>
             </div>
 
-            <a
-                class="btn"
-                href="{% url 'assignment_list' %}">
-                📖 View Assignments
+            <a class="btn" href="{% url 'assignment_list' %}">
+                <i class="bi bi-journal-text"></i>
+                View Assignments
             </a>
 
-            <a
-                class="btn"
-                href="{% url 'quiz_home' %}">
-                📝 Take Quizzes
+            <a class="btn" href="{% url 'quiz_home' %}">
+                <i class="bi bi-patch-question-fill"></i>
+                Take Quizzes
             </a>
 
-            <a
-                class="btn"
-                href="{% url 'library:home' %}">
-                📚 Open Library
+            <a class="btn" href="{% url 'library:home' %}">
+                <i class="bi bi-book-fill"></i>
+                Open Library
             </a>
 
         </section>
@@ -1126,17 +1227,12 @@
 
         <div class="dashboard-panels">
 
-
             <!-- ASSIGNMENTS -->
 
             <section class="section">
 
                 <div class="section-title">
-
-                    <h2>
-                        📚 Recent Assignments
-                    </h2>
-
+                    <h2>📚 Recent Assignments</h2>
                 </div>
 
                 {% if assignments %}
@@ -1145,54 +1241,26 @@
 
                         <div class="assignment">
 
-                            <h3>
-                                {{ a.title }}
-                            </h3>
+                            <h3>{{ a.title }}</h3>
 
-                            <br>
-
-                            <p>
-
-                                <strong>
-                                    Subject:
-                                </strong>
-
-                                {{ a.subject.name }}
-
-                                <br><br>
-
-                                <strong>
-                                    Type:
-                                </strong>
-
-                                {{ a.get_assignment_type_display }}
-
-                                <br><br>
-
-                                <strong>
-                                    Due Date:
-                                </strong>
-
-                                {{ a.due_date|date:"d M Y H:i" }}
-
+                            <p style="margin-top:10px;">
+                                <strong>Subject:</strong> {{ a.subject.name }}<br><br>
+                                <strong>Type:</strong> {{ a.get_assignment_type_display }}<br><br>
+                                <strong>Due:</strong> {{ a.due_date|date:"d M Y H:i" }}
                             </p>
 
-                            <br>
-
-                            <a
-                                class="btn"
-                                href="{% url 'assignment_detail' a.id %}">
-                                📖 Open Assignment
+                            <a class="btn"
+                               href="{% url 'assignment_detail' a.id %}">
+                                <i class="bi bi-box-arrow-up-right"></i>
+                                Open
                             </a>
 
                             {% if a.assignment_type == "quiz" %}
-
-                                <a
-                                    class="btn"
-                                    href="{% url 'start_quiz' a.id %}">
-                                    🚀 Start Quiz
+                                <a class="btn"
+                                   href="{% url 'start_quiz' a.id %}">
+                                    <i class="bi bi-rocket-takeoff-fill"></i>
+                                    Start Quiz
                                 </a>
-
                             {% endif %}
 
                         </div>
@@ -1202,16 +1270,10 @@
                 {% else %}
 
                     <div class="assignment">
-
-                        <h3>
-                            No assignments available.
-                        </h3>
-
-                        <p>
-                            Your teacher has not posted
-                            any assignments yet.
+                        <h3>No assignments available.</h3>
+                        <p style="margin-top:8px;">
+                            Your teacher has not posted any assignments yet.
                         </p>
-
                     </div>
 
                 {% endif %}
@@ -1224,40 +1286,35 @@
             <section class="section">
 
                 <div class="section-title">
-
-                    <h2>
-                        📈 Academic Performance
-                    </h2>
-
+                    <h2>📈 Academic Performance</h2>
                 </div>
 
-                <h3>
+                <h3 style="font-size:.82rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;">
                     Overall Score
                 </h3>
 
                 <p style="
-                    font-size:45px;
-                    font-weight:bold;
-                    color:#2563eb;
-                    margin-top:10px;
+                    font-size:3rem;
+                    font-weight:800;
+                    letter-spacing:-0.03em;
+                    background:linear-gradient(135deg,var(--primary),var(--accent));
+                    -webkit-background-clip:text;
+                    background-clip:text;
+                    -webkit-text-fill-color:transparent;
+                    color:transparent;
+                    margin-top:6px;
+                    line-height:1;
                 ">
                     {{ performance|default:0 }}%
                 </p>
 
                 <div class="progress">
-
-                    <div
-                        class="progress-bar"
-                        style="width:{{ performance|default:0 }}%;">
-                    </div>
-
+                    <div class="progress-bar"
+                         style="width:{{ performance|default:0 }}%;"></div>
                 </div>
 
-                <br>
-
-                <p>
-                    Complete assignments and quizzes
-                    to improve your performance.
+                <p style="margin-top:16px;color:var(--text-muted);font-size:.9rem;line-height:1.7;">
+                    Complete assignments and quizzes to improve your performance.
                 </p>
 
             </section>
@@ -1268,21 +1325,15 @@
             <section class="section">
 
                 <div class="section-title">
-
-                    <h2>
-                        📝 Quiz Centre
-                    </h2>
-
+                    <h2>📝 Quiz Centre</h2>
                 </div>
 
-                <p>
-                    Access all your available quizzes
-                    from one place.
+                <p style="color:var(--text-muted);line-height:1.7;">
+                    Access all your available quizzes from one place.
                 </p>
 
-                <a
-                    class="btn"
-                    href="{% url 'quiz_home' %}">
+                <a class="btn" href="{% url 'quiz_home' %}">
+                    <i class="bi bi-arrow-right-circle-fill"></i>
                     Open Quiz Centre
                 </a>
 
@@ -1302,46 +1353,34 @@
                 <div class="section-title">
 
                     <div>
-
                         <span style="
                             color:var(--primary);
-                            font-size:12px;
-                            font-weight:700;
+                            font-size:.72rem;
+                            font-weight:800;
                             text-transform:uppercase;
+                            letter-spacing:.08em;
                         ">
                             Explore
                         </span>
 
-                        <h2>
-                            Browse Categories
-                        </h2>
+                        <h2 style="margin-top:4px;">Browse Categories</h2>
 
-                        <p style="
-                            color:var(--muted);
-                            margin-top:5px;
-                        ">
-                            Discover articles, tutorials,
-                            and resources by topic.
+                        <p style="color:var(--text-muted);margin-top:6px;font-size:.92rem;">
+                            Discover articles, tutorials, and resources by topic.
                         </p>
-
                     </div>
 
                 </div>
-
 
                 <div class="category-grid">
 
                     {% for category in categories %}
 
-                        <a
-                            href="{% url 'blog:category_post' category.slug %}"
-                            class="category-chip">
+                        <a href="{% url 'blog:category_post' category.slug %}"
+                           class="category-chip">
 
                             <i class="bi bi-folder2-open"></i>
-
-                            <span>
-                                {{ category.name }}
-                            </span>
+                            <span>{{ category.name }}</span>
 
                         </a>
 
@@ -1361,13 +1400,8 @@
         <section class="section">
 
             <div class="section-title">
-
-                <h2>
-                    📰 Latest Blog Posts
-                </h2>
-
+                <h2>📰 Latest Blog Posts</h2>
             </div>
-
 
             {% if posts %}
 
@@ -1375,19 +1409,14 @@
 
                     {% for post in posts %}
 
-                        <article
-                            class="blog-post"
-                            data-post-id="{{ post.id }}">
+                        <article class="blog-post"
+                                 data-post-id="{{ post.id }}">
 
                             {% if post.image %}
-
-                                <img
-                                    src="{{ post.image.url }}"
-                                    alt="{{ post.title }}"
-                                    class="post-image">
-
+                                <img src="{{ post.image.url }}"
+                                     alt="{{ post.title }}"
+                                     class="post-image">
                             {% endif %}
-
 
                             <div class="post-body">
 
@@ -1397,39 +1426,21 @@
                                         {{ post.title }}
                                     </summary>
 
-
                                     <div class="post-content">
 
                                         {% if post.excerpt %}
-
-                                            <p>
-                                                {{ post.excerpt }}
-                                            </p>
-
+                                            <p>{{ post.excerpt }}</p>
                                         {% endif %}
-
 
                                         {% if post.content %}
-
                                             {{ post.content|safe }}
-
                                         {% endif %}
 
-
                                         <small class="post-meta">
-
-                                            By
-                                            <strong>
-                                                {{ post.author }}
-                                            </strong>
-
+                                            By <strong>{{ post.author }}</strong>
                                             {% if post.created_at %}
-
-                                                •
-                                                {{ post.created_at|date:"d M Y" }}
-
+                                                • {{ post.created_at|date:"d M Y" }}
                                             {% endif %}
-
                                         </small>
 
                                     </div>
@@ -1447,9 +1458,7 @@
             {% else %}
 
                 <div class="empty">
-
                     No blog posts available.
-
                 </div>
 
             {% endif %}
@@ -1464,35 +1473,15 @@
         <section class="section">
 
             <div class="section-title">
-
-                <h2>
-                    💡 Daily Study Tips
-                </h2>
-
+                <h2>💡 Daily Study Tips</h2>
             </div>
 
             <ul class="study-tips">
-
-                <li>
-                    📖 Revise at least 30 minutes every day.
-                </li>
-
-                <li>
-                    📝 Complete assignments before the deadline.
-                </li>
-
-                <li>
-                    ❓ Attempt every quiz to monitor your progress.
-                </li>
-
-                <li>
-                    📚 Read library resources every week.
-                </li>
-
-                <li>
-                    🤖 Ask SmartMind AI whenever you need help.
-                </li>
-
+                <li>📖 Revise at least 30 minutes every day.</li>
+                <li>📝 Complete assignments before the deadline.</li>
+                <li>❓ Attempt every quiz to monitor your progress.</li>
+                <li>📚 Read library resources every week.</li>
+                <li>🤖 Ask SmartMind AI whenever you need help.</li>
             </ul>
 
         </section>
@@ -1507,8 +1496,7 @@
             <hr>
 
             <p>
-                © {% now "Y" %}
-                SmartMind Learning Management System
+                © {% now "Y" %} SmartMind Learning Management System
             </p>
 
             <p>
@@ -1534,6 +1522,67 @@
 <script>
 document.addEventListener("DOMContentLoaded", function () {
 
+    /* =========================================================
+       COLLAPSIBLE SIDEBAR (MOBILE)
+    ========================================================= */
+
+    const sidebar = document.getElementById("appSidebar");
+    const toggle = document.getElementById("sidebarToggle");
+    const backdrop = document.getElementById("sidebarBackdrop");
+
+    function openSidebar() {
+        sidebar.classList.add("open");
+        backdrop.classList.add("visible");
+        toggle.setAttribute("aria-expanded", "true");
+        document.body.style.overflow = "hidden";
+    }
+
+    function closeSidebar() {
+        sidebar.classList.remove("open");
+        backdrop.classList.remove("visible");
+        toggle.setAttribute("aria-expanded", "false");
+        document.body.style.overflow = "";
+    }
+
+    function toggleSidebar() {
+        if (sidebar.classList.contains("open")) {
+            closeSidebar();
+        } else {
+            openSidebar();
+        }
+    }
+
+    if (toggle && sidebar && backdrop) {
+        toggle.addEventListener("click", toggleSidebar);
+
+        backdrop.addEventListener("click", closeSidebar);
+
+        sidebar.querySelectorAll("a").forEach(function (link) {
+            link.addEventListener("click", function () {
+                if (window.innerWidth <= 768) {
+                    closeSidebar();
+                }
+            });
+        });
+
+        document.addEventListener("keydown", function (e) {
+            if (e.key === "Escape" && sidebar.classList.contains("open")) {
+                closeSidebar();
+            }
+        });
+
+        window.addEventListener("resize", function () {
+            if (window.innerWidth > 768 && sidebar.classList.contains("open")) {
+                closeSidebar();
+            }
+        });
+    }
+
+
+    /* =========================================================
+       BLOG POSTS — ONE OPEN AT A TIME
+    ========================================================= */
+
     const posts = document.querySelectorAll(".blog-post");
 
     posts.forEach(function (post) {
@@ -1545,11 +1594,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         details.addEventListener("toggle", function () {
-
-            /*
-             * If this post is opened,
-             * close every other post.
-             */
 
             if (details.open) {
 
@@ -1568,11 +1612,6 @@ document.addEventListener("DOMContentLoaded", function () {
                     }
 
                 });
-
-                /*
-                 * Make the current post
-                 * occupy two grid columns.
-                 */
 
                 post.classList.add("expanded");
 

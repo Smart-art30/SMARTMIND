@@ -8,11 +8,6 @@
 {% block content %}
 
 <style>
-/* =========================================================
-   MODERN ROLE DASHBOARD
-   Clean • Card‑based • Responsive • Role‑aware
-========================================================= */
-
 :root {
     --bg: #f6f8fc;
     --surface: #ffffff;
@@ -769,9 +764,7 @@
 
 <div class="teacher-dashboard">
 
-    {# ---------------------------------------------------
-       TEMP DEBUG: remove once role is confirmed working
-    --------------------------------------------------- #}
+ 
     {% if not role %}
         <div class="role-debug">
             DEBUG → role is EMPTY. Add "role" and "role_label" to the view context.
