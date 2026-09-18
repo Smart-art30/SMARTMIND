@@ -1,269 +1,561 @@
+{% extends "base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Manage Quizzes</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+
+{% block title %}Manage Quizzes | SmartMind{% endblock %}
+
+{% block content %}
 
 <style>
+  /* =====================================================
+     MANAGE QUIZZES
+  ===================================================== */
 
-body{
-    margin:0;
-    background:#f4f7fb;
-    font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-}
+  .mq-wrap {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 32px 28px;
+  }
 
-.container{
-    width:95%;
-    max-width:1400px;
-    margin:auto;
-    padding:30px;
-}
+  /* ---------- Header ---------- */
+  .mq-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 26px;
+  }
 
-.header{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    flex-wrap:wrap;
-    margin-bottom:25px;
-}
+  .mq-header h1 {
+    margin: 0 0 6px;
+    font-size: 1.75rem;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    color: #0f172a;
+  }
 
-.btn{
-    background:#2563eb;
-    color:white;
-    text-decoration:none;
-    padding:12px 20px;
-    border-radius:8px;
-    font-weight:bold;
-}
+  .mq-header p {
+    margin: 0;
+    color: #64748b;
+    font-size: .95rem;
+  }
 
-.btn:hover{
-    background:#1d4ed8;
-}
+  .mq-create {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 22px;
+    border-radius: 12px;
+    background: #4f46e5;
+    color: #fff;
+    font-weight: 600;
+    font-size: .92rem;
+    text-decoration: none;
+    border: none;
+    box-shadow: 0 4px 14px rgba(79, 70, 229, .28);
+    transition: all .18s cubic-bezier(.4, 0, .2, 1);
+  }
 
-.search{
-    margin-bottom:20px;
-}
+  .mq-create:hover {
+    background: #4338ca;
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px rgba(79, 70, 229, .35);
+  }
 
-.search input{
-    width:100%;
-    padding:12px;
-    border-radius:8px;
-    border:1px solid #ccc;
-    font-size:15px;
-}
+  /* ---------- Stat row ---------- */
+  .mq-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
 
-.card{
-    background:white;
-    border-radius:15px;
-    padding:20px;
-    box-shadow:0 10px 25px rgba(0,0,0,.08);
-}
+  .mq-stat {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 18px 20px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
+  }
 
-table{
-    width:100%;
-    border-collapse:collapse;
-}
+  .mq-stat-label {
+    font-size: .72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: #64748b;
+    margin-bottom: 6px;
+  }
 
-th{
-    background:#1e3a8a;
-    color:white;
-    padding:14px;
-    text-align:left;
-}
+  .mq-stat-value {
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #4f46e5, #06b6d4);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    line-height: 1;
+  }
 
-td{
-    padding:14px;
-    border-bottom:1px solid #eee;
-}
+  /* ---------- Search ---------- */
+  .mq-search {
+    position: relative;
+    margin-bottom: 20px;
+  }
 
-tr:hover{
-    background:#f8fafc;
-}
+  .mq-search i {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    font-size: 1.05rem;
+    pointer-events: none;
+  }
 
-.badge{
-    background:#f59e0b;
-    color:white;
-    padding:5px 12px;
-    border-radius:20px;
-    font-size:13px;
-}
+  .mq-search input {
+    width: 100%;
+    padding: 13px 16px 13px 44px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: .95rem;
+    font-family: inherit;
+    color: #0f172a;
+    background: #fff;
+    transition: border-color .15s ease, box-shadow .15s ease;
+    box-sizing: border-box;
+  }
 
-.action{
-    display:inline-block;
-    text-decoration:none;
-    color:white;
-    padding:8px 12px;
-    border-radius:6px;
-    margin-right:5px;
-}
+  .mq-search input:focus {
+    outline: none;
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, .12);
+  }
 
-.view{background:#16a34a;}
-.edit{background:#2563eb;}
-.delete{background:#dc2626;}
+  /* ---------- Card / table ---------- */
+  .mq-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, .04),
+                0 8px 24px rgba(15, 23, 42, .04);
+    overflow: hidden;
+  }
 
-@media(max-width:900px){
+  .mq-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .92rem;
+  }
 
-table,thead,tbody,tr,td,th{
-display:block;
-}
+  .mq-table thead th {
+    background: #f8fafc;
+    color: #475569;
+    font-size: .72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    padding: 14px 20px;
+    text-align: left;
+    border-bottom: 1px solid #e2e8f0;
+    white-space: nowrap;
+  }
 
-thead{
-display:none;
-}
+  .mq-table tbody td {
+    padding: 16px 20px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+    vertical-align: middle;
+  }
 
-tr{
-margin-bottom:20px;
-padding:15px;
-background:white;
-border-radius:12px;
-}
+  .mq-table tbody tr:last-child td {
+    border-bottom: none;
+  }
 
-td{
-border:none;
-padding:6px 0;
-}
+  .mq-table tbody tr {
+    transition: background .15s ease;
+  }
 
-td:before{
-display:block;
-font-weight:bold;
-margin-bottom:4px;
-}
+  .mq-table tbody tr:hover {
+    background: #f8fafc;
+  }
 
-td:nth-child(1):before{content:"Quiz";}
-td:nth-child(2):before{content:"Subject";}
-td:nth-child(3):before{content:"Class";}
-td:nth-child(4):before{content:"Duration";}
-td:nth-child(5):before{content:"Questions";}
-td:nth-child(6):before{content:"Actions";}
+  .mq-title {
+    font-weight: 650;
+    color: #0f172a;
+    font-size: .95rem;
+  }
 
-}
+  .mq-subtle {
+    color: #64748b;
+    font-size: .88rem;
+  }
 
+  .mq-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 100px;
+    font-size: .75rem;
+    font-weight: 700;
+    background: #fef3c7;
+    color: #b45309;
+    border: 1px solid #fde68a;
+  }
+
+  /* ---------- Action buttons ---------- */
+  .mq-actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .mq-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 7px 12px;
+    border-radius: 8px;
+    font-size: .78rem;
+    font-weight: 600;
+    text-decoration: none;
+    border: 1px solid transparent;
+    transition: all .15s ease;
+    white-space: nowrap;
+  }
+
+  .mq-action i { font-size: .85rem; }
+
+  .mq-action.view {
+    background: #ecfdf5;
+    color: #047857;
+    border-color: #a7f3d0;
+  }
+  .mq-action.view:hover {
+    background: #10b981;
+    color: #fff;
+    border-color: #10b981;
+  }
+
+  .mq-action.edit {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border-color: #bfdbfe;
+  }
+  .mq-action.edit:hover {
+    background: #2563eb;
+    color: #fff;
+    border-color: #2563eb;
+  }
+
+  .mq-action.delete {
+    background: #fef2f2;
+    color: #b91c1c;
+    border-color: #fecaca;
+  }
+  .mq-action.delete:hover {
+    background: #dc2626;
+    color: #fff;
+    border-color: #dc2626;
+  }
+
+  /* ---------- Empty state ---------- */
+  .mq-empty {
+    padding: 70px 24px;
+    text-align: center;
+    color: #64748b;
+  }
+
+  .mq-empty-icon {
+    font-size: 2.6rem;
+    display: block;
+    margin-bottom: 14px;
+  }
+
+  .mq-empty h3 {
+    margin: 0 0 6px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  .mq-empty p {
+    margin: 0 0 20px;
+    font-size: .9rem;
+  }
+
+  /* ---------- Responsive: card layout on mobile ---------- */
+  @media (max-width: 900px) {
+
+    .mq-wrap {
+      padding: 20px 14px;
+    }
+
+    .mq-header h1 {
+      font-size: 1.4rem;
+    }
+
+    .mq-table,
+    .mq-table thead,
+    .mq-table tbody,
+    .mq-table tr,
+    .mq-table td {
+      display: block;
+      width: 100%;
+    }
+
+    .mq-table thead {
+      display: none;
+    }
+
+    .mq-table tbody {
+      padding: 14px;
+    }
+
+    .mq-table tbody tr {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
+    }
+
+    .mq-table tbody tr:hover {
+      background: #fff;
+      border-color: #c7d2fe;
+    }
+
+    .mq-table tbody tr:last-child {
+      margin-bottom: 0;
+    }
+
+    .mq-table tbody td {
+      padding: 8px 0;
+      border: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      text-align: right;
+    }
+
+    .mq-table tbody td::before {
+      content: attr(data-label);
+      font-size: .72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: #64748b;
+      flex-shrink: 0;
+    }
+
+    .mq-actions {
+      justify-content: flex-end;
+      width: 100%;
+    }
+
+    .mq-action {
+      flex: 1;
+      justify-content: center;
+      min-width: 0;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .mq-stats {
+      grid-template-columns: 1fr;
+    }
+    .mq-create {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      transition: none !important;
+      animation: none !important;
+    }
+  }
 </style>
 
-</head>
 
-<body>
+<div class="mq-wrap">
 
-<div class="container">
+  <!-- =====================================================
+       HEADER
+  ====================================================== -->
+  <div class="mq-header">
+    <div>
+      <h1>❓ Manage Quizzes</h1>
+      <p>Create, edit and monitor quizzes across your classes.</p>
+    </div>
 
-<div class="header">
+    <a href="{% url 'create_quiz' %}" class="mq-create">
+      <i class="bi bi-plus-lg"></i>
+      Create Quiz
+    </a>
+  </div>
 
-<div>
-<h1>❓ Manage Quizzes</h1>
-<p>Create, edit and monitor quizzes.</p>
+
+  <!-- =====================================================
+       STATS
+  ====================================================== -->
+  <div class="mq-stats">
+
+    <div class="mq-stat">
+      <div class="mq-stat-label">Total Quizzes</div>
+      <div class="mq-stat-value">{{ quizzes|length }}</div>
+    </div>
+
+    <div class="mq-stat">
+      <div class="mq-stat-label">Showing</div>
+      <div class="mq-stat-value" id="visibleCount">{{ quizzes|length }}</div>
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       SEARCH
+  ====================================================== -->
+  <div class="mq-search">
+    <i class="bi bi-search"></i>
+    <input
+      type="text"
+      id="search"
+      placeholder="Search by quiz title, subject or class…"
+      autocomplete="off">
+  </div>
+
+
+  <!-- =====================================================
+       TABLE / CARD LIST
+  ====================================================== -->
+  <div class="mq-card">
+
+    {% if quizzes %}
+
+      <table class="mq-table" id="quizTable">
+        <thead>
+          <tr>
+            <th>Quiz</th>
+            <th>Subject</th>
+            <th>Class</th>
+            <th>Duration</th>
+            <th>Questions</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for quiz in quizzes %}
+            <tr>
+              <td data-label="Quiz">
+                <span class="mq-title">{{ quiz.title }}</span>
+              </td>
+
+              <td data-label="Subject">
+                <span class="mq-subtle">
+                  {{ quiz.subject.name|default:quiz.subject }}
+                </span>
+              </td>
+
+              <td data-label="Class">
+                <span class="mq-subtle">{{ quiz.school_class }}</span>
+              </td>
+
+              <td data-label="Duration">
+                <span class="mq-subtle">
+                  {% if quiz.duration_minutes %}
+                    {{ quiz.duration_minutes }} min
+                  {% else %}
+                    —
+                  {% endif %}
+                </span>
+              </td>
+
+              <td data-label="Questions">
+                <span class="mq-badge">
+                  {{ quiz.questions.count }}
+                </span>
+              </td>
+
+              <td data-label="Actions">
+                <div class="mq-actions">
+                  <a href="{% url 'start_quiz' quiz.id %}"
+                     class="mq-action view"
+                     title="Preview as student">
+                    <i class="bi bi-eye-fill"></i>
+                    View
+                  </a>
+
+                  <a href="{% url 'edit_quiz' quiz.id %}"
+                     class="mq-action edit"
+                     title="Edit quiz and questions">
+                    <i class="bi bi-pencil-fill"></i>
+                    Edit
+                  </a>
+
+                  <a href="{% url 'delete_quiz' quiz.id %}"
+                     class="mq-action delete"
+                     title="Delete quiz">
+                    <i class="bi bi-trash-fill"></i>
+                    Delete
+                  </a>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+    {% else %}
+
+      <div class="mq-empty">
+        <span class="mq-empty-icon">📭</span>
+        <h3>No quizzes yet</h3>
+        <p>Create your first quiz to get started.</p>
+
+        <a href="{% url 'create_quiz' %}" class="mq-create">
+          <i class="bi bi-plus-lg"></i>
+          Create Quiz
+        </a>
+      </div>
+
+    {% endif %}
+
+  </div>
+
 </div>
 
-<a href="{% url 'create_quiz' %}" class="btn">
-➕ Create Quiz
-</a>
-
-</div>
-
-<div class="search">
-
-<input
-type="text"
-id="search"
-placeholder="Search quizzes...">
-
-</div>
-
-<div class="card">
-
-<table id="quizTable">
-
-<thead>
-
-<tr>
-
-<th>Quiz</th>
-<th>Subject</th>
-<th>Class</th>
-<th>Duration</th>
-<th>Questions</th>
-<th>Actions</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-{% for quiz in quizzes %}
-
-<tr>
-
-<td>{{ quiz.title }}</td>
-
-<td>{{ quiz.subject }}</td>
-
-<td>{{ quiz.school_class }}</td>
-
-<td>{{ quiz.duration_minutes }} mins</td>
-
-<td>
-<span class="badge">
-{{ quiz.questions.count }}
-</span>
-</td>
-
-<td>
-
-<a href="#" class="action view">
-View
-</a>
-
-<a href="#" class="action edit">
-Edit
-</a>
-
-<a href="#" class="action delete">
-Delete
-</a>
-
-</td>
-
-</tr>
-
-{% empty %}
-
-<tr>
-
-<td colspan="6">
-<center>No quizzes available.</center>
-</td>
-
-</tr>
-
-{% endfor %}
-
-</tbody>
-
-</table>
-
-</div>
-
-</div>
 
 <script>
+  (function () {
+    const search = document.getElementById("search");
+    const table = document.getElementById("quizTable");
+    const visibleCount = document.getElementById("visibleCount");
 
-const search=document.getElementById("search");
+    if (!search || !table) return;
 
-search.addEventListener("keyup",function(){
+    const rows = table.querySelectorAll("tbody tr");
 
-let value=this.value.toLowerCase();
+    search.addEventListener("input", function () {
+      const q = this.value.trim().toLowerCase();
+      let visible = 0;
 
-document.querySelectorAll("#quizTable tbody tr").forEach(function(row){
+      rows.forEach(function (row) {
+        const match = row.innerText.toLowerCase().includes(q);
+        row.style.display = match ? "" : "none";
+        if (match) visible++;
+      });
 
-row.style.display=row.innerText.toLowerCase().includes(value)?"":"none";
-
-});
-
-});
-
+      if (visibleCount) visibleCount.textContent = visible;
+    });
+  })();
 </script>
 
-</body>
-</html>
+{% endblock %}

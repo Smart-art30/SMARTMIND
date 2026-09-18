@@ -108,6 +108,13 @@ class Question(models.Model):
         choices=[('A', 'A'), ('B', 'B'), ('C', 'C'), ('D', 'D')]
     )
     marks = models.FloatField(default=1)
+    explanation = CKEditor5Field(
+        "Explanation",
+        config_name="default",
+        blank=True,
+        null=True,
+        help_text="Optional: explain why the correct answer is correct.",
+    )
 
     class Meta:
         ordering = ['id']
@@ -225,7 +232,6 @@ class Submission(models.Model):
     def __str__(self):
         return f"{self.student} → {self.assignment}"
 
-
 class QuizAttempt(models.Model):
     assignment = models.ForeignKey(
         Assignment,
@@ -244,13 +250,37 @@ class QuizAttempt(models.Model):
     submitted_at = models.DateTimeField(null=True, blank=True)
     is_graded = models.BooleanField(default=False)
 
+    PASS_MARK = 50
+
     class Meta:
-        unique_together = ('assignment', 'student')
         ordering = ['-started_at']
         indexes = [
             models.Index(fields=["student"]),
             models.Index(fields=["assignment"]),
         ]
+
+    @property
+    def percentage(self):
+        if not self.total:
+            return 0
+        return round((self.score / self.total) * 100, 1)
+
+    @property
+    def passed(self):
+        return self.percentage >= self.PASS_MARK
+
+    @property
+    def attempt_number(self):
+        """1-based index of this attempt among the student's attempts for this quiz."""
+        return (
+            QuizAttempt.objects
+            .filter(
+                assignment_id=self.assignment_id,
+                student_id=self.student_id,
+                id__lte=self.id,
+            )
+            .count()
+        )
 
     def grade(self):
         if self.is_graded:
@@ -262,7 +292,9 @@ class QuizAttempt(models.Model):
 
             for ans in self.answers.select_related("question"):
                 total += ans.question.marks
-                ans.is_correct = (ans.selected_option == ans.question.correct_option)
+                ans.is_correct = (
+                    ans.selected_option == ans.question.correct_option
+                )
                 ans.save(update_fields=["is_correct"])
 
                 if ans.is_correct:
@@ -272,7 +304,9 @@ class QuizAttempt(models.Model):
             self.total = total
             self.submitted_at = timezone.now()
             self.is_graded = True
-            self.save(update_fields=["score", "total", "submitted_at", "is_graded"])
+            self.save(update_fields=[
+                "score", "total", "submitted_at", "is_graded"
+            ])
 
     @property
     def time_taken(self):
@@ -282,7 +316,6 @@ class QuizAttempt(models.Model):
 
     def __str__(self):
         return f"{self.student} - {self.assignment}"
-
 
 class QuizAnswer(models.Model):
     attempt = models.ForeignKey(
@@ -300,6 +333,10 @@ class QuizAnswer(models.Model):
 
     class Meta:
         unique_together = ('attempt', 'question')
+
+    @property
+    def marks_awarded(self):
+        return self.question.marks if self.is_correct else 0
 
     def __str__(self):
         return f"Attempt {self.attempt.id} - Question {self.question.id}"
