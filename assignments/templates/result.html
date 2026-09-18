@@ -1,33 +1,514 @@
 {% extends "base.html" %}
+{% load static %}
+
+{% block title %}Quiz Result | SmartMind{% endblock %}
+
 {% block content %}
 
-<h2>Quiz Result</h2>
+<style>
+  .qr-wrap {
+    max-width: 1100px;
+    margin: 40px auto;
+    padding: 20px;
+  }
 
-<div class="card">
-  <h3>Score: {{ attempt.score }} / {{ attempt.total }}</h3>
+  /* ============ RESULT BANNER ============ */
+  .qr-banner {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    padding: 40px 40px 36px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, .06);
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
 
-  {% if attempt.total %}
-    <p>
-      Percentage:
-      {{ attempt.score|floatformat:2 }}%
-    </p>
+  .qr-banner::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 5px;
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6, #10b981);
+  }
+
+  .qr-banner.pass::before {
+    background: linear-gradient(90deg, #10b981, #059669);
+  }
+
+  .qr-banner.fail::before {
+    background: linear-gradient(90deg, #ef4444, #dc2626);
+  }
+
+  .qr-emoji {
+    font-size: 3.2rem;
+    margin-bottom: 10px;
+    line-height: 1;
+  }
+
+  .qr-banner h1 {
+    margin: 0 0 6px;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+  }
+
+  .qr-banner p {
+    margin: 0 0 24px;
+    color: #64748b;
+    font-size: 1rem;
+  }
+
+  /* ============ SCORE RING ============ */
+  .qr-score-ring {
+    --pct: 0;
+    --color: #3b82f6;
+    width: 170px;
+    height: 170px;
+    margin: 0 auto 24px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background:
+      radial-gradient(closest-side, #fff 79%, transparent 80% 100%),
+      conic-gradient(var(--color) calc(var(--pct) * 1%), #e2e8f0 0);
+    position: relative;
+  }
+
+  .qr-score-inner {
+    text-align: center;
+  }
+
+  .qr-score-pct {
+    font-size: 2.4rem;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+
+  .qr-score-label {
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: #64748b;
+    margin-top: 6px;
+  }
+
+  /* ============ STATS GRID ============ */
+  .qr-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-top: 26px;
+    max-width: 640px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .qr-stat {
+    padding: 18px 16px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    text-align: center;
+    transition: all .15s ease;
+  }
+
+  .qr-stat:hover {
+    background: #fff;
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, .04);
+  }
+
+  .qr-stat-label {
+    font-size: .74rem;
+    font-weight: 700;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: #64748b;
+    margin-bottom: 6px;
+  }
+
+  .qr-stat-value {
+    font-size: 1.4rem;
+    font-weight: 750;
+    color: #0f172a;
+    letter-spacing: -0.01em;
+  }
+
+  /* ============ PASS/FAIL BADGE ============ */
+  .qr-outcome {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 18px;
+    border-radius: 100px;
+    font-size: .82rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    margin-bottom: 18px;
+  }
+
+  .qr-outcome.pass {
+    background: #d1fae5;
+    color: #065f46;
+  }
+
+  .qr-outcome.fail {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  /* ============ REVIEW SECTION ============ */
+  .qr-review-title {
+    font-size: 1.2rem;
+    font-weight: 650;
+    color: #0f172a;
+    margin: 36px 0 16px;
+    letter-spacing: -0.01em;
+  }
+
+  .qr-review-item {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 22px 26px;
+    margin-bottom: 14px;
+    border-left-width: 4px;
+    transition: box-shadow .15s ease;
+  }
+
+  .qr-review-item:hover {
+    box-shadow: 0 4px 14px rgba(15, 23, 42, .05);
+  }
+
+  .qr-review-item.correct { border-left-color: #10b981; }
+  .qr-review-item.wrong   { border-left-color: #ef4444; }
+
+  .qr-review-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+
+  .qr-review-num {
+    font-size: .74rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: #64748b;
+    margin-bottom: 6px;
+  }
+
+  .qr-review-q {
+    font-weight: 600;
+    color: #0f172a;
+    line-height: 1.5;
+    font-size: 1rem;
+  }
+
+  .qr-review-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 14px;
+    border-radius: 100px;
+    font-size: .74rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .qr-review-badge.correct {
+    background: #d1fae5;
+    color: #065f46;
+  }
+
+  .qr-review-badge.wrong {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  .qr-review-answers {
+    display: grid;
+    gap: 8px;
+    font-size: .9rem;
+    margin-top: 14px;
+  }
+
+  .qr-review-answers > div {
+    display: flex;
+    gap: 12px;
+    align-items: baseline;
+  }
+
+  .qr-review-answers strong {
+    display: inline-block;
+    min-width: 110px;
+    font-weight: 600;
+    color: #64748b;
+    font-size: .82rem;
+  }
+
+  .qr-answer-yours.correct { color: #059669; font-weight: 650; }
+  .qr-answer-yours.wrong   { color: #dc2626; font-weight: 650; }
+  .qr-answer-correct       { color: #059669; font-weight: 650; }
+
+  /* ============ ACTION BUTTONS ============ */
+  .qr-actions {
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 34px;
+  }
+
+  .qr-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 13px 28px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: .95rem;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    transition: all .15s ease;
+  }
+
+  .qr-btn-primary {
+    background: #2563eb;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, .25);
+  }
+  .qr-btn-primary:hover {
+    background: #1d4ed8;
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(37, 99, 235, .3);
+  }
+
+  .qr-btn-ghost {
+    background: #f1f5f9;
+    color: #334155;
+    border: 1px solid #e2e8f0;
+  }
+  .qr-btn-ghost:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+  }
+
+  /* ============ LARGE DESKTOP (1440px+) ============ */
+  @media (min-width: 1440px) {
+    .qr-wrap {
+      max-width: 1280px;
+      padding: 24px 32px;
+    }
+    .qr-banner {
+      padding: 48px 56px 44px;
+    }
+    .qr-stats {
+      max-width: 720px;
+    }
+    .qr-review-item {
+      padding: 24px 30px;
+    }
+    .qr-review-q {
+      font-size: 1.05rem;
+    }
+  }
+
+  /* ============ ULTRAWIDE (1920px+) ============ */
+  @media (min-width: 1920px) {
+    .qr-wrap {
+      max-width: 1400px;
+    }
+  }
+
+  /* ============ TABLET ============ */
+  @media (max-width: 900px) {
+    .qr-wrap {
+      max-width: 100%;
+      padding: 16px 20px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .qr-wrap { padding: 12px; }
+    .qr-banner { padding: 26px 20px; }
+    .qr-score-ring { width: 120px; height: 120px; }
+    .qr-score-pct { font-size: 1.6rem; }
+    .qr-stats { grid-template-columns: 1fr; }
+    .qr-actions { flex-direction: column; }
+    .qr-btn { width: 100%; padding: 14px 22px; font-size: 1rem; }
+    .qr-actions { gap: 10px; }
+  }
+
+  /* ============ MOBILE HARDENING ============ */
+  @media (max-width: 480px) {
+    .qr-stats {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    .qr-stat:nth-child(3) {
+      grid-column: 1 / -1;
+    }
+
+    .qr-review-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .qr-review-badge {
+      align-self: flex-start;
+    }
+
+    .qr-banner h1 { font-size: 1.35rem; }
+    .qr-banner p  { font-size: .9rem; }
+    .qr-emoji     { font-size: 2.5rem; }
+  }
+
+  @media (max-width: 420px) {
+    .qr-review-answers > div {
+      flex-direction: column;
+      gap: 2px;
+    }
+    .qr-review-answers strong {
+      min-width: 0;
+    }
+    .qr-score-ring {
+      width: 110px;
+      height: 110px;
+    }
+    .qr-score-pct {
+      font-size: 1.4rem;
+    }
+  }
+
+  /* Fallback for older browsers without conic-gradient */
+  @supports not (background: conic-gradient(red 0 100%, blue 0)) {
+    .qr-score-ring {
+      background: var(--color);
+    }
+    .qr-score-pct,
+    .qr-score-label {
+      color: #fff;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      transition: none !important;
+      animation: none !important;
+    }
+  }
+</style>
+
+<div class="qr-wrap">
+
+  {% with attempt.percentage|floatformat:0 as pct %}
+    {% if attempt.passed %}
+      <div class="qr-banner pass">
+        <div class="qr-emoji">🎉</div>
+        <span class="qr-outcome pass">✓ Passed</span>
+        <h1>Well done!</h1>
+        <p>You've successfully completed this quiz.</p>
+    {% else %}
+      <div class="qr-banner fail">
+        <div class="qr-emoji">📘</div>
+        <span class="qr-outcome fail">✗ Not Passed</span>
+        <h1>Keep practicing</h1>
+        <p>Review the answers below and try again when ready.</p>
+    {% endif %}
+
+        <div class="qr-score-ring"
+             style="--pct: {{ pct }}; --color: {% if attempt.passed %}#10b981{% else %}#ef4444{% endif %};">
+          <div class="qr-score-inner">
+            <div class="qr-score-pct">{{ pct }}%</div>
+            <div class="qr-score-label">Score</div>
+          </div>
+        </div>
+
+        <div class="qr-stats">
+          <div class="qr-stat">
+            <div class="qr-stat-label">Marks</div>
+            <div class="qr-stat-value">{{ attempt.score|floatformat:0 }}</div>
+          </div>
+          <div class="qr-stat">
+            <div class="qr-stat-label">Percentage</div>
+            <div class="qr-stat-value">{{ pct }}%</div>
+          </div>
+          <div class="qr-stat">
+            <div class="qr-stat-label">Attempt</div>
+            <div class="qr-stat-value">#{{ attempt.attempt_number|default:1 }}</div>
+          </div>
+        </div>
+
+      </div>
+  {% endwith %}
+
+  <!-- ============ ANSWER REVIEW ============ -->
+  {% if attempt.answers.all %}
+    <h2 class="qr-review-title">📋 Answer Review</h2>
+
+    {% for answer in attempt.answers.all %}
+      <div class="qr-review-item {% if answer.is_correct %}correct{% else %}wrong{% endif %}">
+        <div class="qr-review-header">
+          <div>
+            <div class="qr-review-num">Question {{ forloop.counter }}</div>
+            <div class="qr-review-q">{{ answer.question.text }}</div>
+          </div>
+          {% if answer.is_correct %}
+            <span class="qr-review-badge correct">✓ Correct</span>
+          {% else %}
+            <span class="qr-review-badge wrong">✗ Wrong</span>
+          {% endif %}
+        </div>
+
+        <div class="qr-review-answers">
+          <div>
+            <strong>Your answer:</strong>
+            <span class="qr-answer-yours {% if answer.is_correct %}correct{% else %}wrong{% endif %}">
+              {{ answer.selected_option|default:"— not answered —" }}
+            </span>
+          </div>
+          {% if not answer.is_correct %}
+            <div>
+              <strong>Correct answer:</strong>
+              <span class="qr-answer-correct">{{ answer.question.correct_option }}</span>
+            </div>
+          {% endif %}
+          <div>
+            <strong>Marks:</strong>
+            <span>{{ answer.marks_awarded|floatformat:0 }} / {{ answer.question.marks|floatformat:0 }}</span>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
   {% endif %}
 
-  <a href="{% url 'assignment_list' %}">Back to Assignments</a>
-</div>
+  <!-- ============ ACTIONS ============ -->
+  <div class="qr-actions">
+    <a href="{% url 'quiz_home' %}" class="qr-btn qr-btn-ghost">
+      ← Back to Quizzes
+    </a>
+    <a href="{% url 'start_quiz' attempt.assignment.id %}" class="qr-btn qr-btn-primary">
+      🔄 Retake Quiz
+    </a>
+  </div>
 
-<style>
-.card {
-  background: white;
-  padding: 30px;
-  border-radius: 12px;
-  text-align: center;
-}
-a {
-  display: inline-block;
-  margin-top: 20px;
-  color: #2563eb;
-}
-</style>
+</div>
 
 {% endblock %}
