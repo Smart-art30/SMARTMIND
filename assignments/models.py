@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 from django_ckeditor_5.fields import CKEditor5Field
 from schools.models import School, SchoolClass
 from django.utils import timezone
+from django.conf import settings
 from .storage import AssignmentStorage
 from .storage import SubmissionStorage
 
@@ -342,37 +343,166 @@ class QuizAnswer(models.Model):
         return f"Attempt {self.attempt.id} - Question {self.question.id}"
 
 
+
+
+
 class Enrollment(models.Model):
+
+    STATUS_CHOICES = [
+        ("PENDING", "Pending approval"),
+        ("ACTIVE", "Active"),
+        ("REJECTED", "Rejected"),
+        ("TRANSFERRED", "Transferred"),
+        ("WITHDRAWN", "Withdrawn"),
+    ]
+
     student = models.ForeignKey(
         "accounts.User",
         on_delete=models.CASCADE,
-        related_name="enrollments"
+        related_name="enrollments",
     )
+
     school_class = models.ForeignKey(
         "schools.SchoolClass",
         on_delete=models.CASCADE,
-        related_name="enrollments"
+        related_name="enrollments",
     )
+
     school = models.ForeignKey(
         "schools.School",
         on_delete=models.CASCADE,
-        editable=False
+        editable=False,
     )
+
+    status = models.CharField(
+        max_length=12,
+        choices=STATUS_CHOICES,
+        default="PENDING",
+        db_index=True,
+    )
+
+    # Who decided + when (approve / reject / transfer)
+    decided_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="decided_enrollments",
+    )
+
+    decided_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+   
+    notes = models.TextField(blank=True)
+
+    created_at = models.DateTimeField(default=timezone.now, editable=False)
+    updated_at = models.DateTimeField(default=timezone.now, editable=False)
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
                 fields=["student", "school_class"],
-                name="unique_student_class"
+                name="unique_student_class",
             )
         ]
+        indexes = [
+            models.Index(fields=["school", "status"]),
+        ]
+        ordering = ["-created_at"]
 
     def save(self, *args, **kwargs):
+        # Keep `school` in sync with the class's school on every save
         self.school = self.school_class.school
         super().save(*args, **kwargs)
 
+    # ---------- Convenience helpers ----------
+
+    @property
+    def is_active(self):
+        return self.status == "ACTIVE"
+
+    @property
+    def is_pending(self):
+        return self.status == "PENDING"
+
+    def approve(self, admin, notes=""):
+        self.status = "ACTIVE"
+        self.decided_by = admin
+        self.decided_at = timezone.now()
+        if notes:
+            self.notes = notes
+        self.save()
+
+    def reject(self, admin, notes=""):
+        self.status = "REJECTED"
+        self.decided_by = admin
+        self.decided_at = timezone.now()
+        self.notes = notes
+        self.save()
+
     def __str__(self):
-        return f"{self.student} - {self.school_class}"
+        return f"{self.student} - {self.school_class} ({self.status})"
+
+
+class EnrollmentAudit(models.Model):
+
+    ACTIONS = [
+        ("CREATED", "Created"),
+        ("APPROVED", "Approved"),
+        ("REJECTED", "Rejected"),
+        ("TRANSFERRED", "Transferred"),
+        ("WITHDRAWN", "Withdrawn"),
+        ("CORRECTED", "Corrected"),
+    ]
+
+    enrollment = models.ForeignKey(
+        Enrollment,
+        on_delete=models.CASCADE,
+        related_name="audit_log",
+    )
+
+    action = models.CharField(
+        max_length=20,
+        choices=ACTIONS,
+    )
+
+    old_class = models.ForeignKey(
+        "schools.SchoolClass",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
+
+    new_class = models.ForeignKey(
+        "schools.SchoolClass",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
+
+    performed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="enrollment_actions",
+    )
+
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["enrollment", "-created_at"]),
+        ]
+
+    def __str__(self):
+        return f"{self.action} · enrollment={self.enrollment_id} · {self.created_at:%Y-%m-%d}"
 
 
 class Subject(models.Model):

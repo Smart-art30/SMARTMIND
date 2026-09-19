@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}{{ student.get_full_name|default:student.username }}{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width:960px;">
+
+    <a href="{% url 'student_list' %}" class="btn btn-sm btn-outline-secondary mb-3">
+        ← Back to students
+    </a>
+
+    <div class="card p-4 mb-4">
+        <div class="d-flex align-items-center gap-3">
+            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center"
+                 style="width:64px;height:64px;font-weight:700;font-size:1.4rem;">
+                {{ student.first_name|first|default:student.username|first|upper }}
+            </div>
+            <div>
+                <h4 class="mb-0">
+                    {{ student.get_full_name|default:student.username }}
+                </h4>
+                <div class="text-muted small">
+                    {{ student.username }}
+                    {% if student.email %} · {{ student.email }}{% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card p-3">
+                <div class="text-muted small">Admission no.</div>
+                <div class="fw-bold">{{ student.admission_no|default:"—" }}</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card p-3">
+                <div class="text-muted small">Class</div>
+                <div class="fw-bold">{{ student.school_class.name|default:"—" }}</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card p-3">
+                <div class="text-muted small">Account</div>
+                <div class="fw-bold">
+                    {% if student.is_active %}Active{% else %}Inactive{% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card p-3">
+                <div class="text-muted small">Joined</div>
+                <div class="fw-bold">{{ student.date_joined|date:"M d, Y" }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card p-4">
+        <h5 class="mb-3">Enrollment history</h5>
+
+        {% if enrollments %}
+            <ul class="list-group">
+                {% for e in enrollments %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>{{ e.school_class.name }}</strong>
+                        <div class="text-muted small">
+                            {{ e.created_at|date:"M d, Y" }}
+                        </div>
+                    </div>
+                    <span class="badge bg-secondary">{{ e.get_status_display }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <div class="alert alert-secondary mb-0">No enrollments yet.</div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

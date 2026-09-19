@@ -101,8 +101,6 @@ body{
     line-height:1.7;
 }
 
-
-
 blockquote{
     margin-top:30px;
     font-size:0.95rem;
@@ -232,6 +230,57 @@ label{
 }
 
 /* ===========================
+   PASSWORD FIELD WITH TOGGLE
+=========================== */
+
+.password-wrap{
+    position:relative;
+}
+
+.password-wrap .form-control{
+    padding-right:46px; /* room for the eye button */
+}
+
+.password-toggle{
+    position:absolute;
+    top:50%;
+    right:10px;
+    transform:translateY(-50%);
+
+    width:34px;
+    height:34px;
+
+    border:none;
+    background:transparent;
+    border-radius:8px;
+
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+
+    cursor:pointer;
+    color:#64748b;
+
+    transition:background .15s, color .15s;
+}
+
+.password-toggle:hover{
+    background:#eef2f8;
+    color:#2563eb;
+}
+
+.password-toggle:focus-visible{
+    outline:2px solid #3b82f6;
+    outline-offset:2px;
+}
+
+.password-toggle svg{
+    width:18px;
+    height:18px;
+    display:block;
+}
+
+/* ===========================
    TABLETS
 =========================== */
 
@@ -279,8 +328,6 @@ label{
 
 .left-panel img{
     max-width:200px;
-   
-    
 }
 
 blockquote{
@@ -353,11 +400,11 @@ html{
 
 .login-image{
     width:100%;
-    max-width:3200px;     
-    height:630px;         
+    max-width:3200px;
+    height:630px;
     object-fit:cover;
 
-    border-radius:40px;   
+    border-radius:40px;
 
     box-shadow:0 15px 35px rgba(0,0,0,.25);
 
@@ -381,28 +428,24 @@ html{
     font-weight:600;
 }
 
-/* success message */
 .alert-message.success{
     background:#dcfce7;
     color:#166534;
     border:1px solid #86efac;
 }
 
-/* error message */
 .alert-message.error{
     background:#fee2e2;
     color:#991b1b;
     border:1px solid #fca5a5;
 }
 
-/* warning message */
 .alert-message.warning{
     background:#fef3c7;
     color:#92400e;
     border:1px solid #fcd34d;
 }
 
-/* info message */
 .alert-message.info{
     background:#dbeafe;
     color:#1e40af;
@@ -416,7 +459,7 @@ html{
 
     <!-- LEFT SIDE -->
     <div class="left-panel">
-      
+
       <div>
         <h4>📘 SmartMind</h4>
 
@@ -427,12 +470,11 @@ html{
         </p>
       </div>
 
-      <!-- illustration block (placeholder like your design) -->
-        <div class="illustration">
-            <img src="{% static 'images/login-illustration.png' %}"
-                alt="Login Illustration"
-                class="login-image">
-        </div>
+      <div class="illustration">
+        <img src="{% static 'images/login-illustration.png' %}"
+             alt="Login Illustration"
+             class="login-image">
+      </div>
 
       <blockquote style="font-size: 13px; color: rgba(255,255,255,0.7);">
         “The beautiful thing about learning is that no one can take it away from you.” <br>
@@ -450,29 +492,58 @@ html{
       </div>
 
       <h2 style="font-weight:700;">Login</h2>
-     <p style="color:#64748b;">Enter your credentials to access your account</p>
+      <p style="color:#64748b;">Enter your credentials to access your account</p>
 
+      <!-- Django Messages -->
+      {% if messages %}
+        {% for message in messages %}
+          <div class="alert-message {{ message.tags }}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
 
-            <!-- Django Messages -->
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="alert-message {{ message.tags }}">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            {% endif %}
-
-
-            <form method="post">
+      <form method="post">
         {% csrf_token %}
 
         <label>Username or Email</label>
         <input type="text" name="username" class="form-control mb-3"
                placeholder="Enter your username or email">
-<br>
+        <br>
+
         <label>Password</label>
-        <input type="password" name="password" class="form-control mb-2"
-               placeholder="Enter your password">
+        <div class="password-wrap">
+          <input type="password"
+                 name="password"
+                 id="id_password"
+                 class="form-control mb-2"
+                 placeholder="Enter your password">
+
+          <button type="button"
+                  class="password-toggle"
+                  data-toggle-password="id_password"
+                  aria-label="Show password"
+                  aria-pressed="false"
+                  title="Show password">
+            <!-- eye (hidden state) -->
+            <svg class="icon-eye" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+            <!-- eye-off (shown state) -->
+            <svg class="icon-eye-off" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round"
+                 style="display:none;">
+              <path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a19.77 19.77 0 0 1 5.06-5.94"/>
+              <path d="M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 7 11 7a19.79 19.79 0 0 1-3.17 4.19"/>
+              <path d="M9.88 9.88a3 3 0 0 0 4.24 4.24"/>
+              <line x1="1" y1="1" x2="23" y2="23"/>
+            </svg>
+          </button>
+        </div>
 
         <div class="d-flex justify-content-between mb-3">
           <small><input type="checkbox"> Remember me</small>
@@ -500,3 +571,34 @@ html{
   </div>
 
 </div>
+
+<script>
+/* ============================================
+   PASSWORD SHOW / HIDE TOGGLE
+   Works for any button with [data-toggle-password]
+   pointing to the id of the input to toggle.
+============================================ */
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll("[data-toggle-password]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+            const targetId = btn.getAttribute("data-toggle-password");
+            const input = document.getElementById(targetId);
+            if (!input) return;
+
+            const showing = input.type === "text";
+
+            input.type = showing ? "password" : "text";
+            btn.setAttribute("aria-pressed", String(!showing));
+            btn.setAttribute("aria-label", showing ? "Show password" : "Hide password");
+            btn.setAttribute("title",      showing ? "Show password" : "Hide password");
+
+            const eye    = btn.querySelector(".icon-eye");
+            const eyeOff = btn.querySelector(".icon-eye-off");
+            if (eye && eyeOff) {
+                eye.style.display    = showing ? "block" : "none";
+                eyeOff.style.display = showing ? "none"  : "block";
+            }
+        });
+    });
+});
+</script>

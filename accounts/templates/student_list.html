@@ -1,0 +1,730 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+Students | {{ request.user.school.name }}
+{% endblock %}
+
+{% block content %}
+
+<style>
+:root {
+    --bg: #f4f6fb;
+    --surface: #ffffff;
+    --text: #0f172a;
+    --muted: #64748b;
+    --border: #e2e8f0;
+    --primary: #2f6fed;
+    --primary-soft: #eaf1ff;
+    --success: #16a34a;
+    --success-soft: #e8f8ee;
+    --warning: #d97706;
+    --warning-soft: #fff5e6;
+    --danger: #dc2626;
+    --danger-soft: #fdecec;
+    --shadow-sm: 0 2px 8px rgba(15, 23, 42, .06);
+    --shadow-md: 0 8px 24px rgba(15, 23, 42, .08);
+    --radius: 16px;
+    --radius-sm: 10px;
+    --transition: .25s cubic-bezier(.4, 0, .2, 1);
+}
+
+html[data-theme="dark"] {
+    --bg: #0b1220;
+    --surface: #121a2b;
+    --text: #e6edf7;
+    --muted: #94a3b8;
+    --border: #1e293b;
+    --primary: #4f86ff;
+    --primary-soft: #16233f;
+    --success-soft: #12291d;
+    --warning-soft: #2a1f0e;
+    --danger-soft: #2a1212;
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, .35);
+    --shadow-md: 0 8px 24px rgba(0, 0, 0, .45);
+}
+
+* { box-sizing: border-box; }
+
+body {
+    background: var(--bg);
+    color: var(--text);
+    transition: background var(--transition), color var(--transition);
+}
+
+.page {
+    max-width: 1400px;
+    margin: auto;
+    padding: 24px 20px 60px;
+}
+
+/* =========================
+   HEADER
+========================= */
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 22px;
+}
+
+.page-header h3 {
+    margin: 0 0 4px;
+    font-weight: 800;
+    letter-spacing: -.02em;
+}
+
+.page-header .sub {
+    color: var(--muted);
+    font-size: .9rem;
+}
+
+.page-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+/* =========================
+   TOOLBAR
+========================= */
+
+.toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 18px;
+}
+
+.toolbar input[type="search"],
+.toolbar select {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 9px 12px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: .92rem;
+    transition: var(--transition);
+    min-width: 0;
+}
+
+.toolbar input[type="search"] {
+    flex: 1 1 260px;
+}
+
+.toolbar select {
+    flex: 0 1 200px;
+}
+
+.toolbar input:focus,
+.toolbar select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-soft);
+}
+
+/* =========================
+   STATS ROW
+========================= */
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    box-shadow: var(--shadow-sm);
+}
+
+.stat .n {
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -.02em;
+}
+
+.stat .l {
+    color: var(--muted);
+    font-size: .82rem;
+    margin-top: 2px;
+}
+
+/* =========================
+   TABLE
+========================= */
+
+.table-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+.table-responsive {
+    overflow-x: auto;
+}
+
+table.students {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .92rem;
+}
+
+table.students thead th {
+    text-align: left;
+    padding: 12px 16px;
+    font-weight: 600;
+    font-size: .78rem;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: var(--muted);
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+}
+
+table.students tbody td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+}
+
+table.students tbody tr:last-child td {
+    border-bottom: none;
+}
+
+table.students tbody tr:hover {
+    background: var(--primary-soft);
+}
+
+.name-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--primary-soft);
+    color: var(--primary);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: .85rem;
+    flex-shrink: 0;
+}
+
+.name-cell .full {
+    font-weight: 600;
+    color: var(--text);
+}
+
+.name-cell .username {
+    color: var(--muted);
+    font-size: .8rem;
+}
+
+/* =========================
+   BADGES
+========================= */
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: .75rem;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.badge-active   { background: var(--success-soft); color: var(--success); }
+.badge-pending  { background: var(--warning-soft); color: var(--warning); }
+.badge-inactive { background: var(--danger-soft);  color: var(--danger); }
+.badge-neutral  { background: var(--primary-soft); color: var(--primary); }
+
+/* =========================
+   BUTTONS
+========================= */
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: var(--radius-sm);
+    padding: 8px 14px;
+    font-weight: 600;
+    font-size: .85rem;
+    text-decoration: none;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: var(--transition);
+    white-space: nowrap;
+}
+
+.btn:hover { transform: translateY(-1px); }
+.btn:active { transform: scale(.98); }
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary), #5b8bff);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(47, 111, 237, .25);
+}
+
+.btn-outline {
+    background: transparent;
+    border-color: var(--border);
+    color: var(--text);
+}
+
+.btn-outline:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.btn-sm {
+    padding: 6px 10px;
+    font-size: .8rem;
+}
+
+.row-actions {
+    display: flex;
+    gap: 6px;
+    justify-content: flex-end;
+}
+
+/* =========================
+   EMPTY / NO RESULTS
+========================= */
+
+.empty {
+    padding: 50px 20px;
+    text-align: center;
+    color: var(--muted);
+}
+
+.empty .icon {
+    font-size: 2.2rem;
+    margin-bottom: 8px;
+    display: block;
+}
+
+/* =========================
+   PAGINATION
+========================= */
+
+.pager {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    padding: 16px;
+    border-top: 1px solid var(--border);
+}
+
+.pager a,
+.pager span {
+    min-width: 34px;
+    height: 34px;
+    padding: 0 10px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .85rem;
+    font-weight: 600;
+}
+
+.pager a:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.pager .current {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+}
+
+.pager .disabled {
+    opacity: .4;
+    pointer-events: none;
+}
+
+/* =========================
+   ALERTS
+========================= */
+
+.messages {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.msg {
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    border-left: 4px solid var(--primary);
+    background: var(--surface);
+    box-shadow: var(--shadow-sm);
+    font-size: .9rem;
+}
+
+.msg.success { border-color: var(--success); }
+.msg.warning { border-color: var(--warning); }
+.msg.error   { border-color: var(--danger); }
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 720px) {
+
+    .page { padding: 16px; }
+
+    .page-header {
+        text-align: left;
+    }
+
+    .toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .toolbar input,
+    .toolbar select {
+        flex: 1 1 auto;
+        width: 100%;
+    }
+
+    table.students thead { display: none; }
+
+    table.students tbody tr {
+        display: block;
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    table.students tbody td {
+        display: flex;
+        justify-content: space-between;
+        padding: 6px 0;
+        border: none;
+    }
+
+    table.students tbody td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: var(--muted);
+        font-size: .78rem;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        margin-right: 12px;
+    }
+
+    .row-actions {
+        justify-content: flex-start;
+        width: 100%;
+        margin-top: 6px;
+    }
+
+    .name-cell { width: 100%; }
+}
+</style>
+
+
+<div class="page">
+
+    <!-- =========================
+         HEADER
+    ========================== -->
+
+    <div class="page-header">
+
+        <div>
+            <h3>👨‍🎓 Students</h3>
+            <div class="sub">
+                {{ request.user.school.name }} ·
+                Manage learner accounts and enrollments
+            </div>
+        </div>
+
+        <div class="page-actions">
+            <a href="{% url 'enrollment_review_list' %}"
+               class="btn btn-outline">
+                🕓 Enrollment Approvals
+                {% if pending_count %}
+                    <span class="badge badge-pending">{{ pending_count }}</span>
+                {% endif %}
+            </a>
+
+            <a href="{% url 'school_admin_dashboard' %}"
+               class="btn btn-outline">
+                ← Dashboard
+            </a>
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         MESSAGES
+    ========================== -->
+
+    {% if messages %}
+        <div class="messages">
+            {% for m in messages %}
+                <div class="msg {{ m.tags }}">{{ m }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+
+    <!-- =========================
+         STATS
+    ========================== -->
+
+    <div class="stats">
+        <div class="stat">
+            <div class="n">{{ total_students }}</div>
+            <div class="l">Total students</div>
+        </div>
+        <div class="stat">
+            <div class="n">{{ active_students }}</div>
+            <div class="l">Active</div>
+        </div>
+        <div class="stat">
+            <div class="n">{{ pending_students }}</div>
+            <div class="l">Pending approval</div>
+        </div>
+        <div class="stat">
+            <div class="n">{{ unassigned_students }}</div>
+            <div class="l">No class assigned</div>
+        </div>
+    </div>
+
+
+    <!-- =========================
+         TOOLBAR
+    ========================== -->
+
+    <form method="get" class="toolbar">
+
+        <input type="search"
+               name="q"
+               value="{{ q }}"
+               placeholder="Search by name, username, admission no., or email…">
+
+        <select name="class">
+            <option value="">All classes</option>
+            {% for c in all_classes %}
+                <option value="{{ c.id }}"
+                    {% if class_filter == c.id|stringformat:"s" %}selected{% endif %}>
+                    {{ c.name }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <select name="status">
+            <option value="">Any status</option>
+            <option value="active"   {% if status_filter == "active" %}selected{% endif %}>Active</option>
+            <option value="pending"  {% if status_filter == "pending" %}selected{% endif %}>Pending</option>
+            <option value="inactive" {% if status_filter == "inactive" %}selected{% endif %}>Inactive</option>
+            <option value="unassigned" {% if status_filter == "unassigned" %}selected{% endif %}>No class</option>
+        </select>
+
+        <button type="submit" class="btn btn-primary">Filter</button>
+
+        {% if q or class_filter or status_filter %}
+            <a href="{% url 'student_list' %}" class="btn btn-outline">Clear</a>
+        {% endif %}
+
+    </form>
+
+
+    <!-- =========================
+         TABLE
+    ========================== -->
+
+    <div class="table-card">
+
+        {% if students %}
+
+            <div class="table-responsive">
+                <table class="students">
+                    <thead>
+                        <tr>
+                            <th>Learner</th>
+                            <th>Admission no.</th>
+                            <th>Class</th>
+                            <th>Enrollment</th>
+                            <th>Status</th>
+                            <th>Joined</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in students %}
+                        <tr>
+
+                            <td data-label="Learner">
+                                <div class="name-cell">
+                                    <span class="avatar">
+                                        {{ s.first_name|first|default:s.username|first|upper }}
+                                    </span>
+                                    <div>
+                                        <div class="full">
+                                            {{ s.get_full_name|default:s.username }}
+                                        </div>
+                                        <div class="username">
+                                            {{ s.username }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <td data-label="Admission no.">
+                                {{ s.admission_no|default:"—" }}
+                            </td>
+
+                            <td data-label="Class">
+                                {% if s.school_class %}
+                                    {{ s.school_class.name }}
+                                {% else %}
+                                    <span style="color: var(--muted);">—</span>
+                                {% endif %}
+                            </td>
+
+                            <td data-label="Enrollment">
+                                {% with s.enrollments.all|first as e %}
+                                    {% if e %}
+                                        {% if e.status == "ACTIVE" %}
+                                            <span class="badge badge-active">Active</span>
+                                        {% elif e.status == "PENDING" %}
+                                            <span class="badge badge-pending">Pending</span>
+                                        {% elif e.status == "REJECTED" %}
+                                            <span class="badge badge-inactive">Rejected</span>
+                                        {% else %}
+                                            <span class="badge badge-neutral">
+                                                {{ e.get_status_display }}
+                                            </span>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="badge badge-neutral">None</span>
+                                    {% endif %}
+                                {% endwith %}
+                            </td>
+
+                            <td data-label="Status">
+                                {% if s.is_active %}
+                                    <span class="badge badge-active">Active</span>
+                                {% else %}
+                                    <span class="badge badge-inactive">Inactive</span>
+                                {% endif %}
+                            </td>
+
+                            <td data-label="Joined">
+                                {{ s.date_joined|date:"M d, Y" }}
+                            </td>
+
+                            <td data-label="">
+                                <div class="row-actions">
+                                    <a href="{% url 'student_detail' s.id %}"
+                                       class="btn btn-sm btn-outline">
+                                        View
+                                    </a>
+                                </div>
+                            </td>
+
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+
+            <!-- =========================
+                 PAGINATION
+            ========================== -->
+
+            {% if page_obj.has_other_pages %}
+            <div class="pager">
+
+                {% if page_obj.has_previous %}
+                    <a href="?{% if q %}q={{ q }}&{% endif %}{% if class_filter %}class={{ class_filter }}&{% endif %}{% if status_filter %}status={{ status_filter }}&{% endif %}page={{ page_obj.previous_page_number }}">
+                        ←
+                    </a>
+                {% else %}
+                    <span class="disabled">←</span>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if num == page_obj.number %}
+                        <span class="current">{{ num }}</span>
+                    {% elif num > page_obj.number|add:"-3" and num < page_obj.number|add:"3" %}
+                        <a href="?{% if q %}q={{ q }}&{% endif %}{% if class_filter %}class={{ class_filter }}&{% endif %}{% if status_filter %}status={{ status_filter }}&{% endif %}page={{ num }}">
+                            {{ num }}
+                        </a>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <a href="?{% if q %}q={{ q }}&{% endif %}{% if class_filter %}class={{ class_filter }}&{% endif %}{% if status_filter %}status={{ status_filter }}&{% endif %}page={{ page_obj.next_page_number }}">
+                        →
+                    </a>
+                {% else %}
+                    <span class="disabled">→</span>
+                {% endif %}
+
+            </div>
+            {% endif %}
+
+        {% else %}
+
+            <div class="empty">
+                <span class="icon">🔍</span>
+                {% if q or class_filter or status_filter %}
+                    <p>No students match your filters.</p>
+                    <a href="{% url 'student_list' %}" class="btn btn-outline">
+                        Clear filters
+                    </a>
+                {% else %}
+                    <p>No students yet.</p>
+                    <p style="font-size:.85rem;">
+                        Learners will appear here once they register.
+                    </p>
+                {% endif %}
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}

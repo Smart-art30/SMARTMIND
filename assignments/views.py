@@ -94,6 +94,7 @@ def quiz_class_subjects(request, class_id):
 
 @login_required
 def quiz_list(request, class_id, subject_id):
+   
     school_class = get_object_or_404(
         SchoolClass,
         id=class_id,
@@ -102,16 +103,19 @@ def quiz_list(request, class_id, subject_id):
 
     subject = get_object_or_404(
         Subject,
-        id=subject_id,
-        assignments__school_class=school_class,
-        assignments__assignment_type="quiz"
+        id=subject_id
     )
+
 
     quizzes = Assignment.objects.filter(
         school_class=school_class,
         subject=subject,
         assignment_type="quiz"
-    ).select_related("teacher", "subject", "school_class")
+    ).select_related(
+        "teacher",
+        "subject",
+        "school_class"
+    ).order_by("-created_at")
 
     return render(request, "list.html", {
         "school_class": school_class,

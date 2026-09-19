@@ -53,13 +53,14 @@
     gap: 8px;
     padding: 8px 16px;
     border-radius: 100px;
-    font-family: ui-monospace, monospace;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     font-weight: 700;
     font-size: 1rem;
     background: #eff6ff;
     color: #1d4ed8;
     border: 1px solid #bfdbfe;
     white-space: nowrap;
+    transition: background .2s ease, color .2s ease, border-color .2s ease;
   }
 
   .qt-timer.warning {
@@ -305,9 +306,8 @@
     </div>
 
     {% if duration %}
-      <div class="qt-timer" id="timer" data-seconds="{{ duration|floatformat:0|add:'0' }}"
-           data-duration="{{ duration|floatformat:0|add:'0' }}">
-        ⏱️ <span id="timerText">{{ duration }}:00</span>
+      <div class="qt-timer" id="timer" data-minutes="{{ duration }}">
+        ⏱️ <span id="timerText">--:--</span>
       </div>
     {% endif %}
   </div>
@@ -334,8 +334,6 @@
         <div class="qt-q-text">{{ question.text }}</div>
 
         <div class="qt-options">
-          {% for letter, text in question.option_a|yesno:","|slice:":1"|default_if_none:"" %}{% endfor %}
-
           <label class="qt-option">
             <input type="radio" name="{{ question.id }}" value="A">
             <span class="qt-option-letter">A</span>
@@ -401,25 +399,33 @@
     form.addEventListener('change', updateProgress);
     updateProgress();
 
-    // ============ TIMER ============
+    // ============ TIMER (minutes → seconds) ============
     const timerEl = document.getElementById('timer');
     if (timerEl) {
-      const totalSeconds = parseInt(timerEl.dataset.seconds, 10);
+      const totalMinutes = parseInt(timerEl.dataset.minutes, 10) || 0;
+      const totalSeconds = totalMinutes * 60;   // ← convert minutes → seconds
       const timerText = document.getElementById('timerText');
       let remaining = totalSeconds;
 
+      const render = () => {
+        const m = Math.floor(remaining / 60);
+        const s = remaining % 60;
+        timerText.textContent = m + ':' + String(s).padStart(2, '0');
+      };
+
+      // render initial value immediately (e.g., "30:00")
+      render();
+
       const tick = () => {
         if (remaining <= 0) {
-          timerText.textContent = "0:00";
+          timerText.textContent = '0:00';
           timerEl.classList.add('danger');
-          // auto-submit
+          timerEl.classList.remove('warning');
           form.submit();
           return;
         }
 
-        const m = Math.floor(remaining / 60);
-        const s = remaining % 60;
-        timerText.textContent = m + ":" + String(s).padStart(2, '0');
+        render();
 
         // warn at 5 min, danger at 1 min
         if (remaining <= 60) {
@@ -433,7 +439,10 @@
         setTimeout(tick, 1000);
       };
 
-      tick();
+      // start countdown after 1s so the initial render shows full duration
+      if (totalSeconds > 0) {
+        setTimeout(tick, 1000);
+      }
     }
 
     // ============ SUBMIT CONFIRM ============

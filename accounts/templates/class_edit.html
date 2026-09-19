@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Edit {{ class.name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width:560px;">
+
+    <h3 class="mb-3">Edit Class</h3>
+
+    <form method="post" class="card p-4">
+        {% csrf_token %}
+
+        <div class="mb-3">
+            <label class="form-label">Class name</label>
+            <input type="text" name="name" class="form-control"
+                   value="{{ class.name }}" required>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Order</label>
+            <input type="number" name="order" class="form-control"
+                   value="{{ class.order }}" min="0">
+        </div>
+
+        <div class="form-check mb-3">
+            <input type="checkbox" name="is_active" id="is_active"
+                   class="form-check-input"
+                   {% if class.is_active %}checked{% endif %}>
+            <label class="form-check-label" for="is_active">Active</label>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">Save changes</button>
+            <a href="{% url 'class_list' %}" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+    </form>
+
+</div>
+{% endblock %}
