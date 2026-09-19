@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Enrollment Detail{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width:900px;">
+
+    <a href="{% url 'enrollment_review_list' %}" class="btn btn-sm btn-outline-secondary mb-3">
+        ← Back to list
+    </a>
+
+    <h3 class="mb-1">
+        {{ enrollment.student.get_full_name|default:enrollment.student.username }}
+    </h3>
+    <p class="text-muted mb-4">
+        Admission: {{ enrollment.student.admission_no|default:"—" }} ·
+        Class: {{ enrollment.school_class.name }} ·
+        Status: <strong>{{ enrollment.get_status_display }}</strong>
+    </p>
+
+    <h5 class="mt-4">Audit history</h5>
+
+    {% if audit_log %}
+        <ul class="list-group">
+            {% for entry in audit_log %}
+                <li class="list-group-item">
+                    <div class="d-flex justify-content-between">
+                        <strong>{{ entry.get_action_display }}</strong>
+                        <span class="text-muted small">{{ entry.created_at|date:"M d, Y H:i" }}</span>
+                    </div>
+                    <div class="small text-muted">
+                        By: {{ entry.performed_by.get_full_name|default:entry.performed_by.username|default:"system" }}
+                        {% if entry.old_class or entry.new_class %}
+                            · {% if entry.old_class %}{{ entry.old_class.name }}{% endif %}
+                            → {% if entry.new_class %}{{ entry.new_class.name }}{% endif %}
+                        {% endif %}
+                    </div>
+                    {% if entry.notes %}
+                        <div class="small mt-1">{{ entry.notes }}</div>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <div class="alert alert-secondary">No audit entries yet.</div>
+    {% endif %}
+
+</div>
+{% endblock %}

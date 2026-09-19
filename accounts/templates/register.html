@@ -105,10 +105,68 @@
     border-color: #3b82f6;
   }
 
+  /* =========================
+     PASSWORD FIELD WITH TOGGLE
+  ========================= */
+
+  .password-wrap {
+    position: relative;
+  }
+
+  .password-wrap .form-control {
+    padding-right: 44px; /* leave room for the eye button */
+  }
+
+  .password-toggle {
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #64748b;
+    transition: background .15s, color .15s;
+  }
+
+  .password-toggle:hover {
+    background: #eef2f8;
+    color: #2563eb;
+  }
+
+  .password-toggle:focus-visible {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+  }
+
+  .password-toggle svg {
+    width: 18px;
+    height: 18px;
+    display: block;
+  }
+
+  /* =========================
+     ERRORS
+  ========================= */
+
   .error-text {
     color: #dc2626;
     font-size: 12px;
     margin-top: 4px;
+  }
+
+  .errorlist {
+    color: #dc2626;
+    font-size: 12px;
+    list-style: none;
+    padding: 0;
+    margin: 4px 0 0;
   }
 
   .btn-primary {
@@ -254,11 +312,13 @@
           {{ form.admission_number.errors }}
           {{ form.admission_number }}
         </div>
-          <div id="employee-field" class="form-group">
-            {{ form.employee_number.label_tag }}
-            {{ form.employee_number.errors }}
-            {{ form.employee_number }}
+
+        <div id="employee-field" class="form-group">
+          {{ form.employee_number.label_tag }}
+          {{ form.employee_number.errors }}
+          {{ form.employee_number }}
         </div>
+
         <!-- TSC Number -->
         <div id="tsc-field" class="form-group">
           {{ form.tsc_number.label_tag }}
@@ -276,15 +336,69 @@
         <!-- Password 1 -->
         <div class="form-group">
           {{ form.password1.label_tag }}
+
+          <div class="password-wrap">
+            {{ form.password1 }}
+            <button type="button"
+                    class="password-toggle"
+                    data-toggle-password="id_password1"
+                    aria-label="Show password"
+                    aria-pressed="false"
+                    title="Show password">
+              <!-- eye (default: hidden) -->
+              <svg class="icon-eye" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              <!-- eye-off (shown when toggled) -->
+              <svg class="icon-eye-off" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round"
+                   style="display:none;">
+                <path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a19.77 19.77 0 0 1 5.06-5.94"/>
+                <path d="M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 7 11 7a19.79 19.79 0 0 1-3.17 4.19"/>
+                <path d="M9.88 9.88a3 3 0 0 0 4.24 4.24"/>
+                <line x1="1" y1="1" x2="23" y2="23"/>
+              </svg>
+            </button>
+          </div>
+
           {{ form.password1.errors }}
-          {{ form.password1 }}
         </div>
 
         <!-- Password 2 -->
         <div class="form-group">
           {{ form.password2.label_tag }}
+
+          <div class="password-wrap">
+            {{ form.password2 }}
+            <button type="button"
+                    class="password-toggle"
+                    data-toggle-password="id_password2"
+                    aria-label="Show password"
+                    aria-pressed="false"
+                    title="Show password">
+              <svg class="icon-eye" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              <svg class="icon-eye-off" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round"
+                   style="display:none;">
+                <path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a19.77 19.77 0 0 1 5.06-5.94"/>
+                <path d="M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 7 11 7a19.79 19.79 0 0 1-3.17 4.19"/>
+                <path d="M9.88 9.88a3 3 0 0 0 4.24 4.24"/>
+                <line x1="1" y1="1" x2="23" y2="23"/>
+              </svg>
+            </button>
+          </div>
+
           {{ form.password2.errors }}
-          {{ form.password2 }}
         </div>
 
         <button type="submit" class="btn-primary">Sign Up</button>
@@ -299,6 +413,40 @@
 </div>
 
 <script>
+/* ============================================
+   PASSWORD SHOW / HIDE TOGGLE
+   Works for any button with [data-toggle-password]
+   pointing to the id of the input to toggle.
+   Reusable on login.html too.
+============================================ */
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll("[data-toggle-password]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+            const targetId = btn.getAttribute("data-toggle-password");
+            const input = document.getElementById(targetId);
+            if (!input) return;
+
+            const showing = input.type === "text";
+
+            input.type = showing ? "password" : "text";
+            btn.setAttribute("aria-pressed", String(!showing));
+            btn.setAttribute("aria-label", showing ? "Show password" : "Hide password");
+            btn.setAttribute("title",      showing ? "Show password" : "Hide password");
+
+            // Swap icons
+            const eye   = btn.querySelector(".icon-eye");
+            const eyeOff = btn.querySelector(".icon-eye-off");
+            if (eye && eyeOff) {
+                eye.style.display   = showing ? "block" : "none";
+                eyeOff.style.display = showing ? "none"  : "block";
+            }
+        });
+    });
+});
+
+/* ============================================
+   ROLE-BASED FIELD VISIBILITY
+============================================ */
 document.addEventListener("DOMContentLoaded", function () {
     const role = document.getElementById("id_role");
     const teacherRole = document.getElementById("teacher-role-field");
@@ -308,51 +456,56 @@ document.addEventListener("DOMContentLoaded", function () {
     const schoolClass = document.getElementById("class-field");
     const employee = document.getElementById("employee-field");
 
+    if (!role) return;
+
     function toggleFields() {
-    const value = role.value;
+        const value = role.value;
 
-    if (value === "teacher") {
-        tsc.style.display = "block";
-        teacherRole.style.display = "block";
-        employee.style.display = "block";   // Show
+        if (value === "teacher") {
+            tsc.style.display = "block";
+            teacherRole.style.display = "block";
+            employee.style.display = "block";
 
-        admission.style.display = "none";
-        school.style.display = "block";
-        schoolClass.style.display = "none";
+            admission.style.display = "none";
+            school.style.display = "block";
+            schoolClass.style.display = "none";
 
-    } else if (value === "student") {
-        tsc.style.display = "none";
-        teacherRole.style.display = "none";
-        employee.style.display = "none";    
+        } else if (value === "student") {
+            tsc.style.display = "none";
+            teacherRole.style.display = "none";
+            employee.style.display = "none";
 
-        admission.style.display = "block";
-        school.style.display = "block";
-        schoolClass.style.display = "block";
+            admission.style.display = "block";
+            school.style.display = "block";
+            schoolClass.style.display = "block";
 
-    } else if (value === "school_admin") {
-        tsc.style.display = "none";
-        teacherRole.style.display = "none";
-        employee.style.display = "none";   
+        } else if (value === "school_admin") {
+            tsc.style.display = "none";
+            teacherRole.style.display = "none";
+            employee.style.display = "none";
 
-        admission.style.display = "none";
-        school.style.display = "none";
-        schoolClass.style.display = "none";
+            admission.style.display = "none";
+            school.style.display = "none";
+            schoolClass.style.display = "none";
 
-    } else { // Parent
-        tsc.style.display = "none";
-        teacherRole.style.display = "none";
-        employee.style.display = "none";   
+        } else { // Parent
+            tsc.style.display = "none";
+            teacherRole.style.display = "none";
+            employee.style.display = "none";
 
-        admission.style.display = "none";
-        school.style.display = "none";
-        schoolClass.style.display = "none";
+            admission.style.display = "none";
+            school.style.display = "none";
+            schoolClass.style.display = "none";
+        }
     }
-}
 
     role.addEventListener("change", toggleFields);
     toggleFields();
 });
 
+/* ============================================
+   DEPENDENT DROPDOWNS (school → classes / roles)
+============================================ */
 document.addEventListener("DOMContentLoaded", function () {
     const schoolSelect = document.getElementById("id_school");
     const classSelect = document.getElementById("id_school_class");

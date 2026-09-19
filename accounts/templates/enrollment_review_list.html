@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Enrollment Approvals{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <h3 class="mb-3">Enrollment Approvals</h3>
+
+    <div class="mb-3 d-flex gap-2 flex-wrap">
+        {% for s, c in counts.items %}
+            <a href="?status={{ s }}"
+               class="btn btn-sm {% if s == status_filter %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+                {{ s|title }} ({{ c }})
+            </a>
+        {% endfor %}
+    </div>
+
+    {% if enrollments %}
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Learner</th>
+                        <th>Admission No.</th>
+                        <th>Class</th>
+                        <th>Status</th>
+                        <th>Submitted</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for e in enrollments %}
+                    <tr>
+                        <td>{{ e.student.get_full_name|default:e.student.username }}</td>
+                        <td>{{ e.student.admission_no|default:"—" }}</td>
+                        <td>{{ e.school_class.name }}</td>
+                        <td><span class="badge bg-secondary">{{ e.get_status_display }}</span></td>
+                        <td>{{ e.created_at|date:"M d, Y H:i" }}</td>
+                        <td class="text-end">
+                            {% if e.status == "PENDING" %}
+                                <form method="post" action="{% url 'enrollment_approve' e.id %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button class="btn btn-sm btn-success">Approve</button>
+                                </form>
+                            {% endif %}
+                            <a href="{% url 'enrollment_transfer' e.id %}"
+                               class="btn btn-sm btn-outline-primary">Transfer</a>
+                            {% if e.status == "PENDING" %}
+                                <form method="post" action="{% url 'enrollment_reject' e.id %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button class="btn btn-sm btn-outline-danger">Reject</button>
+                                </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-info">No enrollments in this status.</div>
+    {% endif %}
+
+</div>
+{% endblock %}

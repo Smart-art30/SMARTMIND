@@ -264,6 +264,35 @@
   .qr-answer-yours.wrong   { color: #dc2626; font-weight: 650; }
   .qr-answer-correct       { color: #059669; font-weight: 650; }
 
+  /* ============ EXPLANATION ============ */
+  .qr-explanation {
+    margin-top: 16px;
+    padding: 14px 16px 14px 18px;
+    background: #f0f9ff;
+    border-left: 3px solid #0ea5e9;
+    border-radius: 8px;
+    font-size: .9rem;
+    color: #0c4a6e;
+    line-height: 1.6;
+  }
+
+  .qr-explanation-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: .74rem;
+    font-weight: 700;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: #0284c7;
+    margin-bottom: 6px;
+  }
+
+  .qr-explanation p {
+    margin: 0;
+    color: #0c4a6e;
+  }
+
   /* ============ ACTION BUTTONS ============ */
   .qr-actions {
     display: flex;
@@ -495,6 +524,15 @@
             <span>{{ answer.marks_awarded|floatformat:0 }} / {{ answer.question.marks|floatformat:0 }}</span>
           </div>
         </div>
+
+        {# ============ EXPLANATION ============ #}
+        {% if answer.question.explanation %}
+          <div class="qr-explanation">
+            <div class="qr-explanation-label">💡 Explanation</div>
+            <p>{{ answer.question.explanation }}</p>
+          </div>
+        {% endif %}
+
       </div>
     {% endfor %}
   {% endif %}

@@ -33,5 +33,14 @@ urlpatterns = [
     path("",views.attendance_dashboard,name="attendance_dashboard",),
     path("parents/",views.parent_list,name="parent_list",),
     path("ajax/load-teacher-roles/",views.load_teacher_roles,name="ajax_load_teacher_roles",),
-  
-]
+    path("enrollments/", views.enrollment_review_list, name="enrollment_review_list"),
+    path("enrollments/<int:pk>/approve/", views.enrollment_approve, name="enrollment_approve"),
+    path("enrollments/<int:pk>/reject/", views.enrollment_reject, name="enrollment_reject"),
+    path("enrollments/<int:pk>/transfer/", views.enrollment_transfer, name="enrollment_transfer"),
+    path("classes/", views.class_list, name="class_list"),
+    path("classes/new/", views.class_create, name="class_create"),
+    path("classes/<int:pk>/edit/", views.class_edit, name="class_edit"),
+    path("classes/<int:pk>/delete/", views.class_delete, name="class_delete"),
+    path("students/", views.student_list, name="student_list"),
+    path("students/<int:pk>/", views.student_detail, name="student_detail"),
+    ]
