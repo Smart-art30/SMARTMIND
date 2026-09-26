@@ -1,161 +1,447 @@
+{% extends "base.html" %}
 {% load static %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Create Assignment</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+{% block title %}Create Assignment | SmartMind{% endblock %}
+
+{% block content %}
 
 <style>
+  /* =====================================================
+     DESIGN TOKENS
+  ===================================================== */
+  .ca-wrap {
+    --ca-bg-1: #f8fafc;
+    --ca-bg-2: #eef2ff;
+    --ca-ink: #0f172a;
+    --ca-ink-soft: #475569;
+    --ca-ink-mute: #94a3b8;
+    --ca-line: #e2e8f0;
+    --ca-line-soft: #f1f5f9;
+    --ca-accent: #4f46e5;
+    --ca-accent-2: #7c3aed;
+    --ca-accent-soft: #eef2ff;
+    --ca-danger: #dc2626;
+    --ca-danger-soft: #fef2f2;
+    --ca-radius: 14px;
+    --ca-radius-lg: 20px;
 
-body{
-    margin:0;
-    background:#f4f7fb;
-    font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-}
+    min-height: 100%;
+    width: 100%;
+    padding: 32px 32px 64px;
+    box-sizing: border-box;
+    background:
+      radial-gradient(1200px 500px at 10% -10%, #e0e7ff 0%, transparent 60%),
+      radial-gradient(1000px 500px at 100% 0%, #fae8ff 0%, transparent 55%),
+      linear-gradient(180deg, var(--ca-bg-1) 0%, var(--ca-bg-2) 100%);
+    font-family: inherit;
+  }
 
-.container{
-    max-width:900px;
-    margin:40px auto;
-    padding:20px;
-}
+  /* =====================================================
+     CARD
+  ===================================================== */
+  .ca-card {
+    width: 100%;
+    max-width: 100%;
+    background: rgba(255, 255, 255, .88);
+    backdrop-filter: saturate(180%) blur(14px);
+    -webkit-backdrop-filter: saturate(180%) blur(14px);
+    border: 1px solid rgba(226, 232, 240, .9);
+    border-radius: var(--ca-radius-lg);
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, .9) inset,
+      0 20px 45px -20px rgba(15, 23, 42, .18),
+      0 8px 24px -12px rgba(79, 70, 229, .12);
+    padding: 36px 40px 40px;
+    box-sizing: border-box;
+    position: relative;
+    overflow: hidden;
+  }
 
-.card{
-    background:white;
-    padding:30px;
-    border-radius:16px;
-    box-shadow:0 10px 25px rgba(0,0,0,.08);
-}
+  /* Subtle top gradient hairline */
+  .ca-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 3px;
+    background: linear-gradient(90deg, #6366f1, #8b5cf6, #ec4899);
+    opacity: .9;
+  }
 
-h1{
-    margin-top:0;
-    color:#1f2937;
-}
+  /* =====================================================
+     HEADER
+  ===================================================== */
+  .ca-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+    padding-bottom: 22px;
+    border-bottom: 1px dashed var(--ca-line);
+  }
 
-.form-group{
-    margin-bottom:20px;
-}
+  .ca-title-block { min-width: 0; }
 
-label{
-    display:block;
-    margin-bottom:8px;
-    font-weight:600;
-    color:#374151;
-}
+  .ca-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--ca-accent);
+    background: var(--ca-accent-soft);
+    padding: 4px 10px;
+    border-radius: 100px;
+    margin-bottom: 10px;
+  }
 
-input,
-select,
-textarea{
-    width:100%;
-    padding:12px;
-    border:1px solid #d1d5db;
-    border-radius:8px;
-    font-size:15px;
-    box-sizing:border-box;
-}
+  .ca-title {
+    margin: 0 0 6px;
+    font-size: 1.65rem;
+    font-weight: 750;
+    color: var(--ca-ink);
+    letter-spacing: -0.025em;
+    line-height: 1.15;
+  }
 
-textarea{
-    min-height:180px;
-}
+  .ca-sub {
+    margin: 0;
+    color: var(--ca-ink-soft);
+    font-size: .92rem;
+    line-height: 1.55;
+    max-width: 70ch;
+  }
 
-.helptext{
-    font-size:13px;
-    color:#6b7280;
-}
+  /* =====================================================
+     FORM GRID
+  ===================================================== */
+  .ca-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px 28px;
+  }
 
-.errorlist{
-    color:#dc2626;
-    margin:5px 0;
-}
+  .ca-field--full { grid-column: 1 / -1; }
 
-.actions{
-    margin-top:30px;
-}
+  .ca-field {
+    margin: 0;
+    min-width: 0;
+    position: relative;
+  }
 
-.btn{
-    display:inline-block;
-    padding:12px 20px;
-    border:none;
-    border-radius:8px;
-    text-decoration:none;
-    cursor:pointer;
-    font-size:15px;
-    font-weight:bold;
-}
+  .ca-field label {
+    display: block;
+    font-weight: 600;
+    font-size: .82rem;
+    color: var(--ca-ink);
+    margin-bottom: 8px;
+    letter-spacing: .005em;
+  }
 
-.btn-primary{
-    background:#2563eb;
-    color:white;
-}
+  .ca-field label .ca-req {
+    color: var(--ca-danger);
+    margin-left: 2px;
+  }
 
-.btn-primary:hover{
-    background:#1d4ed8;
-}
+  /* =====================================================
+     INPUTS
+  ===================================================== */
+  .ca-field input,
+  .ca-field select,
+  .ca-field textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--ca-line);
+    border-radius: var(--ca-radius);
+    font-size: .95rem;
+    font-family: inherit;
+    color: var(--ca-ink);
+    background: #fff;
+    box-sizing: border-box;
+    transition:
+      border-color .18s ease,
+      box-shadow .18s ease,
+      background-color .18s ease,
+      transform .18s ease;
+    box-shadow: 0 1px 0 rgba(15, 23, 42, .02);
+  }
 
-.btn-secondary{
-    background:#6b7280;
-    color:white;
-}
+  .ca-field input::placeholder,
+  .ca-field textarea::placeholder {
+    color: #cbd5e1;
+  }
 
-.btn-secondary:hover{
-    background:#4b5563;
-}
+  .ca-field input:hover,
+  .ca-field select:hover,
+  .ca-field textarea:hover {
+    border-color: #cbd5e1;
+  }
 
+  .ca-field input:focus,
+  .ca-field select:focus,
+  .ca-field textarea:focus {
+    outline: none;
+    border-color: var(--ca-accent);
+    background: #fff;
+    box-shadow:
+      0 0 0 4px rgba(79, 70, 229, .12),
+      0 1px 2px rgba(15, 23, 42, .04);
+  }
+
+  .ca-field textarea {
+    min-height: 170px;
+    resize: vertical;
+    line-height: 1.55;
+  }
+
+  .ca-field input[type="file"] {
+    padding: 10px 12px;
+    background: linear-gradient(180deg, #f8fafc, #f1f5f9);
+    cursor: pointer;
+    border-style: dashed;
+    color: var(--ca-ink-soft);
+  }
+
+  .ca-field input[type="file"]:hover {
+    border-color: var(--ca-accent);
+    background: var(--ca-accent-soft);
+  }
+
+  .ca-field input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin-right: 8px;
+    accent-color: var(--ca-accent);
+    vertical-align: middle;
+  }
+
+  .ca-help {
+    font-size: .78rem;
+    color: var(--ca-ink-mute);
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+
+  .ca-help ul {
+    margin: 4px 0 0 16px;
+    padding: 0;
+  }
+
+  /* =====================================================
+     ERRORS
+  ===================================================== */
+  .ca-errors {
+    list-style: none;
+    padding: 10px 14px;
+    margin: 8px 0 0;
+    background: var(--ca-danger-soft);
+    border: 1px solid #fecaca;
+    border-left: 3px solid var(--ca-danger);
+    border-radius: 10px;
+    color: #b91c1c;
+    font-size: .82rem;
+    font-weight: 500;
+  }
+
+  .ca-errors li + li { margin-top: 4px; }
+
+  .ca-field.has-error input,
+  .ca-field.has-error select,
+  .ca-field.has-error textarea {
+    border-color: #fca5a5;
+    background: #fffbfb;
+  }
+
+  .ca-field.has-error input:focus,
+  .ca-field.has-error select:focus,
+  .ca-field.has-error textarea:focus {
+    box-shadow: 0 0 0 4px rgba(239, 68, 68, .14);
+  }
+
+  /* =====================================================
+     ACTIONS BAR
+  ===================================================== */
+  .ca-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+    padding-top: 24px;
+    border-top: 1px dashed var(--ca-line);
+  }
+
+  .ca-actions .ca-spacer { flex: 1; }
+
+  .ca-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 22px;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: .9rem;
+    text-decoration: none;
+    cursor: pointer;
+    transition:
+      transform .12s ease,
+      box-shadow .18s ease,
+      background-color .18s ease,
+      border-color .18s ease,
+      color .18s ease;
+    white-space: nowrap;
+  }
+
+  .ca-btn:active { transform: translateY(1px); }
+
+  .ca-btn-primary {
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 60%, #4338ca 100%);
+    color: #fff;
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, .25) inset,
+      0 10px 20px -8px rgba(79, 70, 229, .55);
+  }
+  .ca-btn-primary:hover {
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, .3) inset,
+      0 14px 26px -10px rgba(79, 70, 229, .65);
+    transform: translateY(-1px);
+    color: #fff;
+  }
+
+  .ca-btn-ghost {
+    background: #fff;
+    color: var(--ca-ink-soft);
+    border-color: var(--ca-line);
+  }
+  .ca-btn-ghost:hover {
+    background: var(--ca-line-soft);
+    color: var(--ca-ink);
+    border-color: #cbd5e1;
+  }
+
+  /* =====================================================
+     WIDE SCREENS
+  ===================================================== */
+  @media (min-width: 1600px) {
+    .ca-card { padding: 44px 56px 48px; }
+    .ca-form { gap: 24px 36px; }
+    .ca-title { font-size: 1.8rem; }
+  }
+
+  @media (min-width: 2000px) {
+    .ca-card { padding: 52px 72px 56px; }
+  }
+
+  /* =====================================================
+     TABLET
+  ===================================================== */
+  @media (max-width: 900px) {
+    .ca-form { grid-template-columns: 1fr; }
+    .ca-card { padding: 28px 26px 32px; }
+  }
+
+  /* =====================================================
+     MOBILE
+  ===================================================== */
+  @media (max-width: 640px) {
+    .ca-wrap { padding: 16px 14px 40px; }
+    .ca-card { padding: 22px 20px 26px; border-radius: 16px; }
+    .ca-title { font-size: 1.3rem; }
+    .ca-actions { flex-direction: column-reverse; }
+    .ca-btn { width: 100%; }
+  }
+
+  /* =====================================================
+     REDUCED MOTION
+  ===================================================== */
+  @media (prefers-reduced-motion: reduce) {
+    .ca-btn,
+    .ca-field input,
+    .ca-field select,
+    .ca-field textarea {
+      transition: none !important;
+      transform: none !important;
+    }
+  }
 </style>
-</head>
 
-<body>
+<div class="ca-wrap">
+  <div class="ca-card">
 
-<div class="container">
+    <!-- ================= HEADER ================= -->
+    <div class="ca-header">
+      <div class="ca-title-block">
+        <span class="ca-eyebrow">✦ New Assignment</span>
+        <h1 class="ca-title">Create Assignment</h1>
+        <p class="ca-sub">
+          Fill in the details below. Fields marked with
+          <strong style="color:#dc2626;">*</strong> are required.
+        </p>
+      </div>
+    </div>
 
-<div class="card">
+    <!-- ================= FORM ================= -->
+    <form method="post" enctype="multipart/form-data" novalidate class="ca-form">
+      {% csrf_token %}
 
-<h1>📝 Create Assignment</h1>
+      {% if form.non_field_errors %}
+        <div class="ca-field ca-field--full">
+          <ul class="ca-errors">
+            {% for error in form.non_field_errors %}
+              <li>{{ error }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
 
-<form method="post" enctype="multipart/form-data">
+      {% for field in form %}
+        <div class="ca-field
+                    {% if field.errors %}has-error{% endif %}
+                    {% if field.name in 'description,instructions,content,notes,body,message' %}ca-field--full{% endif %}">
 
-{% csrf_token %}
+          <label for="{{ field.id_for_label }}">
+            {{ field.label }}
+            {% if field.field.required %}<span class="ca-req">*</span>{% endif %}
+          </label>
 
-{% for field in form %}
+          {{ field }}
 
-<div class="form-group">
+          {% if field.help_text %}
+            <div class="ca-help">{{ field.help_text }}</div>
+          {% endif %}
 
-<label for="{{ field.id_for_label }}">
-{{ field.label }}
-</label>
+          {% if field.errors %}
+            <ul class="ca-errors">
+              {% for error in field.errors %}
+                <li>{{ error }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
 
-{{ field }}
+        </div>
+      {% endfor %}
 
-{% if field.help_text %}
-<div class="helptext">
-{{ field.help_text }}
+      <!-- ================= ACTIONS ================= -->
+      <div class="ca-actions">
+        <a href="{% url 'manage_assignments' %}" class="ca-btn ca-btn-ghost">
+          ← Back
+        </a>
+        <div class="ca-spacer"></div>
+        <button type="submit" class="ca-btn ca-btn-primary">
+          💾 Save Assignment
+        </button>
+      </div>
+
+    </form>
+
+  </div>
 </div>
-{% endif %}
 
-{{ field.errors }}
-
-</div>
-
-{% endfor %}
-
-<div class="actions">
-
-<button type="submit" class="btn btn-primary">
-💾 Save Assignment
-</button>
-
-<a href="{% url 'manage_assignments' %}" class="btn btn-secondary">
-← Back
-</a>
-
-</div>
-
-</form>
-
-</div>
-
-</div>
-
-</body>
-</html>
+{% endblock %}

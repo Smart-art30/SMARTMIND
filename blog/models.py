@@ -4,6 +4,7 @@ from django_ckeditor_5.fields import CKEditor5Field
 from django.urls import reverse
 from django.template.defaultfilters import slugify
 import uuid
+import os
 
 
 User = get_user_model()
@@ -247,7 +248,125 @@ class PostImage(models.Model):
         )
 
 
+# ==========================================================
+# POST ATTACHMENT (PDF / DOCUMENTS)
+# ==========================================================
 
+import os
+
+
+class PostAttachment(models.Model):
+
+    post = models.ForeignKey(
+        Post,
+        on_delete=models.CASCADE,
+        related_name="attachments"
+    )
+
+    file = models.FileField(
+        upload_to="posts/attachments/"
+    )
+
+    original_name = models.CharField(
+        max_length=255,
+        blank=True
+    )
+
+    position = models.PositiveIntegerField(
+        default=0
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    class Meta:
+
+        ordering = [
+            "position",
+            "created_at",
+        ]
+
+    def __str__(self):
+
+        return (
+            f"{self.post.title} - "
+            f"{self.original_name or self.file.name}"
+        )
+
+    def save(self, *args, **kwargs):
+
+        if not self.original_name and self.file:
+
+            self.original_name = os.path.basename(
+                self.file.name
+            )
+
+        super().save(*args, **kwargs)
+
+    @property
+    def extension(self):
+
+        name = self.original_name or self.file.name
+
+        ext = os.path.splitext(name)[1].lower()
+
+        return ext.lstrip(".")
+
+    @property
+    def is_pdf(self):
+
+        return self.extension == "pdf"
+
+    @property
+    def is_image(self):
+
+        return self.extension in {
+            "jpg", "jpeg", "png", "gif", "webp", "bmp", "svg"
+        }
+
+    @property
+    def icon_class(self):
+
+        mapping = {
+            "pdf":  "bi-file-earmark-pdf",
+            "doc":  "bi-file-earmark-word",
+            "docx": "bi-file-earmark-word",
+            "xls":  "bi-file-earmark-excel",
+            "xlsx": "bi-file-earmark-excel",
+            "ppt":  "bi-file-earmark-ppt",
+            "pptx": "bi-file-earmark-ppt",
+            "txt":  "bi-file-earmark-text",
+            "csv":  "bi-file-earmark-spreadsheet",
+            "zip":  "bi-file-earmark-zip",
+            "rar":  "bi-file-earmark-zip",
+        }
+
+        return mapping.get(
+            self.extension,
+            "bi-file-earmark"
+        )
+
+    @property
+    def size_display(self):
+
+        try:
+
+            size = self.file.size
+
+        except (OSError, ValueError):
+
+            return "—"
+
+        if size < 1024:
+
+            return f"{size} B"
+
+        if size < 1024 * 1024:
+
+            return f"{size / 1024:.1f} KB"
+
+        return f"{size / (1024 * 1024):.2f} MB"
 
 
 class Comment(models.Model):

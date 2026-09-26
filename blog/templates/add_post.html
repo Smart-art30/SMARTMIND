@@ -161,6 +161,90 @@
                 {% endif %}
             </div>
 
+            <!-- ============================================= -->
+            <!-- DOCUMENTS (PDF, DOC, XLS, PPT, ZIP, etc.)     -->
+            <!-- ============================================= -->
+            <div class="form-section">
+                <div class="section-title">
+                    <span><i class="bi bi-file-earmark-arrow-up"></i> Documents</span>
+                </div>
+
+                <!-- Existing Documents (Edit Mode) -->
+                {% if is_edit and post.attachments.exists %}
+                    <div class="existing-docs mb-3">
+                        <label class="fw-bold">Existing Documents</label>
+                        <div class="doc-list">
+                            {% for doc in post.attachments.all %}
+                                <div class="doc-item" data-doc-id="{{ doc.id }}">
+                                    <div class="doc-icon doc-icon-{{ doc.extension }}">
+                                        <i class="bi {{ doc.icon_class }}"></i>
+                                    </div>
+                                    <div class="doc-info">
+                                        <a href="{{ doc.file.url }}" target="_blank" rel="noopener"
+                                           class="doc-name">{{ doc.original_name }}</a>
+                                        <small class="doc-meta">
+                                            .{{ doc.extension }} &middot; {{ doc.size_display }}
+                                        </small>
+                                    </div>
+                                    <button type="button"
+                                            class="remove-doc remove-existing-doc"
+                                            data-doc-id="{{ doc.id }}"
+                                            aria-label="Remove document">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+
+                <!-- UPLOAD BOX -->
+                <div class="doc-upload-box" id="docUploadBox">
+                    <!-- EMPTY STATE -->
+                    <div class="doc-empty" id="docEmpty">
+                        <div class="doc-upload-icon">
+                            <i class="bi bi-file-earmark-arrow-up-fill"></i>
+                        </div>
+                        <h3>Add documents</h3>
+                        <p>Drag and drop PDFs or documents here, or choose files from your device.</p>
+                        <label for="id_attachments" class="choose-button" id="chooseDocsLabel">
+                            <i class="bi bi-folder2-open"></i> Choose Documents
+                        </label>
+                        <small>PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT, CSV, ZIP. Max 20MB each.</small>
+                    </div>
+
+                    <!-- DOC PREVIEW -->
+                    <div class="doc-preview-list" id="docPreview"></div>
+
+                    <!-- DJANGO DOC INPUT -->
+                    <div class="django-doc-input">
+                        <input type="file"
+                               name="attachments"
+                               id="id_attachments"
+                               multiple
+                               accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip,.rar"
+                               style="display:none;">
+                    </div>
+
+                    <!-- DOC COUNT -->
+                    <div id="docCount" class="doc-count"></div>
+
+                    <!-- ADD MORE DOCS -->
+                    <label for="id_attachments" class="add-more" id="addMoreDocsLabel">
+                        <i class="bi bi-plus-circle"></i> Add More Documents
+                    </label>
+                </div>
+
+                {% if form.attachments.errors %}
+                    <div class="field-error">
+                        <i class="bi bi-exclamation-circle"></i> {{ form.attachments.errors }}
+                    </div>
+                {% endif %}
+            </div>
+            <!-- ============================================= -->
+            <!-- /DOCUMENTS                                    -->
+            <!-- ============================================= -->
+
             <!-- SCHOOL -->
             <div class="form-section">
                 <label for="{{ form.school.id_for_label }}">School</label>
@@ -271,6 +355,7 @@
     </div>
 </div>
 {% endblock %}
+
 
 {% block extra_css %}
 <style>
@@ -574,7 +659,8 @@
 /* ============================================================
    HIDDEN DJANGO INPUT
 ============================================================ */
-.django-photo-input {
+.django-photo-input,
+.django-doc-input {
     position: absolute;
     width: 0;
     height: 0;
@@ -696,6 +782,199 @@
     max-height: 400px;
     border-radius: 10px;
     background: #000;
+}
+
+/* ============================================================
+   DOCUMENTS — UPLOAD BOX
+============================================================ */
+.doc-upload-box {
+    position: relative;
+    min-height: 200px;
+    padding: 15px;
+    background: #f7f8fa;
+    border: 2px dashed #ccd0d5;
+    border-radius: 14px;
+    transition: background .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+
+.doc-upload-box.dragging {
+    background: #fff5e6;
+    border-color: #f7b32b;
+    box-shadow: 0 0 0 4px rgba(247,179,43,.10);
+}
+
+/* ============================================================
+   DOCUMENTS — EMPTY STATE
+============================================================ */
+.doc-empty {
+    min-height: 165px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    text-align: center;
+}
+
+.doc-upload-icon {
+    width: 65px;
+    height: 65px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+    color: #d9534f;
+    background: #fdecec;
+    border-radius: 50%;
+    font-size: 27px;
+}
+
+.doc-empty h3 {
+    margin: 0 0 5px;
+    font-size: 18px;
+}
+
+.doc-empty p {
+    max-width: 430px;
+    margin: 0 0 15px;
+    color: var(--post-muted);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.doc-empty small {
+    display: block;
+    margin-top: 9px;
+    color: #8a8d91;
+}
+
+/* ============================================================
+   DOCUMENTS — LIST (existing + preview)
+============================================================ */
+.doc-list,
+.doc-preview-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.doc-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    background: #fff;
+    border: 1px solid var(--post-border);
+    border-radius: 10px;
+    transition: box-shadow .2s ease;
+}
+
+.doc-item:hover {
+    box-shadow: 0 3px 10px rgba(0,0,0,.07);
+}
+
+/* ============================================================
+   DOCUMENTS — FILE TYPE ICON
+============================================================ */
+.doc-icon {
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9px;
+    font-size: 20px;
+    color: #fff;
+    background: #6c757d;
+}
+
+.doc-icon-pdf              { background: #dc3545; }
+.doc-icon-doc,
+.doc-icon-docx             { background: #2b579a; }
+.doc-icon-xls,
+.doc-icon-xlsx             { background: #217346; }
+.doc-icon-ppt,
+.doc-icon-pptx             { background: #d24726; }
+.doc-icon-txt              { background: #6c757d; }
+.doc-icon-csv              { background: #0f7b0f; }
+.doc-icon-zip,
+.doc-icon-rar              { background: #f7b32b; color: #222; }
+
+/* ============================================================
+   DOCUMENTS — INFO
+============================================================ */
+.doc-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.doc-name {
+    display: block;
+    color: #1a1a1a;
+    font-weight: 600;
+    font-size: 14px;
+    text-decoration: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.doc-name:hover {
+    color: var(--post-primary);
+    text-decoration: underline;
+}
+
+.doc-meta {
+    display: block;
+    margin-top: 2px;
+    color: var(--post-muted);
+    font-size: 11px;
+}
+
+/* ============================================================
+   DOCUMENTS — REMOVE BUTTON
+============================================================ */
+.remove-doc {
+    width: 30px;
+    height: 30px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    background: #f0f2f5;
+    border: 0;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: .2s ease;
+}
+
+.remove-doc:hover {
+    color: #fff;
+    background: #dc3545;
+}
+
+/* ============================================================
+   DOCUMENTS — COUNT
+============================================================ */
+.doc-count {
+    margin-top: 8px;
+    color: var(--post-muted);
+    font-size: 12px;
+}
+
+/* ============================================================
+   DOCUMENTS — ADD MORE (orange tint)
+============================================================ */
+#addMoreDocsLabel {
+    color: #b37400;
+    background: #fff5e6;
+    border: 1px solid #ffd88a;
+}
+
+#addMoreDocsLabel:hover {
+    background: #ffe9c2;
+    color: #b37400;
 }
 
 /* ============================================================
@@ -847,6 +1126,7 @@
 </style>
 {% endblock %}
 
+
 {% block extra_js %}
 <script>
 document.addEventListener("DOMContentLoaded", function () {
@@ -912,7 +1192,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     /* =====================================================
-       SYNC FILES WITH DJANGO INPUT - FIXED
+       SYNC FILES WITH DJANGO INPUT
     ===================================================== */
     function syncInput() {
         if (!photoInput) {
@@ -921,25 +1201,20 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         try {
-            // Create a new FileList
             const dataTransfer = new DataTransfer();
-            
-            // Add all selected files
+
             selectedFiles.forEach(function (file) {
                 dataTransfer.items.add(file);
             });
-            
-            // Set the files property
+
             photoInput.files = dataTransfer.files;
-            
-            // TRIGGER CHANGE EVENT - This is critical!
+
             const changeEvent = new Event('change', { bubbles: true });
             photoInput.dispatchEvent(changeEvent);
-            
+
             console.log('Synced ' + selectedFiles.length + ' files to input');
             console.log('Input files now:', photoInput.files.length);
-            
-            // Debug: Log the files in the input
+
             if (photoInput.files.length > 0) {
                 for (let i = 0; i < photoInput.files.length; i++) {
                     console.log('File in input:', photoInput.files[i].name);
@@ -951,7 +1226,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     /* =====================================================
-       ADD FILES - FIXED
+       ADD FILES
     ===================================================== */
     function addFiles(files) {
         if (!files) {
@@ -968,7 +1243,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
 
-            // Check file size (10MB limit)
             if (file.size > 10 * 1024 * 1024) {
                 alert('Image "' + file.name + '" exceeds 10MB limit.');
                 return;
@@ -988,9 +1262,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
         if (added > 0) {
-            // IMPORTANT: Sync the input first
             syncInput();
-            // Then render the preview
             renderPhotos();
             console.log('Added ' + added + ' photos. Total: ' + selectedFiles.length);
         } else {
@@ -1009,7 +1281,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
         preview.innerHTML = "";
 
-        /* EMPTY */
         if (!selectedFiles.length) {
             if (emptyState) emptyState.style.display = "flex";
             if (addMoreLabel) addMoreLabel.style.display = "none";
@@ -1018,7 +1289,6 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        /* HAS PHOTOS */
         if (emptyState) emptyState.style.display = "none";
         if (addMoreLabel) addMoreLabel.style.display = "block";
         if (photoCount) {
@@ -1032,7 +1302,6 @@ document.addEventListener("DOMContentLoaded", function () {
             const item = document.createElement("div");
             item.className = "photo-preview-item";
 
-            /* IMAGE */
             const image = document.createElement("img");
             const objectURL = URL.createObjectURL(file);
             image.src = objectURL;
@@ -1046,13 +1315,11 @@ document.addEventListener("DOMContentLoaded", function () {
             };
             item.appendChild(image);
 
-            /* NUMBER */
             const number = document.createElement("span");
             number.className = "photo-number";
             number.textContent = "#" + (index + 1);
             item.appendChild(number);
 
-            /* REMOVE */
             const remove = document.createElement("button");
             remove.type = "button";
             remove.className = "remove-photo";
@@ -1069,8 +1336,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             preview.appendChild(item);
         });
-        
-        // After rendering, make sure the input is synced again
+
         syncInput();
     }
 
@@ -1082,7 +1348,7 @@ document.addEventListener("DOMContentLoaded", function () {
             event.preventDefault();
             event.stopPropagation();
         }
-        
+
         console.log('Opening file picker...');
         if (photoInput) {
             photoInput.click();
@@ -1096,25 +1362,20 @@ document.addEventListener("DOMContentLoaded", function () {
     /* =====================================================
        EVENT LISTENERS
     ===================================================== */
-    
-    // Choose Photos - Use click event
     if (choosePhotosLabel) {
         choosePhotosLabel.addEventListener('click', openPicker);
         console.log('Choose photos label listener attached');
     }
 
-    // Add More Photos
     if (addMoreLabel) {
         addMoreLabel.addEventListener('click', openPicker);
         console.log('Add more label listener attached');
     }
 
-    // Click on the upload box (but not on buttons)
     if (photoBox) {
         photoBox.addEventListener('click', function(e) {
-            // Don't trigger if clicking on a remove button or labels
-            if (e.target.closest('.remove-photo') || 
-                e.target.closest('.choose-button') || 
+            if (e.target.closest('.remove-photo') ||
+                e.target.closest('.choose-button') ||
                 e.target.closest('.add-more')) {
                 return;
             }
@@ -1126,19 +1387,15 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     /* =====================================================
-       FILE INPUT CHANGE - FIXED
+       FILE INPUT CHANGE
     ===================================================== */
     if (photoInput) {
-        // Remove any existing listeners to avoid duplicates
-        // Use a fresh listener
         photoInput.addEventListener("change", function (event) {
             console.log('File input change event triggered');
             console.log('Files selected:', this.files ? this.files.length : 0);
-            
+
             if (this.files && this.files.length > 0) {
-                // Add the files
                 addFiles(this.files);
-                // Reset the input so the same file can be selected again
                 this.value = '';
             } else {
                 console.log('No files selected');
@@ -1147,7 +1404,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     /* =====================================================
-       DRAG AND DROP - FIXED
+       DRAG AND DROP
     ===================================================== */
     if (photoBox) {
         photoBox.addEventListener("dragenter", function (event) {
@@ -1179,7 +1436,6 @@ document.addEventListener("DOMContentLoaded", function () {
             const files = event.dataTransfer ? event.dataTransfer.files : null;
             if (files && files.length) {
                 console.log('Dropped files:', files.length);
-                // Add files directly
                 addFiles(files);
             }
         });
@@ -1351,6 +1607,239 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     });
+
+    /* =====================================================
+       DOCUMENTS UPLOAD
+    ===================================================== */
+    (function initDocuments() {
+        const docBox      = document.getElementById("docUploadBox");
+        const docInput    = document.getElementById("id_attachments");
+        const chooseDocs  = document.getElementById("chooseDocsLabel");
+        const addMoreDocs = document.getElementById("addMoreDocsLabel");
+        const docEmpty    = document.getElementById("docEmpty");
+        const docPreview  = document.getElementById("docPreview");
+        const docCount    = document.getElementById("docCount");
+
+        if (!docBox || !docInput || !docPreview) return;
+
+        let selectedDocs = [];
+
+        const ALLOWED_EXT = [
+            "pdf","doc","docx","xls","xlsx","ppt","pptx","txt","csv","zip","rar"
+        ];
+        const MAX_SIZE = 20 * 1024 * 1024;
+
+        function extOf(name) {
+            const i = name.lastIndexOf(".");
+            return i >= 0 ? name.slice(i + 1).toLowerCase() : "";
+        }
+
+        function iconFor(ext) {
+            return {
+                pdf:  "bi-file-earmark-pdf",
+                doc:  "bi-file-earmark-word",
+                docx: "bi-file-earmark-word",
+                xls:  "bi-file-earmark-excel",
+                xlsx: "bi-file-earmark-excel",
+                ppt:  "bi-file-earmark-ppt",
+                pptx: "bi-file-earmark-ppt",
+                txt:  "bi-file-earmark-text",
+                csv:  "bi-file-earmark-spreadsheet",
+                zip:  "bi-file-earmark-zip",
+                rar:  "bi-file-earmark-zip",
+            }[ext] || "bi-file-earmark";
+        }
+
+        function docFileId(f) {
+            return [f.name, f.size, f.lastModified, f.type].join("|");
+        }
+
+        function syncDocs() {
+            try {
+                const dt = new DataTransfer();
+                selectedDocs.forEach(f => dt.items.add(f));
+                docInput.files = dt.files;
+                docInput.dispatchEvent(new Event("change", { bubbles: true }));
+            } catch (e) {
+                console.error("Doc sync failed:", e);
+            }
+        }
+
+        function addDocs(files) {
+            if (!files) return;
+            let added = 0;
+
+            Array.from(files).forEach(file => {
+                const ext = extOf(file.name);
+
+                if (!ALLOWED_EXT.includes(ext)) {
+                    alert('"' + file.name + '" is not an allowed file type.');
+                    return;
+                }
+                if (file.size > MAX_SIZE) {
+                    alert('"' + file.name + '" exceeds the 20MB limit.');
+                    return;
+                }
+                const dup = selectedDocs.some(f => docFileId(f) === docFileId(file));
+                if (!dup) {
+                    selectedDocs.push(file);
+                    added++;
+                }
+            });
+
+            if (added > 0) {
+                syncDocs();
+                renderDocs();
+            }
+        }
+
+        function renderDocs() {
+            docPreview.innerHTML = "";
+
+            if (!selectedDocs.length) {
+                docEmpty.style.display = "flex";
+                addMoreDocs.style.display = "none";
+                docCount.textContent = "";
+                return;
+            }
+
+            docEmpty.style.display = "none";
+            addMoreDocs.style.display = "block";
+            docCount.textContent = selectedDocs.length +
+                (selectedDocs.length === 1 ? " document selected" : " documents selected");
+
+            selectedDocs.forEach((file, index) => {
+                const ext = extOf(file.name);
+                const item = document.createElement("div");
+                item.className = "doc-item";
+
+                const icon = document.createElement("div");
+                icon.className = "doc-icon doc-icon-" + ext;
+                icon.innerHTML = '<i class="bi ' + iconFor(ext) + '"></i>';
+                item.appendChild(icon);
+
+                const info = document.createElement("div");
+                info.className = "doc-info";
+
+                const name = document.createElement("span");
+                name.className = "doc-name";
+                name.textContent = file.name;
+
+                const meta = document.createElement("small");
+                meta.className = "doc-meta";
+                meta.textContent = "." + ext + " · " +
+                    (file.size / 1024 / 1024).toFixed(2) + " MB";
+
+                info.appendChild(name);
+                info.appendChild(meta);
+                item.appendChild(info);
+
+                const remove = document.createElement("button");
+                remove.type = "button";
+                remove.className = "remove-doc";
+                remove.setAttribute("aria-label", "Remove document");
+                remove.innerHTML = '<i class="bi bi-x-lg"></i>';
+                remove.addEventListener("click", e => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    selectedDocs.splice(index, 1);
+                    syncDocs();
+                    renderDocs();
+                });
+                item.appendChild(remove);
+
+                docPreview.appendChild(item);
+            });
+
+            syncDocs();
+        }
+
+        function openDocPicker(e) {
+            if (e) { e.preventDefault(); e.stopPropagation(); }
+            docInput.click();
+        }
+
+        if (chooseDocs)  chooseDocs.addEventListener("click", openDocPicker);
+        if (addMoreDocs) addMoreDocs.addEventListener("click", openDocPicker);
+
+        docBox.addEventListener("click", e => {
+            if (e.target.closest(".remove-doc") ||
+                e.target.closest(".choose-button") ||
+                e.target.closest(".add-more")) return;
+            docInput.click();
+        });
+
+        docInput.addEventListener("change", function () {
+            if (this.files && this.files.length) {
+                addDocs(this.files);
+                this.value = "";
+            }
+        });
+
+        ["dragenter","dragover"].forEach(ev =>
+            docBox.addEventListener(ev, e => {
+                e.preventDefault(); e.stopPropagation();
+                docBox.classList.add("dragging");
+                if (e.dataTransfer) e.dataTransfer.dropEffect = "copy";
+            })
+        );
+
+        ["dragleave","drop"].forEach(ev =>
+            docBox.addEventListener(ev, e => {
+                e.preventDefault(); e.stopPropagation();
+                docBox.classList.remove("dragging");
+            })
+        );
+
+        docBox.addEventListener("drop", e => {
+            const files = e.dataTransfer ? e.dataTransfer.files : null;
+            if (files && files.length) addDocs(files);
+        });
+
+        document.querySelectorAll(".remove-existing-doc").forEach(btn => {
+            btn.addEventListener("click", function () {
+                const docId = this.dataset.docId;
+                if (!docId) return;
+                if (!confirm("Remove this document?")) return;
+
+                const csrf = document.querySelector("[name=csrfmiddlewaretoken]")?.value;
+                if (!csrf) { alert("CSRF token missing. Refresh the page."); return; }
+
+                fetch("/remove-document/" + docId + "/", {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": csrf,
+                        "Content-Type": "application/json",
+                    },
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        const item = btn.closest(".doc-item");
+                        if (item) {
+                            item.style.transition = "opacity .3s";
+                            item.style.opacity = "0";
+                            setTimeout(() => {
+                                item.remove();
+                                const list = document.querySelector(".existing-docs");
+                                if (list && list.querySelectorAll(".doc-item").length === 0) {
+                                    list.remove();
+                                }
+                            }, 300);
+                        }
+                    } else {
+                        alert(data.message || "Failed to remove document.");
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert("An error occurred while removing the document.");
+                });
+            });
+        });
+
+        renderDocs();
+    })();
 
     /* =====================================================
        FORM SUBMISSION
