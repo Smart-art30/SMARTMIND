@@ -23,14 +23,18 @@ from django.views.decorators.http import (
     require_POST,
 )
 from django.db import transaction
-from django.forms import FileInput 
+from django.forms import FileInput
 from django_ckeditor_5.widgets import CKEditor5Widget
+from django.conf import settings
+
+import os
 
 from .models import (
     Category,
     Comment,
     Post,
     PostImage,
+    PostAttachment,
 )
 
 from .widgets import MultipleFileInput
@@ -38,6 +42,34 @@ from django.db.models import (
     F,
     Prefetch,
 )
+
+
+# ============================================================
+# DOCUMENT UPLOAD CONSTANTS
+# ============================================================
+
+ALLOWED_DOC_EXTENSIONS = {
+    ".pdf",
+    ".doc",
+    ".docx",
+    ".xls",
+    ".xlsx",
+    ".ppt",
+    ".pptx",
+    ".txt",
+    ".csv",
+    ".zip",
+    ".rar",
+}
+
+# 20MB — override via settings.MAX_DOCUMENT_SIZE if defined
+MAX_DOCUMENT_SIZE = getattr(
+    settings,
+    "MAX_DOCUMENT_SIZE",
+    20 * 1024 * 1024,
+)
+
+
 # ============================================================
 # COMMENT FORM
 # ============================================================
@@ -55,7 +87,6 @@ CommentForm = modelform_factory(
         )
     },
 )
-
 
 
 class MultipleImageInput(ClearableFileInput):
@@ -98,17 +129,17 @@ class PostForm(forms.ModelForm):
             'id': 'id_images',
             'name': 'images',
             'class': 'form-control',
-            'style': 'display: none;',  # Hide the default input
+            'style': 'display: none;',
         }),
         required=False,
         label='Photos',
         help_text='Select multiple photos (JPG, PNG, GIF, WebP)'
     )
-    
+
     class Meta:
         model = Post
         fields = [
-            'title', 'category', 'excerpt', 'content', 
+            'title', 'category', 'excerpt', 'content',
             'school', 'target_classes', 'video', 'youtube_url',
             'tags', 'visible_to_all', 'status'
         ]
@@ -125,7 +156,7 @@ class PostForm(forms.ModelForm):
                 'rows': 3,
                 'placeholder': 'Write a brief summary...'
             }),
-        'content': CKEditor5Widget(
+            'content': CKEditor5Widget(
                 attrs={
                     'class': 'django_ckeditor_5',
                 },
@@ -158,7 +189,8 @@ class PostForm(forms.ModelForm):
                 'class': 'form-select'
             }),
         }
-        
+
+
 # ============================================================
 # HELPER FUNCTIONS
 # ============================================================
@@ -223,7 +255,7 @@ def get_post_comments(
     request,
     post
 ):
-  
+
     comments = list(
         Comment.objects
         .filter(post=post)
@@ -264,7 +296,6 @@ def home(request):
         else None
     )
 
-
     comments_queryset = (
         Comment.objects
         .select_related("author")
@@ -272,8 +303,6 @@ def home(request):
         .order_by("created_at")
     )
 
-
-    
     posts_qs = (
         Post.objects
         .select_related(
@@ -283,6 +312,7 @@ def home(request):
         .prefetch_related(
             "tags",
             "images",
+            "attachments",          # <-- NEW
             "likes",
             Prefetch(
                 "comments",
@@ -295,11 +325,8 @@ def home(request):
         )
     )
 
-
     posts = []
 
-
-   
     for post in posts_qs:
 
         # ----------------------------------------------------
@@ -312,8 +339,6 @@ def home(request):
             []
         )
 
-
-     
         for comment in comments:
 
             if user_id:
@@ -327,23 +352,16 @@ def home(request):
 
                 comment.liked_by_current_user = False
 
-
-            # Total likes for this comment
-
             comment.likes_count = (
                 comment.liked_by.count()
             )
 
-
-       
         comments_count = (
             Comment.objects
             .filter(post=post)
             .count()
         )
 
-
-       
         is_liked = (
             bool(user_id)
             and post.likes.filter(
@@ -351,22 +369,16 @@ def home(request):
             ).exists()
         )
 
-
         likes_count = post.likes.count()
 
-
-       
         views_count = post.view_count
 
-
-       
         can_edit = can_manage_post(
             request,
             post
         )
 
         can_delete = can_edit
-
 
         # ----------------------------------------------------
         # ADD POST DATA
@@ -392,7 +404,6 @@ def home(request):
 
         })
 
-
     # ========================================================
     # CATEGORIES
     # ========================================================
@@ -403,11 +414,8 @@ def home(request):
         .order_by("name")
     )
 
-
     # ========================================================
     # FEATURED POST
-    #
-    # No status/approval filter.
     # ========================================================
 
     featured_post = (
@@ -422,13 +430,13 @@ def home(request):
         .prefetch_related(
             "tags",
             "images",
+            "attachments",          # <-- NEW
         )
         .order_by(
             "-created_at"
         )
         .first()
     )
-
 
     # ========================================================
     # CONTEXT
@@ -444,11 +452,6 @@ def home(request):
 
     }
 
-
-    # ========================================================
-    # RENDER HOME PAGE
-    # ========================================================
-
     return render(
         request,
         "home.html",
@@ -456,14 +459,12 @@ def home(request):
     )
 
 
-
-
-
 def post_detail(request, slug):
     """
     Display a single post with:
     - post information
     - images
+    - attachments (documents)
     - likes
     - comments
     - view count
@@ -484,6 +485,7 @@ def post_detail(request, slug):
         .prefetch_related(
             "tags",
             "images",
+            "attachments",          # <-- NEW
             "likes",
         ),
         slug=slug,
@@ -499,7 +501,6 @@ def post_detail(request, slug):
         view_count=F("view_count") + 1
     )
 
-    # Refresh the object so the template receives the new count
     post.refresh_from_db()
 
     # ---------------------------------------------------------
@@ -587,7 +588,7 @@ def post_detail(request, slug):
         "can_delete": can_delete,
     }
 
-    return render(request,"post_detail.html",context)
+    return render(request, "post_detail.html", context)
 
 
 def category_post(request, slug):
@@ -625,6 +626,7 @@ def category_post(request, slug):
         .prefetch_related(
             "tags",
             "images",
+            "attachments",          # <-- NEW
             "likes",
         )
         .order_by(
@@ -792,8 +794,6 @@ def category_post(request, slug):
     )
 
 
-
-
 @login_required
 @require_POST
 def like_toggle(
@@ -842,21 +842,10 @@ def add_comment(
     slug
 ):
 
-    # --------------------------------------------------------
-    # GET THE POST
-    #
-    # Do NOT require status="published".
-    # All created posts can receive comments.
-    # --------------------------------------------------------
-
     post = get_object_or_404(
         Post,
         slug=slug,
     )
-
-    # --------------------------------------------------------
-    # PROCESS COMMENT FORM
-    # --------------------------------------------------------
 
     form = CommentForm(
         request.POST
@@ -864,37 +853,23 @@ def add_comment(
 
     if form.is_valid():
 
-        # Create comment without saving immediately
         comment = form.save(
             commit=False
         )
 
-        # Attach post
         comment.post = post
 
-        # Attach logged-in user
         comment.author = request.user
 
-        # Save comment
         comment.save()
-
-        # ----------------------------------------------------
-        # RETURN TO THE COMMENTS SECTION
-        # ----------------------------------------------------
 
         return redirect(
             f"{post.get_absolute_url()}#comments-section"
         )
 
-    # --------------------------------------------------------
-    # IF FORM IS INVALID
-    # RETURN TO THE COMMENTS SECTION TOO
-    # --------------------------------------------------------
-
     return redirect(
         f"{post.get_absolute_url()}#comments-section"
     )
-
 
 
 # ============================================================
@@ -906,61 +881,78 @@ def add_comment(
 def add_post(request):
     allowed_roles = ["school_admin", "teacher"]
     user_role = get_user_role(request)
-    
+
     has_permission = (
-        request.user.is_superuser or 
+        request.user.is_superuser or
         user_role in allowed_roles
     )
-    
+
     if not has_permission:
         raise PermissionDenied("You do not have permission to add posts.")
-    
+
     if request.method == "POST":
         form = PostForm(request.POST, request.FILES)
-        
+
         if form.is_valid():
             uploaded_images = request.FILES.getlist('images')
-            
-            # Validate images before saving
+            uploaded_docs = request.FILES.getlist('attachments')
+
+            # Validate images
             for image in uploaded_images:
                 if not is_valid_image(image):
                     messages.error(
-                        request, 
+                        request,
                         f'Invalid image: {image.name}. Please use JPG, PNG, GIF, or WebP.'
                     )
                     return render(request, "add_post.html", {"form": form})
-                
+
                 if image.size > settings.MAX_IMAGE_SIZE:
                     messages.error(
-                        request, 
+                        request,
                         f'Image "{image.name}" exceeds {settings.MAX_IMAGE_SIZE // (1024*1024)}MB limit.'
                     )
                     return render(request, "add_post.html", {"form": form})
-            
+
+            # Validate documents
+            for doc in uploaded_docs:
+                if not is_valid_document(doc):
+                    messages.error(
+                        request,
+                        f'Invalid document: {doc.name}. Allowed: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT, CSV, ZIP, RAR.'
+                    )
+                    return render(request, "add_post.html", {"form": form})
+
+                if doc.size > MAX_DOCUMENT_SIZE:
+                    messages.error(
+                        request,
+                        f'Document "{doc.name}" exceeds {MAX_DOCUMENT_SIZE // (1024*1024)}MB limit.'
+                    )
+                    return render(request, "add_post.html", {"form": form})
+
             # Validate video
             if 'video' in request.FILES:
                 video = request.FILES['video']
                 if not is_valid_video(video):
                     messages.error(
-                        request, 
+                        request,
                         'Invalid video format. Please use MP4, WebM, or OGG.'
                     )
                     return render(request, "add_post.html", {"form": form})
-                
+
                 if video.size > settings.MAX_VIDEO_SIZE:
                     messages.error(
-                        request, 
+                        request,
                         f'Video exceeds {settings.MAX_VIDEO_SIZE // (1024*1024)}MB limit.'
                     )
                     return render(request, "add_post.html", {"form": form})
-            
+
             try:
                 with transaction.atomic():
                     post = form.save(commit=False)
                     post.author = request.user
                     post.save()
                     form.save_m2m()
-                    
+
                     # Save all photos
                     for position, image in enumerate(uploaded_images):
                         PostImage.objects.create(
@@ -968,24 +960,32 @@ def add_post(request):
                             image=image,
                             position=position,
                         )
-                
+
+                    # Save all documents                          # <-- NEW
+                    for position, doc in enumerate(uploaded_docs):
+                        PostAttachment.objects.create(
+                            post=post,
+                            file=doc,
+                            original_name=doc.name,
+                            position=position,
+                        )
+
                 messages.success(
-                    request, 
+                    request,
                     f'Post "{post.title}" created successfully!'
                 )
                 return redirect("blog:home")
-                
+
             except Exception as e:
                 messages.error(request, f'Error creating post: {str(e)}')
                 return render(request, "add_post.html", {"form": form})
         else:
-            # Form errors
             for field, errors in form.errors.items():
                 for error in errors:
                     messages.error(request, f'{field}: {error}')
     else:
         form = PostForm()
-    
+
     return render(request, "add_post.html", {"form": form})
 
 
@@ -993,56 +993,73 @@ def add_post(request):
 @require_http_methods(["GET", "POST"])
 def edit_post(request, pk):
     post = get_object_or_404(Post, pk=pk)
-    
+
     if not can_manage_post(request, post):
         raise PermissionDenied("You do not have permission to edit this post.")
-    
+
     if request.method == "POST":
         form = PostForm(request.POST, request.FILES, instance=post)
-        
+
         if form.is_valid():
             uploaded_images = request.FILES.getlist('images')
-            
+            uploaded_docs = request.FILES.getlist('attachments')
+
             # Validate new images
             for image in uploaded_images:
                 if not is_valid_image(image):
                     messages.error(
-                        request, 
+                        request,
                         f'Invalid image: {image.name}. Please use JPG, PNG, GIF, or WebP.'
                     )
                     return render(request, "edit_post.html", {"form": form, "post": post})
-                
+
                 if image.size > settings.MAX_IMAGE_SIZE:
                     messages.error(
-                        request, 
+                        request,
                         f'Image "{image.name}" exceeds {settings.MAX_IMAGE_SIZE // (1024*1024)}MB limit.'
                     )
                     return render(request, "edit_post.html", {"form": form, "post": post})
-            
+
+            # Validate new documents
+            for doc in uploaded_docs:
+                if not is_valid_document(doc):
+                    messages.error(
+                        request,
+                        f'Invalid document: {doc.name}. Allowed: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT, CSV, ZIP, RAR.'
+                    )
+                    return render(request, "edit_post.html", {"form": form, "post": post})
+
+                if doc.size > MAX_DOCUMENT_SIZE:
+                    messages.error(
+                        request,
+                        f'Document "{doc.name}" exceeds {MAX_DOCUMENT_SIZE // (1024*1024)}MB limit.'
+                    )
+                    return render(request, "edit_post.html", {"form": form, "post": post})
+
             # Validate video
             if 'video' in request.FILES:
                 video = request.FILES['video']
                 if not is_valid_video(video):
                     messages.error(
-                        request, 
+                        request,
                         'Invalid video format. Please use MP4, WebM, or OGG.'
                     )
                     return render(request, "edit_post.html", {"form": form, "post": post})
-                
+
                 if video.size > settings.MAX_VIDEO_SIZE:
                     messages.error(
-                        request, 
+                        request,
                         f'Video exceeds {settings.MAX_VIDEO_SIZE // (1024*1024)}MB limit.'
                     )
                     return render(request, "edit_post.html", {"form": form, "post": post})
-            
+
             try:
                 with transaction.atomic():
                     updated_post = form.save(commit=False)
-                    updated_post.author = post.author  # Keep original author
+                    updated_post.author = post.author
                     updated_post.save()
                     form.save_m2m()
-                    
+
                     # Add new photos
                     current_count = post.images.count()
                     for index, image in enumerate(uploaded_images, start=current_count):
@@ -1051,24 +1068,33 @@ def edit_post(request, pk):
                             image=image,
                             position=index,
                         )
-                
+
+                    # Add new documents                           # <-- NEW
+                    current_doc_count = post.attachments.count()
+                    for index, doc in enumerate(uploaded_docs, start=current_doc_count):
+                        PostAttachment.objects.create(
+                            post=updated_post,
+                            file=doc,
+                            original_name=doc.name,
+                            position=index,
+                        )
+
                 messages.success(
-                    request, 
+                    request,
                     f'Post "{updated_post.title}" updated successfully!'
                 )
                 return redirect(updated_post.get_absolute_url())
-                
+
             except Exception as e:
                 messages.error(request, f'Error updating post: {str(e)}')
                 return render(request, "edit_post.html", {"form": form, "post": post})
         else:
-            # Form errors
             for field, errors in form.errors.items():
                 for error in errors:
                     messages.error(request, f'{field}: {error}')
     else:
         form = PostForm(instance=post)
-    
+
     return render(request, "edit_post.html", {
         "form": form,
         "post": post,
@@ -1087,6 +1113,15 @@ def is_valid_video(file):
     return file.content_type in valid_types
 
 
+def is_valid_document(file):
+    """
+    Check if uploaded file is a valid document
+    based on its extension.
+    """
+    ext = os.path.splitext(file.name)[1].lower()
+    return ext in ALLOWED_DOC_EXTENSIONS
+
+
 @login_required
 @require_http_methods(["POST"])
 def remove_image(request, image_id):
@@ -1102,6 +1137,47 @@ def remove_image(request, image_id):
         return JsonResponse({'success': False, 'message': 'Image not found'}, status=404)
     except Exception as e:
         return JsonResponse({'success': False, 'message': str(e)}, status=500)
+
+
+# ============================================================
+# REMOVE DOCUMENT (AJAX)
+# ============================================================
+
+@login_required
+@require_POST
+def remove_document(request, pk):
+    """
+    Remove a single PostAttachment via AJAX.
+    Called by the template's 'Remove Document' buttons.
+    """
+    try:
+        document = PostAttachment.objects.get(pk=pk)
+    except PostAttachment.DoesNotExist:
+        return JsonResponse(
+            {'success': False, 'message': 'Document not found'},
+            status=404,
+        )
+
+    if not can_manage_post(request, document.post):
+        return JsonResponse(
+            {'success': False, 'message': 'Permission denied'},
+            status=403,
+        )
+
+    try:
+        # Delete the physical file first
+        document.file.delete(save=False)
+        document.delete()
+        return JsonResponse({
+            'success': True,
+            'message': 'Document removed successfully',
+        })
+    except Exception as e:
+        return JsonResponse(
+            {'success': False, 'message': str(e)},
+            status=500,
+        )
+
 
 # ============================================================
 # DELETE POST
@@ -1146,5 +1222,3 @@ def delete_post(
             "post": post,
         },
     )
-
-

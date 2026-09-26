@@ -511,7 +511,7 @@
                   <div style="display:flex;gap:8px;">
                     <button type="button"
                             class="eq-edit-btn"
-                            onclick="toggleEdit({{ q.id }})">
+                            data-toggle-edit="{{ q.id }}">
                       Edit
                     </button>
 
@@ -586,6 +586,7 @@
                       <span style="color:#94a3b8;font-weight:500;">(optional)</span>
                     </label>
                     <textarea name="explanation"
+                              id="explanation-{{ q.id }}"
                               class="ckeditor"
                               placeholder="Explain why the correct answer is right. Shown to students after they submit.">{{ q.explanation|default:'' }}</textarea>
                   </div>
@@ -593,7 +594,7 @@
                   <div style="margin-top:8px;">
                     <button type="button"
                             class="eq-btn eq-btn-ghost"
-                            onclick="toggleEdit({{ q.id }})">
+                            data-toggle-edit="{{ q.id }}">
                       Cancel
                     </button>
                   </div>
@@ -670,11 +671,11 @@
       </div>
 
       <div class="eq-field">
-        <label for="explanation">
+        <label for="explanation-new">
           Explanation
           <span style="color:#94a3b8;font-weight:500;">(optional)</span>
         </label>
-        <textarea id="explanation"
+        <textarea id="explanation-new"
                   name="explanation"
                   class="ckeditor"
                   placeholder="Explain why the correct answer is right. Shown to students after they submit."></textarea>
@@ -701,15 +702,33 @@
 </div>
 
 <script>
-  function toggleEdit(id) {
-    const view = document.getElementById('view-' + id);
-    const edit = document.getElementById('edit-' + id);
-    if (!view || !edit) return;
+  (function () {
+    // Event delegation: works no matter when this script loads,
+    // and survives CKEditor / other scripts throwing errors.
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-toggle-edit]');
+      if (!btn) return;
 
-    const editOpen = edit.style.display !== 'none';
-    edit.style.display = editOpen ? 'none' : 'block';
-    view.style.display = editOpen ? 'block' : 'none';
-  }
+      var id = btn.getAttribute('data-toggle-edit');
+      var view = document.getElementById('view-' + id);
+      var edit = document.getElementById('edit-' + id);
+      if (!view || !edit) return;
+
+      var editOpen = edit.style.display !== 'none';
+      edit.style.display = editOpen ? 'none' : 'block';
+      view.style.display = editOpen ? 'block' : 'none';
+    });
+
+    // Optional: expose for debugging / other callers
+    window.toggleEdit = function (id) {
+      var view = document.getElementById('view-' + id);
+      var edit = document.getElementById('edit-' + id);
+      if (!view || !edit) return;
+      var editOpen = edit.style.display !== 'none';
+      edit.style.display = editOpen ? 'none' : 'block';
+      view.style.display = editOpen ? 'block' : 'none';
+    };
+  })();
 </script>
 
 {% endblock %}
