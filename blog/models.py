@@ -254,6 +254,8 @@ class PostImage(models.Model):
 
 import os
 
+from .storage import PostDocumentStorage
+
 
 class PostAttachment(models.Model):
 
@@ -264,7 +266,8 @@ class PostAttachment(models.Model):
     )
 
     file = models.FileField(
-        upload_to="posts/attachments/"
+        upload_to="",
+        storage=PostDocumentStorage(),
     )
 
     original_name = models.CharField(
