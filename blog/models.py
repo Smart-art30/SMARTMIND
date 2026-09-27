@@ -5,6 +5,7 @@ from django.urls import reverse
 from django.template.defaultfilters import slugify
 import uuid
 import os
+from .storage import PostDocumentStorage
 
 
 User = get_user_model()
@@ -248,13 +249,6 @@ class PostImage(models.Model):
         )
 
 
-# ==========================================================
-# POST ATTACHMENT (PDF / DOCUMENTS)
-# ==========================================================
-
-import os
-
-from .storage import PostDocumentStorage
 
 
 class PostAttachment(models.Model):
