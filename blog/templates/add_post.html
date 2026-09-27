@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block content %}
 <div class="post-page">
@@ -88,7 +89,9 @@
             <!-- CONTENT -->
             <div class="form-section">
                 <label>Content</label>
-                {{ form.content }}
+                <div class="ckeditor-wrapper">
+                    {{ form.content }}
+                </div>
                 {% for error in form.content.errors %}
                     <div class="field-error">{{ error }}</div>
                 {% endfor %}
@@ -100,7 +103,6 @@
                     <span><i class="bi bi-images"></i> Photos</span>
                 </div>
 
-                <!-- Existing Images (Edit Mode) -->
                 {% if is_edit and post.images.exists %}
                     <div class="existing-images mb-3">
                         <label class="fw-bold">Existing Images</label>
@@ -119,7 +121,6 @@
                 {% endif %}
 
                 <div class="photo-upload-box" id="photoUploadBox">
-                    <!-- EMPTY STATE -->
                     <div class="photo-empty" id="photoEmpty">
                         <div class="photo-upload-icon">
                             <i class="bi bi-cloud-arrow-up-fill"></i>
@@ -132,23 +133,19 @@
                         <small>You can select multiple photos. Max 10MB each.</small>
                     </div>
 
-                    <!-- PHOTO PREVIEW -->
                     <div class="photo-preview-grid" id="photoPreview"></div>
 
-                    <!-- DJANGO IMAGE INPUT - Keep this visible but hidden -->
                     <div class="django-photo-input">
-                        <input type="file" 
-                               name="images" 
-                               id="id_images" 
-                               multiple 
+                        <input type="file"
+                               name="images"
+                               id="id_images"
+                               multiple
                                accept="image/*"
                                style="display:none;">
                     </div>
 
-                    <!-- PHOTO COUNT -->
                     <div id="photoCount" class="photo-count"></div>
 
-                    <!-- ADD MORE PHOTOS -->
                     <label for="id_images" class="add-more" id="addMoreLabel">
                         <i class="bi bi-plus-circle"></i> Add More Photos
                     </label>
@@ -162,14 +159,13 @@
             </div>
 
             <!-- ============================================= -->
-            <!-- DOCUMENTS (PDF, DOC, XLS, PPT, ZIP, etc.)     -->
+            <!-- DOCUMENTS                                     -->
             <!-- ============================================= -->
             <div class="form-section">
                 <div class="section-title">
                     <span><i class="bi bi-file-earmark-arrow-up"></i> Documents</span>
                 </div>
 
-                <!-- Existing Documents (Edit Mode) -->
                 {% if is_edit and post.attachments.exists %}
                     <div class="existing-docs mb-3">
                         <label class="fw-bold">Existing Documents</label>
@@ -198,9 +194,7 @@
                     </div>
                 {% endif %}
 
-                <!-- UPLOAD BOX -->
                 <div class="doc-upload-box" id="docUploadBox">
-                    <!-- EMPTY STATE -->
                     <div class="doc-empty" id="docEmpty">
                         <div class="doc-upload-icon">
                             <i class="bi bi-file-earmark-arrow-up-fill"></i>
@@ -213,10 +207,8 @@
                         <small>PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT, CSV, ZIP. Max 20MB each.</small>
                     </div>
 
-                    <!-- DOC PREVIEW -->
                     <div class="doc-preview-list" id="docPreview"></div>
 
-                    <!-- DJANGO DOC INPUT -->
                     <div class="django-doc-input">
                         <input type="file"
                                name="attachments"
@@ -226,10 +218,8 @@
                                style="display:none;">
                     </div>
 
-                    <!-- DOC COUNT -->
                     <div id="docCount" class="doc-count"></div>
 
-                    <!-- ADD MORE DOCS -->
                     <label for="id_attachments" class="add-more" id="addMoreDocsLabel">
                         <i class="bi bi-plus-circle"></i> Add More Documents
                     </label>
@@ -241,9 +231,6 @@
                     </div>
                 {% endif %}
             </div>
-            <!-- ============================================= -->
-            <!-- /DOCUMENTS                                    -->
-            <!-- ============================================= -->
 
             <!-- SCHOOL -->
             <div class="form-section">
@@ -254,30 +241,33 @@
                 {% endfor %}
             </div>
 
-            <!-- TARGET CLASSES -->
+            <!-- TARGET CLASSES — CHECKBOXES -->
             <div class="form-section">
-                <label for="{{ form.target_classes.id_for_label }}">Target Classes</label>
-                {{ form.target_classes }}
+                <label>Target Classes</label>
+                <div class="checkbox-group">
+                    {% for checkbox in form.target_classes %}
+                        <label class="checkbox-item">
+                            {{ checkbox.tag }}
+                            <span>{{ checkbox.choice_label }}</span>
+                        </label>
+                    {% empty %}
+                        <p class="text-muted mb-0">No classes available.</p>
+                    {% endfor %}
+                </div>
                 <small class="help-text">Select the classes that should see this post.</small>
                 {% for error in form.target_classes.errors %}
                     <div class="field-error">{{ error }}</div>
                 {% endfor %}
             </div>
 
-            <!-- VIDEO -->
+            <!-- VIDEO — MODERN UPLOAD -->
             <div class="form-section">
-                <label for="{{ form.video.id_for_label }}">
-                    <i class="bi bi-camera-video"></i> Upload Video
-                </label>
-                {{ form.video }}
-                <small class="help-text">MP4, WebM, or OGG. Max 100MB.</small>
-                {% for error in form.video.errors %}
-                    <div class="field-error">{{ error }}</div>
-                {% endfor %}
+                <div class="section-title">
+                    <span><i class="bi bi-camera-video"></i> Video</span>
+                </div>
 
-                <!-- Existing Video (Edit Mode) -->
                 {% if is_edit and post.video %}
-                    <div class="existing-video mt-2">
+                    <div class="existing-video mb-3">
                         <label class="fw-bold">Current Video</label>
                         <div class="video-preview">
                             <video controls playsinline preload="metadata">
@@ -291,7 +281,32 @@
                     </div>
                 {% endif %}
 
-                <div id="videoPreview" class="video-preview"></div>
+                <div class="video-upload-box" id="videoUploadBox">
+                    <div class="video-empty" id="videoEmpty">
+                        <div class="video-upload-icon">
+                            <i class="bi bi-camera-video-fill"></i>
+                        </div>
+                        <h3>Add a video</h3>
+                        <p>Drag and drop a video here, or choose a file from your device.</p>
+                        <label for="id_video" class="choose-button" id="chooseVideoLabel">
+                            <i class="bi bi-film"></i> Choose Video
+                        </label>
+                        <small>MP4, WebM, or OGG. Max 100MB.</small>
+                    </div>
+
+                    <div class="video-preview" id="videoPreview"></div>
+                    <div id="videoMeta" class="video-meta"></div>
+
+                    <div class="django-video-input">
+                        {{ form.video }}
+                    </div>
+                </div>
+
+                {% for error in form.video.errors %}
+                    <div class="field-error">
+                        <i class="bi bi-exclamation-circle"></i> {{ error }}
+                    </div>
+                {% endfor %}
             </div>
 
             <!-- YOUTUBE -->
@@ -367,6 +382,19 @@
     --post-border: #e4e6eb;
     --post-muted: #65676b;
     --post-bg: #f0f2f5;
+    --text: #0f172a;
+    --surface-solid: #ffffff;
+    --surface-alt: #f8fafc;
+}
+
+[data-theme="dark"] {
+    --post-primary: #818cf8;
+    --post-border: #1f2937;
+    --post-muted: #94a3b8;
+    --post-bg: #0a0e1a;
+    --text: #f1f5f9;
+    --surface-solid: #111827;
+    --surface-alt: #1a2234;
 }
 
 /* ============================================================
@@ -376,19 +404,23 @@
     min-height: calc(100vh - 70px);
     padding: 35px 15px;
     background: var(--post-bg);
+    width: 100%;
+    transition: background-color .3s ease;
 }
 
 /* ============================================================
-   CARD
+   CARD — full width
 ============================================================ */
 .post-card {
-    width: min(100%, 760px);
+    width: 100%;
+    max-width: 100%;
     margin: auto;
-    background: #fff;
+    background: var(--surface-solid);
     border: 1px solid var(--post-border);
     border-radius: 18px;
     box-shadow: 0 5px 25px rgba(0,0,0,.08);
     overflow: hidden;
+    transition: background-color .3s ease, border-color .3s ease;
 }
 
 /* ============================================================
@@ -431,6 +463,7 @@
 .post-header h1 {
     margin: 0;
     font-size: 22px;
+    color: var(--text);
 }
 
 .post-header p {
@@ -452,9 +485,19 @@
     transition: .2s ease;
 }
 
+[data-theme="dark"] .close-button {
+    color: #94a3b8;
+    background: #1f2937;
+}
+
 .close-button:hover {
     color: #000;
     background: #e4e6eb;
+}
+
+[data-theme="dark"] .close-button:hover {
+    color: #fff;
+    background: #374151;
 }
 
 /* ============================================================
@@ -489,6 +532,7 @@
 
 .author-box strong {
     display: block;
+    color: var(--text);
 }
 
 .author-box small {
@@ -510,11 +554,28 @@
     margin-bottom: 7px;
     font-weight: 700;
     font-size: 14px;
+    color: var(--text);
 }
 
 .form-control,
 .form-select {
     width: 100%;
+    padding: 11px 15px;
+    border-radius: 12px;
+    border: 1px solid var(--post-border);
+    background: var(--surface-alt);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 1rem;
+    transition: border-color .2s ease, box-shadow .2s ease,
+                background-color .3s ease, color .3s ease;
+}
+
+.form-control:focus,
+.form-select:focus {
+    outline: none;
+    border-color: var(--post-primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, .15);
 }
 
 .help-text {
@@ -536,11 +597,133 @@
 .section-title {
     margin-bottom: 8px;
     font-weight: 700;
+    color: var(--text);
 }
 
 .section-title i {
     color: #45bd62;
     margin-right: 5px;
+}
+
+/* ============================================================
+   CKEDITOR 5 — DARK/LIGHT THEME SYNC
+============================================================ */
+.ckeditor-wrapper {
+    width: 100%;
+}
+
+.django_ckeditor_5,
+.ck.ck-editor,
+.ck.ck-editor__main,
+.ck.ck-toolbar {
+    background: var(--surface-solid) !important;
+    border-color: var(--post-border) !important;
+    color: var(--text) !important;
+    border-radius: 12px;
+}
+
+.ck.ck-editor {
+    width: 100%;
+}
+
+.ck.ck-editor__main > .ck-editor__editable,
+.ck-content {
+    background: var(--surface-alt) !important;
+    color: var(--text) !important;
+    border-color: var(--post-border) !important;
+    min-height: 260px;
+    border-radius: 0 0 12px 12px;
+}
+
+.ck.ck-editor__main > .ck-editor__editable:focus {
+    border-color: var(--post-primary) !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, .15) !important;
+}
+
+.ck.ck-editor__editable.ck-placeholder::before,
+.ck.ck-editor__editable .ck-placeholder::before {
+    color: var(--post-muted) !important;
+}
+
+.ck.ck-toolbar .ck-button {
+    color: var(--text) !important;
+}
+
+.ck.ck-toolbar .ck-button:hover,
+.ck.ck-toolbar .ck-button.ck-on {
+    background: var(--primary-soft, #eef2ff) !important;
+    color: var(--post-primary) !important;
+}
+
+.ck.ck-dropdown__panel,
+.ck.ck-list,
+.ck.ck-balloon-panel {
+    background: var(--surface-solid) !important;
+    border-color: var(--post-border) !important;
+    color: var(--text) !important;
+}
+
+.ck.ck-list__item .ck-button {
+    color: var(--text) !important;
+}
+
+.ck.ck-list__item .ck-button:hover {
+    background: var(--primary-soft, #eef2ff) !important;
+}
+
+.ck.ck-toolbar .ck-toolbar__separator {
+    background: var(--post-border) !important;
+}
+
+[data-theme="dark"] .django_ckeditor_5,
+[data-theme="dark"] .ck.ck-editor,
+[data-theme="dark"] .ck.ck-editor__main,
+[data-theme="dark"] .ck.ck-toolbar {
+    background: #111827 !important;
+    border-color: #1f2937 !important;
+    color: #f1f5f9 !important;
+}
+
+[data-theme="dark"] .ck.ck-editor__main > .ck-editor__editable,
+[data-theme="dark"] .ck-content {
+    background: #1a2234 !important;
+    color: #f1f5f9 !important;
+    border-color: #1f2937 !important;
+}
+
+[data-theme="dark"] .ck.ck-editor__main > .ck-editor__editable:focus {
+    border-color: #818cf8 !important;
+    box-shadow: 0 0 0 3px rgba(129, 140, 248, .20) !important;
+}
+
+[data-theme="dark"] .ck.ck-toolbar .ck-button {
+    color: #f1f5f9 !important;
+}
+
+[data-theme="dark"] .ck.ck-toolbar .ck-button:hover,
+[data-theme="dark"] .ck.ck-toolbar .ck-button.ck-on {
+    background: #1e1b4b !important;
+    color: #a5b4fc !important;
+}
+
+[data-theme="dark"] .ck.ck-dropdown__panel,
+[data-theme="dark"] .ck.ck-list,
+[data-theme="dark"] .ck.ck-balloon-panel {
+    background: #111827 !important;
+    border-color: #1f2937 !important;
+    color: #f1f5f9 !important;
+}
+
+[data-theme="dark"] .ck.ck-list__item .ck-button {
+    color: #f1f5f9 !important;
+}
+
+[data-theme="dark"] .ck.ck-list__item .ck-button:hover {
+    background: #1e1b4b !important;
+}
+
+[data-theme="dark"] .ck.ck-toolbar .ck-toolbar__separator {
+    background: #1f2937 !important;
 }
 
 /* ============================================================
@@ -571,16 +754,24 @@
     position: relative;
     min-height: 270px;
     padding: 15px;
-    background: #f7f8fa;
+    background: var(--surface-alt);
     border: 2px dashed #ccd0d5;
     border-radius: 14px;
     transition: background .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+
+[data-theme="dark"] .photo-upload-box {
+    border-color: #374151;
 }
 
 .photo-upload-box.dragging {
     background: #eaf3ff;
     border-color: var(--post-primary);
     box-shadow: 0 0 0 4px rgba(24,119,242,.08);
+}
+
+[data-theme="dark"] .photo-upload-box.dragging {
+    background: #1e1b4b;
 }
 
 /* ============================================================
@@ -608,9 +799,15 @@
     font-size: 27px;
 }
 
+[data-theme="dark"] .photo-upload-icon {
+    background: #14532d;
+    color: #4ade80;
+}
+
 .photo-empty h3 {
     margin: 0 0 5px;
     font-size: 18px;
+    color: var(--text);
 }
 
 .photo-empty p {
@@ -660,7 +857,8 @@
    HIDDEN DJANGO INPUT
 ============================================================ */
 .django-photo-input,
-.django-doc-input {
+.django-doc-input,
+.django-video-input {
     position: absolute;
     width: 0;
     height: 0;
@@ -764,14 +962,23 @@
     text-decoration: none;
 }
 
+[data-theme="dark"] .add-more {
+    background: #1e1b4b;
+    border-color: #312e81;
+}
+
 .add-more:hover {
     background: #dcecff;
     color: var(--post-primary);
     text-decoration: none;
 }
 
+[data-theme="dark"] .add-more:hover {
+    background: #312e81;
+}
+
 /* ============================================================
-   VIDEO
+   VIDEO PREVIEW
 ============================================================ */
 .video-preview {
     margin-top: 10px;
@@ -785,22 +992,111 @@
 }
 
 /* ============================================================
+   VIDEO UPLOAD BOX
+============================================================ */
+.video-upload-box {
+    position: relative;
+    min-height: 220px;
+    padding: 15px;
+    background: var(--surface-alt);
+    border: 2px dashed #ccd0d5;
+    border-radius: 14px;
+    transition: background .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+
+[data-theme="dark"] .video-upload-box {
+    border-color: #374151;
+}
+
+.video-upload-box.dragging {
+    background: #eef2ff;
+    border-color: var(--post-primary);
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, .10);
+}
+
+[data-theme="dark"] .video-upload-box.dragging {
+    background: #1e1b4b;
+}
+
+.video-empty {
+    min-height: 185px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    text-align: center;
+}
+
+.video-upload-icon {
+    width: 65px;
+    height: 65px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+    color: #6366f1;
+    background: #eef2ff;
+    border-radius: 50%;
+    font-size: 27px;
+}
+
+[data-theme="dark"] .video-upload-icon {
+    background: #1e1b4b;
+    color: #a5b4fc;
+}
+
+.video-empty h3 {
+    margin: 0 0 5px;
+    font-size: 18px;
+    color: var(--text);
+}
+
+.video-empty p {
+    max-width: 430px;
+    margin: 0 0 15px;
+    color: var(--post-muted);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.video-empty small {
+    display: block;
+    margin-top: 9px;
+    color: #8a8d91;
+}
+
+.video-meta {
+    margin-top: 8px;
+    color: var(--post-muted);
+    font-size: 12px;
+    text-align: center;
+}
+
+/* ============================================================
    DOCUMENTS — UPLOAD BOX
 ============================================================ */
 .doc-upload-box {
     position: relative;
     min-height: 200px;
     padding: 15px;
-    background: #f7f8fa;
+    background: var(--surface-alt);
     border: 2px dashed #ccd0d5;
     border-radius: 14px;
     transition: background .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+
+[data-theme="dark"] .doc-upload-box {
+    border-color: #374151;
 }
 
 .doc-upload-box.dragging {
     background: #fff5e6;
     border-color: #f7b32b;
     box-shadow: 0 0 0 4px rgba(247,179,43,.10);
+}
+
+[data-theme="dark"] .doc-upload-box.dragging {
+    background: #422006;
 }
 
 /* ============================================================
@@ -828,9 +1124,15 @@
     font-size: 27px;
 }
 
+[data-theme="dark"] .doc-upload-icon {
+    background: #450a0a;
+    color: #f87171;
+}
+
 .doc-empty h3 {
     margin: 0 0 5px;
     font-size: 18px;
+    color: var(--text);
 }
 
 .doc-empty p {
@@ -848,7 +1150,7 @@
 }
 
 /* ============================================================
-   DOCUMENTS — LIST (existing + preview)
+   DOCUMENTS — LIST
 ============================================================ */
 .doc-list,
 .doc-preview-list {
@@ -862,7 +1164,7 @@
     align-items: center;
     gap: 12px;
     padding: 10px 12px;
-    background: #fff;
+    background: var(--surface-solid);
     border: 1px solid var(--post-border);
     border-radius: 10px;
     transition: box-shadow .2s ease;
@@ -910,7 +1212,7 @@
 
 .doc-name {
     display: block;
-    color: #1a1a1a;
+    color: var(--text);
     font-weight: 600;
     font-size: 14px;
     text-decoration: none;
@@ -949,6 +1251,11 @@
     transition: .2s ease;
 }
 
+[data-theme="dark"] .remove-doc {
+    background: #374151;
+    color: #94a3b8;
+}
+
 .remove-doc:hover {
     color: #fff;
     background: #dc3545;
@@ -972,9 +1279,48 @@
     border: 1px solid #ffd88a;
 }
 
+[data-theme="dark"] #addMoreDocsLabel {
+    background: #422006;
+    border-color: #92400e;
+    color: #fbbf24;
+}
+
 #addMoreDocsLabel:hover {
     background: #ffe9c2;
     color: #b37400;
+}
+
+[data-theme="dark"] #addMoreDocsLabel:hover {
+    background: #78350f;
+}
+
+/* ============================================================
+   CHECKBOX GROUP — TARGET CLASSES
+============================================================ */
+.checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 28px;
+    padding: 12px 0;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: .95rem;
+    color: var(--text);
+    cursor: pointer;
+    user-select: none;
+}
+
+.checkbox-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--post-primary);
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 0;
 }
 
 /* ============================================================
@@ -998,9 +1344,19 @@
     transition: .2s ease;
 }
 
+[data-theme="dark"] .cancel-button {
+    background: #374151;
+    color: #94a3b8;
+}
+
 .cancel-button:hover {
     color: #222;
     background: #d8dade;
+}
+
+[data-theme="dark"] .cancel-button:hover {
+    color: #fff;
+    background: #4b5563;
 }
 
 .publish-button {
@@ -1013,6 +1369,10 @@
     font-weight: 700;
     cursor: pointer;
     transition: .2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
 }
 
 .publish-button:hover {
@@ -1056,11 +1416,13 @@
     margin-top: 0;
     width: 20px;
     height: 20px;
+    accent-color: var(--post-primary);
 }
 
 .form-check-label {
     margin-bottom: 0;
     font-weight: 400;
+    color: var(--text);
 }
 
 /* ============================================================
@@ -1109,7 +1471,8 @@
         bottom: 0;
         z-index: 10;
         padding: 15px;
-        background: white;
+        background: var(--surface-solid);
+        border-top: 1px solid var(--post-border);
     }
 
     .cancel-button,
@@ -1121,6 +1484,10 @@
 
     .photo-preview-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .checkbox-group {
+        gap: 10px 18px;
     }
 }
 </style>
@@ -1143,14 +1510,10 @@ document.addEventListener("DOMContentLoaded", function () {
     const emptyState = document.getElementById("photoEmpty");
     const preview = document.getElementById("photoPreview");
     const photoCount = document.getElementById("photoCount");
-    const videoInput = document.getElementById("id_video");
-    const videoPreview = document.getElementById("videoPreview");
     const removeVideoBtn = document.getElementById("removeVideoBtn");
 
-    // Exposed so form submit handler can sync documents
     let syncDocsFunction = null;
 
-    // If photo input doesn't exist, create it
     if (!photoInput) {
         console.warn('Photo input not found, creating one...');
         photoInput = document.createElement('input');
@@ -1166,13 +1529,11 @@ document.addEventListener("DOMContentLoaded", function () {
         } else {
             form.appendChild(photoInput);
         }
-        console.log('Created photo input:', photoInput);
     }
 
     if (photoInput) {
         photoInput.multiple = true;
         photoInput.accept = 'image/*';
-        console.log('Photo input configured:', photoInput);
     }
 
     /* =====================================================
@@ -1180,9 +1541,6 @@ document.addEventListener("DOMContentLoaded", function () {
     ===================================================== */
     let selectedFiles = [];
 
-    /* =====================================================
-       FILE ID
-    ===================================================== */
     function fileId(file) {
         return [
             file.name || "",
@@ -1192,79 +1550,47 @@ document.addEventListener("DOMContentLoaded", function () {
         ].join("|");
     }
 
-    /* =====================================================
-       SYNC FILES WITH DJANGO INPUT
-       (Images — no dispatch to avoid recursion)
-    ===================================================== */
     function syncInput() {
-        if (!photoInput) {
-            console.error('Cannot sync: photoInput is null');
-            return;
-        }
-
+        if (!photoInput) return;
         try {
             const dataTransfer = new DataTransfer();
             selectedFiles.forEach(function (file) {
                 dataTransfer.items.add(file);
             });
             photoInput.files = dataTransfer.files;
-
-            console.log('Synced ' + selectedFiles.length + ' image(s) to input');
         } catch (error) {
             console.error('Error syncing files:', error);
         }
     }
 
-    /* =====================================================
-       ADD FILES
-    ===================================================== */
     function addFiles(files) {
         if (!files) return;
-
-        console.log('Adding files:', files.length);
         let added = 0;
 
         Array.from(files).forEach(function (file) {
             if (!file || !file.type || !file.type.startsWith("image/")) {
-                console.warn('Skipping non-image file:', file.name);
                 return;
             }
-
             if (file.size > 10 * 1024 * 1024) {
                 alert('Image "' + file.name + '" exceeds 10MB limit.');
                 return;
             }
-
             const duplicate = selectedFiles.some(function (existingFile) {
                 return fileId(existingFile) === fileId(file);
             });
-
             if (!duplicate) {
                 selectedFiles.push(file);
                 added++;
-                console.log('Added file:', file.name);
-            } else {
-                console.log('Duplicate file skipped:', file.name);
             }
         });
 
         if (added > 0) {
-            renderPhotos();   // syncInput() is called inside renderPhotos()
-            console.log('Added ' + added + ' photos. Total: ' + selectedFiles.length);
-        } else {
-            console.log('No new files added');
+            renderPhotos();
         }
     }
 
-    /* =====================================================
-       RENDER PHOTOS
-    ===================================================== */
     function renderPhotos() {
-        if (!preview) {
-            console.error('Preview element not found');
-            return;
-        }
-
+        if (!preview) return;
         preview.innerHTML = "";
 
         if (!selectedFiles.length) {
@@ -1272,7 +1598,6 @@ document.addEventListener("DOMContentLoaded", function () {
             if (addMoreLabel) addMoreLabel.style.display = "none";
             if (photoCount) photoCount.textContent = "";
             syncInput();
-            console.log('No photos to render');
             return;
         }
 
@@ -1294,10 +1619,6 @@ document.addEventListener("DOMContentLoaded", function () {
             image.onload = function () {
                 URL.revokeObjectURL(objectURL);
             };
-            image.onerror = function () {
-                console.error('Failed to load image:', file.name);
-                item.innerHTML = '<div class="text-danger p-2">Failed to load</div>';
-            };
             item.appendChild(image);
 
             const number = document.createElement("span");
@@ -1314,7 +1635,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 event.preventDefault();
                 event.stopPropagation();
                 selectedFiles.splice(index, 1);
-                renderPhotos();   // includes syncInput()
+                renderPhotos();
             });
             item.appendChild(remove);
 
@@ -1324,9 +1645,6 @@ document.addEventListener("DOMContentLoaded", function () {
         syncInput();
     }
 
-    /* =====================================================
-       OPEN FILE PICKER
-    ===================================================== */
     function openPicker(event) {
         if (event) {
             event.preventDefault();
@@ -1334,14 +1652,9 @@ document.addEventListener("DOMContentLoaded", function () {
         }
         if (photoInput) {
             photoInput.click();
-        } else {
-            alert('File input not found. Please refresh the page.');
         }
     }
 
-    /* =====================================================
-       EVENT LISTENERS (Photos)
-    ===================================================== */
     if (choosePhotosLabel) choosePhotosLabel.addEventListener('click', openPicker);
     if (addMoreLabel)      addMoreLabel.addEventListener('click', openPicker);
 
@@ -1356,9 +1669,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    /* =====================================================
-       FILE INPUT CHANGE (Photos)
-    ===================================================== */
     if (photoInput) {
         photoInput.addEventListener("change", function () {
             if (this.files && this.files.length > 0) {
@@ -1368,9 +1678,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    /* =====================================================
-       DRAG AND DROP (Photos)
-    ===================================================== */
     if (photoBox) {
         ["dragenter","dragover"].forEach(function(ev) {
             photoBox.addEventListener(ev, function (event) {
@@ -1395,53 +1702,55 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    /* =====================================================
-       PASTE IMAGE
-    ===================================================== */
     document.addEventListener("paste", function (event) {
         const clipboard = event.clipboardData;
         if (!clipboard) return;
-
         const items = clipboard.items || [];
         const imageFiles = [];
-
         Array.from(items).forEach(function (item) {
             if (item.kind === "file" && item.type && item.type.startsWith("image/")) {
                 const file = item.getAsFile();
                 if (file) imageFiles.push(file);
             }
         });
-
         if (!imageFiles.length) return;
-
         event.preventDefault();
         event.stopPropagation();
-
         addFiles(imageFiles);
         if (photoBox) photoBox.scrollIntoView({ behavior: "smooth", block: "center" });
     }, true);
 
     /* =====================================================
-       VIDEO PREVIEW
+       VIDEO UPLOAD (Modern drag & drop)
     ===================================================== */
-    if (videoInput && videoPreview) {
-        videoInput.addEventListener("change", function () {
-            videoPreview.innerHTML = "";
+    (function initVideoUpload() {
+        const videoInput = document.getElementById("id_video");
+        const videoBox   = document.getElementById("videoUploadBox");
+        const videoEmpty = document.getElementById("videoEmpty");
+        const videoPreview = document.getElementById("videoPreview");
+        const videoMeta  = document.getElementById("videoMeta");
+        const chooseVideoLabel = document.getElementById("chooseVideoLabel");
 
-            const file = videoInput.files?.[0];
+        if (!videoInput || !videoBox || !videoPreview) return;
+
+        const MAX_SIZE = 100 * 1024 * 1024;
+
+        function showVideo(file) {
             if (!file) return;
 
             if (!file.type || !file.type.startsWith("video/")) {
-                videoPreview.innerHTML = '<p class="text-danger">Please select a valid video file.</p>';
-                videoInput.value = '';
+                alert("Please select a valid video file.");
+                return;
+            }
+            if (file.size > MAX_SIZE) {
+                alert("Video exceeds 100MB. Please choose a smaller file.");
                 return;
             }
 
-            if (file.size > 100 * 1024 * 1024) {
-                videoPreview.innerHTML = '<p class="text-danger">Video file too large. Maximum size is 100MB.</p>';
-                videoInput.value = '';
-                return;
-            }
+            videoPreview.innerHTML = "";
+            videoMeta.textContent = "";
+
+            if (videoEmpty) videoEmpty.style.display = "none";
 
             const video = document.createElement("video");
             video.controls = true;
@@ -1454,9 +1763,76 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const objectURL = URL.createObjectURL(file);
             video.src = objectURL;
+            video.onloadedmetadata = function () {
+                URL.revokeObjectURL(objectURL);
+            };
             videoPreview.appendChild(video);
+
+            const removeBtn = document.createElement("button");
+            removeBtn.type = "button";
+            removeBtn.className = "btn btn-danger btn-sm mt-2";
+            removeBtn.innerHTML = '<i class="bi bi-trash"></i> Remove';
+            removeBtn.addEventListener("click", function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                videoInput.value = "";
+                videoPreview.innerHTML = "";
+                videoMeta.textContent = "";
+                if (videoEmpty) videoEmpty.style.display = "flex";
+            });
+            videoPreview.appendChild(removeBtn);
+
+            const sizeMB = (file.size / 1024 / 1024).toFixed(2);
+            videoMeta.textContent = file.name + " · " + sizeMB + " MB";
+        }
+
+        function openPicker(e) {
+            if (e) { e.preventDefault(); e.stopPropagation(); }
+            videoInput.click();
+        }
+        if (chooseVideoLabel) chooseVideoLabel.addEventListener("click", openPicker);
+        videoBox.addEventListener("click", function (e) {
+            if (e.target.closest("button")) return;
+            if (e.target.closest("video")) return;
+            if (e.target.closest(".choose-button")) return;
+            videoInput.click();
         });
-    }
+
+        videoInput.addEventListener("change", function () {
+            const file = this.files?.[0];
+            showVideo(file);
+        });
+
+        ["dragenter", "dragover"].forEach(ev =>
+            videoBox.addEventListener(ev, function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                videoBox.classList.add("dragging");
+                if (e.dataTransfer) e.dataTransfer.dropEffect = "copy";
+            })
+        );
+        ["dragleave", "drop"].forEach(ev =>
+            videoBox.addEventListener(ev, function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                videoBox.classList.remove("dragging");
+            })
+        );
+        videoBox.addEventListener("drop", function (e) {
+            const file = e.dataTransfer?.files?.[0];
+            if (!file) return;
+
+            try {
+                const dt = new DataTransfer();
+                dt.items.add(file);
+                videoInput.files = dt.files;
+            } catch (err) {
+                console.error("Could not set video input files:", err);
+            }
+
+            showVideo(file);
+        });
+    })();
 
     /* =====================================================
        REMOVE VIDEO (Edit Mode)
@@ -1464,12 +1840,8 @@ document.addEventListener("DOMContentLoaded", function () {
     if (removeVideoBtn) {
         removeVideoBtn.addEventListener('click', function() {
             if (!confirm('Remove this video?')) return;
-
             const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
-            if (!csrfToken) {
-                alert('CSRF token not found. Please refresh the page.');
-                return;
-            }
+            if (!csrfToken) { alert('CSRF token not found.'); return; }
 
             fetch('/remove-video/', {
                 method: 'POST',
@@ -1477,7 +1849,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     'X-CSRFToken': csrfToken,
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ post_id: {{ post.id }} })
+                body: JSON.stringify({ post_id: {{ post.id|default:"null" }} })
             })
             .then(response => response.json())
             .then(data => {
@@ -1488,7 +1860,6 @@ document.addEventListener("DOMContentLoaded", function () {
                         videoContainer.style.opacity = '0';
                         setTimeout(() => videoContainer.remove(), 300);
                     }
-                    if (videoInput) videoInput.value = '';
                 } else {
                     alert(data.message || 'Failed to remove video.');
                 }
@@ -1510,10 +1881,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (!confirm('Remove this image?')) return;
 
             const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
-            if (!csrfToken) {
-                alert('CSRF token not found. Please refresh the page.');
-                return;
-            }
+            if (!csrfToken) { alert('CSRF token not found.'); return; }
 
             fetch('/remove-image/' + imageId + '/', {
                 method: 'POST',
@@ -1565,7 +1933,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!docBox || !docInput || !docPreview) return;
 
         let selectedDocs = [];
-        let isSyncing = false;   // guard against recursion
+        let isSyncing = false;
 
         const ALLOWED_EXT = [
             "pdf","doc","docx","xls","xlsx","ppt","pptx","txt","csv","zip","rar"
@@ -1597,21 +1965,20 @@ document.addEventListener("DOMContentLoaded", function () {
             return [f.name, f.size, f.lastModified, f.type].join("|");
         }
 
-        /* Sync selectedDocs → docInput.files
-           NO dispatchEvent here — prevents infinite loop. */
         function syncDocs() {
             if (!docInput) return;
             try {
+                isSyncing = true;
                 const dt = new DataTransfer();
                 selectedDocs.forEach(f => dt.items.add(f));
                 docInput.files = dt.files;
-                console.log('Synced ' + selectedDocs.length + ' document(s) to input');
             } catch (e) {
                 console.error("Doc sync failed:", e);
+            } finally {
+                isSyncing = false;
             }
         }
 
-        // Expose to outer scope for form submit handler
         syncDocsFunction = syncDocs;
 
         function addDocs(files) {
@@ -1637,7 +2004,7 @@ document.addEventListener("DOMContentLoaded", function () {
             });
 
             if (added > 0) {
-                renderDocs();   // renderDocs() calls syncDocs() once at the end
+                renderDocs();
             }
         }
 
@@ -1699,7 +2066,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 docPreview.appendChild(item);
             });
 
-            // Single sync at the end of render
             syncDocs();
         }
 
@@ -1718,9 +2084,8 @@ document.addEventListener("DOMContentLoaded", function () {
             docInput.click();
         });
 
-        /* CHANGE listener — guard against our own sync */
         docInput.addEventListener("change", function () {
-            if (isSyncing) return;   // ignore programmatic change
+            if (isSyncing) return;
             if (this.files && this.files.length) {
                 addDocs(this.files);
                 this.value = "";
@@ -1754,7 +2119,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (!confirm("Remove this document?")) return;
 
                 const csrf = document.querySelector("[name=csrfmiddlewaretoken]")?.value;
-                if (!csrf) { alert("CSRF token missing. Refresh the page."); return; }
+                if (!csrf) { alert("CSRF token missing."); return; }
 
                 fetch("/remove-document/" + docId + "/", {
                     method: "POST",
@@ -1797,17 +2162,10 @@ document.addEventListener("DOMContentLoaded", function () {
     ===================================================== */
     if (form) {
         form.addEventListener("submit", function (e) {
-            // Sync both images and documents right before submit
             syncInput();
             if (typeof syncDocsFunction === "function") {
                 syncDocsFunction();
             }
-
-            // Debug: log what's actually in the inputs
-            const imgInput = document.getElementById("id_images");
-            const docIn    = document.getElementById("id_attachments");
-            console.log('Submitting — images:', imgInput ? imgInput.files.length : 0);
-            console.log('Submitting — attachments:', docIn ? docIn.files.length : 0);
 
             const button  = document.getElementById("publishButton");
             const text    = document.getElementById("publishText");
@@ -1821,6 +2179,35 @@ document.addEventListener("DOMContentLoaded", function () {
             if (loading) loading.style.display = "inline-flex";
         });
     }
+
+    /* =====================================================
+       SYNC CKEDITOR THEME WITH APP THEME
+    ===================================================== */
+    function syncCKEditorTheme() {
+        const theme = document.documentElement.getAttribute('data-theme') || 'light';
+
+        document.querySelectorAll('.django_ckeditor_5, .ck.ck-editor').forEach(el => {
+            el.setAttribute('data-ck-theme', theme);
+        });
+
+        document.querySelectorAll('.ck-content, .ck-editor__editable').forEach(el => {
+            el.setAttribute('data-ck-theme', theme);
+        });
+    }
+
+    syncCKEditorTheme();
+
+    const themeToggleBtn = document.getElementById('themeToggle');
+    if (themeToggleBtn) {
+        themeToggleBtn.addEventListener('click', function () {
+            setTimeout(syncCKEditorTheme, 30);
+        });
+    }
+
+    new MutationObserver(syncCKEditorTheme).observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['data-theme'],
+    });
 
     /* =====================================================
        INITIALIZE

@@ -120,7 +120,6 @@ class MultipleImageField(forms.ImageField):
             for file in data
         ]
 
-
 class PostForm(forms.ModelForm):
     # Use the custom multiple file input
     images = forms.FileField(
@@ -165,10 +164,10 @@ class PostForm(forms.ModelForm):
             'school': forms.Select(attrs={
                 'class': 'form-select'
             }),
-            'target_classes': forms.SelectMultiple(attrs={
-                'class': 'form-select',
-                'size': 5
-            }),
+
+           
+            'target_classes': forms.CheckboxSelectMultiple(),
+
             'video': ClearableFileInput(attrs={
                 'class': 'form-control',
                 'accept': 'video/*',
@@ -190,6 +189,13 @@ class PostForm(forms.ModelForm):
             }),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Optional: order target classes so the list is predictable
+        if 'target_classes' in self.fields:
+            self.fields['target_classes'].queryset = (
+                self.fields['target_classes'].queryset.order_by('name')
+            )
 
 # ============================================================
 # HELPER FUNCTIONS

@@ -8,9 +8,13 @@
 {% block content %}
 
 <style>
+/* =========================================================
+   THEME VARIABLES — LIGHT (default) & DARK
+   ========================================================= */
 :root {
     --bg: #f6f8fc;
     --surface: #ffffff;
+    --surface-soft: #f8fafc;
     --text-primary: #0b1c33;
     --text-secondary: #5b6f88;
     --accent: #3b82f6;
@@ -29,8 +33,57 @@
     --transition: all .2s cubic-bezier(.4, 0, .2, 1);
 }
 
+/* ---------- DARK MODE via system preference ---------- */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #0b1120;
+        --surface: #1e293b;
+        --surface-soft: #0f172a;
+        --text-primary: #f1f5f9;
+        --text-secondary: #94a3b8;
+        --accent: #60a5fa;
+        --accent-soft: #1e3a8a;
+        --accent-hover: #93c5fd;
+        --success: #34d399;
+        --warning: #fbbf24;
+        --danger: #f87171;
+        --slate: #94a3b8;
+        --border: #334155;
+        --shadow-sm: 0 2px 8px rgba(0, 0, 0, .3), 0 4px 16px rgba(0, 0, 0, .3);
+        --shadow-md: 0 8px 30px rgba(0, 0, 0, .5);
+    }
+}
+
+/* ---------- DARK MODE via manual toggle ---------- */
+[data-theme="dark"] {
+    --bg: #0b1120;
+    --surface: #1e293b;
+    --surface-soft: #0f172a;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --accent: #60a5fa;
+    --accent-soft: #1e3a8a;
+    --accent-hover: #93c5fd;
+    --success: #34d399;
+    --warning: #fbbf24;
+    --danger: #f87171;
+    --slate: #94a3b8;
+    --border: #334155;
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, .3), 0 4px 16px rgba(0, 0, 0, .3);
+    --shadow-md: 0 8px 30px rgba(0, 0, 0, .5);
+}
+
+/* =========================================================
+   GLOBAL RESET
+   ========================================================= */
 * {
     box-sizing: border-box;
+}
+
+body {
+    background: var(--bg);
+    color: var(--text-primary);
+    transition: background .25s ease, color .25s ease;
 }
 
 .teacher-dashboard {
@@ -44,8 +97,7 @@
 
 /* =========================================================
    HEADER
-========================================================= */
-
+   ========================================================= */
 .teacher-header {
     display: flex;
     align-items: center;
@@ -53,11 +105,12 @@
     gap: 24px;
     margin-bottom: 32px;
     padding: 0 4px;
+    flex-wrap: wrap;
 }
 
 .teacher-header h1 {
     margin: 0;
-    font-size: clamp(1.75rem, 3vw, 2.4rem);
+    font-size: clamp(1.5rem, 3vw, 2.4rem);
     font-weight: 700;
     letter-spacing: -0.02em;
     color: var(--text-primary);
@@ -77,8 +130,7 @@
 
 /* =========================================================
    ROLE BADGE
-========================================================= */
-
+   ========================================================= */
 .teacher-badge {
     display: inline-flex;
     align-items: center;
@@ -114,6 +166,18 @@
     box-shadow: inset 0 0 0 1px rgba(245, 158, 11, .25);
 }
 
+[data-theme="dark"] .teacher-badge.badge-admin {
+    background: #78350f;
+    color: #fde68a;
+}
+
+@media (prefers-color-scheme: dark) {
+    .teacher-badge.badge-admin {
+        background: #78350f;
+        color: #fde68a;
+    }
+}
+
 .teacher-badge.badge-admin .dot {
     box-shadow: 0 0 0 3px rgba(245, 158, 11, .2);
 }
@@ -122,6 +186,18 @@
     background: #dcfce7;
     color: #166534;
     box-shadow: inset 0 0 0 1px rgba(16, 185, 129, .2);
+}
+
+[data-theme="dark"] .teacher-badge.badge-student {
+    background: #064e3b;
+    color: #6ee7b7;
+}
+
+@media (prefers-color-scheme: dark) {
+    .teacher-badge.badge-student {
+        background: #064e3b;
+        color: #6ee7b7;
+    }
 }
 
 .teacher-badge.badge-student .dot {
@@ -134,10 +210,21 @@
     box-shadow: inset 0 0 0 1px rgba(100, 116, 139, .2);
 }
 
+[data-theme="dark"] .teacher-badge.badge-other {
+    background: #1e293b;
+    color: #cbd5e1;
+}
+
+@media (prefers-color-scheme: dark) {
+    .teacher-badge.badge-other {
+        background: #1e293b;
+        color: #cbd5e1;
+    }
+}
+
 /* =========================================================
    STATS
-========================================================= */
-
+   ========================================================= */
 .teacher-stats {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -150,14 +237,17 @@
     border-radius: var(--radius);
     background: var(--surface);
     box-shadow: var(--shadow-sm);
-    border: 1px solid rgba(226, 232, 240, .6);
+    border: 1px solid var(--border);
     transition: var(--transition);
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
 }
 
 .teacher-stat:hover {
     box-shadow: var(--shadow-md);
     transform: translateY(-3px);
-    border-color: rgba(59, 130, 246, .2);
+    border-color: var(--accent);
 }
 
 .teacher-stat-icon {
@@ -170,6 +260,7 @@
     margin-bottom: 16px;
     font-size: 1.4rem;
     color: var(--accent-hover);
+    flex-shrink: 0;
 }
 
 .teacher-stat h3 {
@@ -191,15 +282,14 @@
 
 /* =========================================================
    SECTIONS
-========================================================= */
-
+   ========================================================= */
 .teacher-section {
     margin-top: 28px;
     padding: 28px 30px;
     border-radius: var(--radius);
     background: var(--surface);
     box-shadow: var(--shadow-sm);
-    border: 1px solid rgba(226, 232, 240, .6);
+    border: 1px solid var(--border);
     transition: var(--transition);
 }
 
@@ -226,66 +316,37 @@
 }
 
 /* =========================================================
-   QUICK ACTIONS
-========================================================= */
-
+   QUICK ACTIONS — simple links
+   ========================================================= */
 .teacher-actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 14px;
+    gap: 6px 18px;
+    align-items: center;
 }
 
 .teacher-action {
     display: inline-flex;
     align-items: center;
-    gap: 10px;
-    padding: 12px 24px;
-    border-radius: var(--radius-xs);
+    gap: 6px;
+    padding: 6px 0;
     text-decoration: none;
-    font-weight: 600;
+    font-weight: 500;
     font-size: .95rem;
-    background: var(--accent);
-    color: white;
-    transition: var(--transition);
+    background: transparent;
+    color: var(--accent);
     border: none;
-    box-shadow: 0 2px 8px rgba(59, 130, 246, .2);
+    box-shadow: none;
+    transition: var(--transition);
+    border-bottom: 1.5px solid transparent;
+    white-space: nowrap;
 }
 
 .teacher-action:hover {
-    background: var(--accent-hover);
-    color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 18px rgba(59, 130, 246, .3);
-}
-
-.teacher-action.secondary {
-    background: var(--slate);
-    box-shadow: 0 2px 8px rgba(100, 116, 139, .2);
-}
-
-.teacher-action.secondary:hover {
-    background: #475569;
-    box-shadow: 0 6px 18px rgba(100, 116, 139, .3);
-}
-
-.teacher-action.success {
-    background: var(--success);
-    box-shadow: 0 2px 8px rgba(16, 185, 129, .2);
-}
-
-.teacher-action.success:hover {
-    background: #059669;
-    box-shadow: 0 6px 18px rgba(16, 185, 129, .3);
-}
-
-.teacher-action.warning {
-    background: var(--warning);
-    box-shadow: 0 2px 8px rgba(245, 158, 11, .2);
-}
-
-.teacher-action.warning:hover {
-    background: #d97706;
-    box-shadow: 0 6px 18px rgba(245, 158, 11, .3);
+    color: var(--accent-hover);
+    border-bottom-color: var(--accent-hover);
+    transform: none;
+    box-shadow: none;
 }
 
 .teacher-action .pill {
@@ -295,14 +356,13 @@
     font-size: .72rem;
     font-weight: 700;
     border-radius: 100px;
-    background: rgba(255, 255, 255, .25);
-    color: inherit;
+    background: var(--accent-soft);
+    color: var(--accent-hover);
 }
 
 /* =========================================================
    ASSIGNMENTS
-========================================================= */
-
+   ========================================================= */
 .assignment-list {
     display: grid;
     gap: 12px;
@@ -312,7 +372,7 @@
     padding: 18px 20px;
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
-    background: #fafcff;
+    background: var(--surface-soft);
     transition: var(--transition);
 }
 
@@ -327,6 +387,7 @@
     align-items: center;
     justify-content: space-between;
     gap: 16px;
+    flex-wrap: wrap;
 }
 
 .assignment-title {
@@ -352,6 +413,18 @@
     color: #6d28d9;
 }
 
+[data-theme="dark"] .assignment-type.quiz {
+    background: #4c1d95;
+    color: #c4b5fd;
+}
+
+@media (prefers-color-scheme: dark) {
+    .assignment-type.quiz {
+        background: #4c1d95;
+        color: #c4b5fd;
+    }
+}
+
 .assignment-meta {
     margin-top: 8px;
     color: var(--text-secondary);
@@ -363,11 +436,10 @@
 
 /* =========================================================
    BLOG CATEGORIES
-========================================================= */
-
+   ========================================================= */
 .category-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 12px;
 }
 
@@ -400,18 +472,13 @@
 
 /* =========================================================
    BLOG POSTS GRID
-========================================================= */
-
+   ========================================================= */
 .posts-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 24px;
     align-items: start;
 }
-
-/* =========================================================
-   BLOG POST CARD
-========================================================= */
 
 .blog-post {
     min-width: 0;
@@ -428,19 +495,15 @@
 .blog-post:hover {
     transform: translateY(-4px);
     box-shadow: var(--shadow-md);
-    border-color: rgba(59, 130, 246, .3);
+    border-color: var(--accent);
 }
-
-/* =========================================================
-   POST IMAGE
-========================================================= */
 
 .post-image-container {
     width: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
-    background: #f1f5f9;
+    background: var(--surface-soft);
     overflow: hidden;
     border-bottom: 1px solid var(--border);
 }
@@ -454,20 +517,12 @@
     transition: var(--transition);
 }
 
-/* =========================================================
-   POST BODY
-========================================================= */
-
 .post-body {
     padding: 20px 22px 22px;
     flex: 1;
     display: flex;
     flex-direction: column;
 }
-
-/* =========================================================
-   POST CATEGORY
-========================================================= */
 
 .post-category {
     display: inline-flex;
@@ -481,10 +536,6 @@
     letter-spacing: .04em;
 }
 
-/* =========================================================
-   POST TITLE
-========================================================= */
-
 .post-title {
     margin: 0 0 12px;
     font-size: 1.1rem;
@@ -494,10 +545,6 @@
     letter-spacing: -0.01em;
 }
 
-/* =========================================================
-   POST EXCERPT
-========================================================= */
-
 .post-excerpt {
     margin: 0 0 16px;
     color: var(--text-secondary);
@@ -505,10 +552,6 @@
     line-height: 1.65;
     flex: 1;
 }
-
-/* =========================================================
-   POST STATS
-========================================================= */
 
 .post-stats {
     display: flex;
@@ -545,13 +588,9 @@
     color: var(--success);
 }
 
-/* =========================================================
-   LATEST COMMENT
-========================================================= */
-
 .latest-comment {
     padding: 12px 14px;
-    background: #f8fafc;
+    background: var(--surface-soft);
     border-radius: 10px;
     border: 1px solid var(--border);
     margin-bottom: 14px;
@@ -586,14 +625,14 @@
 
 .latest-comment-text {
     font-size: .85rem;
-    color: #475569;
+    color: var(--text-secondary);
     line-height: 1.6;
     overflow-wrap: break-word;
 }
 
 .no-comment {
     padding: 12px 14px;
-    background: #f8fafc;
+    background: var(--surface-soft);
     border-radius: 10px;
     border: 1px dashed var(--border);
     margin-bottom: 14px;
@@ -601,10 +640,6 @@
     font-size: .82rem;
     color: var(--text-secondary);
 }
-
-/* =========================================================
-   READ MORE LINK
-========================================================= */
 
 .read-more-link {
     display: inline-flex;
@@ -629,13 +664,12 @@
 
 /* =========================================================
    EMPTY STATE
-========================================================= */
-
+   ========================================================= */
 .teacher-empty {
     padding: 40px 24px;
     text-align: center;
     border-radius: var(--radius-sm);
-    background: #f8fafc;
+    background: var(--surface-soft);
     color: var(--text-secondary);
     font-size: .95rem;
     border: 1px dashed var(--border);
@@ -649,8 +683,7 @@
 
 /* =========================================================
    DEBUG (remove in production)
-========================================================= */
-
+   ========================================================= */
 .role-debug {
     background: #fee2e2;
     color: #991b1b;
@@ -662,10 +695,14 @@
     white-space: pre-wrap;
 }
 
-/* =========================================================
-   RESPONSIVE
-========================================================= */
+[data-theme="dark"] .role-debug {
+    background: #7f1d1d;
+    color: #fecaca;
+}
 
+/* =========================================================
+   RESPONSIVE — TABLET
+   ========================================================= */
 @media (max-width: 1100px) {
     .teacher-stats {
         grid-template-columns: repeat(2, 1fr);
@@ -692,71 +729,486 @@
     }
 }
 
+/* =========================================================
+   RESPONSIVE — PHONE
+   ========================================================= */
 @media (max-width: 700px) {
     .teacher-dashboard {
         padding: 16px 14px;
     }
 
+    /* --- STATS: 4 cards side by side in ONE row --- */
     .teacher-stats {
-        grid-template-columns: 1fr;
-        gap: 14px;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+        margin-bottom: 20px;
     }
 
-    .teacher-actions {
+    .teacher-stat {
+        width: 100%;
         flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        gap: 6px;
+        padding: 12px 6px;
+        border-radius: var(--radius-xs);
+        min-width: 0;
+    }
+
+    .teacher-stat:hover {
+        transform: none;
+    }
+
+    .teacher-stat-icon {
+        margin-bottom: 0;
+        width: 34px;
+        height: 34px;
+        font-size: 1rem;
+        border-radius: 10px;
+        flex-shrink: 0;
+    }
+
+    .teacher-stat h3 {
+        margin: 0;
+        font-size: .6rem;
+        line-height: 1.2;
+        letter-spacing: .02em;
+        word-break: break-word;
+    }
+
+    .teacher-stat-number {
+        font-size: 1.15rem;
+        margin-left: 0;
+        line-height: 1.1;
+    }
+
+    /* --- QUICK ACTIONS: grid side by side (3 cols) --- */
+    .teacher-actions {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
     }
 
     .teacher-action {
         width: 100%;
+        flex-direction: column;
+        align-items: center;
         justify-content: center;
-    }
-
-    .category-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .posts-grid {
-        grid-template-columns: 1fr;
-        gap: 20px;
-    }
-
-    .blog-post {
+        text-align: center;
+        gap: 6px;
+        padding: 14px 6px;
+        font-size: .72rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        background: var(--surface-soft);
+        border: 1px solid var(--border);
         border-radius: var(--radius-xs);
+        border-bottom: 1px solid var(--border);
+        white-space: normal;
+        line-height: 1.25;
+        word-break: break-word;
+        min-height: 76px;
+    }
+
+    .teacher-action:hover {
+        color: var(--accent-hover);
+        border-color: var(--accent);
+        background: var(--accent-soft);
+        padding-left: 6px;
+    }
+
+    .teacher-action .pill {
+        margin-left: 0;
+        margin-top: 2px;
+        font-size: .62rem;
+        padding: 1px 6px;
+    }
+
+    /* --- RECENT ASSIGNMENTS: 2-column grid of compact cards --- */
+    .assignment-list {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+
+    .assignment-item {
+        width: 100%;
+        padding: 12px 12px;
+        border-radius: var(--radius-xs);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-width: 0;
+        min-height: 84px;
+    }
+
+    .assignment-item:hover {
+        transform: none;
     }
 
     .assignment-top {
         flex-direction: column;
         align-items: flex-start;
+        justify-content: flex-start;
+        gap: 6px;
+        flex-wrap: nowrap;
+    }
+
+    .assignment-title {
+        font-size: .78rem;
+        font-weight: 650;
+        line-height: 1.3;
+        width: 100%;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        white-space: normal;
+    }
+
+    .assignment-type {
+        padding: 3px 8px;
+        font-size: .58rem;
+        flex-shrink: 0;
+        align-self: flex-start;
+    }
+
+    .assignment-meta {
+        margin-top: 6px;
+        font-size: .65rem;
+        gap: 2px 6px;
+        line-height: 1.3;
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    /* --- BLOG CATEGORIES: 2-column grid of compact cards --- */
+    .category-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+
+    .category-card {
+        width: 100%;
+        padding: 12px 12px;
+        font-size: .78rem;
+        border-radius: var(--radius-xs);
+        border: 1px solid var(--border);
+        background: var(--surface-soft);
+        gap: 8px;
+        transform: none;
+        box-shadow: none;
+        min-height: 54px;
+        line-height: 1.25;
+    }
+
+    .category-card:hover {
+        transform: none;
+        box-shadow: none;
+        background: var(--accent-soft);
+        border-color: var(--accent);
+        color: var(--accent-hover);
+        padding-left: 12px;
+    }
+
+    .category-card span:first-child {
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+
+    .category-card span:last-child {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        word-break: break-word;
+    }
+
+    /* --- LATEST BLOG POSTS: 2-column grid of compact cards --- */
+    .posts-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+
+    .blog-post {
+        width: 100%;
+        border-radius: var(--radius-xs);
+        flex-direction: column;
+        align-items: stretch;
+        min-width: 0;
+    }
+
+    .blog-post:hover {
+        transform: none;
+    }
+
+    .post-image-container {
+        width: 100%;
+        min-width: 0;
+        border-bottom: 1px solid var(--border);
+        border-right: none;
+        height: auto;
+    }
+
+    .post-image {
+        width: 100%;
+        height: 84px;
+        min-height: 84px;
+        object-fit: cover;
+    }
+
+    .post-body {
+        padding: 10px 10px 12px;
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .post-category {
+        margin-bottom: 4px;
+        font-size: .58rem;
+        gap: 3px;
+    }
+
+    .post-title {
+        font-size: .74rem;
+        margin-bottom: 6px;
+        line-height: 1.3;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        white-space: normal;
+    }
+
+    .post-excerpt {
+        display: none;
+    }
+
+    .post-stats {
+        gap: 8px;
+        padding: 6px 0;
+        margin-bottom: 8px;
+        flex-wrap: wrap;
+    }
+
+    .post-stat {
+        font-size: .62rem;
+        gap: 3px;
+    }
+
+    .post-stat i {
+        font-size: .7rem;
+    }
+
+    .latest-comment,
+    .no-comment {
+        padding: 6px 8px;
+        margin-bottom: 8px;
+        font-size: .6rem;
+        border-radius: 8px;
+    }
+
+    .latest-comment-header {
+        margin-bottom: 3px;
+        flex-wrap: wrap;
+    }
+
+    .latest-comment-author,
+    .latest-comment-date {
+        font-size: .58rem;
+        gap: 3px;
+    }
+
+    .latest-comment-author i {
+        font-size: .65rem;
+    }
+
+    .latest-comment-text {
+        font-size: .62rem;
+        line-height: 1.4;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .read-more-link {
+        font-size: .66rem;
+        gap: 4px;
+        margin-top: auto;
+    }
+
+    /* --- SECTION SPACING --- */
+    .teacher-section {
+        padding: 18px 16px;
+        margin-top: 16px;
+        border-radius: var(--radius-xs);
+    }
+
+    .teacher-section-header {
+        margin-bottom: 16px;
     }
 
     .teacher-section-header h2 {
-        font-size: 1.2rem;
+        font-size: 1.1rem;
+    }
+
+    .teacher-section-header p {
+        font-size: .82rem;
+    }
+
+    /* --- HEADER --- */
+    .teacher-header {
+        margin-bottom: 20px;
+    }
+
+    .teacher-badge {
+        padding: 8px 16px;
+        font-size: .82rem;
     }
 }
 
+/* =========================================================
+   RESPONSIVE — TINY PHONE
+   ========================================================= */
 @media (max-width: 380px) {
     .teacher-dashboard {
         padding: 12px 10px;
     }
 
     .teacher-section {
-        padding: 16px 14px;
-    }
-
-    .post-body {
-        padding: 16px;
-    }
-
-    .post-title {
-        font-size: 1rem;
+        padding: 14px 12px;
     }
 
     .teacher-stat {
-        padding: 18px;
+        padding: 10px 4px;
+        gap: 4px;
+    }
+
+    .teacher-stat-icon {
+        width: 28px;
+        height: 28px;
+        font-size: .85rem;
+        border-radius: 8px;
+    }
+
+    .teacher-stat h3 {
+        font-size: .52rem;
     }
 
     .teacher-stat-number {
-        font-size: 1.8rem;
+        font-size: 1rem;
+    }
+
+    /* Quick actions tighter on tiny phones */
+    .teacher-actions {
+        gap: 6px;
+    }
+
+    .teacher-action {
+        padding: 10px 4px;
+        font-size: .64rem;
+        min-height: 66px;
+        gap: 4px;
+    }
+
+    /* Assignments tighter */
+    .assignment-list {
+        gap: 6px;
+    }
+
+    .assignment-item {
+        padding: 10px 10px;
+        min-height: 76px;
+    }
+
+    .assignment-title {
+        font-size: .72rem;
+    }
+
+    .assignment-type {
+        font-size: .54rem;
+        padding: 2px 6px;
+    }
+
+    .assignment-meta {
+        font-size: .6rem;
+    }
+
+    /* Categories tighter */
+    .category-grid {
+        gap: 6px;
+    }
+
+    .category-card {
+        padding: 10px 8px;
+        font-size: .72rem;
+        min-height: 48px;
+        gap: 6px;
+    }
+
+    .category-card span:first-child {
+        font-size: .95rem;
+    }
+
+    /* Blog posts tighter */
+    .posts-grid {
+        gap: 6px;
+    }
+
+    .post-image {
+        height: 68px;
+        min-height: 68px;
+    }
+
+    .post-body {
+        padding: 8px 8px 10px;
+    }
+
+    .post-title {
+        font-size: .68rem;
+        margin-bottom: 4px;
+    }
+
+    .post-stats {
+        gap: 6px;
+        padding: 5px 0;
+        margin-bottom: 6px;
+    }
+
+    .post-stat {
+        font-size: .58rem;
+    }
+
+    .latest-comment,
+    .no-comment {
+        padding: 5px 6px;
+        font-size: .56rem;
+    }
+
+    .latest-comment-author,
+    .latest-comment-date {
+        font-size: .54rem;
+    }
+
+    .latest-comment-text {
+        font-size: .58rem;
+    }
+
+    .read-more-link {
+        font-size: .62rem;
+    }
+
+    .teacher-section-header h2 {
+        font-size: 1rem;
     }
 }
 </style>
@@ -764,7 +1216,6 @@
 
 <div class="teacher-dashboard">
 
- 
     {% if not role %}
         <div class="role-debug">
             DEBUG → role is EMPTY. Add "role" and "role_label" to the view context.
@@ -813,7 +1264,7 @@
 
 
     <!-- =====================================================
-         STATISTICS
+         STATISTICS — 4 cards side by side on phone
     ====================================================== -->
 
     <div class="teacher-stats">
@@ -854,7 +1305,7 @@
 
 
     <!-- =====================================================
-         QUICK ACTIONS
+         QUICK ACTIONS — side by side grid on phone
     ====================================================== -->
 
     <section class="teacher-section">
@@ -867,35 +1318,42 @@
         <div class="teacher-actions">
 
             <a href="{% url 'manage_assignments' %}" class="teacher-action">
-                📝 Manage Assignments
+                <span>📝</span>
+                <span>Manage Assignments</span>
             </a>
 
-            <a href="{% url 'create_assignment' %}" class="teacher-action success">
-                ➕ Create Assignment
+            <a href="{% url 'create_assignment' %}" class="teacher-action">
+                <span>➕</span>
+                <span>Create Assignment</span>
             </a>
 
-            <a href="{% url 'submission_list' %}" class="teacher-action secondary">
-                📥 Submissions
+            <a href="{% url 'submission_list' %}" class="teacher-action">
+                <span>📥</span>
+                <span>Submissions</span>
                 {% if pending_submissions %}
                     <span class="pill">{{ pending_submissions }}</span>
                 {% endif %}
             </a>
 
-            <a href="{% url 'quiz_home' %}" class="teacher-action secondary">
-                ❓ Quizzes
+            <a href="{% url 'quiz_home' %}" class="teacher-action">
+                <span>❓</span>
+                <span>Quizzes</span>
             </a>
 
             <a href="{% url 'library:home' %}" class="teacher-action">
-                📚 Library
+                <span>📚</span>
+                <span>Library</span>
             </a>
 
-            <a href="{% url 'blog:home' %}" class="teacher-action warning">
-                📰 Blog
+            <a href="{% url 'blog:home' %}" class="teacher-action">
+                <span>📰</span>
+                <span>Blog</span>
             </a>
 
             {% if role == "school_admin" and request.user.school %}
-                <a href="{% url 'school_subjects' request.user.school.id %}" class="teacher-action warning">
-                    🏫 School Subjects
+                <a href="{% url 'school_subjects' request.user.school.id %}" class="teacher-action">
+                    <span>🏫</span>
+                    <span>School Subjects</span>
                 </a>
             {% endif %}
 
@@ -905,7 +1363,7 @@
 
 
     <!-- =====================================================
-         RECENT ASSIGNMENTS
+         RECENT ASSIGNMENTS — 2-column grid on phone
     ====================================================== -->
 
     <section class="teacher-section">
@@ -967,7 +1425,7 @@
 
 
     <!-- =====================================================
-         BLOG CATEGORIES
+         BLOG CATEGORIES — 2-column grid on phone
     ====================================================== -->
 
     <section class="teacher-section">
@@ -1006,7 +1464,7 @@
 
 
     <!-- =====================================================
-         LATEST BLOG POSTS
+         LATEST BLOG POSTS — 2-column grid on phone
     ====================================================== -->
 
     <section class="teacher-section">
