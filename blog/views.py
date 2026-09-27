@@ -458,7 +458,6 @@ def home(request):
         context
     )
 
-
 def post_detail(request, slug):
     """
     Display a single post with:
@@ -485,23 +484,28 @@ def post_detail(request, slug):
         .prefetch_related(
             "tags",
             "images",
-            "attachments",          # <-- NEW
+            "attachments",
             "likes",
         ),
         slug=slug,
     )
 
     # ---------------------------------------------------------
-    # INCREASE VIEW COUNT
+    # INCREASE VIEW COUNT (deduplicated per session)
     # ---------------------------------------------------------
 
-    Post.objects.filter(
-        pk=post.pk
-    ).update(
-        view_count=F("view_count") + 1
-    )
+    viewed_posts = request.session.get("viewed_posts", [])
 
-    post.refresh_from_db()
+    if post.pk not in viewed_posts:
+        Post.objects.filter(
+            pk=post.pk
+        ).update(
+            view_count=F("view_count") + 1
+        )
+        post.refresh_from_db(fields=["view_count"])
+
+        viewed_posts.append(post.pk)
+        request.session["viewed_posts"] = viewed_posts
 
     # ---------------------------------------------------------
     # GET COMMENTS
@@ -520,29 +524,15 @@ def post_detail(request, slug):
     # ---------------------------------------------------------
 
     if request.user.is_authenticated:
-
         user_id = request.user.pk
-
         for comment in comments:
-
-            comment.likes_count = (
-                comment.liked_by.count()
-            )
-
+            comment.likes_count = comment.liked_by.count()
             comment.liked_by_current_user = (
-                comment.liked_by
-                .filter(pk=user_id)
-                .exists()
+                comment.liked_by.filter(pk=user_id).exists()
             )
-
     else:
-
         for comment in comments:
-
-            comment.likes_count = (
-                comment.liked_by.count()
-            )
-
+            comment.likes_count = comment.liked_by.count()
             comment.liked_by_current_user = False
 
     # ---------------------------------------------------------
@@ -551,26 +541,18 @@ def post_detail(request, slug):
 
     is_liked = (
         request.user.is_authenticated
-        and post.likes.filter(
-            pk=request.user.pk
-        ).exists()
+        and post.likes.filter(pk=request.user.pk).exists()
     )
 
     likes_count = post.likes.count()
-
     comments_count = len(comments)
-
     views_count = post.view_count
 
     # ---------------------------------------------------------
     # EDIT / DELETE PERMISSION
     # ---------------------------------------------------------
 
-    can_edit = can_manage_post(
-        request,
-        post
-    )
-
+    can_edit = can_manage_post(request, post)
     can_delete = can_edit
 
     # ---------------------------------------------------------
@@ -589,7 +571,6 @@ def post_detail(request, slug):
     }
 
     return render(request, "post_detail.html", context)
-
 
 def category_post(request, slug):
     """
