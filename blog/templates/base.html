@@ -1,6 +1,6 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,23 +14,66 @@
     <link rel="stylesheet" href="{% static 'smartmind_ai/chatbot.css' %}">
     <link rel="stylesheet" href="{% static 'django_ckeditor_5/dist/styles.css' %}">
 
+    <!-- Prevent theme flash — runs before paint -->
+    <script>
+        (function () {
+            try {
+                var stored = localStorage.getItem('smartmind-theme');
+                var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                var theme = stored || (prefersDark ? 'dark' : 'light');
+                document.documentElement.setAttribute('data-theme', theme);
+            } catch (e) {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+
     {% block extra_css %}{% endblock %}
 
     <style>
+        /* =====================================================
+           DESIGN TOKENS — LIGHT (default)
+        ===================================================== */
         :root {
             --bg: #f6f8fc;
             --surface: rgba(255, 255, 255, 0.82);
             --surface-solid: #ffffff;
+            --surface-alt: #f8fafc;
             --text: #0f172a;
             --muted: #64748b;
-            --primary: #2563eb;
-            --primary-2: #1d4ed8;
+            --primary: #6366f1;
+            --primary-2: #4f46e5;
+            --primary-soft: #eef2ff;
             --border: rgba(148, 163, 184, 0.18);
+            --border-solid: #e9eef4;
             --shadow: 0 12px 35px rgba(15, 23, 42, 0.08);
+            --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
+            --navbar-bg: rgba(255, 255, 255, 0.76);
             --radius: 18px;
             --navbar-h: 72px;
             --sidebar-w: 280px;
             --layout-pad: 20px;
+            --ease: cubic-bezier(.4, 0, .2, 1);
+        }
+
+        /* =====================================================
+           DESIGN TOKENS — DARK
+        ===================================================== */
+        [data-theme="dark"] {
+            --bg: #0a0e1a;
+            --surface: rgba(17, 24, 39, 0.85);
+            --surface-solid: #111827;
+            --surface-alt: #1a2234;
+            --text: #f1f5f9;
+            --muted: #94a3b8;
+            --primary: #818cf8;
+            --primary-2: #a5b4fc;
+            --primary-soft: #1e1b4b;
+            --border: rgba(148, 163, 184, 0.12);
+            --border-solid: #1f2937;
+            --shadow: 0 12px 35px rgba(0, 0, 0, 0.5);
+            --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.35);
+            --navbar-bg: rgba(17, 24, 39, 0.82);
         }
 
         * { box-sizing: border-box; }
@@ -41,10 +84,17 @@
             margin: 0;
             font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             background:
-                radial-gradient(circle at top left, rgba(37, 99, 235, 0.10), transparent 28%),
-                linear-gradient(180deg, #fbfdff 0%, var(--bg) 100%);
+                radial-gradient(circle at top left, rgba(99, 102, 241, 0.10), transparent 28%),
+                linear-gradient(180deg, var(--bg) 0%, var(--bg) 100%);
             color: var(--text);
             overflow-x: hidden;
+            transition: background-color .3s var(--ease), color .3s var(--ease);
+        }
+
+        [data-theme="dark"] body {
+            background:
+                radial-gradient(circle at top left, rgba(129, 140, 248, 0.08), transparent 30%),
+                linear-gradient(180deg, var(--bg) 0%, var(--bg) 100%);
         }
 
         a { text-decoration: none; }
@@ -66,8 +116,10 @@
             top: 0;
             z-index: 1030;
             backdrop-filter: blur(16px);
-            background: rgba(255, 255, 255, 0.76);
+            -webkit-backdrop-filter: blur(16px);
+            background: var(--navbar-bg);
             border-bottom: 1px solid var(--border);
+            transition: background-color .3s var(--ease), border-color .3s var(--ease);
         }
 
         .nav-inner {
@@ -98,7 +150,7 @@
             border-radius: 14px;
             background: linear-gradient(135deg, var(--primary), #7c3aed);
             color: #fff;
-            box-shadow: var(--shadow);
+            box-shadow: var(--shadow-sm);
         }
 
         .nav-links {
@@ -119,6 +171,12 @@
             color: var(--primary);
         }
 
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
         .user-box {
             display: flex;
             align-items: center;
@@ -127,13 +185,14 @@
         }
 
         .btn-pill {
-            border: 1px solid var(--border);
+            border: 1px solid var(--border-solid);
             background: var(--surface-solid);
             color: var(--primary);
             padding: 9px 15px;
             border-radius: 999px;
             font-weight: 600;
-            transition: all 0.2s ease;
+            transition: all 0.2s var(--ease);
+            font-size: .9rem;
         }
 
         .btn-pill:hover {
@@ -141,6 +200,48 @@
             color: #fff;
             border-color: var(--primary);
         }
+
+        [data-theme="dark"] .btn-pill:hover {
+            color: #0a0e1a;
+        }
+
+        /* =====================================================
+           THEME TOGGLE
+        ===================================================== */
+        .theme-toggle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1px solid var(--border-solid);
+            background: var(--surface-solid);
+            color: var(--muted);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.05rem;
+            transition: all .2s var(--ease);
+            -webkit-tap-highlight-color: transparent;
+            flex-shrink: 0;
+            padding: 0;
+        }
+
+        .theme-toggle:hover {
+            color: var(--primary);
+            background: var(--primary-soft);
+            border-color: rgba(99, 102, 241, .35);
+            transform: rotate(15deg);
+        }
+
+        .theme-toggle:active {
+            transform: scale(.92) rotate(15deg);
+        }
+
+        .theme-toggle .icon-sun { display: none; }
+        .theme-toggle .icon-moon { display: inline; }
+
+        [data-theme="dark"] .theme-toggle .icon-sun { display: inline; }
+        [data-theme="dark"] .theme-toggle .icon-moon { display: none; }
 
         .mobile-menu-btn {
             display: none;
@@ -169,10 +270,14 @@
             overflow-y: auto;
             background: var(--surface);
             backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
             border: 1px solid var(--border);
             border-radius: var(--radius);
             box-shadow: var(--shadow);
             padding: 20px;
+            transition: background-color .3s var(--ease),
+                        border-color .3s var(--ease),
+                        box-shadow .3s var(--ease);
         }
 
         .sidebar-section + .sidebar-section {
@@ -185,6 +290,7 @@
             margin: 0 0 14px;
             font-size: 1rem;
             font-weight: 700;
+            color: var(--text);
         }
 
         .sidebar-links {
@@ -203,7 +309,7 @@
         }
 
         .sidebar-links a:hover {
-            background: rgba(37, 99, 235, 0.08);
+            background: var(--primary-soft);
             color: var(--primary);
             transform: translateX(2px);
         }
@@ -221,6 +327,28 @@
         .content-wrap {
             background: transparent;
             min-width: 0;
+        }
+
+        /* =====================================================
+           OFFCANVAS (mobile sidebar)
+        ===================================================== */
+        .offcanvas {
+            background: var(--surface-solid);
+            color: var(--text);
+            transition: background-color .3s var(--ease), color .3s var(--ease);
+        }
+
+        .offcanvas-header {
+            border-bottom: 1px solid var(--border);
+        }
+
+        .offcanvas-title {
+            color: var(--text);
+            font-weight: 700;
+        }
+
+        [data-theme="dark"] .btn-close {
+            filter: invert(1) grayscale(100%) brightness(200%);
         }
 
         /* =====================================================
@@ -264,6 +392,18 @@
             .brand {
                 font-size: 1rem;
             }
+
+            .brand-badge {
+                width: 36px;
+                height: 36px;
+                border-radius: 12px;
+            }
+
+            .theme-toggle {
+                width: 38px;
+                height: 38px;
+                font-size: 1rem;
+            }
         }
 
         @media (max-width: 576px) {
@@ -273,6 +413,22 @@
 
             .layout {
                 padding: 10px;
+            }
+
+            .theme-toggle {
+                width: 36px;
+                height: 36px;
+                font-size: .95rem;
+            }
+        }
+
+        /* =====================================================
+           REDUCED MOTION
+        ===================================================== */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                transition: none !important;
+                animation: none !important;
             }
         }
     </style>
@@ -302,28 +458,47 @@
                 <a href="#">Trending</a>
                 <a href="#">About</a>
                 <a href="{% url 'library:home' %}">Library</a>
-                <a href="{% url 'blog:add_post' %}">+ Post</a>
+
+                {% if user.is_authenticated %}
+                    {% if user.is_superuser or user.role == "school_admin" or user.role == "teacher" %}
+                        <a href="{% url 'blog:add_post' %}">+ Post</a>
+                    {% endif %}
+                {% endif %}
             </nav>
 
-            <div class="user-box">
-                {% if user.is_authenticated %}
-                    <span>Hi, <strong>{{ user.username }}</strong></span>
-                    <form action="{% url 'logout' %}" method="post" class="m-0">
-                        {% csrf_token %}
-                        <button type="submit" class="btn-pill">Logout</button>
-                    </form>
-                {% else %}
-                    <a href="{% url 'login' %}" class="btn-pill">Login</a>
-                {% endif %}
-            </div>
+            <div class="nav-actions">
 
-            <button class="btn btn-outline-primary mobile-menu-btn"
-                    type="button"
-                    data-bs-toggle="offcanvas"
-                    data-bs-target="#mobileSidebar"
-                    aria-controls="mobileSidebar">
-                <i class="bi bi-list"></i> Menu
-            </button>
+                <!-- Theme toggle — visible on all screen sizes -->
+                <button type="button"
+                        class="theme-toggle"
+                        id="themeToggle"
+                        aria-label="Toggle dark mode"
+                        title="Toggle light / dark theme">
+                    <i class="bi bi-moon-stars icon-moon"></i>
+                    <i class="bi bi-sun icon-sun"></i>
+                </button>
+
+                <div class="user-box">
+                    {% if user.is_authenticated %}
+                        <span>Hi, <strong>{{ user.username }}</strong></span>
+                        <form action="{% url 'logout' %}" method="post" class="m-0">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-pill">Logout</button>
+                        </form>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="btn-pill">Login</a>
+                    {% endif %}
+                </div>
+
+                <button class="btn btn-outline-primary mobile-menu-btn"
+                        type="button"
+                        data-bs-toggle="offcanvas"
+                        data-bs-target="#mobileSidebar"
+                        aria-controls="mobileSidebar">
+                    <i class="bi bi-list"></i> Menu
+                </button>
+
+            </div>
 
         </div>
     </header>
@@ -426,7 +601,12 @@
                 <a href="#"><i class="bi bi-fire"></i><span>Trending</span></a>
                 <a href="#"><i class="bi bi-info-circle"></i><span>About</span></a>
                 <a href="{% url 'library:home' %}"><i class="bi bi-journal-text"></i><span>Library</span></a>
-                <a href="{% url 'blog:add_post' %}"><i class="bi bi-plus-circle"></i><span>+ Post</span></a>
+
+                {% if user.is_authenticated %}
+                    {% if user.is_superuser or user.role == "school_admin" or user.role == "teacher" %}
+                        <a href="{% url 'blog:add_post' %}"><i class="bi bi-plus-circle"></i><span>+ Post</span></a>
+                    {% endif %}
+                {% endif %}
             </div>
         </div>
 
@@ -457,6 +637,53 @@
 
 {% include "smartmind_ai/chatbot.html" %}
 <script src="{% static 'smartmind_ai/chatbot.js' %}"></script>
+
+
+<!-- =========================================================
+     THEME TOGGLE LOGIC
+========================================================= -->
+<script>
+(function () {
+    var root = document.documentElement;
+    var STORAGE_KEY = 'smartmind-theme';
+
+    function getStored() {
+        try { return localStorage.getItem(STORAGE_KEY); } catch (e) { return null; }
+    }
+
+    function setTheme(theme, persist) {
+        root.setAttribute('data-theme', theme);
+        if (persist) {
+            try { localStorage.setItem(STORAGE_KEY, theme); } catch (e) {}
+        }
+    }
+
+    function initToggle() {
+        var toggle = document.getElementById('themeToggle');
+        if (!toggle) return;
+
+        toggle.addEventListener('click', function () {
+            var current = root.getAttribute('data-theme') || 'light';
+            var next = current === 'dark' ? 'light' : 'dark';
+            setTheme(next, true);
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initToggle);
+    } else {
+        initToggle();
+    }
+
+    /* Follow OS preference changes only if user hasn't manually chosen */
+    window.matchMedia('(prefers-color-scheme: dark)')
+        .addEventListener('change', function (e) {
+            if (!getStored()) {
+                setTheme(e.matches ? 'dark' : 'light', false);
+            }
+        });
+})();
+</script>
 
 {% block extra_js %}{% endblock %}
 
