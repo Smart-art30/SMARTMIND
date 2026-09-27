@@ -6,132 +6,333 @@
 {% block content %}
 
 <style>
-  .qs-wrap {
+/* =========================================================
+   DESIGN TOKENS — LIGHT (default)
+========================================================= */
+.qs-wrap {
+    --qs-surface: #ffffff;
+    --qs-surface-alt: #f8fafc;
+    --qs-surface-hover: #f8faff;
+    --qs-surface-soft: #dbeafe;
+
+    --qs-text: #0f172a;
+    --qs-text-muted: #64748b;
+
+    --qs-border: #e2e8f0;
+    --qs-border-strong: #3b82f6;
+
+    --qs-primary: #6366f1;
+    --qs-primary-soft: #eef2ff;
+    --qs-blue: #1d4ed8;
+
+    --qs-radius: 16px;
+    --qs-radius-sm: 12px;
+
+    --qs-shadow-xs: 0 2px 6px rgba(15, 23, 42, .03);
+    --qs-shadow: 0 10px 24px rgba(99, 102, 241, .12);
+
+    --qs-ease: cubic-bezier(.4, 0, .2, 1);
+
     max-width: 1000px;
     margin: 40px auto;
     padding: 20px;
-  }
+    color: var(--qs-text);
+    transition: color .3s var(--qs-ease);
+}
 
-  .qs-header {
+/* =========================================================
+   DESIGN TOKENS — DARK
+========================================================= */
+[data-theme="dark"] .qs-wrap {
+    --qs-surface: #111827;
+    --qs-surface-alt: #1a2234;
+    --qs-surface-hover: #1e1b4b;
+    --qs-surface-soft: rgba(129, 140, 248, .12);
+
+    --qs-text: #f1f5f9;
+    --qs-text-muted: #94a3b8;
+
+    --qs-border: #1f2937;
+    --qs-border-strong: #818cf8;
+
+    --qs-primary: #818cf8;
+    --qs-primary-soft: #1e1b4b;
+    --qs-blue: #a5b4fc;
+
+    --qs-shadow-xs: 0 2px 6px rgba(0, 0, 0, .3);
+    --qs-shadow: 0 10px 24px rgba(0, 0, 0, .45);
+}
+
+/* =========================================================
+   HEADER
+========================================================= */
+.qs-header {
     margin-bottom: 26px;
-  }
+}
 
-  .qs-back {
+.qs-back {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    color: #64748b;
+    color: var(--qs-text-muted);
     font-size: .85rem;
     font-weight: 600;
     text-decoration: none;
     margin-bottom: 12px;
-    transition: color .15s ease;
-  }
-  .qs-back:hover { color: #2563eb; }
+    transition: color .18s var(--qs-ease);
+    -webkit-tap-highlight-color: transparent;
+}
 
-  .qs-header h1 {
+.qs-back:hover {
+    color: var(--qs-primary);
+}
+
+.qs-header h1 {
     margin: 0 0 6px;
     font-size: 1.6rem;
-    font-weight: 700;
-    color: #0f172a;
-    letter-spacing: -0.02em;
-  }
+    font-weight: 800;
+    color: var(--qs-text);
+    letter-spacing: -0.025em;
+    transition: color .3s var(--qs-ease);
+}
 
-  .qs-header p {
+.qs-header p {
     margin: 0;
-    color: #64748b;
+    color: var(--qs-text-muted);
     font-size: .95rem;
-  }
+    transition: color .3s var(--qs-ease);
+}
 
-  .qs-grid {
+/* =========================================================
+   GRID
+========================================================= */
+.qs-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 16px;
-  }
+}
 
-  .qs-card {
+/* =========================================================
+   SUBJECT CARD
+========================================================= */
+.qs-card {
     display: flex;
     align-items: center;
     gap: 14px;
     padding: 20px 22px;
-    background: #fff;
-    border: 1px solid #e2e8f0;
-    border-radius: 14px;
+    background: var(--qs-surface);
+    border: 1px solid var(--qs-border);
+    border-radius: var(--qs-radius);
     text-decoration: none;
     color: inherit;
-    box-shadow: 0 2px 6px rgba(15, 23, 42, .03);
-    transition: all .18s ease;
-  }
+    box-shadow: var(--qs-shadow-xs);
+    transition: all .22s var(--qs-ease);
+    position: relative;
+    overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
+    min-width: 0;
+}
 
-  .qs-card:hover {
-    border-color: #3b82f6;
-    background: #f8faff;
+.qs-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, var(--qs-primary), #a78bfa);
+    opacity: 0;
+    transition: opacity .22s var(--qs-ease);
+}
+
+.qs-card:hover {
+    border-color: var(--qs-border-strong);
+    background: var(--qs-surface-hover);
     transform: translateY(-3px);
-    box-shadow: 0 10px 24px rgba(59, 130, 246, .12);
-  }
+    box-shadow: var(--qs-shadow);
+}
 
-  .qs-card-icon {
+.qs-card:hover::before {
+    opacity: 1;
+}
+
+.qs-card:active {
+    transform: translateY(-1px) scale(.99);
+}
+
+/* =========================================================
+   CARD ICON
+========================================================= */
+.qs-card-icon {
     width: 46px;
     height: 46px;
     display: grid;
     place-items: center;
-    background: #dbeafe;
-    color: #1d4ed8;
-    border-radius: 12px;
+    background: var(--qs-surface-soft);
+    color: var(--qs-blue);
+    border-radius: var(--qs-radius-sm);
     font-size: 1.3rem;
     flex-shrink: 0;
-  }
+    transition: background-color .3s var(--qs-ease),
+                color .3s var(--qs-ease);
+}
 
-  .qs-card-body {
+/* =========================================================
+   CARD BODY
+========================================================= */
+.qs-card-body {
     min-width: 0;
-  }
+}
 
-  .qs-card-title {
-    font-weight: 650;
-    color: #0f172a;
+.qs-card-title {
+    font-weight: 700;
+    color: var(--qs-text);
     font-size: 1rem;
-    margin-bottom: 2px;
-    overflow-wrap: break-word;
-  }
+    margin-bottom: 3px;
+    overflow-wrap: anywhere;
+    letter-spacing: -0.01em;
+    transition: color .3s var(--qs-ease);
+}
 
-  .qs-card-meta {
+.qs-card-meta {
     font-size: .8rem;
-    color: #64748b;
+    color: var(--qs-text-muted);
     font-weight: 500;
-  }
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: color .3s var(--qs-ease);
+}
 
-  .qs-empty {
+.qs-card:hover .qs-card-meta {
+    color: var(--qs-primary);
+}
+
+/* =========================================================
+   EMPTY STATE
+========================================================= */
+.qs-empty {
     padding: 60px 24px;
     text-align: center;
-    border: 1px dashed #cbd5e1;
-    border-radius: 16px;
-    background: #f8fafc;
-    color: #64748b;
-  }
+    border: 1px dashed var(--qs-border);
+    border-radius: var(--qs-radius);
+    background: var(--qs-surface-alt);
+    color: var(--qs-text-muted);
+    transition: background-color .3s var(--qs-ease),
+                border-color .3s var(--qs-ease),
+                color .3s var(--qs-ease);
+}
 
-  .qs-empty .icon {
+.qs-empty .icon {
     font-size: 2.4rem;
     display: block;
     margin-bottom: 10px;
-  }
+}
 
-  .qs-empty h3 {
+.qs-empty h3 {
     margin: 0 0 6px;
     font-size: 1.05rem;
-    color: #0f172a;
-    font-weight: 650;
-  }
+    color: var(--qs-text);
+    font-weight: 700;
+    transition: color .3s var(--qs-ease);
+}
 
-  .qs-empty p {
+.qs-empty p {
     margin: 0;
     font-size: .9rem;
-  }
+}
 
-  @media (max-width: 500px) {
-    .qs-wrap { padding: 12px; }
-    .qs-grid { grid-template-columns: 1fr; }
-    .qs-header h1 { font-size: 1.35rem; }
-  }
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+@media (max-width: 640px) {
+    .qs-wrap {
+        margin: 20px auto;
+        padding: 14px;
+    }
+
+    .qs-header {
+        margin-bottom: 20px;
+    }
+
+    .qs-header h1 {
+        font-size: 1.35rem;
+    }
+
+    .qs-header p {
+        font-size: .875rem;
+    }
+
+    .qs-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .qs-card {
+        padding: 16px 14px;
+        gap: 12px;
+        border-radius: 14px;
+    }
+
+    .qs-card-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1.15rem;
+        border-radius: 11px;
+    }
+
+    .qs-card-title {
+        font-size: .92rem;
+    }
+
+    .qs-card-meta {
+        font-size: .72rem;
+    }
+}
+
+@media (max-width: 420px) {
+    .qs-wrap {
+        padding: 12px;
+    }
+
+    .qs-header h1 {
+        font-size: 1.2rem;
+    }
+
+    .qs-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .qs-card {
+        padding: 14px 14px;
+    }
+
+    .qs-card-icon {
+        width: 38px;
+        height: 38px;
+        font-size: 1.05rem;
+    }
+
+    .qs-card-title {
+        font-size: .9rem;
+    }
+
+    .qs-empty {
+        padding: 40px 18px;
+    }
+}
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+@media (prefers-reduced-motion: reduce) {
+    .qs-wrap *,
+    .qs-wrap *::before,
+    .qs-wrap *::after {
+        transition: none !important;
+        animation: none !important;
+    }
+}
 </style>
 
 <div class="qs-wrap">
@@ -140,7 +341,10 @@
        HEADER
   ====================== -->
   <div class="qs-header">
-    <a href="{% url 'quiz_home' %}" class="qs-back">← Back to classes</a>
+    <a href="{% url 'quiz_home' %}" class="qs-back">
+      <i class="bi bi-arrow-left"></i>
+      Back to classes
+    </a>
     <h1>🏫 {{ school_class }}</h1>
     <p>Choose a subject to see available quizzes.</p>
   </div>
@@ -152,10 +356,15 @@
     <div class="qs-grid">
       {% for subject in subjects %}
         <a href="{% url 'quiz_list' school_class.id subject.id %}" class="qs-card">
-          <div class="qs-card-icon">📚</div>
+          <div class="qs-card-icon">
+            <i class="bi bi-book"></i>
+          </div>
           <div class="qs-card-body">
             <div class="qs-card-title">{{ subject.name }}</div>
-            <div class="qs-card-meta">View quizzes →</div>
+            <div class="qs-card-meta">
+              View quizzes
+              <i class="bi bi-arrow-right"></i>
+            </div>
           </div>
         </a>
       {% endfor %}

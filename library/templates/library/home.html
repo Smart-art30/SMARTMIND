@@ -1,88 +1,519 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}
-Learning Library
-{% endblock %}
+{% block title %}Learning Library{% endblock %}
 
 {% block content %}
 
 <style>
+/* =========================================================
+   DESIGN TOKENS — LIGHT (default)
+   Scoped to .library-hero-page so they don't leak elsewhere
+========================================================= */
+.library-hero-page {
+    --lh-surface: #ffffff;
+    --lh-surface-alt: #f8fafc;
+    --lh-surface-hover: #f9fbfe;
+    --lh-surface-muted: #f1f5f9;
+
+    --lh-text: #1f2937;
+    --lh-text-body: #334155;
+    --lh-text-muted: #6b7280;
+    --lh-text-soft: #64748b;
+
+    --lh-border: #e9eef4;
+    --lh-border-soft: #f0f3f9;
+
+    --lh-primary: #6366f1;
+    --lh-primary-hover: #4f46e5;
+    --lh-primary-soft: #eef2ff;
+    --lh-primary-text: #4f46e5;
+    --lh-primary-border: rgba(99, 102, 241, .25);
+
+    --lh-accent: #a78bfa;
+    --lh-accent-2: #8b5cf6;
+
+    --lh-radius-lg: 24px;
+    --lh-radius: 20px;
+    --lh-radius-sm: 14px;
+    --lh-radius-xs: 12px;
+
+    --lh-shadow-xs: 0 2px 6px rgba(15, 23, 42, .03);
+    --lh-shadow-sm: 0 4px 12px rgba(15, 23, 42, .05);
+    --lh-shadow: 0 8px 30px rgba(15, 23, 42, .08);
+    --lh-shadow-hover: 0 20px 44px rgba(99, 102, 241, .18);
+
+    --lh-ease: cubic-bezier(.4, 0, .2, 1);
+
+    width: 100%;
+    padding: 28px 24px;
+    color: var(--lh-text-body);
+    transition: color .3s var(--lh-ease);
+}
+
+/* =========================================================
+   DESIGN TOKENS — DARK
+========================================================= */
+[data-theme="dark"] .library-hero-page {
+    --lh-surface: #111827;
+    --lh-surface-alt: #1a2234;
+    --lh-surface-hover: #1e293b;
+    --lh-surface-muted: #1f2937;
+
+    --lh-text: #f1f5f9;
+    --lh-text-body: #e2e8f0;
+    --lh-text-muted: #94a3b8;
+    --lh-text-soft: #94a3b8;
+
+    --lh-border: #1f2937;
+    --lh-border-soft: #1e293b;
+
+    --lh-primary: #818cf8;
+    --lh-primary-hover: #a5b4fc;
+    --lh-primary-soft: #1e1b4b;
+    --lh-primary-text: #a5b4fc;
+    --lh-primary-border: rgba(129, 140, 248, .3);
+
+    --lh-accent: #c4b5fd;
+    --lh-accent-2: #a78bfa;
+
+    --lh-shadow-xs: 0 2px 6px rgba(0, 0, 0, .3);
+    --lh-shadow-sm: 0 4px 12px rgba(0, 0, 0, .4);
+    --lh-shadow: 0 8px 30px rgba(0, 0, 0, .5);
+    --lh-shadow-hover: 0 20px 44px rgba(0, 0, 0, .6);
+}
+
+/* =========================================================
+   FORCE ADAPTATION OF BOOTSTRAP / UTILITY CLASSES
+   (these often carry light-only colors)
+========================================================= */
+[data-theme="dark"] .library-hero-page .text-muted {
+    color: var(--lh-text-muted) !important;
+}
+
+[data-theme="dark"] .library-hero-page .alert-info {
+    background: var(--lh-primary-soft) !important;
+    border-color: var(--lh-primary-border) !important;
+    color: var(--lh-primary-text) !important;
+}
+
+[data-theme="dark"] .library-hero-page .btn-outline-primary {
+    color: var(--lh-primary-text) !important;
+    border-color: var(--lh-primary-border) !important;
+    background: transparent !important;
+}
+
+[data-theme="dark"] .library-hero-page .btn-outline-primary:hover {
+    background: var(--lh-primary-soft) !important;
+    border-color: var(--lh-primary) !important;
+    color: var(--lh-primary-text) !important;
+}
+
+[data-theme="dark"] .library-hero-page .btn-primary {
+    background: var(--lh-primary) !important;
+    border-color: var(--lh-primary) !important;
+    color: #0a0e1a !important;
+}
+
+[data-theme="dark"] .library-hero-page .btn-primary:hover {
+    background: var(--lh-primary-hover) !important;
+    border-color: var(--lh-primary-hover) !important;
+}
+
+/* =========================================================
+   BASE
+========================================================= */
+.library-hero-page,
+.library-hero-page *,
+.library-hero-page *::before,
+.library-hero-page *::after {
+    box-sizing: border-box;
+}
+
+/* =========================================================
+   HERO BANNER
+========================================================= */
 .library-hero {
-    background: linear-gradient(135deg,#667eea,#764ba2);
-    border-radius: 25px;
+    background: linear-gradient(135deg,
+                var(--lh-primary),
+                var(--lh-accent-2));
+    border-radius: var(--lh-radius-lg);
     padding: 50px;
-    color: white;
+    color: #ffffff;
     margin-bottom: 40px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 20px 44px rgba(99, 102, 241, .28);
+    transition: box-shadow .3s var(--lh-ease);
+}
+
+.library-hero::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle,
+                rgba(255, 255, 255, .15) 0%,
+                transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+[data-theme="dark"] .library-hero {
+    box-shadow: 0 20px 44px rgba(0, 0, 0, .5);
 }
 
 .library-hero h1 {
-    font-weight: 700;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    margin-bottom: 8px;
+    position: relative;
+    z-index: 1;
+    color: #ffffff;
 }
 
-.level-card {
-    border: none;
-    border-radius: 20px;
+.library-hero p {
+    opacity: .95;
+    font-size: 1.05rem;
+    margin-bottom: 0;
+    position: relative;
+    z-index: 1;
+    color: #ffffff;
+}
+
+.library-hero form {
+    position: relative;
+    z-index: 1;
+    margin-top: 24px;
+}
+
+.library-hero .input-group {
+    border-radius: var(--lh-radius-xs);
     overflow: hidden;
-    box-shadow: 0 8px 30px rgba(0,0,0,.08);
-    transition: .3s;
+    background: rgba(255, 255, 255, .95);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .12);
+    display: flex;
+    align-items: stretch;
+}
+
+.library-hero .input-group .form-control {
+    background: #ffffff;
+    border: none;
+    padding: 14px 20px;
+    font-size: .95rem;
+    color: #1f2937;
+    box-shadow: none;
+    outline: none;
+    flex: 1;
+    min-width: 0;
+}
+
+.library-hero .input-group .form-control:focus {
+    background: #ffffff;
+    color: #1f2937;
+    box-shadow: none;
+}
+
+.library-hero .input-group .form-control::placeholder {
+    color: #94a3b8;
+}
+
+.library-hero .input-group .btn-light {
+    background: #ffffff;
+    border: none;
+    border-left: 1px solid rgba(99, 102, 241, .15);
+    color: #4f46e5;
+    font-weight: 600;
+    padding: 14px 28px;
+    transition: all .2s var(--lh-ease);
+    -webkit-tap-highlight-color: transparent;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.library-hero .input-group .btn-light:hover {
+    background: #eef2ff;
+    color: #4f46e5;
+}
+
+/* =========================================================
+   SECTION TITLE
+========================================================= */
+.library-hero-page h3.fw-bold {
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    color: var(--lh-text);
+    font-size: 1.5rem;
+    margin-bottom: 24px;
+    transition: color .3s var(--lh-ease);
+}
+
+/* =========================================================
+   LEVEL CARD
+========================================================= */
+.level-card {
+    border: 1px solid var(--lh-border);
+    border-radius: var(--lh-radius);
+    overflow: hidden;
+    box-shadow: var(--lh-shadow-sm);
+    transition: transform .3s var(--lh-ease),
+                box-shadow .3s var(--lh-ease),
+                border-color .3s var(--lh-ease),
+                background-color .3s var(--lh-ease);
     height: 100%;
+    background: var(--lh-surface);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.level-card::after {
+    content: "";
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, var(--lh-primary), var(--lh-accent));
+    opacity: 0;
+    transition: opacity .3s var(--lh-ease);
+    pointer-events: none;
 }
 
 .level-card:hover {
     transform: translateY(-8px);
+    box-shadow: var(--lh-shadow-hover);
+    border-color: var(--lh-primary-border);
 }
 
+.level-card:hover::after {
+    opacity: 1;
+}
+
+/* =========================================================
+   LEVEL HEADER
+========================================================= */
 .level-header {
-    background: linear-gradient(135deg,#667eea,#764ba2);
-    color: white;
+    background: linear-gradient(135deg,
+                var(--lh-primary),
+                var(--lh-accent-2));
+    color: #ffffff;
     padding: 25px;
+    position: relative;
+    overflow: hidden;
 }
 
+.level-header::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle,
+                rgba(255, 255, 255, .12) 0%,
+                transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.level-header h4 {
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 4px;
+    position: relative;
+    z-index: 1;
+    color: #ffffff;
+    font-size: 1.15rem;
+}
+
+.level-header p {
+    opacity: .9;
+    font-size: .88rem;
+    position: relative;
+    z-index: 1;
+    color: #ffffff;
+    margin: 0;
+}
+
+/* =========================================================
+   LEVEL BODY
+========================================================= */
 .level-body {
     padding: 25px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    background: var(--lh-surface);
+    transition: background-color .3s var(--lh-ease);
 }
 
+.level-body > p.text-muted {
+    color: var(--lh-text-muted) !important;
+    font-size: .9rem;
+    margin-bottom: 16px;
+    transition: color .3s var(--lh-ease);
+}
+
+/* =========================================================
+   CLASS BADGES
+========================================================= */
 .class-badge {
-    background: #eef2ff;
+    background: var(--lh-primary-soft);
+    color: var(--lh-primary-text);
     padding: 8px 15px;
-    border-radius: 20px;
+    border-radius: 100px;
     display: inline-block;
-    margin: 5px 5px 0 0;
+    margin: 4px 6px 4px 0;
+    font-size: .82rem;
+    font-weight: 600;
+    text-decoration: none;
+    border: 1px solid var(--lh-primary-border);
+    transition: all .2s var(--lh-ease);
+    -webkit-tap-highlight-color: transparent;
 }
 
-@media (max-width: 576px) {
-    .container {
-        padding-left: 15px;
-        padding-right: 15px;
+.class-badge:hover {
+    background: var(--lh-primary);
+    color: #ffffff;
+    border-color: var(--lh-primary);
+    transform: translateY(-1px);
+}
+
+[data-theme="dark"] .class-badge:hover {
+    color: #0a0e1a;
+}
+
+/* =========================================================
+   VIEW LEVEL BUTTON
+========================================================= */
+.level-body .btn-primary {
+    background: var(--lh-primary);
+    border: none;
+    border-radius: var(--lh-radius-xs);
+    font-weight: 600;
+    padding: 12px 20px;
+    color: #ffffff;
+    transition: all .2s var(--lh-ease);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, .25);
+    -webkit-tap-highlight-color: transparent;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .4rem;
+}
+
+[data-theme="dark"] .level-body .btn-primary {
+    color: #0a0e1a;
+}
+
+.level-body .btn-primary:hover {
+    background: var(--lh-primary-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(99, 102, 241, .35);
+    color: #ffffff;
+}
+
+[data-theme="dark"] .level-body .btn-primary:hover {
+    color: #0a0e1a;
+}
+
+.level-body .btn-primary:active {
+    transform: translateY(0) scale(.98);
+}
+
+/* =========================================================
+   EMPTY STATE
+========================================================= */
+.library-hero-page .alert-info {
+    background: var(--lh-primary-soft);
+    border: 1px solid var(--lh-primary-border);
+    color: var(--lh-primary-text);
+    border-radius: var(--lh-radius);
+    padding: 28px 24px;
+    text-align: center;
+    font-size: .95rem;
+    transition: background-color .3s var(--lh-ease),
+                border-color .3s var(--lh-ease),
+                color .3s var(--lh-ease);
+}
+
+/* =========================================================
+   RESPONSIVE — TABLET
+========================================================= */
+@media (max-width: 992px) {
+    .library-hero-page {
+        padding: 24px 20px;
     }
 
     .library-hero {
-        padding: 20px;
-        border-radius: 16px;
-        margin-bottom: 24px;
+        padding: 40px 32px;
+        border-radius: var(--lh-radius);
+        margin-bottom: 32px;
     }
 
     .library-hero h1 {
         font-size: 1.6rem;
     }
+}
+
+/* =========================================================
+   RESPONSIVE — MOBILE
+========================================================= */
+@media (max-width: 640px) {
+    .library-hero-page {
+        padding: 16px 12px;
+    }
+
+    .library-hero {
+        padding: 26px 20px;
+        border-radius: var(--lh-radius-sm);
+        margin-bottom: 24px;
+        box-shadow: 0 12px 28px rgba(99, 102, 241, .25);
+    }
+
+    .library-hero h1 {
+        font-size: 1.35rem;
+        line-height: 1.25;
+    }
 
     .library-hero p {
-        font-size: 0.95rem;
+        font-size: .9rem;
     }
 
-    .input-group {
+    .library-hero form {
+        margin-top: 18px;
+    }
+
+    .library-hero .input-group {
         flex-direction: column;
+        background: transparent;
+        box-shadow: none;
+        border-radius: 0;
+        overflow: visible;
     }
 
-    .input-group .form-control {
+    .library-hero .input-group .form-control {
         width: 100%;
-        border-radius: 12px !important;
+        border-radius: var(--lh-radius-xs) !important;
         margin-bottom: 10px;
+        background: #ffffff;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, .1);
     }
 
-    .input-group .btn {
+    .library-hero .input-group .btn-light {
         width: 100%;
-        border-radius: 12px !important;
+        border-radius: var(--lh-radius-xs) !important;
+        border-left: none;
+        background: #ffffff;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, .1);
+        font-weight: 700;
+    }
+
+    .library-hero-page h3.fw-bold {
+        font-size: 1.25rem;
+        margin-bottom: 18px;
     }
 
     .level-header,
@@ -90,79 +521,149 @@ Learning Library
         padding: 18px;
     }
 
+    .level-header h4 {
+        font-size: 1.05rem;
+    }
+
+    .level-header p {
+        font-size: .82rem;
+    }
+
     .class-badge {
         display: block;
         width: 100%;
-        margin-bottom: 8px;
+        margin: 4px 0;
         text-align: center;
+        padding: 10px 15px;
+    }
+
+    .level-body .btn-primary {
+        padding: 11px 16px;
+        font-size: .9rem;
+    }
+}
+
+/* =========================================================
+   SMALL PHONE
+========================================================= */
+@media (max-width: 380px) {
+    .library-hero-page {
+        padding: 12px 10px;
+    }
+
+    .library-hero {
+        padding: 22px 16px;
+    }
+
+    .library-hero h1 {
+        font-size: 1.15rem;
+    }
+
+    .library-hero p {
+        font-size: .82rem;
+    }
+
+    .library-hero .input-group .form-control {
+        padding: 12px 16px;
+        font-size: .875rem;
+    }
+
+    .library-hero .input-group .btn-light {
+        padding: 12px 20px;
+        font-size: .875rem;
+    }
+
+    .library-hero-page h3.fw-bold {
+        font-size: 1.1rem;
+    }
+
+    .level-header,
+    .level-body {
+        padding: 16px;
+    }
+}
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+@media (prefers-reduced-motion: reduce) {
+    .library-hero-page *,
+    .library-hero-page *::before,
+    .library-hero-page *::after {
+        transition: none !important;
+        animation: none !important;
     }
 }
 </style>
 
-<div class="container py-4">
+<div class="library-hero-page">
 
-    <!-- HERO -->
-    <div class="library-hero">
-        <h1>📚 SmartMind Learning Library</h1>
-        <p>Explore lessons, notes, videos, assessments and learning resources.</p>
+    <div class="container py-4">
 
-        <form method="GET" action="{% url 'library:resource_list' %}">
-            <div class="input-group mt-4">
-                <input
-                    type="text"
-                    name="q"
-                    class="form-control"
-                    placeholder="Search lessons, topics, resources..."
-                >
-                <button class="btn btn-light px-4">
-                    Search
-                </button>
-            </div>
-        </form>
-    </div>
+        <!-- HERO -->
+        <div class="library-hero">
+            <h1>📚 SmartMind Learning Library</h1>
+            <p>Explore lessons, notes, videos, assessments and learning resources.</p>
 
-    <h3 class="fw-bold mb-4">
-        Browse Curriculum
-    </h3>
-
-    <div class="row">
-        {% for level in levels %}
-        <div class="col-12 col-md-4 mb-4">
-            <div class="card level-card">
-                <div class="level-header">
-                    <h4>🎓 {{ level.name }}</h4>
-                    <p class="mb-0">{{ level.classes.count }} Classes</p>
+            <form method="GET" action="{% url 'library:resource_list' %}">
+                <div class="input-group mt-4">
+                    <input
+                        type="text"
+                        name="q"
+                        class="form-control"
+                        placeholder="Search lessons, topics, resources..."
+                    >
+                    <button class="btn btn-light px-4">
+                        Search
+                    </button>
                 </div>
+            </form>
+        </div>
 
-                <div class="level-body">
-                    <p class="text-muted">
-                        Choose your class to begin learning.
-                    </p>
+        <h3 class="fw-bold mb-4">
+            Browse Curriculum
+        </h3>
 
-                    <div>
-                        {% for cls in level.classes.all %}
-                        <a href="{% url 'library:class_detail' cls.id %}"
-                           class="class-badge text-decoration-none">
-                            {{ cls.name }}
-                        </a>
-                        {% empty %}
-                        <p>No classes added.</p>
-                        {% endfor %}
+        <div class="row">
+            {% for level in levels %}
+            <div class="col-12 col-md-4 mb-4">
+                <div class="card level-card">
+                    <div class="level-header">
+                        <h4>🎓 {{ level.name }}</h4>
+                        <p class="mb-0">{{ level.classes.count }} Classes</p>
                     </div>
 
-                    <a href="{% url 'library:level_detail' level.id %}"
-                       class="btn btn-primary w-100 mt-4">
-                        View Level
-                    </a>
+                    <div class="level-body">
+                        <p class="text-muted">
+                            Choose your class to begin learning.
+                        </p>
+
+                        <div>
+                            {% for cls in level.classes.all %}
+                            <a href="{% url 'library:class_detail' cls.id %}"
+                               class="class-badge text-decoration-none">
+                                {{ cls.name }}
+                            </a>
+                            {% empty %}
+                            <p>No classes added.</p>
+                            {% endfor %}
+                        </div>
+
+                        <a href="{% url 'library:level_detail' level.id %}"
+                           class="btn btn-primary w-100 mt-4">
+                            View Level
+                        </a>
+                    </div>
                 </div>
             </div>
+            {% empty %}
+            <div class="alert alert-info">
+                No curriculum levels available yet.
+            </div>
+            {% endfor %}
         </div>
-        {% empty %}
-        <div class="alert alert-info">
-            No curriculum levels available yet.
-        </div>
-        {% endfor %}
     </div>
+
 </div>
 
 {% endblock %}

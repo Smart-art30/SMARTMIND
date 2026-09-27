@@ -300,7 +300,7 @@ def home(request):
         Comment.objects
         .select_related("author")
         .prefetch_related("liked_by")
-        .order_by("created_at")
+        .order_by("-created_at")
     )
 
     posts_qs = (
@@ -470,9 +470,7 @@ def post_detail(request, slug):
     - edit/delete permissions
     """
 
-    # ---------------------------------------------------------
-    # GET THE POST
-    # ---------------------------------------------------------
+  
 
     post = get_object_or_404(
         Post.objects
@@ -512,12 +510,12 @@ def post_detail(request, slug):
     # ---------------------------------------------------------
 
     comments = list(
-        Comment.objects
-        .filter(post=post)
-        .select_related("author")
-        .prefetch_related("liked_by")
-        .order_by("created_at")
-    )
+    Comment.objects
+    .filter(post=post)
+    .select_related("author")
+    .prefetch_related("liked_by")
+    .order_by("-created_at")
+)
 
     # ---------------------------------------------------------
     # COMMENT LIKE INFORMATION
@@ -627,21 +625,14 @@ def category_post(request, slug):
         # COMMENTS
         # ----------------------------------------------------
 
-        comments = list(
-            Comment.objects
-            .filter(
-                post=post
-            )
-            .select_related(
-                "author"
-            )
-            .prefetch_related(
-                "liked_by"
-            )
-            .order_by(
-                "created_at"
-            )
-        )
+        comments = list(Comment.objects.filter(post=post).select_related("author")
+    .prefetch_related(
+        "liked_by"
+    )
+    .order_by(
+        "-created_at"
+    )
+)
 
         # ----------------------------------------------------
         # COMMENT LIKE STATUS

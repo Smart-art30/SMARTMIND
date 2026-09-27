@@ -4,25 +4,105 @@
 {% block content %}
 
 <style>
-*,
-*::before,
-*::after {
+/* =========================================================
+   DESIGN TOKENS — LIGHT (default)
+========================================================= */
+.assignment-page {
+    --ap-bg: #f1f5f9;
+    --ap-surface: #ffffff;
+    --ap-surface-muted: #f8fafc;
+    --ap-surface-soft: #eff6ff;
+
+    --ap-text: #0f172a;
+    --ap-text-muted: #64748b;
+    --ap-text-strong: #1e3a8a;
+
+    --ap-border: #e2e8f0;
+    --ap-border-soft: #f1f5f9;
+
+    --ap-primary: #6366f1;
+    --ap-primary-hover: #4f46e5;
+    --ap-primary-soft: #eef2ff;
+
+    --ap-cyan: #0891b2;
+    --ap-cyan-hover: #0e7490;
+
+    --ap-success: #16a34a;
+    --ap-warning: #f59e0b;
+    --ap-danger: #dc2626;
+
+    --ap-radius: 16px;
+    --ap-radius-sm: 12px;
+
+    --ap-shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.04);
+    --ap-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+    --ap-shadow-lg: 0 16px 40px rgba(15, 23, 42, 0.10);
+
+    --ap-ease: cubic-bezier(.4, 0, .2, 1);
+}
+
+/* =========================================================
+   DESIGN TOKENS — DARK
+========================================================= */
+[data-theme="dark"] .assignment-page {
+    --ap-bg: #0a0e1a;
+    --ap-surface: #111827;
+    --ap-surface-muted: #1a2234;
+    --ap-surface-soft: #1e1b4b;
+
+    --ap-text: #f1f5f9;
+    --ap-text-muted: #94a3b8;
+    --ap-text-strong: #c7d2fe;
+
+    --ap-border: #1f2937;
+    --ap-border-soft: #1e293b;
+
+    --ap-primary: #818cf8;
+    --ap-primary-hover: #a5b4fc;
+    --ap-primary-soft: #1e1b4b;
+
+    --ap-cyan: #22d3ee;
+    --ap-cyan-hover: #67e8f9;
+
+    --ap-success: #34d399;
+    --ap-warning: #fbbf24;
+    --ap-danger: #fb7185;
+
+    --ap-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+    --ap-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+    --ap-shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.55);
+}
+
+/* =========================================================
+   BASE
+========================================================= */
+.assignment-page,
+.assignment-page *,
+.assignment-page *::before,
+.assignment-page *::after {
     box-sizing: border-box;
 }
 
-body {
-    background: #f1f5f9;
+.assignment-page {
+    background: var(--ap-bg);
+    color: var(--ap-text);
     font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    min-height: 100vh;
+    width: 100%;
+    transition: background-color .3s var(--ap-ease), color .3s var(--ap-ease);
 }
 
-.container {
+.assignment-page .container {
     width: 100%;
     max-width: 1200px;
     margin: 0 auto;
     padding: 16px;
 }
 
-.header {
+/* =========================================================
+   HEADER
+========================================================= */
+.assignment-page .header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
@@ -31,116 +111,167 @@ body {
     margin-bottom: 16px;
 }
 
-.header h2 {
+.assignment-page .header h2 {
     margin: 0;
-    color: #1e3a8a;
+    color: var(--ap-text-strong);
     font-size: 1.3rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    transition: color .3s var(--ap-ease);
 }
 
-.header p {
+.assignment-page .header p {
     margin-top: 4px;
-    color: #64748b;
+    color: var(--ap-text-muted);
     font-size: 0.9rem;
+    transition: color .3s var(--ap-ease);
 }
 
-.badge {
+/* =========================================================
+   BADGES
+========================================================= */
+.assignment-page .badge {
     padding: 8px 14px;
     border-radius: 999px;
     color: #fff;
     font-weight: 600;
     font-size: 0.8rem;
     white-space: nowrap;
+    transition: background-color .3s var(--ap-ease);
 }
 
-.pending { background: #f59e0b; }
-.graded  { background: #16a34a; }
-.overdue { background: #dc2626; }
+.assignment-page .badge.pending { background: var(--ap-warning); color: #0a0e1a; }
+.assignment-page .badge.graded  { background: var(--ap-success); color: #0a0e1a; }
+.assignment-page .badge.overdue { background: var(--ap-danger); color: #ffffff; }
 
-.two-column-layout {
+[data-theme="dark"] .assignment-page .badge.pending,
+[data-theme="dark"] .assignment-page .badge.graded {
+    color: #0a0e1a;
+}
+
+/* =========================================================
+   LAYOUT
+========================================================= */
+.assignment-page .two-column-layout {
     display: grid;
     grid-template-columns: 1fr;
     gap: 16px;
     align-items: stretch;
 }
 
-.card {
-    background: #fff;
-    border-radius: 14px;
+/* =========================================================
+   CARD
+========================================================= */
+.assignment-page .card {
+    background: var(--ap-surface);
+    border-radius: var(--ap-radius);
     padding: 16px;
-    box-shadow: 0 6px 18px rgba(0,0,0,.06);
+    box-shadow: var(--ap-shadow);
+    border: 1px solid var(--ap-border);
+    transition: background-color .3s var(--ap-ease),
+                border-color .3s var(--ap-ease),
+                box-shadow .3s var(--ap-ease);
+    min-width: 0;
 }
 
-.card h3 {
+.assignment-page .card h3 {
     margin-top: 0;
-    color: #1e3a8a;
+    color: var(--ap-text-strong);
     font-size: 1rem;
+    font-weight: 700;
+    transition: color .3s var(--ap-ease);
 }
 
-.card-header {
+.assignment-page .card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 10px;
     padding: 12px 14px;
-    background: #eff6ff;
+    background: var(--ap-surface-soft);
     border-radius: 10px;
     font-weight: 700;
-    color: #1e3a8a;
+    color: var(--ap-text-strong);
     margin-bottom: 12px;
+    transition: background-color .3s var(--ap-ease), color .3s var(--ap-ease);
+    flex-wrap: wrap;
 }
 
-.toggle-text {
+.assignment-page .toggle-text {
     font-size: 0.75rem;
-    color: #64748b;
+    color: var(--ap-text-muted);
     font-weight: 500;
+    transition: color .3s var(--ap-ease);
 }
 
-.assignment-content {
+/* =========================================================
+   ASSIGNMENT CONTENT
+========================================================= */
+.assignment-page .assignment-content {
     line-height: 1.7;
     overflow-x: auto;
     font-size: 0.95rem;
+    color: var(--ap-text);
+    transition: color .3s var(--ap-ease);
 }
 
-.assignment-content img {
+.assignment-page .assignment-content img {
     max-width: 100%;
     height: auto;
+    border-radius: 8px;
 }
 
-.assignment-content table {
+.assignment-page .assignment-content table {
     width: 100%;
     border-collapse: collapse;
 }
 
-.assignment-content iframe {
+.assignment-page .assignment-content iframe {
     max-width: 100%;
 }
 
-.info-grid {
+.assignment-page .assignment-content * {
+    color: inherit;
+}
+
+/* =========================================================
+   INFO GRID
+========================================================= */
+.assignment-page .info-grid {
     display: grid;
     grid-template-columns: 1fr;
     gap: 10px;
     margin-top: 16px;
 }
 
-.info {
-    background: #f8fafc;
+.assignment-page .info {
+    background: var(--ap-surface-muted);
     padding: 12px;
     border-radius: 10px;
+    border: 1px solid var(--ap-border-soft);
+    transition: background-color .3s var(--ap-ease),
+                border-color .3s var(--ap-ease);
 }
 
-.info h4 {
+.assignment-page .info h4 {
     margin: 0 0 4px;
-    color: #475569;
+    color: var(--ap-text-muted);
     font-size: 0.85rem;
+    transition: color .3s var(--ap-ease);
 }
 
-.info p {
+.assignment-page .info p {
     margin: 0;
     font-size: 0.9rem;
+    color: var(--ap-text);
+    transition: color .3s var(--ap-ease);
 }
 
-.download,
-button {
+/* =========================================================
+   BUTTONS
+========================================================= */
+.assignment-page .download,
+.assignment-page button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -151,201 +282,279 @@ button {
     color: #fff;
     font-weight: 600;
     cursor: pointer;
-    transition: background-color .2s, transform .1s;
+    transition: background-color .2s var(--ap-ease),
+                transform .1s var(--ap-ease),
+                box-shadow .2s var(--ap-ease);
     font-size: 0.9rem;
     width: 100%;
-}
-
-.download {
-    background: #0891b2;
-    margin-top: 12px;
-}
-
-.download:hover {
-    background: #0e7490;
-    transform: translateY(-1px);
-}
-
-button {
-    background: #2563eb;
     border: none;
-    margin-top: 16px;
+    -webkit-tap-highlight-color: transparent;
 }
 
-button:hover {
-    background: #1d4ed8;
+.assignment-page .download {
+    background: var(--ap-cyan);
+    margin-top: 12px;
+    color: #ffffff;
+}
+
+[data-theme="dark"] .assignment-page .download {
+    color: #0a0e1a;
+}
+
+.assignment-page .download:hover {
+    background: var(--ap-cyan-hover);
     transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(8, 145, 178, .25);
 }
 
-.form-group {
+.assignment-page button {
+    background: var(--ap-primary);
+    margin-top: 16px;
+    color: #ffffff;
+}
+
+[data-theme="dark"] .assignment-page button {
+    color: #0a0e1a;
+}
+
+.assignment-page button:hover {
+    background: var(--ap-primary-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(99, 102, 241, .3);
+}
+
+/* =========================================================
+   FORM
+========================================================= */
+.assignment-page .form-group {
     margin-bottom: 14px;
     display: flex;
     flex-direction: column;
 }
 
-label {
+.assignment-page label {
     display: block;
     margin-bottom: 4px;
     font-weight: 600;
-    color: #475569;
+    color: var(--ap-text-muted);
     font-size: 0.85rem;
+    transition: color .3s var(--ap-ease);
 }
 
-textarea {
+.assignment-page textarea {
     width: 100%;
     min-height: 520px;
     height: 100%;
     padding: 12px;
     border-radius: 10px;
-    border: 1px solid #d1d5db;
+    border: 1px solid var(--ap-border);
     font-size: 0.95rem;
     font-family: inherit;
     box-sizing: border-box;
+    background: var(--ap-surface-muted);
+    color: var(--ap-text);
+    transition: background-color .3s var(--ap-ease),
+                border-color .3s var(--ap-ease),
+                color .3s var(--ap-ease);
 }
 
-input[type=file] {
+.assignment-page textarea:focus {
+    outline: none;
+    border-color: var(--ap-primary);
+    box-shadow: 0 0 0 3px var(--ap-primary-soft);
+}
+
+.assignment-page input[type=file] {
     width: 100%;
     font-size: 0.85rem;
+    color: var(--ap-text);
 }
 
-.feedback {
-    background: #ecfeff;
-    border-left: 4px solid #0891b2;
+/* =========================================================
+   FEEDBACK
+========================================================= */
+.assignment-page .feedback {
+    background: var(--ap-surface-soft);
+    border-left: 4px solid var(--ap-cyan);
     padding: 12px;
     border-radius: 10px;
     white-space: pre-wrap;
     font-size: 0.9rem;
+    color: var(--ap-text);
+    transition: background-color .3s var(--ap-ease), color .3s var(--ap-ease);
 }
 
-.score {
+/* =========================================================
+   SCORE
+========================================================= */
+.assignment-page .score {
     font-size: 1.6rem;
     font-weight: bold;
-    color: #16a34a;
+    color: var(--ap-success);
     margin-bottom: 8px;
+    transition: color .3s var(--ap-ease);
 }
 
-.question-wrapper {
+/* =========================================================
+   QUESTION CAROUSEL
+========================================================= */
+.assignment-page .question-wrapper {
     position: relative;
     overflow: hidden;
     width: 100%;
     margin-top: 12px;
 }
 
-.question-track {
+.assignment-page .question-track {
     display: flex;
     transition: transform .3s ease;
     width: 100%;
 }
 
-.question-slide {
+.assignment-page .question-slide {
     flex: 0 0 100%;
     padding-right: 4px;
 }
 
-.question-slide h4 {
+.assignment-page .question-slide h4 {
     margin: 0 0 6px;
     font-size: 0.95rem;
-    color: #1e293b;
+    color: var(--ap-text);
+    transition: color .3s var(--ap-ease);
 }
 
-.question-controls {
+.assignment-page .question-controls {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 8px;
     margin-top: 10px;
     font-size: 0.85rem;
+    color: var(--ap-text-muted);
+    transition: color .3s var(--ap-ease);
 }
 
-.question-controls button {
+.assignment-page .question-controls button {
     flex: 0 0 auto;
     min-width: 90px;
     padding: 8px 12px;
+    width: auto;
+    margin-top: 0;
 }
 
+.assignment-page .question-controls button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* =========================================================
+   HR
+========================================================= */
+.assignment-page hr {
+    border: 0;
+    border-top: 1px solid var(--ap-border);
+    transition: border-color .3s var(--ap-ease);
+}
+
+/* =========================================================
+   TABLE (submission view)
+========================================================= */
+.assignment-page table {
+    width: 100%;
+    border-collapse: collapse;
+    color: var(--ap-text);
+}
+
+.assignment-page th,
+.assignment-page td {
+    padding: 8px 10px;
+    border: 1px solid var(--ap-border);
+    text-align: left;
+    transition: border-color .3s var(--ap-ease);
+}
+
+.assignment-page th {
+    background: var(--ap-surface-muted);
+    color: var(--ap-text-strong);
+    font-weight: 700;
+    transition: background-color .3s var(--ap-ease), color .3s var(--ap-ease);
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
 @media (min-width: 640px) {
-    .container {
+    .assignment-page .container {
         padding: 24px;
         margin-top: 16px;
     }
 
-    .header {
+    .assignment-page .header {
         align-items: center;
     }
 
-    .header h2 {
+    .assignment-page .header h2 {
         font-size: 1.6rem;
     }
 
-    .badge {
+    .assignment-page .badge {
         font-size: 0.85rem;
         padding: 10px 18px;
     }
 
-    .card {
+    .assignment-page .card {
         padding: 20px;
     }
 
-    .info-grid {
+    .assignment-page .info-grid {
         grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     }
 
-    .download,
-    button {
+    .assignment-page .download,
+    .assignment-page button {
         width: auto;
     }
 
-    .score {
+    .assignment-page .score {
         font-size: 2rem;
     }
 }
 
-.two-column-layout {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 16px;
-    align-items: stretch;
-}
-
-
 @media (min-width: 992px) {
-    .two-column-layout > .card:last-child {
-        min-height: 760px;
-    }
-}
-
-@media (min-width: 992px) {
-    .two-column-layout {
+    .assignment-page .two-column-layout {
         grid-template-columns: repeat(2, minmax(0, 1fr));
         align-items: stretch;
     }
 
-    .two-column-layout > .card {
+    .assignment-page .two-column-layout > .card {
         display: flex;
         flex-direction: column;
         min-height: 100%;
     }
 
-    .two-column-layout > .card:last-child {
+    .assignment-page .two-column-layout > .card:last-child {
         display: flex;
         flex-direction: column;
+        min-height: 760px;
     }
 
-    .two-column-layout > .card:last-child form {
+    .assignment-page .two-column-layout > .card:last-child form {
         display: flex;
         flex-direction: column;
         flex: 1;
         min-height: 0;
     }
 
-    .two-column-layout > .card:last-child .form-group:first-of-type {
+    .assignment-page .two-column-layout > .card:last-child .form-group:first-of-type {
         flex: 1;
         display: flex;
         flex-direction: column;
         min-height: 0;
     }
 
-    .two-column-layout > .card:last-child textarea {
+    .assignment-page .two-column-layout > .card:last-child textarea {
         flex: 1;
         width: 100%;
         min-height: 100%;
@@ -355,12 +564,26 @@ input[type=file] {
 }
 
 @media (min-width: 1024px) {
-    .container {
+    .assignment-page .container {
         margin-top: 24px;
+    }
+}
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+@media (prefers-reduced-motion: reduce) {
+    .assignment-page *,
+    .assignment-page *::before,
+    .assignment-page *::after {
+        transition: none !important;
+        animation: none !important;
     }
 }
 </style>
 
+
+<div class="assignment-page">
 <div class="container">
 
     <div class="header">
@@ -404,7 +627,7 @@ input[type=file] {
                         {% for q in assignment.questions.all %}
                             <section class="question-slide" data-index="{{ forloop.counter0 }}">
                                 <h4>Question {{ forloop.counter }} of {{ assignment.questions.count }}</h4>
-                               <div class="assignment-content">
+                                <div class="assignment-content">
                                     {{ submission.content|safe }}
                                 </div>
                             </section>
@@ -484,7 +707,7 @@ input[type=file] {
                     </div>
                 {% else %}
                     <h3>⏳ Submission successful</h3>
-                    <p style="font-size:0.9rem;">
+                    <p style="font-size:0.9rem;color:var(--ap-text-muted);">
                         Your teacher is reviewing your work. Marks and feedback will appear once grading is complete.
                     </p>
                 {% endif %}
@@ -497,17 +720,17 @@ input[type=file] {
                 <h3>Submit assignment</h3>
 
                 {% if assignment.due_date < now %}
-                    <p style="font-size:0.9rem;">
+                    <p style="font-size:0.9rem;color:var(--ap-text-muted);">
                         This assignment is closed. You can no longer submit answers.
                     </p>
                 {% else %}
 
                 <p id="autosave-status"
-                    style="color:green;font-size:14px;">
-                    </p>
+                   style="color:var(--ap-success);font-size:14px;">
+                </p>
                 <form method="POST"
-                    enctype="multipart/form-data"
-                    action="{% url 'submit_assignment' assignment.id %}">
+                      enctype="multipart/form-data"
+                      action="{% url 'submit_assignment' assignment.id %}">
 
                     {% csrf_token %}
                     {{ form.media }}
@@ -532,6 +755,7 @@ input[type=file] {
         </div>
 
     </div>
+</div>
 </div>
 
 <script>
