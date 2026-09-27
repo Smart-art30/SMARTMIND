@@ -410,7 +410,7 @@
                             {% if item.can_edit %}
 
                                 <a
-                                    href="{% url 'blog:edit_post' item.post.slug %}"
+                                    href="{% url 'blog:edit_post' item.post.pk %}"
                                     class="post-action-btn edit-btn"
                                 >
 
@@ -428,7 +428,7 @@
                             {% if item.can_delete %}
 
                                 <a
-                                    href="{% url 'blog:delete_post' item.post.slug %}"
+                                    href="{% url 'blog:delete_post' item.post.pk %}"
                                     class="post-action-btn delete-btn"
                                 >
 
