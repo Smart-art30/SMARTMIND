@@ -283,6 +283,139 @@
         color: #2563eb;
     }
 
+    /* ============================================================
+       POST DOCUMENTS / ATTACHMENTS
+    ============================================================ */
+    .post-documents {
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #f0f3f9;
+    }
+
+    .post-documents h4 {
+        font-weight: 700;
+        color: #0b1e33;
+        font-size: 1.1rem;
+        letter-spacing: -0.01em;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .post-documents h4 i {
+        color: #2563eb;
+    }
+
+    .post-documents h4 .badge.bg-primary {
+        background: #e8efff !important;
+        color: #2563eb !important;
+        font-weight: 600;
+        font-size: 0.7rem;
+        padding: 0.3rem 0.65rem;
+        border-radius: 30px;
+    }
+
+    .doc-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .doc-item {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 12px 14px;
+        background: #f9fbfe;
+        border: 1px solid #eef2f7;
+        border-radius: 14px;
+        transition: all 0.15s ease;
+    }
+
+    .doc-item:hover {
+        background: #fbfcff;
+        border-color: #d0e0ff;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.05);
+        transform: translateY(-1px);
+    }
+
+    .doc-icon {
+        width: 46px;
+        height: 46px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        font-size: 22px;
+        color: #fff;
+        background: #6c757d;
+    }
+
+    .doc-icon-pdf              { background: #dc3545; }
+    .doc-icon-doc,
+    .doc-icon-docx             { background: #2b579a; }
+    .doc-icon-xls,
+    .doc-icon-xlsx             { background: #217346; }
+    .doc-icon-ppt,
+    .doc-icon-pptx             { background: #d24726; }
+    .doc-icon-txt              { background: #6c757d; }
+    .doc-icon-csv              { background: #0f7b0f; }
+    .doc-icon-zip,
+    .doc-icon-rar              { background: #f7b32b; color: #222; }
+
+    .doc-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .doc-name {
+        display: block;
+        color: #0b1e33;
+        font-weight: 600;
+        font-size: 0.95rem;
+        text-decoration: none;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        transition: color 0.15s ease;
+    }
+
+    .doc-name:hover {
+        color: #2563eb;
+        text-decoration: underline;
+    }
+
+    .doc-meta {
+        display: block;
+        margin-top: 3px;
+        color: #7c8ba3;
+        font-size: 0.78rem;
+        font-weight: 500;
+        letter-spacing: 0.02em;
+    }
+
+    .doc-download {
+        width: 38px;
+        height: 38px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #2563eb;
+        background: #e8efff;
+        border-radius: 10px;
+        text-decoration: none;
+        transition: all 0.15s ease;
+    }
+
+    .doc-download:hover {
+        background: #2563eb;
+        color: #ffffff;
+        transform: translateY(-1px);
+    }
+
     .post-actions {
         padding: 1.5rem 3rem;
         border-top: 1px solid #f0f3f9;
@@ -648,6 +781,26 @@
             padding: 0.3rem 0.65rem;
             font-size: 0.78rem;
         }
+
+        .doc-item {
+            padding: 10px;
+            gap: 10px;
+        }
+
+        .doc-icon {
+            width: 40px;
+            height: 40px;
+            font-size: 18px;
+        }
+
+        .doc-name {
+            font-size: 0.88rem;
+        }
+
+        .doc-download {
+            width: 34px;
+            height: 34px;
+        }
     }
 
     @media (max-width: 420px) {
@@ -805,6 +958,49 @@
                     <div class="mt-2">
                         {% for tag in post.tags.all %}
                             <span class="tag">#{{ tag.name }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- =================================================
+                 ATTACHMENTS / DOCUMENTS
+            ================================================== -->
+
+            {% if post.attachments.exists %}
+                <div class="post-documents">
+                    <h4>
+                        <i class="bi bi-paperclip"></i>
+                        Attachments
+                        <span class="badge bg-primary">{{ post.attachments.count }}</span>
+                    </h4>
+
+                    <div class="doc-list mt-2">
+                        {% for doc in post.attachments.all %}
+                            <div class="doc-item">
+                                <div class="doc-icon doc-icon-{{ doc.extension }}">
+                                    <i class="bi {{ doc.icon_class }}"></i>
+                                </div>
+
+                                <div class="doc-info">
+                                    <a href="{{ doc.file.url }}"
+                                       target="_blank"
+                                       rel="noopener"
+                                       class="doc-name">
+                                        {{ doc.original_name }}
+                                    </a>
+                                    <small class="doc-meta">
+                                        .{{ doc.extension }} &middot; {{ doc.size_display }}
+                                    </small>
+                                </div>
+
+                                <a href="{{ doc.file.url }}"
+                                   download
+                                   class="doc-download"
+                                   aria-label="Download {{ doc.original_name }}">
+                                    <i class="bi bi-download"></i>
+                                </a>
+                            </div>
                         {% endfor %}
                     </div>
                 </div>

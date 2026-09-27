@@ -309,11 +309,15 @@ class PostAttachment(models.Model):
 
     @property
     def extension(self):
+        name = self.original_name or ""
 
-        name = self.original_name or self.file.name
+        if not name and self.file:
+            try:
+                name = self.file.name or ""
+            except (ValueError, AttributeError):
+                name = ""
 
         ext = os.path.splitext(name)[1].lower()
-
         return ext.lstrip(".")
 
     @property
@@ -351,22 +355,25 @@ class PostAttachment(models.Model):
         )
 
     @property
+    
     def size_display(self):
+        try:
+            size = self.file.size
+        except (OSError, ValueError, AttributeError):
+            return "—"
+
+        if size is None:
+            return "—"
 
         try:
-
-            size = self.file.size
-
-        except (OSError, ValueError):
-
+            size = int(size)
+        except (TypeError, ValueError):
             return "—"
 
         if size < 1024:
-
             return f"{size} B"
 
         if size < 1024 * 1024:
-
             return f"{size / 1024:.1f} KB"
 
         return f"{size / (1024 * 1024):.2f} MB"

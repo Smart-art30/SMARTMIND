@@ -1147,6 +1147,9 @@ document.addEventListener("DOMContentLoaded", function () {
     const videoPreview = document.getElementById("videoPreview");
     const removeVideoBtn = document.getElementById("removeVideoBtn");
 
+    // Exposed so form submit handler can sync documents
+    let syncDocsFunction = null;
+
     // If photo input doesn't exist, create it
     if (!photoInput) {
         console.warn('Photo input not found, creating one...');
@@ -1157,7 +1160,6 @@ document.addEventListener("DOMContentLoaded", function () {
         photoInput.multiple = true;
         photoInput.accept = 'image/*';
         photoInput.style.display = 'none';
-        // Find the django-photo-input div or append to form
         const container = document.querySelector('.django-photo-input');
         if (container) {
             container.appendChild(photoInput);
@@ -1167,7 +1169,6 @@ document.addEventListener("DOMContentLoaded", function () {
         console.log('Created photo input:', photoInput);
     }
 
-    // Make sure the input is configured correctly
     if (photoInput) {
         photoInput.multiple = true;
         photoInput.accept = 'image/*';
@@ -1193,6 +1194,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     /* =====================================================
        SYNC FILES WITH DJANGO INPUT
+       (Images — no dispatch to avoid recursion)
     ===================================================== */
     function syncInput() {
         if (!photoInput) {
@@ -1202,24 +1204,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
         try {
             const dataTransfer = new DataTransfer();
-
             selectedFiles.forEach(function (file) {
                 dataTransfer.items.add(file);
             });
-
             photoInput.files = dataTransfer.files;
 
-            const changeEvent = new Event('change', { bubbles: true });
-            photoInput.dispatchEvent(changeEvent);
-
-            console.log('Synced ' + selectedFiles.length + ' files to input');
-            console.log('Input files now:', photoInput.files.length);
-
-            if (photoInput.files.length > 0) {
-                for (let i = 0; i < photoInput.files.length; i++) {
-                    console.log('File in input:', photoInput.files[i].name);
-                }
-            }
+            console.log('Synced ' + selectedFiles.length + ' image(s) to input');
         } catch (error) {
             console.error('Error syncing files:', error);
         }
@@ -1229,10 +1219,7 @@ document.addEventListener("DOMContentLoaded", function () {
        ADD FILES
     ===================================================== */
     function addFiles(files) {
-        if (!files) {
-            console.warn('No files to add');
-            return;
-        }
+        if (!files) return;
 
         console.log('Adding files:', files.length);
         let added = 0;
@@ -1262,8 +1249,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
         if (added > 0) {
-            syncInput();
-            renderPhotos();
+            renderPhotos();   // syncInput() is called inside renderPhotos()
             console.log('Added ' + added + ' photos. Total: ' + selectedFiles.length);
         } else {
             console.log('No new files added');
@@ -1285,6 +1271,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (emptyState) emptyState.style.display = "flex";
             if (addMoreLabel) addMoreLabel.style.display = "none";
             if (photoCount) photoCount.textContent = "";
+            syncInput();
             console.log('No photos to render');
             return;
         }
@@ -1295,8 +1282,6 @@ document.addEventListener("DOMContentLoaded", function () {
             photoCount.textContent = selectedFiles.length +
                 (selectedFiles.length === 1 ? " photo selected" : " photos selected");
         }
-
-        console.log('Rendering ' + selectedFiles.length + ' photos');
 
         selectedFiles.forEach(function (file, index) {
             const item = document.createElement("div");
@@ -1329,8 +1314,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 event.preventDefault();
                 event.stopPropagation();
                 selectedFiles.splice(index, 1);
-                syncInput();
-                renderPhotos();
+                renderPhotos();   // includes syncInput()
             });
             item.appendChild(remove);
 
@@ -1348,29 +1332,18 @@ document.addEventListener("DOMContentLoaded", function () {
             event.preventDefault();
             event.stopPropagation();
         }
-
-        console.log('Opening file picker...');
         if (photoInput) {
             photoInput.click();
-            console.log('File picker triggered');
         } else {
-            console.error('Cannot open picker - photoInput is null');
             alert('File input not found. Please refresh the page.');
         }
     }
 
     /* =====================================================
-       EVENT LISTENERS
+       EVENT LISTENERS (Photos)
     ===================================================== */
-    if (choosePhotosLabel) {
-        choosePhotosLabel.addEventListener('click', openPicker);
-        console.log('Choose photos label listener attached');
-    }
-
-    if (addMoreLabel) {
-        addMoreLabel.addEventListener('click', openPicker);
-        console.log('Add more label listener attached');
-    }
+    if (choosePhotosLabel) choosePhotosLabel.addEventListener('click', openPicker);
+    if (addMoreLabel)      addMoreLabel.addEventListener('click', openPicker);
 
     if (photoBox) {
         photoBox.addEventListener('click', function(e) {
@@ -1379,65 +1352,46 @@ document.addEventListener("DOMContentLoaded", function () {
                 e.target.closest('.add-more')) {
                 return;
             }
-            console.log('Photo box clicked, opening picker');
-            if (photoInput) {
-                photoInput.click();
-            }
+            if (photoInput) photoInput.click();
         });
     }
 
     /* =====================================================
-       FILE INPUT CHANGE
+       FILE INPUT CHANGE (Photos)
     ===================================================== */
     if (photoInput) {
-        photoInput.addEventListener("change", function (event) {
-            console.log('File input change event triggered');
-            console.log('Files selected:', this.files ? this.files.length : 0);
-
+        photoInput.addEventListener("change", function () {
             if (this.files && this.files.length > 0) {
                 addFiles(this.files);
                 this.value = '';
-            } else {
-                console.log('No files selected');
             }
         });
     }
 
     /* =====================================================
-       DRAG AND DROP
+       DRAG AND DROP (Photos)
     ===================================================== */
     if (photoBox) {
-        photoBox.addEventListener("dragenter", function (event) {
-            event.preventDefault();
-            event.stopPropagation();
-            photoBox.classList.add("dragging");
+        ["dragenter","dragover"].forEach(function(ev) {
+            photoBox.addEventListener(ev, function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                if (event.dataTransfer) event.dataTransfer.dropEffect = "copy";
+                photoBox.classList.add("dragging");
+            });
         });
 
-        photoBox.addEventListener("dragover", function (event) {
-            event.preventDefault();
-            event.stopPropagation();
-            if (event.dataTransfer) {
-                event.dataTransfer.dropEffect = "copy";
-            }
-            photoBox.classList.add("dragging");
-        });
-
-        photoBox.addEventListener("dragleave", function (event) {
-            event.preventDefault();
-            event.stopPropagation();
-            photoBox.classList.remove("dragging");
+        ["dragleave","drop"].forEach(function(ev) {
+            photoBox.addEventListener(ev, function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                photoBox.classList.remove("dragging");
+            });
         });
 
         photoBox.addEventListener("drop", function (event) {
-            event.preventDefault();
-            event.stopPropagation();
-            photoBox.classList.remove("dragging");
-
             const files = event.dataTransfer ? event.dataTransfer.files : null;
-            if (files && files.length) {
-                console.log('Dropped files:', files.length);
-                addFiles(files);
-            }
+            if (files && files.length) addFiles(files);
         });
     }
 
@@ -1454,9 +1408,7 @@ document.addEventListener("DOMContentLoaded", function () {
         Array.from(items).forEach(function (item) {
             if (item.kind === "file" && item.type && item.type.startsWith("image/")) {
                 const file = item.getAsFile();
-                if (file) {
-                    imageFiles.push(file);
-                }
+                if (file) imageFiles.push(file);
             }
         });
 
@@ -1465,12 +1417,8 @@ document.addEventListener("DOMContentLoaded", function () {
         event.preventDefault();
         event.stopPropagation();
 
-        console.log('Pasted images:', imageFiles.length);
         addFiles(imageFiles);
-
-        if (photoBox) {
-            photoBox.scrollIntoView({ behavior: "smooth", block: "center" });
-        }
+        if (photoBox) photoBox.scrollIntoView({ behavior: "smooth", block: "center" });
     }, true);
 
     /* =====================================================
@@ -1507,7 +1455,6 @@ document.addEventListener("DOMContentLoaded", function () {
             const objectURL = URL.createObjectURL(file);
             video.src = objectURL;
             videoPreview.appendChild(video);
-            console.log('Video preview loaded');
         });
     }
 
@@ -1516,42 +1463,40 @@ document.addEventListener("DOMContentLoaded", function () {
     ===================================================== */
     if (removeVideoBtn) {
         removeVideoBtn.addEventListener('click', function() {
-            if (confirm('Remove this video?')) {
-                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
-                if (!csrfToken) {
-                    alert('CSRF token not found. Please refresh the page.');
-                    return;
-                }
+            if (!confirm('Remove this video?')) return;
 
-                fetch('/remove-video/', {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': csrfToken,
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ post_id: {{ post.id }} })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        const videoContainer = document.querySelector('.existing-video');
-                        if (videoContainer) {
-                            videoContainer.style.transition = 'opacity 0.3s';
-                            videoContainer.style.opacity = '0';
-                            setTimeout(() => videoContainer.remove(), 300);
-                        }
-                        if (videoInput) {
-                            videoInput.value = '';
-                        }
-                    } else {
-                        alert(data.message || 'Failed to remove video.');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while removing the video.');
-                });
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+            if (!csrfToken) {
+                alert('CSRF token not found. Please refresh the page.');
+                return;
             }
+
+            fetch('/remove-video/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ post_id: {{ post.id }} })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const videoContainer = document.querySelector('.existing-video');
+                    if (videoContainer) {
+                        videoContainer.style.transition = 'opacity 0.3s';
+                        videoContainer.style.opacity = '0';
+                        setTimeout(() => videoContainer.remove(), 300);
+                    }
+                    if (videoInput) videoInput.value = '';
+                } else {
+                    alert(data.message || 'Failed to remove video.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while removing the video.');
+            });
         });
     }
 
@@ -1562,49 +1507,46 @@ document.addEventListener("DOMContentLoaded", function () {
         button.addEventListener('click', function () {
             const imageId = this.dataset.imageId;
             if (!imageId) return;
+            if (!confirm('Remove this image?')) return;
 
-            if (confirm('Remove this image?')) {
-                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
-                if (!csrfToken) {
-                    alert('CSRF token not found. Please refresh the page.');
-                    return;
-                }
-
-                fetch('/remove-image/' + imageId + '/', {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': csrfToken,
-                        'Content-Type': 'application/json',
-                    },
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        const item = button.closest('.photo-preview-item');
-                        if (item) {
-                            item.style.transition = 'opacity 0.3s';
-                            item.style.opacity = '0';
-                            setTimeout(function() {
-                                item.remove();
-                                const container = document.querySelector('.existing-images');
-                                if (container && container.querySelectorAll('.photo-preview-item').length === 0) {
-                                    container.style.transition = 'opacity 0.3s';
-                                    container.style.opacity = '0';
-                                    setTimeout(function() {
-                                        container.remove();
-                                    }, 300);
-                                }
-                            }, 300);
-                        }
-                    } else {
-                        alert(data.message || 'Failed to remove image.');
-                    }
-                })
-                .catch(function(error) {
-                    console.error('Error:', error);
-                    alert('An error occurred while removing the image.');
-                });
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+            if (!csrfToken) {
+                alert('CSRF token not found. Please refresh the page.');
+                return;
             }
+
+            fetch('/remove-image/' + imageId + '/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const item = button.closest('.photo-preview-item');
+                    if (item) {
+                        item.style.transition = 'opacity 0.3s';
+                        item.style.opacity = '0';
+                        setTimeout(function() {
+                            item.remove();
+                            const container = document.querySelector('.existing-images');
+                            if (container && container.querySelectorAll('.photo-preview-item').length === 0) {
+                                container.style.transition = 'opacity 0.3s';
+                                container.style.opacity = '0';
+                                setTimeout(function() { container.remove(); }, 300);
+                            }
+                        }, 300);
+                    }
+                } else {
+                    alert(data.message || 'Failed to remove image.');
+                }
+            })
+            .catch(function(error) {
+                console.error('Error:', error);
+                alert('An error occurred while removing the image.');
+            });
         });
     });
 
@@ -1623,6 +1565,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!docBox || !docInput || !docPreview) return;
 
         let selectedDocs = [];
+        let isSyncing = false;   // guard against recursion
 
         const ALLOWED_EXT = [
             "pdf","doc","docx","xls","xlsx","ppt","pptx","txt","csv","zip","rar"
@@ -1654,16 +1597,22 @@ document.addEventListener("DOMContentLoaded", function () {
             return [f.name, f.size, f.lastModified, f.type].join("|");
         }
 
+        /* Sync selectedDocs → docInput.files
+           NO dispatchEvent here — prevents infinite loop. */
         function syncDocs() {
+            if (!docInput) return;
             try {
                 const dt = new DataTransfer();
                 selectedDocs.forEach(f => dt.items.add(f));
                 docInput.files = dt.files;
-                docInput.dispatchEvent(new Event("change", { bubbles: true }));
+                console.log('Synced ' + selectedDocs.length + ' document(s) to input');
             } catch (e) {
                 console.error("Doc sync failed:", e);
             }
         }
+
+        // Expose to outer scope for form submit handler
+        syncDocsFunction = syncDocs;
 
         function addDocs(files) {
             if (!files) return;
@@ -1688,8 +1637,7 @@ document.addEventListener("DOMContentLoaded", function () {
             });
 
             if (added > 0) {
-                syncDocs();
-                renderDocs();
+                renderDocs();   // renderDocs() calls syncDocs() once at the end
             }
         }
 
@@ -1700,6 +1648,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 docEmpty.style.display = "flex";
                 addMoreDocs.style.display = "none";
                 docCount.textContent = "";
+                syncDocs();
                 return;
             }
 
@@ -1743,7 +1692,6 @@ document.addEventListener("DOMContentLoaded", function () {
                     e.preventDefault();
                     e.stopPropagation();
                     selectedDocs.splice(index, 1);
-                    syncDocs();
                     renderDocs();
                 });
                 item.appendChild(remove);
@@ -1751,6 +1699,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 docPreview.appendChild(item);
             });
 
+            // Single sync at the end of render
             syncDocs();
         }
 
@@ -1769,7 +1718,9 @@ document.addEventListener("DOMContentLoaded", function () {
             docInput.click();
         });
 
+        /* CHANGE listener — guard against our own sync */
         docInput.addEventListener("change", function () {
+            if (isSyncing) return;   // ignore programmatic change
             if (this.files && this.files.length) {
                 addDocs(this.files);
                 this.value = "";
@@ -1845,19 +1796,28 @@ document.addEventListener("DOMContentLoaded", function () {
        FORM SUBMISSION
     ===================================================== */
     if (form) {
-        form.addEventListener("submit", function () {
-            // Make sure all selected images are in the Django input
+        form.addEventListener("submit", function (e) {
+            // Sync both images and documents right before submit
             syncInput();
+            if (typeof syncDocsFunction === "function") {
+                syncDocsFunction();
+            }
 
-            const button = document.getElementById("publishButton");
-            const text = document.getElementById("publishText");
+            // Debug: log what's actually in the inputs
+            const imgInput = document.getElementById("id_images");
+            const docIn    = document.getElementById("id_attachments");
+            console.log('Submitting — images:', imgInput ? imgInput.files.length : 0);
+            console.log('Submitting — attachments:', docIn ? docIn.files.length : 0);
+
+            const button  = document.getElementById("publishButton");
+            const text    = document.getElementById("publishText");
             const loading = document.getElementById("publishLoading");
 
             if (button) {
                 button.disabled = true;
                 button.style.opacity = '0.7';
             }
-            if (text) text.style.display = "none";
+            if (text)    text.style.display = "none";
             if (loading) loading.style.display = "inline-flex";
         });
     }
@@ -1866,9 +1826,6 @@ document.addEventListener("DOMContentLoaded", function () {
        INITIALIZE
     ===================================================== */
     renderPhotos();
-    console.log('Photo upload initialized successfully');
-    console.log('Selected files:', selectedFiles.length);
-    console.log('Photo input exists:', !!photoInput);
 });
 </script>
 {% endblock %}
