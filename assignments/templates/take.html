@@ -266,6 +266,32 @@
     transition: color .3s var(--qt-ease);
 }
 
+/* Reset typographic margins inside rich-text question bodies */
+.qt-q-text p,
+.qt-option-label p {
+    margin: 0 0 .5em;
+}
+
+.qt-q-text p:last-child,
+.qt-option-label p:last-child {
+    margin-bottom: 0;
+}
+
+.qt-q-text ul,
+.qt-q-text ol,
+.qt-option-label ul,
+.qt-option-label ol {
+    margin: .4em 0;
+    padding-left: 1.25em;
+}
+
+.qt-q-text img,
+.qt-option-label img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+}
+
 .qt-q-marks {
     float: right;
     font-size: .75rem;
@@ -352,6 +378,7 @@
     line-height: 1.45;
     font-weight: 500;
     transition: color .3s var(--qt-ease);
+    overflow-wrap: anywhere;
 }
 
 .qt-option-letter {
@@ -604,31 +631,31 @@
       <div class="qt-question" data-qid="{{ question.id }}" id="q-{{ question.id }}">
         <span class="qt-q-marks">{{ question.marks }} mark{{ question.marks|pluralize }}</span>
         <div class="qt-q-num">Question {{ forloop.counter }}</div>
-        <div class="qt-q-text">{{ question.text }}</div>
+        <div class="qt-q-text">{{ question.text|safe }}</div>
 
         <div class="qt-options">
           <label class="qt-option">
             <input type="radio" name="{{ question.id }}" value="A">
             <span class="qt-option-letter">A</span>
-            <span class="qt-option-label">{{ question.option_a }}</span>
+            <span class="qt-option-label">{{ question.option_a|safe }}</span>
           </label>
 
           <label class="qt-option">
             <input type="radio" name="{{ question.id }}" value="B">
             <span class="qt-option-letter">B</span>
-            <span class="qt-option-label">{{ question.option_b }}</span>
+            <span class="qt-option-label">{{ question.option_b|safe }}</span>
           </label>
 
           <label class="qt-option">
             <input type="radio" name="{{ question.id }}" value="C">
             <span class="qt-option-letter">C</span>
-            <span class="qt-option-label">{{ question.option_c }}</span>
+            <span class="qt-option-label">{{ question.option_c|safe }}</span>
           </label>
 
           <label class="qt-option">
             <input type="radio" name="{{ question.id }}" value="D">
             <span class="qt-option-letter">D</span>
-            <span class="qt-option-label">{{ question.option_d }}</span>
+            <span class="qt-option-label">{{ question.option_d|safe }}</span>
           </label>
         </div>
       </div>

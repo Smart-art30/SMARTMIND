@@ -14,13 +14,18 @@
     <link rel="stylesheet" href="{% static 'smartmind_ai/chatbot.css' %}">
     <link rel="stylesheet" href="{% static 'django_ckeditor_5/dist/styles.css' %}">
 
-    <!-- Prevent theme flash — runs before paint -->
+    <!-- =========================================================
+         PREVENT THEME FLASH — runs before paint
+         Default is LIGHT. Only switches to dark if the user
+         has explicitly chosen it (saved in localStorage).
+    ========================================================== -->
     <script>
         (function () {
             try {
                 var stored = localStorage.getItem('smartmind-theme');
-                var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                var theme = stored || (prefersDark ? 'dark' : 'light');
+                var theme = (stored === 'dark' || stored === 'light')
+                    ? stored
+                    : 'light';   // ← always default to light
                 document.documentElement.setAttribute('data-theme', theme);
             } catch (e) {
                 document.documentElement.setAttribute('data-theme', 'light');
@@ -34,7 +39,8 @@
         /* =====================================================
            DESIGN TOKENS — LIGHT (default)
         ===================================================== */
-        :root {
+        :root,
+        [data-theme="light"] {
             --bg: #f6f8fc;
             --surface: rgba(255, 255, 255, 0.82);
             --surface-solid: #ffffff;
@@ -624,6 +630,31 @@
             </div>
         </div>
 
+        {% if user.is_authenticated %}
+            <div class="sidebar-section">
+                <h3>Account</h3>
+                <div class="sidebar-links">
+                    <form action="{% url 'logout' %}" method="post" class="m-0 w-100">
+                        {% csrf_token %}
+                        <button type="submit"
+                                class="btn-pill w-100"
+                                style="justify-content:center;">
+                            Logout
+                        </button>
+                    </form>
+                </div>
+            </div>
+        {% else %}
+            <div class="sidebar-section">
+                <h3>Account</h3>
+                <div class="sidebar-links">
+                    <a href="{% url 'login' %}" class="btn-pill" style="justify-content:center;">
+                        Login
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+
     </div>
 </div>
 
@@ -641,14 +672,22 @@
 
 <!-- =========================================================
      THEME TOGGLE LOGIC
+     Default = light. User choice = saved & respected.
+     No OS preference override.
 ========================================================= -->
 <script>
 (function () {
     var root = document.documentElement;
     var STORAGE_KEY = 'smartmind-theme';
+    var DEFAULT_THEME = 'light';
 
     function getStored() {
-        try { return localStorage.getItem(STORAGE_KEY); } catch (e) { return null; }
+        try {
+            var v = localStorage.getItem(STORAGE_KEY);
+            return (v === 'dark' || v === 'light') ? v : null;
+        } catch (e) {
+            return null;
+        }
     }
 
     function setTheme(theme, persist) {
@@ -658,30 +697,34 @@
         }
     }
 
+    function currentTheme() {
+        return root.getAttribute('data-theme') || DEFAULT_THEME;
+    }
+
     function initToggle() {
         var toggle = document.getElementById('themeToggle');
         if (!toggle) return;
 
         toggle.addEventListener('click', function () {
-            var current = root.getAttribute('data-theme') || 'light';
-            var next = current === 'dark' ? 'light' : 'dark';
+            var next = currentTheme() === 'dark' ? 'light' : 'dark';
             setTheme(next, true);
         });
     }
+
+    /* Ensure a consistent starting state even if the head script was skipped */
+    (function ensureTheme() {
+        var stored = getStored();
+        var theme = stored || DEFAULT_THEME;
+        if (root.getAttribute('data-theme') !== theme) {
+            root.setAttribute('data-theme', theme);
+        }
+    })();
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initToggle);
     } else {
         initToggle();
     }
-
-    /* Follow OS preference changes only if user hasn't manually chosen */
-    window.matchMedia('(prefers-color-scheme: dark)')
-        .addEventListener('change', function (e) {
-            if (!getStored()) {
-                setTheme(e.matches ? 'dark' : 'light', false);
-            }
-        });
 })();
 </script>
 

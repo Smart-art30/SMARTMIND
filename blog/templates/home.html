@@ -4,11 +4,1088 @@
 
 {% block content %}
 
+<style>
+/* =========================================================
+   THEME VARIABLES — LIGHT & DARK
+   ========================================================= */
+:root {
+    --bg: #f6f8fc;
+    --surface: #ffffff;
+    --surface-soft: #f8fafc;
+    --text-primary: #0b1c33;
+    --text-secondary: #5b6f88;
+    --accent: #3b82f6;
+    --accent-soft: #e8f0fe;
+    --accent-hover: #2563eb;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --slate: #64748b;
+    --border: #e2e8f0;
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, .02), 0 4px 16px rgba(0, 0, 0, .02);
+    --shadow-md: 0 8px 30px rgba(0, 0, 0, .06);
+    --radius: 24px;
+    --radius-sm: 16px;
+    --radius-xs: 12px;
+    --transition: all .2s cubic-bezier(.4, 0, .2, 1);
+}
+
+/* ---------- DARK MODE via system preference ---------- */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #0b1120;
+        --surface: #1e293b;
+        --surface-soft: #0f172a;
+        --text-primary: #f1f5f9;
+        --text-secondary: #94a3b8;
+        --accent: #60a5fa;
+        --accent-soft: #1e3a8a;
+        --accent-hover: #93c5fd;
+        --success: #34d399;
+        --warning: #fbbf24;
+        --danger: #f87171;
+        --slate: #94a3b8;
+        --border: #334155;
+        --shadow-sm: 0 2px 8px rgba(0, 0, 0, .3), 0 4px 16px rgba(0, 0, 0, .3);
+        --shadow-md: 0 8px 30px rgba(0, 0, 0, .5);
+    }
+}
+
+/* ---------- DARK MODE via manual toggle ---------- */
+[data-theme="dark"] {
+    --bg: #0b1120;
+    --surface: #1e293b;
+    --surface-soft: #0f172a;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --accent: #60a5fa;
+    --accent-soft: #1e3a8a;
+    --accent-hover: #93c5fd;
+    --success: #34d399;
+    --warning: #fbbf24;
+    --danger: #f87171;
+    --slate: #94a3b8;
+    --border: #334155;
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, .3), 0 4px 16px rgba(0, 0, 0, .3);
+    --shadow-md: 0 8px 30px rgba(0, 0, 0, .5);
+}
+
+/* =========================================================
+   GENERAL
+   ========================================================= */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background: var(--bg);
+    color: var(--text-primary);
+    transition: background .25s ease, color .25s ease;
+}
+
+.home-container {
+    width: 100%;
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 28px 32px;
+    background: var(--bg);
+    min-height: 100vh;
+}
+
+/* =========================================================
+   HERO
+   ========================================================= */
+.home-hero {
+    background: linear-gradient(135deg, #2563eb, #1e293b);
+    color: #fff;
+    border-radius: var(--radius);
+    padding: 56px 24px;
+    margin-bottom: 32px;
+    box-shadow: 0 12px 35px rgba(15, 23, 42, .12);
+    transition: var(--transition);
+}
+
+@media (prefers-color-scheme: dark) {
+    .home-hero {
+        background: linear-gradient(135deg, #1e40af, #0f172a);
+        box-shadow: 0 12px 35px rgba(0, 0, 0, .5);
+    }
+}
+
+[data-theme="dark"] .home-hero {
+    background: linear-gradient(135deg, #1e40af, #0f172a);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, .5);
+}
+
+.hero-content {
+    max-width: 760px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 14px;
+    padding: 7px 14px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .14);
+    font-size: .85rem;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+
+.home-hero h1 {
+    margin: 0;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    line-height: 1.1;
+}
+
+.home-hero p {
+    max-width: 62ch;
+    margin: 16px auto 0;
+    color: rgba(255, 255, 255, .9);
+    line-height: 1.7;
+}
+
+.hero-user {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: 18px;
+    padding: 10px 16px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .12);
+}
+
+/* =========================================================
+   SECTIONS
+   ========================================================= */
+.featured-section,
+.categories-section,
+.posts-section {
+    margin-top: 28px;
+}
+
+.section-head {
+    margin-bottom: 18px;
+}
+
+.section-head h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--text-primary);
+}
+
+.section-head h2 i {
+    color: var(--accent);
+}
+
+.section-head p {
+    margin: 6px 0 0;
+    color: var(--text-secondary);
+}
+
+/* =========================================================
+   FEATURED
+   ========================================================= */
+.featured-card {
+    background: linear-gradient(135deg, rgba(37, 99, 235, .10), var(--surface));
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 28px;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+}
+
+.featured-card:hover {
+    box-shadow: var(--shadow-md);
+    border-color: var(--accent);
+}
+
+.featured-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 12px;
+    padding: 7px 13px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent-hover);
+    font-size: .8rem;
+    font-weight: 700;
+}
+
+.featured-category {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 10px;
+    font-size: .9rem;
+    color: var(--text-secondary);
+}
+
+.featured-category a {
+    color: var(--accent);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.featured-category a:hover {
+    text-decoration: underline;
+    color: var(--accent-hover);
+}
+
+.featured-content h3 {
+    margin: 0 0 12px;
+    font-size: 1.6rem;
+    color: var(--text-primary);
+    line-height: 1.3;
+}
+
+.featured-excerpt {
+    color: var(--text-secondary);
+    line-height: 1.7;
+}
+
+/* =========================================================
+   CATEGORIES
+   ========================================================= */
+.category-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+}
+
+.category-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-height: 90px;
+    padding: 18px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    text-decoration: none;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+}
+
+.category-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--accent);
+    box-shadow: 0 14px 30px rgba(37, 99, 235, .14);
+    color: var(--accent-hover);
+}
+
+.category-icon {
+    flex: 0 0 46px;
+    width: 46px;
+    height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: var(--accent-soft);
+    color: var(--accent-hover);
+    font-size: 1.3rem;
+}
+
+.category-info {
+    min-width: 0;
+    flex: 1;
+}
+
+.category-info h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.category-info p {
+    margin: 4px 0 0;
+    color: var(--text-secondary);
+    font-size: .85rem;
+}
+
+.category-arrow {
+    color: var(--slate);
+}
+
+/* =========================================================
+   POSTS
+   ========================================================= */
+.posts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    align-items: start;
+}
+
+.post-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 22px;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.post-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--accent);
+}
+
+.post-card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.post-category {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 10px;
+    font-size: .85rem;
+}
+
+.post-category a {
+    color: var(--accent);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.post-category a:hover {
+    text-decoration: underline;
+    color: var(--accent-hover);
+}
+
+.post-title {
+    margin: 0 0 12px;
+    color: var(--text-primary);
+    font-size: 1.25rem;
+    line-height: 1.3;
+}
+
+.post-excerpt {
+    margin: 0;
+    color: var(--text-secondary);
+    line-height: 1.7;
+}
+
+/* =========================================================
+   META
+   ========================================================= */
+.post-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 16px;
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-size: .82rem;
+}
+
+.post-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* =========================================================
+   STATISTICS
+   ========================================================= */
+.post-statistics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 14px;
+    padding: 11px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.post-stat {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--text-secondary);
+    font-size: .82rem;
+    font-weight: 600;
+}
+
+.post-stat i {
+    color: var(--accent);
+}
+
+/* =========================================================
+   READ MORE
+   ========================================================= */
+.read-more-link {
+    display: inline-block;
+    margin-top: 14px;
+    color: var(--accent);
+    font-weight: 600;
+    font-size: .9rem;
+    text-decoration: none;
+    transition: color .2s ease;
+}
+
+.read-more-link:hover {
+    color: var(--accent-hover);
+    text-decoration: underline;
+}
+
+/* =========================================================
+   ACTIONS
+   ========================================================= */
+.post-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 18px;
+}
+
+.post-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 38px;
+    padding: 8px 13px;
+    border-radius: 8px;
+    font-size: .84rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.edit-btn {
+    background: var(--accent-soft);
+    color: var(--accent-hover);
+}
+
+.edit-btn:hover {
+    background: var(--accent);
+    color: #fff;
+}
+
+.delete-btn {
+    background: rgba(239, 68, 68, .12);
+    color: var(--danger);
+}
+
+.delete-btn:hover {
+    background: var(--danger);
+    color: #fff;
+}
+
+/* =========================================================
+   LATEST COMMENT (SINGLE)
+   ========================================================= */
+.comments-section {
+    margin-top: 20px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+}
+
+.comments-heading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.comments-heading h4 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 1rem;
+}
+
+.comments-heading h4 i {
+    color: var(--accent);
+}
+
+.comment-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    height: 24px;
+    padding: 0 7px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent-hover);
+    font-size: .75rem;
+    font-weight: 700;
+}
+
+.comments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.comment {
+    padding: 14px;
+    background: var(--surface-soft);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+}
+
+.comment-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.comment-author {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.comment-author i {
+    color: var(--accent);
+    font-size: 1.1rem;
+}
+
+.comment-header strong {
+    color: var(--text-primary);
+}
+
+.comment-header small {
+    color: var(--slate);
+    font-size: .75rem;
+}
+
+.comment-text {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    overflow-wrap: break-word;
+}
+
+.no-comments {
+    padding: 20px 15px;
+    text-align: center;
+    border-radius: 10px;
+    background: var(--surface-soft);
+    color: var(--text-secondary);
+    border: 1px dashed var(--border);
+}
+
+.no-comments i {
+    display: block;
+    margin-bottom: 7px;
+    color: var(--slate);
+    font-size: 1.4rem;
+}
+
+.no-comments p {
+    margin: 0 0 3px;
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.no-comments span {
+    font-size: .82rem;
+}
+
+/* =========================================================
+   EMPTY STATE
+   ========================================================= */
+.empty-state {
+    padding: 48px 20px;
+    text-align: center;
+    background: var(--surface);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+}
+
+.empty-state i {
+    display: block;
+    margin-bottom: 12px;
+    color: var(--accent);
+    font-size: 2rem;
+}
+
+.empty-state h3 {
+    margin-bottom: 8px;
+    color: var(--text-primary);
+}
+
+/* =========================================================
+   RESPONSIVE — TABLET
+   ========================================================= */
+@media (max-width: 1100px) {
+    .posts-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .home-container {
+        padding: 18px 16px;
+    }
+
+    .home-hero {
+        padding: 34px 16px;
+        border-radius: var(--radius-sm);
+    }
+
+    .home-hero h1 {
+        font-size: 1.9rem;
+    }
+
+    .featured-card,
+    .post-card {
+        padding: 18px;
+    }
+
+    /* Categories — 2 columns */
+    .category-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    /* Posts — 2 columns */
+    .posts-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    .post-meta {
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .post-statistics {
+        gap: 8px 12px;
+    }
+
+    .post-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .post-action-btn {
+        width: 100%;
+    }
+}
+
+/* =========================================================
+   RESPONSIVE — PHONE
+   Categories and posts side by side in grids
+   ========================================================= */
+@media (max-width: 700px) {
+    .home-container {
+        padding: 16px 14px;
+    }
+
+    .home-hero {
+        padding: 26px 14px;
+        margin-bottom: 20px;
+        border-radius: var(--radius-xs);
+    }
+
+    .home-hero h1 {
+        font-size: 1.65rem;
+    }
+
+    .hero-badge {
+        font-size: .72rem;
+        padding: 6px 12px;
+    }
+
+    .home-hero p {
+        font-size: .88rem;
+    }
+
+    .hero-user {
+        padding: 8px 12px;
+        font-size: .82rem;
+    }
+
+    .section-head {
+        margin-bottom: 14px;
+    }
+
+    .section-head h2 {
+        font-size: 1.15rem;
+    }
+
+    .section-head p {
+        font-size: .82rem;
+    }
+
+    /* --- FEATURED --- */
+    .featured-card {
+        padding: 16px 14px;
+        border-radius: var(--radius-xs);
+    }
+
+    .featured-content h3 {
+        font-size: 1.05rem;
+    }
+
+    .featured-excerpt {
+        font-size: .85rem;
+    }
+
+    .featured-label {
+        font-size: .7rem;
+        padding: 5px 10px;
+    }
+
+    .featured-category {
+        font-size: .78rem;
+    }
+
+    /* --- CATEGORIES: 2-column grid --- */
+    .category-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+
+    .category-card {
+        min-height: 60px;
+        padding: 10px 10px;
+        gap: 8px;
+        border-radius: var(--radius-xs);
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: center;
+    }
+
+    .category-card:hover {
+        transform: none;
+    }
+
+    .category-icon {
+        flex: 0 0 32px;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        font-size: .95rem;
+        margin-bottom: 2px;
+    }
+
+    .category-info {
+        width: 100%;
+    }
+
+    .category-info h3 {
+        font-size: .78rem;
+        line-height: 1.25;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        word-break: break-word;
+    }
+
+    .category-info p {
+        display: none;
+    }
+
+    .category-arrow {
+        display: none;
+    }
+
+    /* --- POSTS: 2-column grid --- */
+    .posts-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+
+    .post-card {
+        padding: 12px 10px;
+        border-radius: var(--radius-xs);
+        min-width: 0;
+    }
+
+    .post-card:hover {
+        transform: none;
+    }
+
+    .post-card-body {
+        min-width: 0;
+    }
+
+    .post-category {
+        font-size: .62rem;
+        margin-bottom: 5px;
+        gap: 3px;
+    }
+
+    .post-category i {
+        font-size: .7rem;
+    }
+
+    .post-title {
+        font-size: .82rem;
+        margin-bottom: 6px;
+        line-height: 1.3;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        white-space: normal;
+    }
+
+    .post-excerpt {
+        display: none;
+    }
+
+    .post-meta {
+        margin-top: 8px;
+        padding-top: 8px;
+        gap: 3px 8px;
+        font-size: .62rem;
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .post-meta span {
+        gap: 3px;
+    }
+
+    .post-statistics {
+        gap: 6px 10px;
+        margin-top: 8px;
+        padding: 6px 0;
+    }
+
+    .post-stat {
+        font-size: .62rem;
+        gap: 3px;
+    }
+
+    .post-stat i {
+        font-size: .7rem;
+    }
+
+    .read-more-link {
+        font-size: .68rem;
+        margin-top: 8px;
+    }
+
+    /* --- POST ACTIONS --- */
+    .post-actions {
+        flex-direction: row;
+        align-items: center;
+        gap: 6px;
+        margin-top: 10px;
+        flex-wrap: wrap;
+    }
+
+    .post-action-btn {
+        width: auto;
+        flex: 1;
+        min-height: 30px;
+        padding: 5px 8px;
+        font-size: .65rem;
+        gap: 4px;
+    }
+
+    .post-action-btn i {
+        font-size: .7rem;
+    }
+
+    /* --- LATEST COMMENT --- */
+    .comments-section {
+        margin-top: 10px;
+        padding-top: 10px;
+    }
+
+    .comments-heading {
+        margin-bottom: 8px;
+        gap: 5px;
+    }
+
+    .comments-heading h4 {
+        font-size: .72rem;
+    }
+
+    .comments-heading h4 i {
+        font-size: .72rem;
+    }
+
+    .comment-count {
+        min-width: 18px;
+        height: 18px;
+        padding: 0 5px;
+        font-size: .6rem;
+    }
+
+    .comment {
+        padding: 7px 8px;
+        border-radius: 8px;
+    }
+
+    .comment-header {
+        margin-bottom: 5px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 3px;
+    }
+
+    .comment-author {
+        gap: 4px;
+    }
+
+    .comment-author i {
+        font-size: .78rem;
+    }
+
+    .comment-header strong {
+        font-size: .68rem;
+    }
+
+    .comment-header small {
+        font-size: .56rem;
+    }
+
+    .comment-text {
+        font-size: .62rem;
+        line-height: 1.4;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .no-comments {
+        padding: 10px 8px;
+        border-radius: 8px;
+    }
+
+    .no-comments i {
+        font-size: 1rem;
+        margin-bottom: 4px;
+    }
+
+    .no-comments p {
+        font-size: .68rem;
+    }
+
+    .no-comments span {
+        font-size: .58rem;
+    }
+
+    /* --- EMPTY STATE --- */
+    .empty-state {
+        padding: 30px 16px;
+        border-radius: var(--radius-xs);
+    }
+
+    .empty-state i {
+        font-size: 1.5rem;
+    }
+
+    .empty-state h3 {
+        font-size: .95rem;
+    }
+
+    .empty-state p {
+        font-size: .78rem;
+    }
+}
+
+/* =========================================================
+   RESPONSIVE — TINY PHONE
+   ========================================================= */
+@media (max-width: 380px) {
+    .home-container {
+        padding: 12px 10px;
+    }
+
+    .home-hero {
+        padding: 20px 12px;
+    }
+
+    .home-hero h1 {
+        font-size: 1.4rem;
+    }
+
+    .category-grid,
+    .posts-grid {
+        gap: 6px;
+    }
+
+    .category-card {
+        padding: 8px 8px;
+        min-height: 52px;
+    }
+
+    .category-icon {
+        width: 26px;
+        height: 26px;
+        font-size: .8rem;
+    }
+
+    .category-info h3 {
+        font-size: .7rem;
+    }
+
+    .post-card {
+        padding: 10px 8px;
+    }
+
+    .post-title {
+        font-size: .74rem;
+    }
+
+    .post-meta {
+        font-size: .56rem;
+    }
+
+    .post-stat {
+        font-size: .56rem;
+    }
+
+    .read-more-link {
+        font-size: .62rem;
+    }
+
+    .post-action-btn {
+        font-size: .58rem;
+        min-height: 26px;
+        padding: 4px 6px;
+    }
+
+    .comments-heading h4 {
+        font-size: .66rem;
+    }
+
+    .comment-text {
+        font-size: .58rem;
+    }
+}
+</style>
+
+
 <div class="home-container">
 
     <!-- =====================================================
          HERO
-    ====================================================== -->
+         ====================================================== -->
 
     <section class="home-hero">
 
@@ -49,7 +1126,7 @@
 
     <!-- =====================================================
          FEATURED POST
-    ====================================================== -->
+         ====================================================== -->
 
     {% if featured_post %}
 
@@ -78,9 +1155,6 @@
                     Featured
                 </span>
 
-
-                <!-- CATEGORY -->
-
                 {% if featured_post.category %}
 
                     <div class="featured-category">
@@ -97,15 +1171,9 @@
 
                 {% endif %}
 
-
-                <!-- TITLE -->
-
                 <h3>
                     {{ featured_post.title }}
                 </h3>
-
-
-                <!-- EXCERPT -->
 
                 {% if featured_post.excerpt %}
 
@@ -116,9 +1184,6 @@
                     </p>
 
                 {% endif %}
-
-
-                <!-- META -->
 
                 <div class="post-meta">
 
@@ -149,9 +1214,6 @@
 
                 </div>
 
-
-                <!-- READ FULL POST (simple link) -->
-
                 <a
                     href="{% url 'blog:post_detail' featured_post.slug %}"
                     class="read-more-link"
@@ -170,8 +1232,8 @@
 
 
     <!-- =====================================================
-         CATEGORIES
-    ====================================================== -->
+         CATEGORIES — side by side grid on phone
+         ====================================================== -->
 
     {% if categories %}
 
@@ -239,8 +1301,8 @@
 
 
     <!-- =====================================================
-         RECENT POSTS
-    ====================================================== -->
+         RECENT POSTS — side by side grid on phone
+         ====================================================== -->
 
     <section class="posts-section">
 
@@ -273,9 +1335,7 @@
                         <div class="post-card-body">
 
 
-                            <!-- =================================
-                                 CATEGORY
-                            ================================== -->
+                            <!-- CATEGORY -->
 
                             {% if item.post.category %}
 
@@ -294,9 +1354,7 @@
                             {% endif %}
 
 
-                            <!-- =================================
-                                 TITLE
-                            ================================== -->
+                            <!-- TITLE -->
 
                             <h3 class="post-title">
 
@@ -305,9 +1363,7 @@
                             </h3>
 
 
-                            <!-- =================================
-                                 EXCERPT
-                            ================================== -->
+                            <!-- EXCERPT -->
 
                             {% if item.post.excerpt %}
 
@@ -320,9 +1376,7 @@
                             {% endif %}
 
 
-                            <!-- =================================
-                                 POST META
-                            ================================== -->
+                            <!-- POST META -->
 
                             <div class="post-meta">
 
@@ -346,9 +1400,7 @@
                             </div>
 
 
-                            <!-- =================================
-                                 POST STATISTICS
-                            ================================== -->
+                            <!-- POST STATISTICS -->
 
                             <div class="post-statistics">
 
@@ -384,9 +1436,7 @@
                             </div>
 
 
-                            <!-- =================================
-                                 READ FULL POST (simple link)
-                            ================================== -->
+                            <!-- READ FULL POST -->
 
                             <a
                                 href="{% url 'blog:post_detail' item.post.slug %}"
@@ -398,14 +1448,10 @@
                         </div>
 
 
-                        <!-- =========================================
-                             POST ACTIONS
-                        ========================================== -->
+                        <!-- POST ACTIONS -->
 
                         <div class="post-actions">
 
-
-                            <!-- EDIT -->
 
                             {% if item.can_edit %}
 
@@ -422,8 +1468,6 @@
 
                             {% endif %}
 
-
-                            <!-- DELETE -->
 
                             {% if item.can_delete %}
 
@@ -445,7 +1489,7 @@
 
 
                         <!-- =========================================
-                             LATEST COMMENT (SINGLE)
+                             LATEST COMMENT (ONLY ONE)
                         ========================================== -->
 
                         <div class="comments-section">
@@ -541,9 +1585,7 @@
 
         {% else %}
 
-            <!-- =============================================
-                 EMPTY STATE
-            ============================================== -->
+            <!-- EMPTY STATE -->
 
             <div class="empty-state">
 
@@ -565,1136 +1607,5 @@
     </section>
 
 </div>
-
-
-
-<style>
-
-/* =========================================================
-   GENERAL
-========================================================= */
-
-.home-container {
-
-    width: 100%;
-
-    max-width: 1600px;
-
-    margin: 0 auto;
-
-    padding: 20px;
-
-}
-
-
-/* =========================================================
-   HERO
-========================================================= */
-
-.home-hero {
-
-    background:
-        linear-gradient(
-            135deg,
-            #2563eb,
-            #1e293b
-        );
-
-    color: #fff;
-
-    border-radius: 22px;
-
-    padding: 56px 24px;
-
-    margin-bottom: 32px;
-
-    box-shadow:
-        0 12px 35px
-        rgba(15,23,42,.12);
-
-}
-
-
-.hero-content {
-
-    max-width: 760px;
-
-    margin: 0 auto;
-
-    text-align: center;
-
-}
-
-
-.hero-badge {
-
-    display: inline-flex;
-
-    align-items: center;
-
-    gap: 7px;
-
-    margin-bottom: 14px;
-
-    padding: 7px 14px;
-
-    border-radius: 999px;
-
-    background:
-        rgba(255,255,255,.14);
-
-    font-size: .85rem;
-
-    letter-spacing: .04em;
-
-    text-transform: uppercase;
-
-}
-
-
-.home-hero h1 {
-
-    margin: 0;
-
-    font-size:
-        clamp(2rem,5vw,3.5rem);
-
-    line-height: 1.1;
-
-}
-
-
-.home-hero p {
-
-    max-width: 62ch;
-
-    margin: 16px auto 0;
-
-    color:
-        rgba(255,255,255,.9);
-
-    line-height: 1.7;
-
-}
-
-
-.hero-user {
-
-    display: inline-flex;
-
-    align-items: center;
-
-    gap: 7px;
-
-    margin-top: 18px;
-
-    padding: 10px 16px;
-
-    border-radius: 999px;
-
-    background:
-        rgba(255,255,255,.12);
-
-}
-
-
-
-/* =========================================================
-   SECTIONS
-========================================================= */
-
-.featured-section,
-.categories-section,
-.posts-section {
-
-    margin-top: 28px;
-
-}
-
-
-.section-head {
-
-    margin-bottom: 18px;
-
-}
-
-
-.section-head h2 {
-
-    margin: 0;
-
-    font-size: 1.5rem;
-
-    font-weight: 800;
-
-    color: #1e293b;
-
-}
-
-
-.section-head h2 i {
-
-    color: #2563eb;
-
-}
-
-
-.section-head p {
-
-    margin: 6px 0 0;
-
-    color: #64748b;
-
-}
-
-
-
-/* =========================================================
-   FEATURED
-========================================================= */
-
-.featured-card {
-
-    background:
-        linear-gradient(
-            135deg,
-            rgba(37,99,235,.10),
-            rgba(255,255,255,.95)
-        );
-
-    border: 1px solid
-        rgba(148,163,184,.18);
-
-    border-radius: 20px;
-
-    padding: 28px;
-
-    box-shadow:
-        0 10px 30px
-        rgba(15,23,42,.08);
-
-}
-
-
-.featured-label {
-
-    display: inline-flex;
-
-    align-items: center;
-
-    gap: 6px;
-
-    margin-bottom: 12px;
-
-    padding: 7px 13px;
-
-    border-radius: 999px;
-
-    background: #eff6ff;
-
-    color: #2563eb;
-
-    font-size: .8rem;
-
-    font-weight: 700;
-
-}
-
-
-.featured-category {
-
-    display: inline-flex;
-
-    align-items: center;
-
-    gap: 6px;
-
-    margin-bottom: 10px;
-
-    font-size: .9rem;
-
-}
-
-
-.featured-category a {
-
-    color: #2563eb;
-
-    font-weight: 700;
-
-    text-decoration: none;
-
-}
-
-
-.featured-category a:hover {
-
-    text-decoration: underline;
-
-}
-
-
-.featured-content h3 {
-
-    margin: 0 0 12px;
-
-    font-size: 1.6rem;
-
-    color: #1e293b;
-
-}
-
-
-.featured-excerpt {
-
-    color: #64748b;
-
-    line-height: 1.7;
-
-}
-
-
-
-/* =========================================================
-   CATEGORIES
-========================================================= */
-
-.category-grid {
-
-    display: grid;
-
-    grid-template-columns:
-        repeat(
-            auto-fit,
-            minmax(220px,1fr)
-        );
-
-    gap: 16px;
-
-}
-
-
-.category-card {
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 14px;
-
-    min-height: 90px;
-
-    padding: 18px;
-
-    background: #fff;
-
-    border: 1px solid
-        rgba(148,163,184,.20);
-
-    border-radius: 16px;
-
-    color: #1e293b;
-
-    text-decoration: none;
-
-    box-shadow:
-        0 8px 22px
-        rgba(15,23,42,.06);
-
-    transition:
-        transform .2s ease,
-        box-shadow .2s ease,
-        border-color .2s ease;
-
-}
-
-
-.category-card:hover {
-
-    transform:
-        translateY(-4px);
-
-    border-color: #2563eb;
-
-    box-shadow:
-        0 14px 30px
-        rgba(37,99,235,.14);
-
-}
-
-
-.category-icon {
-
-    flex: 0 0 46px;
-
-    width: 46px;
-
-    height: 46px;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    border-radius: 12px;
-
-    background: #eff6ff;
-
-    color: #2563eb;
-
-    font-size: 1.3rem;
-
-}
-
-
-.category-info {
-
-    min-width: 0;
-
-    flex: 1;
-
-}
-
-
-.category-info h3 {
-
-    margin: 0;
-
-    font-size: 1rem;
-
-    font-weight: 700;
-
-}
-
-
-.category-info p {
-
-    margin: 4px 0 0;
-
-    color: #64748b;
-
-    font-size: .85rem;
-
-}
-
-
-.category-arrow {
-
-    color: #94a3b8;
-
-}
-
-
-
-/* =========================================================
-   POSTS
-========================================================= */
-
-.posts-grid {
-
-    display: grid;
-
-    grid-template-columns:
-        repeat(
-            auto-fit,
-            minmax(280px,1fr)
-        );
-
-    gap: 20px;
-
-}
-
-
-.post-card {
-
-    background: #fff;
-
-    border: 1px solid
-        rgba(148,163,184,.18);
-
-    border-radius: 18px;
-
-    padding: 22px;
-
-    box-shadow:
-        0 10px 30px
-        rgba(15,23,42,.08);
-
-    transition:
-        transform .2s ease,
-        box-shadow .2s ease;
-
-}
-
-
-.post-card:hover {
-
-    transform:
-        translateY(-3px);
-
-    box-shadow:
-        0 16px 35px
-        rgba(15,23,42,.12);
-
-}
-
-
-.post-category {
-
-    display: inline-flex;
-
-    align-items: center;
-
-    gap: 6px;
-
-    margin-bottom: 10px;
-
-    font-size: .85rem;
-
-}
-
-
-.post-category a {
-
-    color: #2563eb;
-
-    font-weight: 700;
-
-    text-decoration: none;
-
-}
-
-
-.post-category a:hover {
-
-    text-decoration: underline;
-
-}
-
-
-.post-title {
-
-    margin: 0 0 12px;
-
-    color: #1e293b;
-
-    font-size: 1.25rem;
-
-    line-height: 1.3;
-
-}
-
-
-.post-excerpt {
-
-    margin: 0;
-
-    color: #64748b;
-
-    line-height: 1.7;
-
-}
-
-
-
-/* =========================================================
-   META
-========================================================= */
-
-.post-meta {
-
-    display: flex;
-
-    flex-wrap: wrap;
-
-    gap: 10px 16px;
-
-    margin-top: 18px;
-
-    padding-top: 14px;
-
-    border-top:
-        1px solid
-        rgba(148,163,184,.18);
-
-    color: #64748b;
-
-    font-size: .82rem;
-
-}
-
-
-.post-meta span {
-
-    display: inline-flex;
-
-    align-items: center;
-
-    gap: 6px;
-
-}
-
-
-
-/* =========================================================
-   STATISTICS
-========================================================= */
-
-.post-statistics {
-
-    display: flex;
-
-    flex-wrap: wrap;
-
-    gap: 10px;
-
-    margin-top: 14px;
-
-    padding: 11px 0;
-
-    border-bottom:
-        1px solid
-        rgba(148,163,184,.18);
-
-}
-
-
-.post-stat {
-
-    display: inline-flex;
-
-    align-items: center;
-
-    gap: 5px;
-
-    color: #64748b;
-
-    font-size: .82rem;
-
-    font-weight: 600;
-
-}
-
-
-.post-stat i {
-
-    color: #2563eb;
-
-}
-
-
-
-/* =========================================================
-   READ MORE (SIMPLE LINK)
-========================================================= */
-
-.read-more-link {
-
-    display: inline-block;
-
-    margin-top: 14px;
-
-    color: #2563eb;
-
-    font-weight: 600;
-
-    font-size: .9rem;
-
-    text-decoration: none;
-
-    transition: color .2s ease;
-
-}
-
-
-.read-more-link:hover {
-
-    color: #1d4ed8;
-
-    text-decoration: underline;
-
-}
-
-
-
-/* =========================================================
-   ACTIONS
-========================================================= */
-
-.post-actions {
-
-    display: flex;
-
-    flex-wrap: wrap;
-
-    align-items: center;
-
-    gap: 8px;
-
-    margin-top: 18px;
-
-}
-
-
-.post-action-btn {
-
-    display: inline-flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    gap: 6px;
-
-    min-height: 38px;
-
-    padding: 8px 13px;
-
-    border-radius: 8px;
-
-    font-size: .84rem;
-
-    font-weight: 600;
-
-    text-decoration: none;
-
-    cursor: pointer;
-
-}
-
-
-.edit-btn {
-
-    background: #eff6ff;
-
-    color: #2563eb;
-
-}
-
-
-.edit-btn:hover {
-
-    background: #dbeafe;
-
-    color: #1d4ed8;
-
-}
-
-
-.delete-btn {
-
-    background: #fef2f2;
-
-    color: #dc2626;
-
-}
-
-
-.delete-btn:hover {
-
-    background: #fee2e2;
-
-    color: #b91c1c;
-
-}
-
-
-
-/* =========================================================
-   LATEST COMMENT SECTION
-========================================================= */
-
-.comments-section {
-
-    margin-top: 20px;
-
-    padding-top: 18px;
-
-    border-top:
-        1px solid
-        rgba(148,163,184,.20);
-
-}
-
-
-.comments-heading {
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 8px;
-
-    margin-bottom: 14px;
-
-}
-
-
-.comments-heading h4 {
-
-    margin: 0;
-
-    color: #1e293b;
-
-    font-size: 1rem;
-
-}
-
-
-.comments-heading h4 i {
-
-    color: #2563eb;
-
-}
-
-
-.comment-count {
-
-    display: inline-flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    min-width: 24px;
-
-    height: 24px;
-
-    padding: 0 7px;
-
-    border-radius: 999px;
-
-    background: #eff6ff;
-
-    color: #2563eb;
-
-    font-size: .75rem;
-
-    font-weight: 700;
-
-}
-
-
-
-/* =========================================================
-   COMMENTS LIST (SINGLE)
-========================================================= */
-
-.comments-list {
-
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 10px;
-
-}
-
-
-.comment {
-
-    padding: 14px;
-
-    background: #f8fafc;
-
-    border: 1px solid
-        rgba(148,163,184,.15);
-
-    border-radius: 10px;
-
-}
-
-
-.comment-header {
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: space-between;
-
-    gap: 10px;
-
-    margin-bottom: 8px;
-
-}
-
-
-.comment-author {
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 7px;
-
-}
-
-
-.comment-author i {
-
-    color: #2563eb;
-
-    font-size: 1.1rem;
-
-}
-
-
-.comment-header strong {
-
-    color: #1e293b;
-
-}
-
-
-.comment-header small {
-
-    color: #94a3b8;
-
-    font-size: .75rem;
-
-}
-
-
-.comment-text {
-
-    color: #475569;
-
-    line-height: 1.6;
-
-    overflow-wrap: break-word;
-
-}
-
-
-
-/* =========================================================
-   NO COMMENTS
-========================================================= */
-
-.no-comments {
-
-    padding: 20px 15px;
-
-    text-align: center;
-
-    border-radius: 10px;
-
-    background: #f8fafc;
-
-    color: #64748b;
-
-}
-
-
-.no-comments i {
-
-    display: block;
-
-    margin-bottom: 7px;
-
-    color: #94a3b8;
-
-    font-size: 1.4rem;
-
-}
-
-
-.no-comments p {
-
-    margin: 0 0 3px;
-
-    color: #475569;
-
-    font-weight: 600;
-
-}
-
-
-.no-comments span {
-
-    font-size: .82rem;
-
-}
-
-
-
-/* =========================================================
-   EMPTY STATE
-========================================================= */
-
-.empty-state {
-
-    padding: 48px 20px;
-
-    text-align: center;
-
-    background: #fff;
-
-    border: 1px dashed
-        rgba(148,163,184,.3);
-
-    border-radius: 18px;
-
-    color: #64748b;
-
-}
-
-
-.empty-state i {
-
-    display: block;
-
-    margin-bottom: 12px;
-
-    color: #2563eb;
-
-    font-size: 2rem;
-
-}
-
-
-.empty-state h3 {
-
-    margin-bottom: 8px;
-
-    color: #334155;
-
-}
-
-
-
-/* =========================================================
-   MOBILE
-========================================================= */
-
-@media (max-width: 768px) {
-
-    .home-container {
-
-        padding: 14px;
-
-    }
-
-
-    .home-hero {
-
-        padding: 34px 16px;
-
-        border-radius: 18px;
-
-    }
-
-
-    .home-hero h1 {
-
-        font-size: 1.9rem;
-
-    }
-
-
-    .featured-card,
-    .post-card {
-
-        padding: 18px;
-
-    }
-
-
-    .posts-grid {
-
-        grid-template-columns: 1fr;
-
-        gap: 16px;
-
-    }
-
-
-    .category-grid {
-
-        grid-template-columns: 1fr;
-
-    }
-
-
-    .post-meta {
-
-        flex-direction: column;
-
-        gap: 6px;
-
-    }
-
-
-    .post-statistics {
-
-        gap: 8px 12px;
-
-    }
-
-
-    .post-actions {
-
-        flex-direction: column;
-
-        align-items: stretch;
-
-    }
-
-
-    .post-action-btn {
-
-        width: 100%;
-
-    }
-
-}
-
-
-@media (max-width: 480px) {
-
-    .home-container {
-
-        padding: 10px;
-
-    }
-
-
-    .home-hero {
-
-        padding: 26px 14px;
-
-    }
-
-
-    .home-hero h1 {
-
-        font-size: 1.65rem;
-
-    }
-
-
-    .featured-content h3,
-    .post-title {
-
-        font-size: 1.1rem;
-
-    }
-
-
-    .comment-header {
-
-        align-items: flex-start;
-
-        flex-direction: column;
-
-        gap: 4px;
-
-    }
-
-}
-
-</style>
 
 {% endblock %}

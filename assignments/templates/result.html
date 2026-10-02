@@ -332,6 +332,36 @@
     transition: color .3s var(--qr-ease);
 }
 
+/* Reset typographic margins inside rich-text question bodies */
+.qr-review-q p,
+.qr-answer-yours p,
+.qr-answer-correct p,
+.qr-explanation p {
+    margin: 0 0 .5em;
+}
+
+.qr-review-q p:last-child,
+.qr-answer-yours p:last-child,
+.qr-answer-correct p:last-child,
+.qr-explanation p:last-child {
+    margin-bottom: 0;
+}
+
+.qr-review-q ul,
+.qr-review-q ol,
+.qr-explanation ul,
+.qr-explanation ol {
+    margin: .4em 0;
+    padding-left: 1.25em;
+}
+
+.qr-review-q img,
+.qr-explanation img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+}
+
 .qr-review-badge {
     display: inline-flex;
     align-items: center;
@@ -900,7 +930,7 @@
         <div class="qr-review-header">
           <div>
             <div class="qr-review-num">Question {{ forloop.counter }}</div>
-            <div class="qr-review-q">{{ answer.question.text }}</div>
+            <div class="qr-review-q">{{ answer.question.text|safe }}</div>
           </div>
           {% if answer.is_correct %}
             <span class="qr-review-badge correct">✓ Correct</span>
@@ -913,21 +943,18 @@
           <div>
             <strong>Your answer</strong>
             <span class="qr-answer-yours {% if answer.is_correct %}correct{% else %}wrong{% endif %}">
-              {{ answer.selected_option|default:"— not answered —" }}
+              {% if answer.selected_option %}
+                {{ answer.selected_option|safe }}
+              {% else %}
+                — not answered —
+              {% endif %}
             </span>
           </div>
 
-          {% if not answer.is_correct %}
-            <div>
-              <strong>Correct answer</strong>
-              <span class="qr-answer-correct">{{ answer.question.correct_option }}</span>
-            </div>
-          {% else %}
-            <div>
-              <strong>Correct answer</strong>
-              <span class="qr-answer-correct">{{ answer.question.correct_option }}</span>
-            </div>
-          {% endif %}
+          <div>
+            <strong>Correct answer</strong>
+            <span class="qr-answer-correct">{{ answer.question.correct_option|safe }}</span>
+          </div>
 
           <div>
             <strong>Marks</strong>
@@ -939,7 +966,7 @@
         {% if answer.question.explanation %}
           <div class="qr-explanation">
             <div class="qr-explanation-label">💡 Explanation</div>
-            <p>{{ answer.question.explanation }}</p>
+            {{ answer.question.explanation|safe }}
           </div>
         {% endif %}
 
