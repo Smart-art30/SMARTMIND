@@ -1,30 +1,830 @@
-<h2>Grade Submission</h2>
+{% extends "base.html" %}
+{% load static %}
 
-<h3>{{ submission.student }}</h3>
+{% block title %}Grade · {{ submission.assignment.title }} | SmartMind{% endblock %}
 
-<p>{{ submission.content }}</p>
+{% block content %}
 
-<form method="post">
-    {% csrf_token %}
+<style>
+/* =========================================================
+   DESIGN TOKENS — LIGHT (default)
+========================================================= */
+.gs-wrap {
+    --gs-surface: #ffffff;
+    --gs-surface-alt: #f8fafc;
+    --gs-surface-muted: #f1f5f9;
+    --gs-surface-hover: #f8fbff;
 
-    <label>Marks</label>
-    <input
-        type="number"
-        name="marks"
-        value="{{ submission.marks }}"
-    >
+    --gs-text: #0f172a;
+    --gs-text-body: #334155;
+    --gs-text-muted: #64748b;
+    --gs-text-soft: #94a3b8;
 
-    <br><br>
+    --gs-border: #e2e8f0;
+    --gs-border-soft: #f1f5f9;
+    --gs-border-hover: #93c5fd;
 
-    <label>Feedback</label>
+    --gs-primary: #6366f1;
+    --gs-primary-hover: #4f46e5;
+    --gs-primary-soft: #eef2ff;
+    --gs-primary-text: #4f46e5;
 
-    <textarea name="feedback">
-{{ submission.feedback }}
-    </textarea>
+    --gs-success: #10b981;
+    --gs-success-hover: #059669;
+    --gs-success-soft: #d1fae5;
+    --gs-success-text: #065f46;
 
-    <br><br>
+    --gs-info-soft: #eff6ff;
+    --gs-info-border: #3b82f6;
+    --gs-info-text: #1e40af;
 
-    <button type="submit">
-        Save Grade
-    </button>
-</form>
+    --gs-warning-soft: #fef3c7;
+    --gs-warning-text: #b45309;
+    --gs-warning-border: #fde68a;
+
+    --gs-radius: 18px;
+    --gs-radius-sm: 14px;
+    --gs-radius-xs: 10px;
+
+    --gs-shadow-xs: 0 2px 6px rgba(15, 23, 42, .03);
+    --gs-shadow-sm: 0 4px 12px rgba(15, 23, 42, .05);
+    --gs-shadow: 0 10px 30px rgba(15, 23, 42, .06);
+
+    --gs-ease: cubic-bezier(.4, 0, .2, 1);
+
+    /* Full width by default — the base template's container
+       determines the actual usable width. */
+    width: 100%;
+    max-width: 100%;
+    margin: 24px auto;
+    padding: 24px clamp(20px, 4vw, 56px);
+    box-sizing: border-box;
+    color: var(--gs-text);
+    transition: color .3s var(--gs-ease);
+}
+
+/* =========================================================
+   DESIGN TOKENS — DARK
+========================================================= */
+[data-theme="dark"] .gs-wrap {
+    --gs-surface: #111827;
+    --gs-surface-alt: #1a2234;
+    --gs-surface-muted: #1f2937;
+    --gs-surface-hover: #1e293b;
+
+    --gs-text: #f1f5f9;
+    --gs-text-body: #e2e8f0;
+    --gs-text-muted: #94a3b8;
+    --gs-text-soft: #64748b;
+
+    --gs-border: #1f2937;
+    --gs-border-soft: #1e293b;
+    --gs-border-hover: rgba(129, 140, 248, .5);
+
+    --gs-primary: #818cf8;
+    --gs-primary-hover: #a5b4fc;
+    --gs-primary-soft: #1e1b4b;
+    --gs-primary-text: #a5b4fc;
+
+    --gs-success: #34d399;
+    --gs-success-hover: #6ee7b7;
+    --gs-success-soft: rgba(52, 211, 153, .14);
+    --gs-success-text: #6ee7b7;
+
+    --gs-info-soft: rgba(59, 130, 246, .1);
+    --gs-info-border: #60a5fa;
+    --gs-info-text: #bfdbfe;
+
+    --gs-warning-soft: rgba(251, 191, 36, .12);
+    --gs-warning-text: #fcd34d;
+    --gs-warning-border: rgba(251, 191, 36, .3);
+
+    --gs-shadow-xs: 0 2px 6px rgba(0, 0, 0, .3);
+    --gs-shadow-sm: 0 4px 12px rgba(0, 0, 0, .4);
+    --gs-shadow: 0 10px 30px rgba(0, 0, 0, .5);
+}
+
+/* =========================================================
+   INNER CONTENT WRAPPER
+   Constrains the readable column on very wide screens
+   without shrinking the outer layout on laptops.
+========================================================= */
+.gs-inner {
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+/* =========================================================
+   HERO HEADER
+========================================================= */
+.gs-hero {
+    background: var(--gs-surface);
+    border: 1px solid var(--gs-border);
+    border-radius: var(--gs-radius);
+    padding: 28px 32px;
+    box-shadow: var(--gs-shadow);
+    margin-bottom: 22px;
+    position: relative;
+    overflow: hidden;
+    transition: background-color .3s var(--gs-ease),
+                border-color .3s var(--gs-ease),
+                box-shadow .3s var(--gs-ease);
+}
+
+.gs-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--gs-primary), #8b5cf6);
+}
+
+.gs-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--gs-primary-text);
+    background: var(--gs-primary-soft);
+    padding: 4px 12px;
+    border-radius: 100px;
+    margin-bottom: 12px;
+}
+
+.gs-hero h1 {
+    margin: 0 0 6px;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--gs-text);
+    letter-spacing: -0.02em;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+    transition: color .3s var(--gs-ease);
+}
+
+.gs-hero p {
+    margin: 0;
+    color: var(--gs-text-muted);
+    font-size: .92rem;
+    transition: color .3s var(--gs-ease);
+}
+
+/* =========================================================
+   STUDENT CARD
+========================================================= */
+.gs-student {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--gs-surface);
+    border: 1px solid var(--gs-border);
+    border-radius: var(--gs-radius-sm);
+    padding: 16px 20px;
+    margin-bottom: 22px;
+    box-shadow: var(--gs-shadow-xs);
+    transition: background-color .3s var(--gs-ease),
+                border-color .3s var(--gs-ease);
+}
+
+.gs-avatar {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--gs-primary), #8b5cf6);
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 1rem;
+    flex-shrink: 0;
+    letter-spacing: -0.02em;
+}
+
+[data-theme="dark"] .gs-avatar {
+    color: #0a0e1a;
+}
+
+.gs-student-info {
+    min-width: 0;
+    flex: 1;
+}
+
+.gs-student-label {
+    font-size: .7rem;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--gs-text-muted);
+    margin-bottom: 3px;
+    transition: color .3s var(--gs-ease);
+}
+
+.gs-student-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--gs-text);
+    overflow-wrap: anywhere;
+    transition: color .3s var(--gs-ease);
+}
+
+/* =========================================================
+   TWO-COLUMN GRID ON LAPTOPS AND UP
+========================================================= */
+.gs-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 22px;
+}
+
+@media (min-width: 960px) {
+    .gs-grid {
+        /* Submission details | Grading form */
+        grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+        align-items: start;
+    }
+}
+
+@media (min-width: 1440px) {
+    .gs-grid {
+        grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+        gap: 28px;
+    }
+}
+
+/* =========================================================
+   SECTION CARD
+========================================================= */
+.gs-card {
+    background: var(--gs-surface);
+    border: 1px solid var(--gs-border);
+    border-radius: var(--gs-radius);
+    padding: 24px 28px;
+    box-shadow: var(--gs-shadow-sm);
+    margin-bottom: 22px;
+    transition: background-color .3s var(--gs-ease),
+                border-color .3s var(--gs-ease),
+                box-shadow .3s var(--gs-ease);
+}
+
+.gs-grid .gs-card {
+    margin-bottom: 0;
+}
+
+.gs-card-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: .8rem;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--gs-text-muted);
+    margin: 0 0 14px;
+    transition: color .3s var(--gs-ease);
+}
+
+.gs-card-title::before {
+    content: "";
+    width: 4px;
+    height: 16px;
+    border-radius: 100px;
+    background: linear-gradient(180deg, var(--gs-primary), #8b5cf6);
+    flex-shrink: 0;
+}
+
+.gs-content {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: var(--gs-text-body);
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    transition: color .3s var(--gs-ease);
+}
+
+.gs-content.empty {
+    color: var(--gs-text-soft);
+    font-style: italic;
+}
+
+/* =========================================================
+   ATTACHMENT LINK
+========================================================= */
+.gs-attachment {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    border: 1px solid var(--gs-border);
+    border-radius: var(--gs-radius-xs);
+    background: var(--gs-surface-alt);
+    text-decoration: none;
+    color: inherit;
+    transition: all .2s var(--gs-ease);
+    -webkit-tap-highlight-color: transparent;
+    margin-top: 14px;
+}
+
+.gs-attachment:hover {
+    border-color: var(--gs-border-hover);
+    background: var(--gs-surface-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--gs-shadow-xs);
+}
+
+.gs-attachment-icon {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: var(--gs-primary-soft);
+    color: var(--gs-primary-text);
+    font-size: 1.15rem;
+    flex-shrink: 0;
+}
+
+.gs-attachment-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.gs-attachment-name {
+    font-weight: 700;
+    font-size: .92rem;
+    color: var(--gs-text);
+    margin-bottom: 2px;
+    overflow-wrap: anywhere;
+}
+
+.gs-attachment-hint {
+    font-size: .78rem;
+    color: var(--gs-text-muted);
+}
+
+.gs-attachment-arrow {
+    font-size: 1.1rem;
+    color: var(--gs-text-soft);
+    flex-shrink: 0;
+    transition: color .2s var(--gs-ease),
+                transform .2s var(--gs-ease);
+}
+
+.gs-attachment:hover .gs-attachment-arrow {
+    color: var(--gs-primary);
+    transform: translateX(3px);
+}
+
+/* =========================================================
+   FORM
+========================================================= */
+.gs-field {
+    margin-bottom: 20px;
+}
+
+.gs-field label {
+    display: block;
+    font-weight: 700;
+    font-size: .85rem;
+    color: var(--gs-text-body);
+    margin-bottom: 8px;
+    transition: color .3s var(--gs-ease);
+}
+
+.gs-field-hint {
+    font-weight: 500;
+    color: var(--gs-text-soft);
+    font-size: .78rem;
+    margin-left: 6px;
+}
+
+.gs-input,
+.gs-textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--gs-border);
+    border-radius: var(--gs-radius-xs);
+    font-size: 1rem;
+    font-family: inherit;
+    color: var(--gs-text);
+    background: var(--gs-surface);
+    box-sizing: border-box;
+    transition: border-color .15s var(--gs-ease),
+                box-shadow .15s var(--gs-ease),
+                background-color .3s var(--gs-ease),
+                color .3s var(--gs-ease);
+}
+
+.gs-input:focus,
+.gs-textarea:focus {
+    outline: none;
+    border-color: var(--gs-primary);
+    box-shadow: 0 0 0 3px var(--gs-primary-soft);
+}
+
+.gs-textarea {
+    min-height: 160px;
+    resize: vertical;
+    line-height: 1.6;
+}
+
+/* Big marks input with suffix */
+.gs-marks-row {
+    display: flex;
+    align-items: stretch;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.gs-marks-input {
+    flex: 1;
+    min-width: 100px;
+    font-size: 1.15rem;
+    font-weight: 700;
+    text-align: center;
+    letter-spacing: -0.01em;
+}
+
+.gs-marks-suffix {
+    display: inline-flex;
+    align-items: center;
+    padding: 0 16px;
+    background: var(--gs-surface-muted);
+    border: 1px solid var(--gs-border);
+    border-radius: var(--gs-radius-xs);
+    font-weight: 700;
+    font-size: .9rem;
+    color: var(--gs-text-muted);
+    white-space: nowrap;
+    transition: background-color .3s var(--gs-ease),
+                border-color .3s var(--gs-ease),
+                color .3s var(--gs-ease);
+}
+
+/* =========================================================
+   BUTTONS
+========================================================= */
+.gs-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 6px;
+}
+
+.gs-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 28px;
+    border: none;
+    border-radius: var(--gs-radius-xs);
+    font-weight: 700;
+    font-size: .95rem;
+    font-family: inherit;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all .2s var(--gs-ease);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.gs-btn-primary {
+    background: var(--gs-success);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, .3);
+    flex: 1;
+    min-width: 180px;
+}
+
+[data-theme="dark"] .gs-btn-primary {
+    color: #0a0e1a;
+}
+
+.gs-btn-primary:hover {
+    background: var(--gs-success-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(16, 185, 129, .4);
+}
+
+.gs-btn-primary:active {
+    transform: translateY(0) scale(.98);
+}
+
+.gs-btn-ghost {
+    background: var(--gs-surface-muted);
+    color: var(--gs-text-body);
+    border: 1px solid var(--gs-border);
+}
+
+.gs-btn-ghost:hover {
+    background: var(--gs-surface-alt);
+    border-color: var(--gs-text-soft);
+    color: var(--gs-text);
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+/* Tablets and below */
+@media (max-width: 1024px) {
+    .gs-wrap {
+        padding: 20px 22px;
+        margin: 20px auto;
+    }
+}
+
+/* Phones: fill the screen edge-to-edge */
+@media (max-width: 640px) {
+    .gs-wrap {
+        padding: 0;
+        margin: 0;
+        border-radius: 0;
+    }
+
+    .gs-inner {
+        max-width: 100%;
+    }
+
+    .gs-hero,
+    .gs-student,
+    .gs-card {
+        border-radius: 0;
+        border-left: 0;
+        border-right: 0;
+        margin-bottom: 12px;
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .gs-hero {
+        padding-top: 22px;
+        padding-bottom: 22px;
+    }
+
+    .gs-student {
+        padding-top: 14px;
+        padding-bottom: 14px;
+    }
+
+    .gs-card {
+        padding-top: 18px;
+        padding-bottom: 18px;
+    }
+
+    .gs-hero:first-child {
+        margin-top: 0;
+    }
+
+    .gs-grid {
+        gap: 12px;
+    }
+
+    .gs-grid .gs-card {
+        margin-bottom: 12px;
+    }
+
+    .gs-grid .gs-card:last-child {
+        margin-bottom: 0;
+    }
+
+    .gs-hero h1 {
+        font-size: 1.2rem;
+    }
+
+    .gs-hero p {
+        font-size: .85rem;
+    }
+
+    .gs-eyebrow {
+        font-size: .68rem;
+        padding: 3px 10px;
+        margin-bottom: 10px;
+    }
+
+    .gs-avatar {
+        width: 38px;
+        height: 38px;
+        font-size: .9rem;
+    }
+
+    .gs-student-name {
+        font-size: .95rem;
+    }
+
+    .gs-card-title {
+        font-size: .74rem;
+        margin-bottom: 12px;
+    }
+
+    .gs-content {
+        font-size: .95rem;
+        line-height: 1.65;
+    }
+
+    .gs-field label {
+        font-size: .8rem;
+    }
+
+    .gs-input,
+    .gs-textarea {
+        font-size: .95rem;
+        padding: 11px 12px;
+    }
+
+    .gs-textarea {
+        min-height: 130px;
+    }
+
+    .gs-actions {
+        flex-direction: column;
+    }
+
+    .gs-btn {
+        width: 100%;
+        padding: 13px 20px;
+    }
+}
+
+/* Small phones */
+@media (max-width: 420px) {
+    .gs-hero,
+    .gs-student,
+    .gs-card {
+        padding-left: 14px;
+        padding-right: 14px;
+    }
+
+    .gs-hero h1 {
+        font-size: 1.1rem;
+    }
+
+    .gs-content {
+        font-size: .9rem;
+    }
+
+    .gs-marks-input {
+        font-size: 1.05rem;
+    }
+}
+
+/* =========================================================
+   LARGE DESKTOP
+   Content stays comfortable — the inner wrapper caps the
+   readable width so lines don't get too long.
+========================================================= */
+@media (min-width: 1440px) {
+    .gs-wrap {
+        padding: 28px clamp(32px, 6vw, 80px);
+        margin: 32px auto;
+    }
+
+    .gs-inner {
+        max-width: 1280px;
+    }
+
+    .gs-hero {
+        padding: 32px 40px;
+    }
+
+    .gs-card {
+        padding: 28px 34px;
+    }
+
+    .gs-hero h1 {
+        font-size: 1.65rem;
+    }
+}
+
+@media (min-width: 1920px) {
+    .gs-inner {
+        max-width: 1400px;
+    }
+}
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+@media (prefers-reduced-motion: reduce) {
+    .gs-wrap *,
+    .gs-wrap *::before,
+    .gs-wrap *::after {
+        transition: none !important;
+        animation: none !important;
+    }
+}
+</style>
+
+<div class="gs-wrap">
+  <div class="gs-inner">
+
+    <!-- ============ HERO ============ -->
+    <div class="gs-hero">
+      <span class="gs-eyebrow">✍️ Grading</span>
+      <h1>Grade Submission</h1>
+      <p>{{ submission.assignment.title }}</p>
+    </div>
+
+    <!-- ============ STUDENT ============ -->
+    <div class="gs-student">
+      <div class="gs-avatar" aria-hidden="true">
+        {{ submission.student.get_full_name|default:submission.student.username|slice:":1"|upper }}
+      </div>
+      <div class="gs-student-info">
+        <div class="gs-student-label">Student</div>
+        <div class="gs-student-name">
+          {{ submission.student.get_full_name|default:submission.student.username }}
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ TWO-COLUMN: SUBMISSION | FORM ============ -->
+    <div class="gs-grid">
+
+      <!-- LEFT: Submitted answer -->
+      <div class="gs-card">
+        <h2 class="gs-card-title">Submitted Answer</h2>
+
+        {% if submission.content %}
+          <div class="gs-content">{{ submission.content }}</div>
+        {% else %}
+          <div class="gs-content empty">No text answer was provided.</div>
+        {% endif %}
+
+        {% if submission.file %}
+          <a href="{{ submission.file.url }}"
+             target="_blank"
+             rel="noopener noreferrer"
+             class="gs-attachment">
+            <span class="gs-attachment-icon" aria-hidden="true">📎</span>
+            <span class="gs-attachment-body">
+              <span class="gs-attachment-name">
+                {{ submission.file.name|cut:"submissions/" }}
+              </span>
+              <span class="gs-attachment-hint">Open attachment in a new tab</span>
+            </span>
+            <span class="gs-attachment-arrow" aria-hidden="true">→</span>
+          </a>
+        {% endif %}
+      </div>
+
+      <!-- RIGHT: Grading form -->
+      <div class="gs-card">
+        <h2 class="gs-card-title">Your Grade</h2>
+
+        <form method="post">
+          {% csrf_token %}
+
+          <div class="gs-field">
+            <label for="marks">Marks</label>
+            <div class="gs-marks-row">
+              <input
+                type="number"
+                id="marks"
+                name="marks"
+                class="gs-input gs-marks-input"
+                value="{{ submission.marks|default_if_none:'' }}"
+                min="0"
+                step="0.5"
+                placeholder="0"
+                inputmode="decimal"
+                autocomplete="off"
+              >
+              <span class="gs-marks-suffix">marks</span>
+            </div>
+          </div>
+
+          <div class="gs-field">
+            <label for="feedback">
+              Feedback
+              <span class="gs-field-hint">(optional)</span>
+            </label>
+            <textarea
+              id="feedback"
+              name="feedback"
+              class="gs-textarea"
+              placeholder="Write constructive feedback for the student…"
+            >{{ submission.feedback|default_if_none:'' }}</textarea>
+          </div>
+
+          <div class="gs-actions">
+            <a href="{% url 'submission_list' %}" class="gs-btn gs-btn-ghost">
+              Cancel
+            </a>
+            <button type="submit" class="gs-btn gs-btn-primary">
+              ✅ Save Grade
+            </button>
+          </div>
+
+        </form>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}

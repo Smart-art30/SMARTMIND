@@ -1,298 +1,782 @@
+{% extends "base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Student Submissions</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+
+{% block title %}Student Submissions | SmartMind{% endblock %}
+
+{% block content %}
 
 <style>
+/* =========================================================
+   DESIGN TOKENS — LIGHT (default)
+========================================================= */
+.sl-wrap {
+    --sl-surface: #ffffff;
+    --sl-surface-alt: #f8fafc;
+    --sl-surface-muted: #f1f5f9;
+    --sl-surface-hover: #f8fbff;
 
-body{
-    margin:0;
-    background:#f4f7fb;
-    font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    --sl-text: #0f172a;
+    --sl-text-body: #334155;
+    --sl-text-muted: #64748b;
+    --sl-text-soft: #94a3b8;
+
+    --sl-border: #e2e8f0;
+    --sl-border-soft: #f1f5f9;
+    --sl-border-hover: #93c5fd;
+
+    --sl-primary: #6366f1;
+    --sl-primary-hover: #4f46e5;
+    --sl-primary-soft: #eef2ff;
+    --sl-primary-text: #4f46e5;
+
+    --sl-success: #10b981;
+    --sl-success-hover: #059669;
+    --sl-success-soft: #d1fae5;
+    --sl-success-text: #065f46;
+
+    --sl-warning: #f59e0b;
+    --sl-warning-hover: #d97706;
+    --sl-warning-soft: #fef3c7;
+    --sl-warning-text: #b45309;
+
+    --sl-info: #0891b2;
+    --sl-info-hover: #0e7490;
+    --sl-info-soft: #cffafe;
+    --sl-info-text: #155e75;
+
+    --sl-radius: 18px;
+    --sl-radius-sm: 14px;
+    --sl-radius-xs: 10px;
+
+    --sl-shadow-xs: 0 2px 6px rgba(15, 23, 42, .03);
+    --sl-shadow-sm: 0 4px 12px rgba(15, 23, 42, .05);
+    --sl-shadow: 0 10px 30px rgba(15, 23, 42, .06);
+
+    --sl-ease: cubic-bezier(.4, 0, .2, 1);
+
+    width: 100%;
+    max-width: 100%;
+    margin: 24px auto;
+    padding: 24px clamp(20px, 4vw, 56px);
+    box-sizing: border-box;
+    color: var(--sl-text);
+    transition: color .3s var(--sl-ease);
 }
 
-.container{
-    width:95%;
-    max-width:1400px;
-    margin:auto;
-    padding:30px;
+/* =========================================================
+   DESIGN TOKENS — DARK
+========================================================= */
+[data-theme="dark"] .sl-wrap {
+    --sl-surface: #111827;
+    --sl-surface-alt: #1a2234;
+    --sl-surface-muted: #1f2937;
+    --sl-surface-hover: #1e293b;
+
+    --sl-text: #f1f5f9;
+    --sl-text-body: #e2e8f0;
+    --sl-text-muted: #94a3b8;
+    --sl-text-soft: #64748b;
+
+    --sl-border: #1f2937;
+    --sl-border-soft: #1e293b;
+    --sl-border-hover: rgba(129, 140, 248, .5);
+
+    --sl-primary: #818cf8;
+    --sl-primary-hover: #a5b4fc;
+    --sl-primary-soft: #1e1b4b;
+    --sl-primary-text: #a5b4fc;
+
+    --sl-success: #34d399;
+    --sl-success-hover: #6ee7b7;
+    --sl-success-soft: rgba(52, 211, 153, .14);
+    --sl-success-text: #6ee7b7;
+
+    --sl-warning: #fbbf24;
+    --sl-warning-hover: #fcd34d;
+    --sl-warning-soft: rgba(251, 191, 36, .14);
+    --sl-warning-text: #fcd34d;
+
+    --sl-info: #22d3ee;
+    --sl-info-hover: #67e8f9;
+    --sl-info-soft: rgba(34, 211, 238, .14);
+    --sl-info-text: #67e8f9;
+
+    --sl-shadow-xs: 0 2px 6px rgba(0, 0, 0, .3);
+    --sl-shadow-sm: 0 4px 12px rgba(0, 0, 0, .4);
+    --sl-shadow: 0 10px 30px rgba(0, 0, 0, .5);
 }
 
-.header{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:25px;
-    flex-wrap:wrap;
+/* =========================================================
+   INNER CONTENT WRAPPER
+========================================================= */
+.sl-inner {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
-.header h1{
-    margin:0;
+/* =========================================================
+   HEADER
+========================================================= */
+.sl-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 22px;
 }
 
-.search{
-    margin-bottom:20px;
+.sl-header-left {
+    min-width: 0;
 }
 
-.search input{
-    width:100%;
-    padding:12px;
-    border:1px solid #ccc;
-    border-radius:8px;
-    font-size:15px;
+.sl-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--sl-primary-text);
+    background: var(--sl-primary-soft);
+    padding: 4px 12px;
+    border-radius: 100px;
+    margin-bottom: 12px;
 }
 
-.card{
-    background:white;
-    border-radius:15px;
-    padding:20px;
-    box-shadow:0 8px 20px rgba(0,0,0,.08);
+.sl-header h1 {
+    margin: 0 0 6px;
+    font-size: clamp(1.35rem, 2.5vw, 1.65rem);
+    font-weight: 800;
+    color: var(--sl-text);
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+    transition: color .3s var(--sl-ease);
 }
 
-table{
-    width:100%;
-    border-collapse:collapse;
+.sl-header p {
+    margin: 0;
+    color: var(--sl-text-muted);
+    font-size: .95rem;
+    line-height: 1.5;
+    transition: color .3s var(--sl-ease);
 }
 
-th{
-    background:#2563eb;
-    color:white;
-    padding:14px;
-    text-align:left;
+.sl-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: var(--sl-surface);
+    border: 1px solid var(--sl-border);
+    border-radius: 100px;
+    font-weight: 700;
+    font-size: .85rem;
+    color: var(--sl-text-body);
+    white-space: nowrap;
+    box-shadow: var(--sl-shadow-xs);
+    transition: background-color .3s var(--sl-ease),
+                border-color .3s var(--sl-ease),
+                color .3s var(--sl-ease);
 }
 
-td{
-    padding:14px;
-    border-bottom:1px solid #eee;
+.sl-count-num {
+    color: var(--sl-primary-text);
+    font-size: 1rem;
 }
 
-tr:hover{
-    background:#f8fafc;
+/* =========================================================
+   SEARCH
+========================================================= */
+.sl-search {
+    position: relative;
+    margin-bottom: 20px;
 }
 
-.badge{
-    padding:5px 12px;
-    border-radius:20px;
-    color:white;
-    font-size:13px;
+.sl-search input {
+    width: 100%;
+    padding: 14px 16px 14px 46px;
+    border: 1px solid var(--sl-border);
+    border-radius: var(--sl-radius-sm);
+    background: var(--sl-surface);
+    color: var(--sl-text);
+    font-size: .95rem;
+    font-family: inherit;
+    transition: border-color .15s var(--sl-ease),
+                box-shadow .15s var(--sl-ease),
+                background-color .3s var(--sl-ease),
+                color .3s var(--sl-ease);
 }
 
-.pending{
-    background:#f59e0b;
+.sl-search input::placeholder {
+    color: var(--sl-text-soft);
 }
 
-.graded{
-    background:#16a34a;
+.sl-search input:focus {
+    outline: none;
+    border-color: var(--sl-primary);
+    box-shadow: 0 0 0 3px var(--sl-primary-soft);
 }
 
-.btn{
-    display:inline-block;
-    padding:8px 12px;
-    color:white;
-    text-decoration:none;
-    border-radius:6px;
-    margin-right:5px;
+.sl-search-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1rem;
+    color: var(--sl-text-soft);
+    pointer-events: none;
 }
 
-.view{
-    background:#2563eb;
+/* =========================================================
+   CARD
+========================================================= */
+.sl-card {
+    background: var(--sl-surface);
+    border: 1px solid var(--sl-border);
+    border-radius: var(--sl-radius);
+    box-shadow: var(--sl-shadow);
+    overflow: hidden;
+    transition: background-color .3s var(--sl-ease),
+                border-color .3s var(--sl-ease),
+                box-shadow .3s var(--sl-ease);
 }
 
-.download{
-    background:#0891b2;
+/* =========================================================
+   TABLE (desktop)
+========================================================= */
+.sl-table {
+    width: 100%;
+    border-collapse: collapse;
 }
 
-.grade{
-    background:#16a34a;
+.sl-table thead {
+    background: var(--sl-surface-alt);
+    border-bottom: 1px solid var(--sl-border);
 }
 
-@media(max-width:900px){
-
-table,thead,tbody,tr,td,th{
-display:block;
+.sl-table th {
+    padding: 14px 20px;
+    text-align: left;
+    font-size: .74rem;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--sl-text-muted);
+    white-space: nowrap;
+    transition: color .3s var(--sl-ease);
 }
 
-thead{
-display:none;
+.sl-table td {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--sl-border-soft);
+    font-size: .92rem;
+    color: var(--sl-text-body);
+    vertical-align: middle;
+    transition: color .3s var(--sl-ease),
+                border-color .3s var(--sl-ease);
 }
 
-tr{
-margin-bottom:20px;
-padding:15px;
-border-radius:12px;
-background:white;
+.sl-table tbody tr {
+    transition: background-color .15s var(--sl-ease);
 }
 
-td{
-border:none;
-padding:6px 0;
+.sl-table tbody tr:hover {
+    background: var(--sl-surface-hover);
 }
 
-td:before{
-display:block;
-font-weight:bold;
-margin-bottom:4px;
+.sl-table tbody tr:last-child td {
+    border-bottom: none;
 }
 
-td:nth-child(1):before{content:"Student";}
-td:nth-child(2):before{content:"Assignment";}
-td:nth-child(3):before{content:"Submitted";}
-td:nth-child(4):before{content:"Status";}
-td:nth-child(5):before{content:"Actions";}
-
+/* Student cell */
+.sl-student {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
 }
 
+.sl-avatar {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--sl-primary), #8b5cf6);
+    color: #ffffff;
+    font-weight: 800;
+    font-size: .85rem;
+    flex-shrink: 0;
+    letter-spacing: -0.02em;
+}
+
+[data-theme="dark"] .sl-avatar {
+    color: #0a0e1a;
+}
+
+.sl-student-name {
+    font-weight: 600;
+    color: var(--sl-text);
+    overflow-wrap: anywhere;
+    transition: color .3s var(--sl-ease);
+}
+
+.sl-assignment {
+    font-weight: 600;
+    color: var(--sl-text);
+    overflow-wrap: anywhere;
+    transition: color .3s var(--sl-ease);
+}
+
+.sl-date {
+    color: var(--sl-text-muted);
+    white-space: nowrap;
+}
+
+/* =========================================================
+   STATUS BADGE
+========================================================= */
+.sl-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    border-radius: 100px;
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    transition: background-color .3s var(--sl-ease),
+                color .3s var(--sl-ease);
+}
+
+.sl-badge.pending {
+    background: var(--sl-warning-soft);
+    color: var(--sl-warning-text);
+}
+
+.sl-badge.graded {
+    background: var(--sl-success-soft);
+    color: var(--sl-success-text);
+}
+
+/* =========================================================
+   BUTTONS
+========================================================= */
+.sl-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.sl-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border: 1px solid transparent;
+    border-radius: var(--sl-radius-xs);
+    font-size: .8rem;
+    font-weight: 600;
+    font-family: inherit;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all .15s var(--sl-ease);
+    -webkit-tap-highlight-color: transparent;
+    white-space: nowrap;
+}
+
+.sl-btn:active {
+    transform: scale(.97);
+}
+
+.sl-btn-view {
+    background: var(--sl-primary-soft);
+    color: var(--sl-primary-text);
+    border-color: transparent;
+}
+
+.sl-btn-view:hover {
+    background: var(--sl-primary);
+    color: #ffffff;
+}
+
+[data-theme="dark"] .sl-btn-view:hover {
+    color: #0a0e1a;
+}
+
+.sl-btn-download {
+    background: var(--sl-info-soft);
+    color: var(--sl-info-text);
+    border-color: transparent;
+}
+
+.sl-btn-download:hover {
+    background: var(--sl-info);
+    color: #ffffff;
+}
+
+[data-theme="dark"] .sl-btn-download:hover {
+    color: #0a0e1a;
+}
+
+.sl-btn-grade {
+    background: var(--sl-success);
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, .25);
+}
+
+[data-theme="dark"] .sl-btn-grade {
+    color: #0a0e1a;
+}
+
+.sl-btn-grade:hover {
+    background: var(--sl-success-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(16, 185, 129, .35);
+}
+
+/* =========================================================
+   EMPTY STATE
+========================================================= */
+.sl-empty {
+    padding: 60px 24px;
+    text-align: center;
+}
+
+.sl-empty-icon {
+    font-size: 3rem;
+    margin-bottom: 12px;
+    line-height: 1;
+}
+
+.sl-empty-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--sl-text);
+    margin-bottom: 4px;
+    transition: color .3s var(--sl-ease);
+}
+
+.sl-empty-text {
+    font-size: .9rem;
+    color: var(--sl-text-muted);
+    transition: color .3s var(--sl-ease);
+}
+
+/* =========================================================
+   RESPONSIVE — TABLET
+========================================================= */
+@media (max-width: 1024px) {
+    .sl-wrap {
+        padding: 20px 22px;
+        margin: 20px auto;
+    }
+}
+
+/* =========================================================
+   RESPONSIVE — PHONE: full-bleed cards
+========================================================= */
+@media (max-width: 640px) {
+    .sl-wrap {
+        padding: 0;
+        margin: 0;
+    }
+
+    .sl-inner {
+        max-width: 100%;
+    }
+
+    .sl-header {
+        padding: 22px 16px 0;
+        margin-bottom: 16px;
+    }
+
+    .sl-header h1 {
+        font-size: 1.25rem;
+    }
+
+    .sl-header p {
+        font-size: .85rem;
+    }
+
+    .sl-count {
+        padding: 6px 12px;
+        font-size: .78rem;
+    }
+
+    .sl-count-num {
+        font-size: .9rem;
+    }
+
+    .sl-search {
+        padding: 0 16px;
+        margin-bottom: 14px;
+    }
+
+    .sl-search input {
+        padding: 12px 14px 12px 42px;
+        font-size: .9rem;
+    }
+
+    .sl-search-icon {
+        left: 28px;
+    }
+
+    .sl-card {
+        border-radius: 0;
+        border-left: 0;
+        border-right: 0;
+        box-shadow: none;
+    }
+
+    /* Table → stacked cards */
+    .sl-table,
+    .sl-table thead,
+    .sl-table tbody,
+    .sl-table tr,
+    .sl-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .sl-table thead {
+        display: none;
+    }
+
+    .sl-table tbody tr {
+        border-bottom: 1px solid var(--sl-border);
+        padding: 18px 16px;
+        background: var(--sl-surface);
+        transition: background-color .15s var(--sl-ease);
+    }
+
+    .sl-table tbody tr:last-child {
+        border-bottom: none;
+    }
+
+    .sl-table tbody tr:hover {
+        background: var(--sl-surface-hover);
+    }
+
+    .sl-table td {
+        padding: 0 0 12px;
+        border: none;
+        font-size: .92rem;
+    }
+
+    .sl-table td:last-child {
+        padding-bottom: 0;
+    }
+
+    .sl-table td::before {
+        display: block;
+        font-size: .68rem;
+        font-weight: 700;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+        color: var(--sl-text-muted);
+        margin-bottom: 6px;
+    }
+
+    .sl-table td:nth-child(1)::before { content: "Student"; }
+    .sl-table td:nth-child(2)::before { content: "Assignment"; }
+    .sl-table td:nth-child(3)::before { content: "Submitted On"; }
+    .sl-table td:nth-child(4)::before { content: "Status"; }
+    .sl-table td:nth-child(5)::before { content: "Actions"; }
+
+    .sl-actions {
+        gap: 8px;
+    }
+
+    .sl-btn {
+        flex: 1;
+        min-width: 0;
+        padding: 10px 12px;
+        font-size: .78rem;
+    }
+
+    .sl-empty {
+        padding: 48px 20px;
+    }
+}
+
+/* =========================================================
+   RESPONSIVE — LARGE DESKTOP
+========================================================= */
+@media (min-width: 1440px) {
+    .sl-wrap {
+        padding: 32px clamp(32px, 6vw, 80px);
+    }
+
+    .sl-inner {
+        max-width: 1280px;
+    }
+}
+
+@media (min-width: 1920px) {
+    .sl-inner {
+        max-width: 1400px;
+    }
+}
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+@media (prefers-reduced-motion: reduce) {
+    .sl-wrap *,
+    .sl-wrap *::before,
+    .sl-wrap *::after {
+        transition: none !important;
+        animation: none !important;
+    }
+}
 </style>
 
-</head>
+<div class="sl-wrap">
+  <div class="sl-inner">
 
-<body>
+    <!-- ============ HEADER ============ -->
+    <div class="sl-header">
+      <div class="sl-header-left">
+        <span class="sl-eyebrow">📥 Submissions</span>
+        <h1>Student Submissions</h1>
+        <p>Review and grade submitted assignments.</p>
+      </div>
 
-<div class="container">
+      <div class="sl-count">
+        <span class="sl-count-num">{{ submissions|length }}</span>
+        <span>total</span>
+      </div>
+    </div>
 
-<div class="header">
+    <!-- ============ SEARCH ============ -->
+    <div class="sl-search">
+      <span class="sl-search-icon" aria-hidden="true">🔍</span>
+      <input
+        type="text"
+        id="search"
+        placeholder="Search student or assignment…"
+        autocomplete="off"
+        aria-label="Search submissions">
+    </div>
 
-<div>
+    <!-- ============ TABLE / CARDS ============ -->
+    <div class="sl-card">
+      <table class="sl-table" id="submissionTable">
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Assignment</th>
+            <th>Submitted On</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for submission in submissions %}
+            <tr>
+              <td>
+                <div class="sl-student">
+                  <div class="sl-avatar" aria-hidden="true">
+                    {{ submission.student.get_full_name|default:submission.student.username|slice:":1"|upper }}
+                  </div>
+                  <span class="sl-student-name">
+                    {{ submission.student.get_full_name|default:submission.student.username }}
+                  </span>
+                </div>
+              </td>
 
-<h1>📥 Student Submissions</h1>
+              <td>
+                <span class="sl-assignment">{{ submission.assignment.title }}</span>
+              </td>
 
-<p>Review and grade submitted assignments.</p>
+              <td>
+                <span class="sl-date">
+                  {{ submission.submitted_at|date:"d M Y, H:i" }}
+                </span>
+              </td>
 
-</div>
+              <td>
+                {% if submission.graded %}
+                  <span class="sl-badge graded">✓ Graded</span>
+                {% else %}
+                  <span class="sl-badge pending">⏳ Pending</span>
+                {% endif %}
+              </td>
 
-</div>
+              <td>
+                <div class="sl-actions">
+                  <a href="{% url 'submission_detail' submission.id %}"
+                     class="sl-btn sl-btn-view">
+                    View
+                  </a>
 
-<div class="search">
+                  {% if submission.file %}
+                    <a href="{{ submission.file.url }}"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="sl-btn sl-btn-download">
+                      Download
+                    </a>
+                  {% endif %}
 
-<input
-type="text"
-id="search"
-placeholder="Search student or assignment...">
+                  <a href="{% url 'grade_submission' submission.id %}"
+                     class="sl-btn sl-btn-grade">
+                    Grade
+                  </a>
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="5">
+                <div class="sl-empty">
+                  <div class="sl-empty-icon">📭</div>
+                  <div class="sl-empty-title">No submissions yet</div>
+                  <div class="sl-empty-text">
+                    Submissions will appear here as students turn in their work.
+                  </div>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
 
-</div>
-
-<div class="card">
-
-<table id="submissionTable">
-
-<thead>
-
-<tr>
-
-<th>Student</th>
-
-<th>Assignment</th>
-
-<th>Submitted On</th>
-
-<th>Status</th>
-
-<th>Actions</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-{% for submission in submissions %}
-
-<tr>
-
-<td>{{ submission.student.get_full_name|default:submission.student.username }}</td>
-
-<td>{{ submission.assignment.title }}</td>
-
-<td>{{ submission.submitted_at|date:"d M Y H:i" }}</td>
-
-<td>
-
-{% if submission.graded %}
-
-<span class="badge graded">
-
-Graded
-
-</span>
-
-{% else %}
-
-<span class="badge pending">
-
-Pending
-
-</span>
-
-{% endif %}
-
-</td>
-
-<td>
-
-<a href="{% url 'submission_detail' submission.id %}" class="btn view">
-View
-</a>
-
-{% if submission.file %}
-<a href="{{ submission.file.url }}" class="btn download">
-Download
-</a>
-{% endif %}
-
-<a href="{% url 'grade_submission' submission.id %}" class="btn grade">
-Grade
-</a>
-
-</td>
-
-</tr>
-
-{% empty %}
-
-<tr>
-
-<td colspan="5">
-
-<center>
-
-No submissions available.
-
-</center>
-
-</td>
-
-</tr>
-
-{% endfor %}
-
-</tbody>
-
-</table>
-
-</div>
-
+  </div>
 </div>
 
 <script>
+  (function () {
+    const search = document.getElementById("search");
+    const rows = document.querySelectorAll("#submissionTable tbody tr");
 
-const search=document.getElementById("search");
+    function filter() {
+      const value = search.value.trim().toLowerCase();
 
-search.addEventListener("keyup",function(){
+      rows.forEach(function (row) {
+        if (row.querySelector(".sl-empty")) return;
+        const match = row.innerText.toLowerCase().includes(value);
+        row.style.display = match ? "" : "none";
+      });
+    }
 
-const value=this.value.toLowerCase();
+    search.addEventListener("input", filter);
 
-document.querySelectorAll("#submissionTable tbody tr").forEach(function(row){
-
-row.style.display=row.innerText.toLowerCase().includes(value)?"":"none";
-
-});
-
-});
-
+    search.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") {
+        search.value = "";
+        filter();
+      }
+    });
+  })();
 </script>
 
-</body>
-</html>
+{% endblock %}

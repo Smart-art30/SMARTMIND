@@ -9,8 +9,12 @@
 
 <style>
 /* =========================================================
-   THEME VARIABLES — LIGHT (default) & DARK
+   THEME-AWARE DASHBOARD — inherits theme from base.html
+   Uses CSS variables that adapt to light/dark mode.
+   The base.html theme switcher controls [data-theme="dark"].
    ========================================================= */
+
+/* ---------- Fallback variables (used if base doesn't define) ---------- */
 :root {
     --bg: #f6f8fc;
     --surface: #ffffff;
@@ -33,28 +37,7 @@
     --transition: all .2s cubic-bezier(.4, 0, .2, 1);
 }
 
-/* ---------- DARK MODE via system preference ---------- */
-@media (prefers-color-scheme: dark) {
-    :root {
-        --bg: #0b1120;
-        --surface: #1e293b;
-        --surface-soft: #0f172a;
-        --text-primary: #f1f5f9;
-        --text-secondary: #94a3b8;
-        --accent: #60a5fa;
-        --accent-soft: #1e3a8a;
-        --accent-hover: #93c5fd;
-        --success: #34d399;
-        --warning: #fbbf24;
-        --danger: #f87171;
-        --slate: #94a3b8;
-        --border: #334155;
-        --shadow-sm: 0 2px 8px rgba(0, 0, 0, .3), 0 4px 16px rgba(0, 0, 0, .3);
-        --shadow-md: 0 8px 30px rgba(0, 0, 0, .5);
-    }
-}
-
-/* ---------- DARK MODE via manual toggle ---------- */
+/* ---------- Dark mode via base.html theme switcher ---------- */
 [data-theme="dark"] {
     --bg: #0b1120;
     --surface: #1e293b;
@@ -73,19 +56,30 @@
     --shadow-md: 0 8px 30px rgba(0, 0, 0, .5);
 }
 
+/* ---------- Dark mode via system preference (fallback) ---------- */
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        --bg: #0b1120;
+        --surface: #1e293b;
+        --surface-soft: #0f172a;
+        --text-primary: #f1f5f9;
+        --text-secondary: #94a3b8;
+        --accent: #60a5fa;
+        --accent-soft: #1e3a8a;
+        --accent-hover: #93c5fd;
+        --success: #34d399;
+        --warning: #fbbf24;
+        --danger: #f87171;
+        --slate: #94a3b8;
+        --border: #334155;
+        --shadow-sm: 0 2px 8px rgba(0, 0, 0, .3), 0 4px 16px rgba(0, 0, 0, .3);
+        --shadow-md: 0 8px 30px rgba(0, 0, 0, .5);
+    }
+}
+
 /* =========================================================
-   GLOBAL RESET
+   DASHBOARD WRAPPER
    ========================================================= */
-* {
-    box-sizing: border-box;
-}
-
-body {
-    background: var(--bg);
-    color: var(--text-primary);
-    transition: background .25s ease, color .25s ease;
-}
-
 .teacher-dashboard {
     width: 100%;
     max-width: 1560px;
@@ -93,6 +87,8 @@ body {
     padding: 28px 32px;
     background: var(--bg);
     min-height: 100vh;
+    transition: background .25s ease, color .25s ease;
+    color: var(--text-primary);
 }
 
 /* =========================================================
@@ -172,7 +168,7 @@ body {
 }
 
 @media (prefers-color-scheme: dark) {
-    .teacher-badge.badge-admin {
+    :root:not([data-theme="light"]) .teacher-badge.badge-admin {
         background: #78350f;
         color: #fde68a;
     }
@@ -194,7 +190,7 @@ body {
 }
 
 @media (prefers-color-scheme: dark) {
-    .teacher-badge.badge-student {
+    :root:not([data-theme="light"]) .teacher-badge.badge-student {
         background: #064e3b;
         color: #6ee7b7;
     }
@@ -216,7 +212,7 @@ body {
 }
 
 @media (prefers-color-scheme: dark) {
-    .teacher-badge.badge-other {
+    :root:not([data-theme="light"]) .teacher-badge.badge-other {
         background: #1e293b;
         color: #cbd5e1;
     }
@@ -419,7 +415,7 @@ body {
 }
 
 @media (prefers-color-scheme: dark) {
-    .assignment-type.quiz {
+    :root:not([data-theme="light"]) .assignment-type.quiz {
         background: #4c1d95;
         color: #c4b5fd;
     }
@@ -698,6 +694,13 @@ body {
 [data-theme="dark"] .role-debug {
     background: #7f1d1d;
     color: #fecaca;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .role-debug {
+        background: #7f1d1d;
+        color: #fecaca;
+    }
 }
 
 /* =========================================================
@@ -1334,7 +1337,10 @@ body {
                     <span class="pill">{{ pending_submissions }}</span>
                 {% endif %}
             </a>
-
+                <a href="{% url 'manage_quizzes' %}" class="teacher-action">
+                <span>📝</span>
+                <span>Manage Assignments</span>
+            </a>
             <a href="{% url 'quiz_home' %}" class="teacher-action">
                 <span>❓</span>
                 <span>Quizzes</span>

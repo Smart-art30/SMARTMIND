@@ -9,7 +9,10 @@ class SubmissionForm(forms.ModelForm):
         fields = ["content", "file"]
 
         widgets = {
-            "content": CKEditor5Widget(config_name="extends"),
+            "content": CKEditor5Widget(
+                config_name="word_like",   # ← rich Word/Google Docs toolbar
+                attrs={"class": "django_ckeditor_5"},
+            ),
         }
 
 
@@ -27,6 +30,9 @@ class AssignmentForm(forms.ModelForm):
         ]
 
         widgets = {
-            "description": CKEditor5Widget(config_name="extends"),
+            "description": CKEditor5Widget(
+                config_name="word_like",   # ← same rich toolbar as content
+                attrs={"class": "django_ckeditor_5"},
+            ),
             "due_date": forms.DateTimeInput(attrs={"type": "datetime-local"}),
         }

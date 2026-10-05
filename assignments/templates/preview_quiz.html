@@ -1,0 +1,521 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Preview · {{ quiz.title }} | SmartMind{% endblock %}
+
+{% block content %}
+
+<style>
+  /* =====================================================
+     PREVIEW QUIZ — read-only, light & dark responsive
+  ===================================================== */
+
+  .pq-wrap {
+    --pq-bg: #f6f8fc;
+    --pq-surface: #ffffff;
+    --pq-surface-soft: #f8fafc;
+    --pq-text: #0b1c33;
+    --pq-text-soft: #5b6f88;
+    --pq-text-mute: #94a3b8;
+    --pq-accent: #4f46e5;
+    --pq-accent-soft: #eef2ff;
+    --pq-accent-hover: #4338ca;
+    --pq-success: #10b981;
+    --pq-success-soft: #ecfdf5;
+    --pq-border: #e2e8f0;
+    --pq-radius: 18px;
+    --pq-radius-sm: 12px;
+    --pq-radius-xs: 8px;
+    --pq-shadow-sm: 0 2px 8px rgba(0, 0, 0, .02), 0 4px 16px rgba(0, 0, 0, .02);
+    --pq-shadow-md: 0 8px 30px rgba(0, 0, 0, .06);
+
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 28px 64px;
+    color: var(--pq-text);
+    background: var(--pq-bg);
+    min-height: 100vh;
+    transition: background .25s ease, color .25s ease;
+  }
+
+  [data-theme="dark"] .pq-wrap {
+    --pq-bg: #0b1120;
+    --pq-surface: #1e293b;
+    --pq-surface-soft: #0f172a;
+    --pq-text: #f1f5f9;
+    --pq-text-soft: #94a3b8;
+    --pq-text-mute: #64748b;
+    --pq-accent: #818cf8;
+    --pq-accent-soft: #1e1b4b;
+    --pq-accent-hover: #a5b4fc;
+    --pq-success: #34d399;
+    --pq-success-soft: #064e3b;
+    --pq-border: #334155;
+    --pq-shadow-sm: 0 2px 8px rgba(0, 0, 0, .3), 0 4px 16px rgba(0, 0, 0, .3);
+    --pq-shadow-md: 0 8px 30px rgba(0, 0, 0, .5);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .pq-wrap {
+      --pq-bg: #0b1120;
+      --pq-surface: #1e293b;
+      --pq-surface-soft: #0f172a;
+      --pq-text: #f1f5f9;
+      --pq-text-soft: #94a3b8;
+      --pq-text-mute: #64748b;
+      --pq-accent: #818cf8;
+      --pq-accent-soft: #1e1b4b;
+      --pq-accent-hover: #a5b4fc;
+      --pq-success: #34d399;
+      --pq-success-soft: #064e3b;
+      --pq-border: #334155;
+      --pq-shadow-sm: 0 2px 8px rgba(0, 0, 0, .3), 0 4px 16px rgba(0, 0, 0, .3);
+      --pq-shadow-md: 0 8px 30px rgba(0, 0, 0, .5);
+    }
+  }
+
+  .pq-wrap,
+  .pq-wrap * { box-sizing: border-box; }
+
+  /* ---------- Header ---------- */
+  .pq-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+  }
+
+  .pq-header h1 {
+    margin: 0 0 6px;
+    font-size: clamp(1.4rem, 2.6vw, 1.9rem);
+    font-weight: 750;
+    letter-spacing: -0.02em;
+    color: var(--pq-text);
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+  }
+
+  .pq-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+    color: var(--pq-text-soft);
+    font-size: .9rem;
+    line-height: 1.5;
+  }
+
+  .pq-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 100px;
+    background: var(--pq-accent-soft);
+    color: var(--pq-accent);
+    font-size: .72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    align-self: flex-start;
+  }
+
+  /* ---------- Notice banner ---------- */
+  .pq-notice {
+    padding: 12px 16px;
+    border-radius: var(--pq-radius-sm);
+    background: var(--pq-accent-soft);
+    border: 1px solid var(--pq-accent);
+    color: var(--pq-accent-hover);
+    font-size: .85rem;
+    font-weight: 600;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  /* ---------- Questions ---------- */
+  .pq-qlist {
+    display: grid;
+    gap: 14px;
+  }
+
+  .pq-qitem {
+    background: var(--pq-surface);
+    border: 1px solid var(--pq-border);
+    border-radius: var(--pq-radius);
+    box-shadow: var(--pq-shadow-sm);
+    padding: 22px 24px;
+    transition: all .15s ease;
+    min-width: 0;
+  }
+
+  .pq-qitem:hover {
+    box-shadow: var(--pq-shadow-md);
+  }
+
+  .pq-qhead {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .pq-qnum {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--pq-accent-soft);
+    color: var(--pq-accent);
+    font-weight: 700;
+    font-size: .85rem;
+  }
+
+  .pq-qtext {
+    font-weight: 650;
+    color: var(--pq-text);
+    font-size: 1rem;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+    min-width: 0;
+  }
+
+  .pq-qtext p { margin: 0 0 .5em; }
+  .pq-qtext p:last-child { margin-bottom: 0; }
+
+  /* ---------- Options ---------- */
+  .pq-options {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 16px;
+    margin-left: 44px;
+  }
+
+  .pq-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: var(--pq-radius-xs);
+    background: var(--pq-surface-soft);
+    border: 1px solid var(--pq-border);
+    font-size: .9rem;
+    color: var(--pq-text-soft);
+    line-height: 1.4;
+    transition: all .15s ease;
+    min-width: 0;
+  }
+
+  .pq-option-letter {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    display: grid;
+    place-items: center;
+    border-radius: 6px;
+    background: var(--pq-surface);
+    border: 1px solid var(--pq-border);
+    font-size: .7rem;
+    font-weight: 700;
+    color: var(--pq-text-soft);
+  }
+
+  .pq-option-text {
+    overflow-wrap: anywhere;
+    min-width: 0;
+  }
+
+  /* Correct option highlight */
+  .pq-option.correct {
+    background: var(--pq-success-soft);
+    border-color: var(--pq-success);
+    color: var(--pq-success);
+    font-weight: 650;
+  }
+
+  .pq-option.correct .pq-option-letter {
+    background: var(--pq-success);
+    color: #fff;
+    border-color: var(--pq-success);
+  }
+
+  /* ---------- Explanation ---------- */
+  .pq-explanation {
+    margin: 12px 0 0 44px;
+    padding: 12px 16px;
+    border-left: 3px solid var(--pq-accent);
+    background: var(--pq-accent-soft);
+    border-radius: var(--pq-radius-xs);
+    font-size: .85rem;
+    color: var(--pq-accent-hover);
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+
+  .pq-explanation strong {
+    display: block;
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-bottom: 4px;
+    color: var(--pq-accent);
+  }
+
+  /* ---------- Empty ---------- */
+  .pq-empty {
+    padding: 60px 24px;
+    text-align: center;
+    background: var(--pq-surface);
+    border: 1px dashed var(--pq-border);
+    border-radius: var(--pq-radius);
+    color: var(--pq-text-soft);
+  }
+
+  /* ---------- Footer actions ---------- */
+  .pq-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px dashed var(--pq-border);
+  }
+
+  .pq-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 11px 22px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: .9rem;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all .15s ease;
+    border: 1px solid transparent;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    white-space: nowrap;
+  }
+
+  .pq-btn-primary {
+    background: var(--pq-accent);
+    color: #fff;
+    border-color: var(--pq-accent);
+    box-shadow: 0 4px 14px rgba(79, 70, 229, .25);
+  }
+  .pq-btn-primary:hover {
+    background: var(--pq-accent-hover);
+    border-color: var(--pq-accent-hover);
+    color: #fff;
+  }
+
+  .pq-btn-ghost {
+    background: var(--pq-surface);
+    color: var(--pq-text-soft);
+    border-color: var(--pq-border);
+  }
+  .pq-btn-ghost:hover {
+    background: var(--pq-surface-soft);
+    color: var(--pq-text);
+    border-color: var(--pq-text-mute);
+  }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 700px) {
+    .pq-wrap {
+      padding: 20px 14px 48px;
+    }
+
+    .pq-header h1 {
+      font-size: 1.2rem;
+    }
+
+    .pq-meta {
+      font-size: .82rem;
+    }
+
+    .pq-qitem {
+      padding: 16px 16px;
+      border-radius: 12px;
+    }
+
+    .pq-qhead {
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .pq-qnum {
+      width: 28px;
+      height: 28px;
+      font-size: .78rem;
+    }
+
+    .pq-qtext {
+      font-size: .92rem;
+    }
+
+    /* Options stack on phones */
+    .pq-options {
+      grid-template-columns: 1fr;
+      gap: 6px;
+      margin-left: 0;
+      margin-top: 8px;
+    }
+
+    .pq-option {
+      padding: 9px 12px;
+      font-size: .85rem;
+    }
+
+    .pq-explanation {
+      margin-left: 0;
+      margin-top: 10px;
+      font-size: .8rem;
+      padding: 10px 12px;
+    }
+
+    .pq-actions {
+      flex-direction: column-reverse;
+      gap: 10px;
+      padding-top: 18px;
+    }
+
+    .pq-btn {
+      width: 100%;
+      padding: 12px 16px;
+      font-size: .9rem;
+    }
+  }
+
+  @media (max-width: 400px) {
+    .pq-wrap { padding: 16px 12px 40px; }
+
+    .pq-qitem { padding: 14px 14px; }
+
+    .pq-qtext { font-size: .88rem; }
+
+    .pq-option { font-size: .82rem; padding: 8px 10px; }
+
+    .pq-option-letter { width: 20px; height: 20px; font-size: .65rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      transition: none !important;
+      animation: none !important;
+    }
+  }
+</style>
+
+
+<div class="pq-wrap">
+
+  <!-- =====================================================
+       HEADER
+  ====================================================== -->
+  <div class="pq-header">
+    <div style="min-width: 0;">
+      <h1>{{ quiz.title }}</h1>
+      <div class="pq-meta">
+        {% if quiz.subject %}
+          <span>{{ quiz.subject.name }}</span>
+        {% endif %}
+        {% if quiz.school_class %}
+          <span>{{ quiz.school_class.name }}</span>
+        {% endif %}
+        {% if quiz.duration_minutes %}
+          <span>{{ quiz.duration_minutes }} min</span>
+        {% endif %}
+        <span>{{ questions|length }} question{{ questions|length|pluralize }}</span>
+      </div>
+    </div>
+    <span class="pq-badge">Preview</span>
+  </div>
+
+
+  <!-- =====================================================
+       NOTICE
+  ====================================================== -->
+  <div class="pq-notice">
+    Teacher preview — this is how the quiz appears to students. No attempt is recorded.
+  </div>
+
+
+  <!-- =====================================================
+       QUESTIONS
+  ====================================================== -->
+  {% if questions %}
+
+    <div class="pq-qlist">
+      {% for q in questions %}
+        <div class="pq-qitem">
+
+          <div class="pq-qhead">
+            <div class="pq-qnum">{{ forloop.counter }}</div>
+            <div class="pq-qtext">{{ q.text|safe }}</div>
+          </div>
+
+          <div class="pq-options">
+            <div class="pq-option {% if q.correct_option == 'A' %}correct{% endif %}">
+              <span class="pq-option-letter">A</span>
+              <span class="pq-option-text">{{ q.option_a|safe }}</span>
+            </div>
+
+            <div class="pq-option {% if q.correct_option == 'B' %}correct{% endif %}">
+              <span class="pq-option-letter">B</span>
+              <span class="pq-option-text">{{ q.option_b|safe }}</span>
+            </div>
+
+            <div class="pq-option {% if q.correct_option == 'C' %}correct{% endif %}">
+              <span class="pq-option-letter">C</span>
+              <span class="pq-option-text">{{ q.option_c|safe }}</span>
+            </div>
+
+            <div class="pq-option {% if q.correct_option == 'D' %}correct{% endif %}">
+              <span class="pq-option-letter">D</span>
+              <span class="pq-option-text">{{ q.option_d|safe }}</span>
+            </div>
+          </div>
+
+          {% if q.explanation %}
+            <div class="pq-explanation">
+              <strong>Explanation</strong>
+              {{ q.explanation|safe }}
+            </div>
+          {% endif %}
+
+        </div>
+      {% endfor %}
+    </div>
+
+  {% else %}
+
+    <div class="pq-empty">
+      <p>This quiz has no questions yet.</p>
+    </div>
+
+  {% endif %}
+
+
+  <!-- =====================================================
+       ACTIONS
+  ====================================================== -->
+  <div class="pq-actions">
+    <a href="{% url 'manage_quizzes' %}" class="pq-btn pq-btn-ghost">
+      Back to Quizzes
+    </a>
+    <a href="{% url 'edit_quiz' quiz.pk %}" class="pq-btn pq-btn-primary">
+      Edit Quiz
+    </a>
+  </div>
+
+</div>
+
+{% endblock %}
