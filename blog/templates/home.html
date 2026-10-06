@@ -492,6 +492,15 @@ body {
 }
 
 /* =========================================================
+   POST REACTIONS (new)
+   ========================================================= */
+.post-reactions-wrap {
+    margin-top: 14px;
+    padding: 12px 0;
+    border-top: 1px solid var(--border);
+}
+
+/* =========================================================
    LATEST COMMENT (SINGLE)
    ========================================================= */
 .comments-section {
@@ -535,47 +544,6 @@ body {
     display: flex;
     flex-direction: column;
     gap: 10px;
-}
-
-.comment {
-    padding: 14px;
-    background: var(--surface-soft);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-}
-
-.comment-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    margin-bottom: 8px;
-}
-
-.comment-author {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-}
-
-.comment-author i {
-    color: var(--accent);
-    font-size: 1.1rem;
-}
-
-.comment-header strong {
-    color: var(--text-primary);
-}
-
-.comment-header small {
-    color: var(--slate);
-    font-size: .75rem;
-}
-
-.comment-text {
-    color: var(--text-secondary);
-    line-height: 1.6;
-    overflow-wrap: break-word;
 }
 
 .no-comments {
@@ -656,13 +624,11 @@ body {
         padding: 18px;
     }
 
-    /* Categories — 2 columns */
     .category-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 12px;
     }
 
-    /* Posts — 2 columns */
     .posts-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 12px;
@@ -732,7 +698,6 @@ body {
         font-size: .82rem;
     }
 
-    /* --- FEATURED --- */
     .featured-card {
         padding: 16px 14px;
         border-radius: var(--radius-xs);
@@ -755,7 +720,6 @@ body {
         font-size: .78rem;
     }
 
-    /* --- CATEGORIES: 2-column grid --- */
     .category-grid {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
@@ -807,7 +771,6 @@ body {
         display: none;
     }
 
-    /* --- POSTS: 2-column grid --- */
     .posts-grid {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
@@ -886,7 +849,6 @@ body {
         margin-top: 8px;
     }
 
-    /* --- POST ACTIONS --- */
     .post-actions {
         flex-direction: row;
         align-items: center;
@@ -908,7 +870,11 @@ body {
         font-size: .7rem;
     }
 
-    /* --- LATEST COMMENT --- */
+    .post-reactions-wrap {
+        margin-top: 10px;
+        padding: 8px 0;
+    }
+
     .comments-section {
         margin-top: 10px;
         padding-top: 10px;
@@ -934,43 +900,6 @@ body {
         font-size: .6rem;
     }
 
-    .comment {
-        padding: 7px 8px;
-        border-radius: 8px;
-    }
-
-    .comment-header {
-        margin-bottom: 5px;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 3px;
-    }
-
-    .comment-author {
-        gap: 4px;
-    }
-
-    .comment-author i {
-        font-size: .78rem;
-    }
-
-    .comment-header strong {
-        font-size: .68rem;
-    }
-
-    .comment-header small {
-        font-size: .56rem;
-    }
-
-    .comment-text {
-        font-size: .62rem;
-        line-height: 1.4;
-        display: -webkit-box;
-        -webkit-line-clamp: 3;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
-
     .no-comments {
         padding: 10px 8px;
         border-radius: 8px;
@@ -989,7 +918,6 @@ body {
         font-size: .58rem;
     }
 
-    /* --- EMPTY STATE --- */
     .empty-state {
         padding: 30px 16px;
         border-radius: var(--radius-xs);
@@ -1072,10 +1000,6 @@ body {
 
     .comments-heading h4 {
         font-size: .66rem;
-    }
-
-    .comment-text {
-        font-size: .58rem;
     }
 }
 </style>
@@ -1489,7 +1413,17 @@ body {
 
 
                         <!-- =========================================
-                             LATEST COMMENT (ONLY ONE)
+                             POST REACTIONS (new)
+                        ========================================== -->
+
+                        <div class="post-reactions-wrap">
+                            {% include "blog/partials/_post_reactions.html" with post=item.post %}
+                        </div>
+
+
+
+                        <!-- =========================================
+                             LATEST COMMENT (uses partial)
                         ========================================== -->
 
                         <div class="comments-section">
@@ -1519,39 +1453,7 @@ body {
 
                                     <div class="comments-list">
 
-                                        <div class="comment">
-
-                                            <div class="comment-header">
-
-                                                <div class="comment-author">
-
-                                                    <i class="bi bi-person-circle"></i>
-
-                                                    <strong>
-
-                                                        {{ latest.author.username }}
-
-                                                    </strong>
-
-                                                </div>
-
-
-                                                <small>
-
-                                                    {{ latest.created_at|date:"M d, Y H:i" }}
-
-                                                </small>
-
-                                            </div>
-
-
-                                            <div class="comment-text">
-
-                                                {{ latest.text|safe }}
-
-                                            </div>
-
-                                        </div>
+                                        {% include "blog/partials/_comment.html" with comment=latest %}
 
                                     </div>
 

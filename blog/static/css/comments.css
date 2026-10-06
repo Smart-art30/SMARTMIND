@@ -1,0 +1,816 @@
+/* ============================================================
+   COMMENTS & REACTIONS
+   Uses CSS variables from the surrounding page.
+   Falls back to safe defaults if variables are undefined.
+
+   All selectors correspond to classes used in
+   blog/partials/_comment.html — no Bootstrap utility classes.
+   ============================================================ */
+
+.comment-item {
+    --c-surface: var(--bp-surface, var(--cp-surface, var(--surface-solid, #ffffff)));
+    --c-surface-alt: var(--bp-surface-alt, var(--cp-surface-alt, var(--surface-alt, #f8fafc)));
+    --c-text: var(--bp-text, var(--cp-text, var(--text, #0b1e33)));
+    --c-text-body: var(--bp-text-body, var(--cp-text-muted, var(--text, #2f405c)));
+    --c-text-muted: var(--bp-text-muted, var(--cp-text-muted, var(--muted, #5e6f8d)));
+    --c-border: var(--bp-border, var(--cp-border, var(--border-solid, #e9eef4)));
+    --c-primary: var(--bp-primary, var(--cp-primary, var(--primary, #6366f1)));
+    --c-primary-hover: var(--bp-primary-hover, var(--cp-primary-dark, var(--primary-2, #4f46e5)));
+    --c-primary-soft: var(--bp-primary-soft, var(--cp-primary-soft, var(--primary-soft, #eef2ff)));
+    --c-radius: 12px;
+    --c-radius-sm: 10px;
+    --c-ease: cubic-bezier(.4, 0, .2, 1);
+
+    border-left: 3px solid var(--c-border);
+    padding: 12px 14px;
+    margin-bottom: 12px;
+    background: var(--c-surface);
+    border-radius: var(--c-radius);
+    transition: border-color .2s var(--c-ease),
+                background-color .3s var(--c-ease);
+}
+
+.comment-item:hover {
+    border-left-color: var(--c-primary);
+}
+
+/* ============================================================
+   COMMENT HEADER
+   ============================================================ */
+
+.comment-header {
+    font-size: .88rem;
+    color: var(--c-text-muted);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.comment-header strong {
+    color: var(--c-text);
+    font-weight: 700;
+    font-size: .92rem;
+}
+
+.comment-time {
+    color: var(--c-text-muted);
+    font-size: .78rem;
+    font-weight: 400;
+}
+
+.comment-edited-tag {
+    color: var(--c-text-muted);
+    font-style: italic;
+    font-size: 11px;
+    opacity: .85;
+}
+
+/* ============================================================
+   COMMENT BODY
+   ============================================================ */
+
+.comment-body {
+    color: var(--c-text-body);
+    font-size: .95rem;
+    line-height: 1.6;
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
+}
+
+.comment-body p:last-child {
+    margin-bottom: 0;
+}
+
+.comment-body img,
+.comment-body video,
+.comment-body iframe {
+    max-width: 100%;
+    border-radius: 8px;
+    height: auto;
+}
+
+/* ============================================================
+   COMMENT ACTIONS ROW
+   ============================================================ */
+
+.comment-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+/* Baseline style for every button inside the action row */
+.comment-actions button {
+    appearance: none;
+    -webkit-appearance: none;
+    padding: 4px 10px;
+    font-size: 13px;
+    line-height: 1.2;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--c-text-muted);
+    cursor: pointer;
+    font-family: inherit;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: background-color .15s var(--c-ease),
+                color .15s var(--c-ease);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.comment-actions button:hover {
+    background: var(--c-primary-soft);
+    color: var(--c-primary);
+}
+
+.comment-actions button:active {
+    transform: scale(.97);
+}
+
+/* ---------- LIKE ---------- */
+
+.comment-like-btn .like-icon {
+    font-size: 14px;
+    line-height: 1;
+}
+
+.comment-like-btn .like-count {
+    font-weight: 600;
+    font-size: 12px;
+}
+
+.comment-like-btn.active {
+    color: var(--c-primary);
+    font-weight: 700;
+    background: var(--c-primary-soft);
+}
+
+/* ---------- REPLY TOGGLE ---------- */
+
+.reply-toggle-btn {
+    color: var(--c-primary);
+    font-weight: 600;
+}
+
+.reply-toggle-btn:hover {
+    background: var(--c-primary-soft);
+    color: var(--c-primary);
+}
+
+/* ---------- EDIT ---------- */
+
+.comment-edit-btn {
+    color: var(--c-text-muted);
+}
+
+.comment-edit-btn:hover {
+    color: var(--c-primary);
+    background: var(--c-primary-soft);
+}
+
+/* ---------- DELETE ---------- */
+
+.comment-delete-btn {
+    color: #ef4444;
+}
+
+.comment-delete-btn:hover {
+    color: #dc2626;
+    background: rgba(239, 68, 68, 0.08);
+}
+
+/* ============================================================
+   REACTION PICKER (emoji menu)
+   ============================================================ */
+
+.reaction-picker {
+    position: relative;
+    display: inline-block;
+}
+
+.reaction-toggle-btn {
+    min-width: 52px;
+    justify-content: center;
+}
+
+.reaction-toggle-btn .reaction-total {
+    font-size: 12px;
+    font-weight: 600;
+    margin-left: 2px;
+}
+
+.reaction-menu {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    margin-bottom: 6px;
+    background: var(--c-surface);
+    border: 1px solid var(--c-border);
+    border-radius: 999px;
+    padding: 6px 10px;
+    box-shadow: 0 6px 20px rgba(15, 23, 42, 0.15);
+    z-index: 200;
+    white-space: nowrap;
+    display: flex;
+    gap: 2px;
+    animation: reactionPop .15s var(--c-ease);
+}
+
+@keyframes reactionPop {
+    from {
+        opacity: 0;
+        transform: translateY(4px) scale(.96);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.reaction-menu.d-none {
+    display: none !important;
+}
+
+.reaction-option {
+    appearance: none;
+    -webkit-appearance: none;
+    background: none;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 50%;
+    line-height: 1;
+    transition: transform .12s var(--c-ease),
+                background-color .12s var(--c-ease);
+    font-family: inherit;
+}
+
+.reaction-option:hover {
+    transform: scale(1.3);
+    background: var(--c-primary-soft);
+}
+
+.reaction-option.selected {
+    background: var(--c-primary-soft);
+    outline: 2px solid var(--c-primary);
+    outline-offset: -2px;
+}
+
+/* ============================================================
+   REACTION SUMMARY BADGES
+   ============================================================ */
+
+.reaction-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 6px;
+}
+
+.reaction-badge {
+    display: inline-block;
+    background: var(--c-surface-alt);
+    color: var(--c-text-body);
+    border: 1px solid var(--c-border);
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 8px;
+    border-radius: 999px;
+}
+
+/* ============================================================
+   NESTED REPLIES — Facebook-style capped indentation
+   ============================================================ */
+
+.comment-replies {
+    border-left: 2px solid var(--c-border);
+    padding-left: 12px;
+    margin-top: 8px;
+    margin-left: 14px;
+}
+
+.comment-replies .comment-item {
+    margin-bottom: 10px;
+}
+
+/* Cap the visual indent — 3rd level and beyond sit flat */
+.comment-replies .comment-replies .comment-replies {
+    margin-left: 0;
+    padding-left: 0;
+    border-left: none;
+}
+
+/* ---- "View N replies" toggle button ---- */
+.view-replies-btn {
+    appearance: none;
+    -webkit-appearance: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    padding: 4px 10px;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    color: var(--c-primary);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background-color .15s var(--c-ease);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.view-replies-btn:hover {
+    background: var(--c-primary-soft);
+}
+
+.view-replies-btn:active {
+    transform: scale(.97);
+}
+
+.view-replies-btn .reply-caret {
+    display: inline-block;
+    width: 10px;
+    font-size: 10px;
+    transition: transform .2s var(--c-ease);
+}
+
+.view-replies-btn.expanded .reply-caret {
+    transform: rotate(90deg);
+}
+
+/* Hidden state for the replies wrapper */
+.comment-replies.collapsed {
+    display: none;
+}
+
+/* ============================================================
+   REPLY FORM
+   ============================================================ */
+
+.reply-form {
+    margin-top: 10px;
+    padding: 10px;
+    background: var(--c-surface-alt);
+    border: 1px solid var(--c-border);
+    border-radius: var(--c-radius-sm);
+}
+
+.reply-form.d-none {
+    display: none !important;
+}
+
+.reply-textarea {
+    width: 100%;
+    box-sizing: border-box;
+    background: var(--c-surface);
+    color: var(--c-text);
+    border: 1px solid var(--c-border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: .9rem;
+    line-height: 1.5;
+    resize: vertical;
+    font-family: inherit;
+    transition: border-color .2s var(--c-ease),
+                box-shadow .2s var(--c-ease);
+}
+
+.reply-textarea:focus {
+    outline: none;
+    border-color: var(--c-primary);
+    box-shadow: 0 0 0 3px var(--c-primary-soft);
+}
+
+.reply-textarea::placeholder {
+    color: var(--c-text-muted);
+    opacity: .7;
+}
+
+/* ---- Reply form action row ---- */
+.reply-form-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.reply-submit-btn {
+    appearance: none;
+    -webkit-appearance: none;
+    background: none;
+    border: none;
+    padding: 2px 4px;
+    color: var(--c-primary);
+    font-size: 13px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: background-color .15s var(--c-ease),
+                color .15s var(--c-ease);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.reply-submit-btn:hover {
+    background: var(--c-primary-soft);
+    color: var(--c-primary-hover);
+}
+
+.reply-submit-btn:active {
+    transform: scale(.97);
+}
+
+.reply-submit-btn:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+}
+
+.reply-cancel-btn {
+    appearance: none;
+    -webkit-appearance: none;
+    background: none;
+    border: none;
+    padding: 2px 4px;
+    color: var(--c-text-muted);
+    font-size: 13px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: background-color .15s var(--c-ease),
+                color .15s var(--c-ease);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.reply-cancel-btn:hover {
+    background: var(--c-surface-alt);
+    color: var(--c-text-body);
+}
+
+.reply-cancel-btn:active {
+    transform: scale(.97);
+}
+
+/* ============================================================
+   INLINE EDIT FORM
+   ============================================================ */
+
+.comment-edit-form {
+    margin-top: 8px;
+    padding: 10px;
+    background: var(--c-surface-alt);
+    border: 1px solid var(--c-border);
+    border-radius: var(--c-radius-sm);
+}
+
+.comment-edit-form.d-none {
+    display: none !important;
+}
+
+.comment-edit-textarea {
+    width: 100%;
+    box-sizing: border-box;
+    background: var(--c-surface);
+    color: var(--c-text);
+    border: 1px solid var(--c-border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: .9rem;
+    line-height: 1.5;
+    resize: vertical;
+    font-family: inherit;
+    transition: border-color .2s var(--c-ease),
+                box-shadow .2s var(--c-ease);
+}
+
+.comment-edit-textarea:focus {
+    outline: none;
+    border-color: var(--c-primary);
+    box-shadow: 0 0 0 3px var(--c-primary-soft);
+}
+
+/* ---- Edit form action row ---- */
+.comment-edit-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.comment-save-btn {
+    appearance: none;
+    -webkit-appearance: none;
+    background: none;
+    border: none;
+    padding: 2px 4px;
+    color: var(--c-primary);
+    font-size: 13px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: background-color .15s var(--c-ease),
+                color .15s var(--c-ease);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.comment-save-btn:hover {
+    background: var(--c-primary-soft);
+    color: var(--c-primary-hover);
+}
+
+.comment-save-btn:active {
+    transform: scale(.97);
+}
+
+.comment-save-btn:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+}
+
+.comment-cancel-edit-btn {
+    appearance: none;
+    -webkit-appearance: none;
+    background: none;
+    border: none;
+    padding: 2px 4px;
+    color: var(--c-text-muted);
+    font-size: 13px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: background-color .15s var(--c-ease),
+                color .15s var(--c-ease);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.comment-cancel-edit-btn:hover {
+    background: var(--c-surface-alt);
+    color: var(--c-text-body);
+}
+
+.comment-cancel-edit-btn:active {
+    transform: scale(.97);
+}
+
+/* ============================================================
+   POST REACTIONS BAR
+   ============================================================ */
+
+.post-reactions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.post-reactions .reaction-picker {
+    display: inline-block;
+}
+
+/* ============================================================
+   DARK-MODE ADJUSTMENTS
+   ============================================================ */
+
+[data-theme="dark"] .reaction-menu {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="dark"] .reaction-badge {
+    background: #1a2234;
+    color: #e2e8f0;
+    border-color: #334155;
+}
+
+[data-theme="dark"] .comment-delete-btn {
+    color: #fb7185;
+}
+
+[data-theme="dark"] .comment-delete-btn:hover {
+    color: #f43f5e;
+    background: rgba(251, 113, 133, 0.12);
+}
+
+/* ============================================================
+   RESPONSIVE — tablet
+   ============================================================ */
+
+@media (max-width: 800px) {
+    .comment-item {
+        padding: 11px 12px;
+        margin-bottom: 11px;
+    }
+
+    .comment-replies {
+        margin-left: 10px;
+        padding-left: 10px;
+    }
+}
+
+/* ============================================================
+   RESPONSIVE — phone
+   ============================================================ */
+
+@media (max-width: 600px) {
+    .comment-item {
+        padding: 10px 12px;
+        margin-bottom: 10px;
+        border-left-width: 2px;
+        border-radius: 10px;
+    }
+
+    .comment-header {
+        font-size: .82rem;
+    }
+
+    .comment-header strong {
+        font-size: .88rem;
+    }
+
+    .comment-time {
+        font-size: .72rem;
+    }
+
+    .comment-body {
+        font-size: .9rem;
+        line-height: 1.55;
+    }
+
+    .comment-actions {
+        gap: 4px 6px;
+        margin-top: 6px;
+    }
+
+    .comment-actions button {
+        padding: 4px 8px;
+        font-size: 12px;
+        gap: 3px;
+    }
+
+    .comment-like-btn .like-icon {
+        font-size: 13px;
+    }
+
+    .comment-like-btn .like-count {
+        font-size: 11px;
+    }
+
+    .reaction-toggle-btn {
+        min-width: 46px;
+    }
+
+    .reaction-toggle-btn .reaction-total {
+        font-size: 11px;
+    }
+
+    .comment-replies {
+        margin-left: 6px;
+        padding-left: 8px;
+        border-left-width: 2px;
+    }
+
+    .view-replies-btn {
+        font-size: 12px;
+        padding: 3px 8px;
+        margin-top: 4px;
+        gap: 4px;
+    }
+
+    .view-replies-btn .reply-caret {
+        font-size: 9px;
+    }
+
+    .reply-form,
+    .comment-edit-form {
+        padding: 8px;
+        margin-top: 8px;
+        border-radius: 8px;
+    }
+
+    .reply-textarea,
+    .comment-edit-textarea {
+        font-size: .85rem;
+        padding: 7px 9px;
+        min-height: 56px;
+    }
+
+    .reply-form-actions,
+    .comment-edit-actions {
+        gap: 10px;
+        margin-top: 6px;
+    }
+
+    .reply-submit-btn,
+    .reply-cancel-btn,
+    .comment-save-btn,
+    .comment-cancel-edit-btn {
+        font-size: 12px;
+        padding: 2px 3px;
+    }
+
+    .comment-edit-btn,
+    .comment-delete-btn {
+        font-size: 12px;
+        padding: 4px 8px;
+    }
+
+    /* Reaction menu: centered popup on mobile */
+    .reaction-menu {
+        position: fixed;
+        left: 50%;
+        bottom: auto;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        padding: 8px 12px;
+        gap: 4px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+        z-index: 1050;
+        animation: reactionPopMobile .18s var(--c-ease);
+    }
+
+    @keyframes reactionPopMobile {
+        from {
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(.9);
+        }
+        to {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+    }
+
+    .reaction-option {
+        font-size: 24px;
+        padding: 6px;
+    }
+
+    .reaction-summary {
+        gap: 3px;
+    }
+
+    .reaction-badge {
+        font-size: 10px;
+        padding: 2px 7px;
+    }
+}
+
+/* ============================================================
+   RESPONSIVE — very small phones
+   ============================================================ */
+
+@media (max-width: 380px) {
+    .comment-item {
+        padding: 9px 10px;
+        border-radius: 9px;
+    }
+
+    .comment-body {
+        font-size: .86rem;
+    }
+
+    .comment-actions button {
+        font-size: 11px;
+        padding: 3px 6px;
+    }
+
+    .comment-replies {
+        margin-left: 4px;
+        padding-left: 6px;
+    }
+
+    .view-replies-btn {
+        font-size: 11px;
+        padding: 3px 7px;
+    }
+
+    .comment-edit-btn,
+    .comment-delete-btn {
+        font-size: 11px;
+        padding: 3px 6px;
+    }
+}
+
+/* ============================================================
+   REDUCED MOTION
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+    .comment-item,
+    .comment-item *,
+    .comment-item *::before,
+    .comment-item *::after {
+        transition: none !important;
+        animation: none !important;
+    }
+}
