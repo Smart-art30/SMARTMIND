@@ -147,6 +147,31 @@
                                     {% endif %}
 
 
+                                    <!-- =========================
+                                         POST STATS
+                                    ========================== -->
+
+                                    <div class="post-statistics">
+
+                                        <span class="post-stat">
+                                            <i class="bi bi-eye-fill"></i>
+                                            {{ post.views_count }}
+                                            {% if post.views_count == 1 %}view{% else %}views{% endif %}
+                                        </span>
+
+                                        <span class="post-stat">
+                                            <i class="bi bi-chat-fill"></i>
+                                            {{ post.comments_count }}
+                                            {% if post.comments_count == 1 %}comment{% else %}comments{% endif %}
+                                        </span>
+
+                                    </div>
+
+
+                                    <!-- =========================
+                                         META
+                                    ========================== -->
+
                                     <div class="meta">
 
                                         {% if post.author %}
@@ -163,13 +188,47 @@
                                             </span>
                                         {% endif %}
 
-                                        <span>
-                                            <i class="bi bi-eye"></i>
-                                            {{ post.views_count }}
-                                        </span>
-
                                     </div>
 
+
+                                    <!-- =========================
+                                         POST REACTIONS (new)
+                                    ========================== -->
+
+                                    <div class="post-reactions-wrap">
+                                        {% include "blog/partials/_post_reactions.html" with post=post %}
+                                    </div>
+
+
+                                    <!-- =========================
+                                         LATEST COMMENT (uses partial)
+                                    ========================== -->
+
+                                    {% with latest=post.comments_list|last %}
+
+                                        {% if latest %}
+
+                                            <div class="latest-comment-section">
+
+                                                <div class="latest-comment-heading">
+                                                    <i class="bi bi-chat-dots"></i>
+                                                    <span>Latest Comment</span>
+                                                </div>
+
+                                                <div class="latest-comment-list">
+                                                    {% include "blog/partials/_comment.html" with comment=latest %}
+                                                </div>
+
+                                            </div>
+
+                                        {% endif %}
+
+                                    {% endwith %}
+
+
+                                    <!-- =========================
+                                         POST ACTIONS
+                                    ========================== -->
 
                                     <div class="post-actions">
 
@@ -259,7 +318,6 @@
 ========================================================= */
 
 .category-page {
-    /* Light mode defaults (overridden by [data-theme="dark"]) */
     --cp-bg: #f5f7fd;
     --cp-surface: #ffffff;
     --cp-surface-alt: #f8fafc;
@@ -287,7 +345,6 @@
     --cp-ease: cubic-bezier(.4, 0, .2, 1);
 }
 
-/* Dark mode overrides */
 [data-theme="dark"] .category-page {
     --cp-bg: #0a0e1a;
     --cp-surface: #111827;
@@ -715,6 +772,82 @@
 
 
 /* =========================================================
+   POST STATISTICS (new)
+========================================================= */
+
+.post-statistics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 14px;
+    padding: 11px 0;
+    border-bottom: 1px solid var(--cp-border-soft);
+    transition: border-color .3s var(--cp-ease);
+}
+
+.post-stat {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--cp-text-muted);
+    font-size: .8rem;
+    font-weight: 600;
+}
+
+.post-stat i {
+    color: var(--cp-primary);
+    font-size: .85rem;
+}
+
+
+/* =========================================================
+   POST REACTIONS WRAP (new)
+========================================================= */
+
+.post-reactions-wrap {
+    margin-top: 14px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--cp-border-soft);
+    transition: border-color .3s var(--cp-ease);
+}
+
+
+/* =========================================================
+   LATEST COMMENT SECTION (new)
+========================================================= */
+
+.latest-comment-section {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid var(--cp-border-soft);
+    transition: border-color .3s var(--cp-ease);
+}
+
+.latest-comment-heading {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 10px;
+    font-size: .8rem;
+    font-weight: 700;
+    color: var(--cp-text-muted);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+}
+
+.latest-comment-heading i {
+    color: var(--cp-primary);
+    font-size: .9rem;
+}
+
+.latest-comment-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+
+/* =========================================================
    META
 ========================================================= */
 
@@ -891,15 +1024,12 @@
 ========================================================= */
 
 @media (max-width: 1100px) {
-
     .posts {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
-
     .post.expanded {
         grid-column: 1 / -1;
     }
-
 }
 
 
@@ -908,27 +1038,21 @@
 ========================================================= */
 
 @media (max-width: 800px) {
-
     .category-header {
         padding: 32px 20px 26px;
     }
-
     .categories-section {
         padding: 18px 20px;
     }
-
     .posts-container {
         padding: 28px 20px 60px;
     }
-
     .post-image {
         height: 200px;
     }
-
     .post.expanded .post-image {
         height: 260px;
     }
-
 }
 
 
@@ -937,109 +1061,90 @@
 ========================================================= */
 
 @media (max-width: 600px) {
-
     .category-header {
         padding: 26px 16px 22px;
     }
-
     .category-icon {
         width: 54px;
         height: 54px;
         border-radius: 16px;
         font-size: 25px;
     }
-
     .category-header h1 {
         font-size: 1.4rem;
     }
-
     .category-header p {
         font-size: .875rem;
         line-height: 1.5;
     }
-
     .categories-section {
         padding: 16px 14px;
     }
-
     .section-label {
         font-size: .68rem;
         margin-bottom: 11px;
     }
-
     .categories {
         gap: 8px;
     }
-
     .category-chip {
         padding: 8px 14px;
         font-size: .8rem;
     }
-
     .posts-container {
         padding: 22px 14px 52px;
     }
-
     .posts {
         grid-template-columns: 1fr;
         gap: 16px;
     }
-
     .post {
         border-radius: 16px;
     }
-
     .post-image {
         height: 185px;
     }
-
     .post.expanded .post-image {
         height: 220px;
     }
-
     .post-body {
         padding: 18px;
     }
-
     .post summary {
         font-size: 1.02rem;
         gap: 10px;
     }
-
     .expand-icon {
         width: 32px;
         height: 32px;
         font-size: 13px;
     }
-
     .post-content {
         padding-top: 16px;
         font-size: .92rem;
     }
-
     .meta {
         gap: 12px;
         font-size: .78rem;
     }
-
+    .post-stat {
+        font-size: .75rem;
+    }
     .post-actions {
         flex-direction: column;
         align-items: stretch;
         gap: 10px;
     }
-
     .post-actions .btn,
     .delete-form,
     .delete-form .btn {
         width: 100%;
         justify-content: center;
     }
-
     .read-more-link {
         text-align: center;
         padding: 6px 0;
     }
-
 }
 
 
@@ -1048,53 +1153,45 @@
 ========================================================= */
 
 @media (max-width: 380px) {
-
     .category-header {
         padding: 22px 14px 18px;
     }
-
     .category-icon {
         width: 48px;
         height: 48px;
         font-size: 22px;
     }
-
     .category-header h1 {
         font-size: 1.25rem;
     }
-
     .category-header p {
         font-size: .82rem;
     }
-
     .categories-section {
         padding: 14px 12px;
     }
-
     .category-chip {
         padding: 7px 12px;
         font-size: .76rem;
     }
-
     .posts-container {
         padding-left: 12px;
         padding-right: 12px;
     }
-
     .post-body {
         padding: 16px;
     }
-
     .post summary {
         font-size: .98rem;
     }
-
     .expand-icon {
         width: 30px;
         height: 30px;
         font-size: 12px;
     }
-
+    .post-stat {
+        font-size: .7rem;
+    }
 }
 
 
@@ -1103,13 +1200,11 @@
 ========================================================= */
 
 @media (min-width: 601px) {
-
     .category-page {
         width: 100vw;
         margin-left: calc(50% - 50vw);
         margin-right: calc(50% - 50vw);
     }
-
 }
 
 
@@ -1118,14 +1213,12 @@
 ========================================================= */
 
 @media (prefers-reduced-motion: reduce) {
-
     .category-page *,
     .category-page *::before,
     .category-page *::after {
         transition: none !important;
         animation: none !important;
     }
-
 }
 
 </style>
@@ -1155,7 +1248,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
 
-            /* Close other posts */
             posts.forEach(function (otherPost) {
 
                 if (otherPost === post) return;
@@ -1169,7 +1261,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
             });
 
-            /* Expand current post */
             post.classList.add("expanded");
 
         });

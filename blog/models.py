@@ -375,38 +375,33 @@ class PostAttachment(models.Model):
 
 class Comment(models.Model):
 
-    post = models.ForeignKey(
-        Post,
-        on_delete=models.CASCADE,
+    post = models.ForeignKey(Post,on_delete=models.CASCADE,
         related_name="comments"
     )
-
-
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name="comments"
     )
-
-
     text = CKEditor5Field(
         "Text",
         config_name="default"
     )
-
-
+    parent = models.ForeignKey(
+        "self",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="replies"
+    )
     liked_by = models.ManyToManyField(
         User,
         related_name="liked_comments",
         blank=True
     )
-
-
     created_at = models.DateTimeField(
         auto_now_add=True
     )
-
-
     updated_at = models.DateTimeField(
         auto_now=True
     )
@@ -425,3 +420,80 @@ class Comment(models.Model):
             f"{self.author} on "
             f"{self.post}"
         )
+    @property
+    def is_reply(self):
+        return self.parent_id is not None
+
+    
+
+
+class CommentReaction(models.Model):
+
+    REACTION_CHOICES = [
+        ("like",      "👍"),
+        ("love",      "❤️"),
+        ("haha",      "😂"),
+        ("wow",       "😮"),
+        ("sad",       "😢"),
+        ("angry",     "😡"),
+        ("celebrate", "🎉"),
+    ]
+    comment = models.ForeignKey(
+        Comment,
+        on_delete=models.CASCADE,
+        related_name="reactions"
+    )
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="comment_reactions"
+    )
+
+    reaction = models.CharField(
+        max_length=20,
+        choices=REACTION_CHOICES
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("comment", "user")
+        indexes = [
+            models.Index(fields=["comment", "reaction"]),
+        ]
+
+    def __str__(self):
+        return f"{self.user} → {self.reaction} on comment #{self.comment_id}"
+
+
+class PostReaction(models.Model):
+  
+    REACTION_CHOICES = CommentReaction.REACTION_CHOICES
+    post = models.ForeignKey(
+        Post,
+        on_delete=models.CASCADE,
+        related_name="reactions"
+    )
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="post_reactions"
+    )
+
+    reaction = models.CharField(
+        max_length=20,
+        choices=REACTION_CHOICES
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("post", "user")
+        indexes = [
+            models.Index(fields=["post", "reaction"]),
+        ]
+
+    def __str__(self):
+        return f"{self.user} → {self.reaction} on {self.post}"

@@ -1,0 +1,55 @@
+{% comment %}
+    Post reaction bar.
+
+    Expects: post — a Post instance with:
+        post.slug
+        post.user_reaction
+        post.reaction_counts
+        post.total_reactions
+
+    Expects: reaction_choices — from view context
+{% endcomment %}
+
+<div class="post-reactions d-flex align-items-center gap-2 flex-wrap"
+     data-post-slug="{{ post.slug }}">
+
+    <div class="reaction-picker position-relative">
+
+        <button type="button"
+                class="btn btn-sm reaction-toggle-btn"
+                data-post-slug="{{ post.slug }}"
+                aria-label="React to this post">
+            {% if post.user_reaction %}
+                {% for val, emoji in reaction_choices %}
+                    {% if val == post.user_reaction %}{{ emoji }}{% endif %}
+                {% endfor %}
+            {% else %}
+                😊
+            {% endif %}
+            <span class="reaction-total">{{ post.total_reactions|default:0 }}</span>
+        </button>
+
+        <div class="reaction-menu d-none">
+            {% for value, emoji in reaction_choices %}
+                <button type="button"
+                        class="reaction-option post-reaction-option {% if post.user_reaction == value %}selected{% endif %}"
+                        data-reaction="{{ value }}"
+                        data-post-slug="{{ post.slug }}"
+                        data-url="{% url 'blog:post_react' post.slug %}"
+                        aria-label="React with {{ emoji }}">
+                    {{ emoji }}
+                </button>
+            {% endfor %}
+        </div>
+
+    </div>
+
+    {% if post.reaction_counts %}
+        <div class="reaction-summary small d-flex flex-wrap gap-1">
+            {% for reaction, count in post.reaction_counts.items %}
+                <span class="badge bg-light text-dark">{{ reaction }} {{ count }}</span>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+</div>

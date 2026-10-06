@@ -1,0 +1,201 @@
+{% comment %}
+    Single comment with replies, likes, reactions, reply form,
+    and edit/delete controls for the author (or staff).
+
+    Facebook-style threading:
+      - Replies are hidden behind a "View N replies" toggle.
+      - Reply indent is capped after level 1 (see comments.css).
+
+    All styling comes from comments.css — no Bootstrap .btn,
+    .btn-sm, .btn-link, .form-control, .badge, .d-flex, .mt-2,
+    etc. Every interactive element has exactly one custom class.
+
+    Expects: comment — a Comment instance with attributes:
+        comment.pk
+        comment.author
+        comment.text
+        comment.created_at
+        comment.updated_at
+        comment.post.slug
+        comment.likes_count
+        comment.liked_by_current_user
+        comment.reaction_counts
+        comment.user_reaction
+        comment.total_reactions
+        comment.replies_list   (populated by the view)
+
+    Expects: user, reaction_choices — from context
+{% endcomment %}
+
+<div class="comment-item"
+     id="comment-{{ comment.pk }}"
+     data-comment-id="{{ comment.pk }}">
+
+    <div class="comment-header">
+        <strong>
+            {{ comment.author.get_full_name|default:comment.author.username }}
+        </strong>
+        <small class="comment-time">
+            · {{ comment.created_at|timesince }} ago
+        </small>
+
+        {% if comment.updated_at and comment.updated_at != comment.created_at %}
+            <small class="comment-edited-tag">· edited</small>
+        {% endif %}
+    </div>
+
+    <div class="comment-body">
+        {{ comment.text|safe }}
+    </div>
+
+    <!-- INLINE EDIT FORM (hidden by default) -->
+    {% if user.is_authenticated %}
+        {% if user.is_superuser or user.role == "school_admin" or comment.author_id == user.pk %}
+            <form class="comment-edit-form d-none"
+                  data-comment-id="{{ comment.pk }}"
+                  action="{% url 'blog:comment_edit' comment.pk %}">
+                {% csrf_token %}
+                <textarea name="text"
+                          rows="3"
+                          class="comment-edit-textarea"
+                          required>{{ comment.text }}</textarea>
+                <div class="comment-edit-actions">
+                    <button type="submit" class="comment-save-btn">
+                        Save
+                    </button>
+                    <button type="button"
+                            class="comment-cancel-edit-btn"
+                            data-comment-id="{{ comment.pk }}">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        {% endif %}
+    {% endif %}
+
+    <div class="comment-actions">
+
+        <!-- LIKE -->
+        <button type="button"
+                class="comment-like-btn {% if comment.liked_by_current_user %}active{% endif %}"
+                data-url="{% url 'blog:comment_like_toggle' comment.pk %}"
+                aria-label="Like this comment">
+            <span class="like-icon">👍</span>
+            <span class="like-count">{{ comment.likes_count }}</span>
+        </button>
+
+        <!-- REACTION PICKER -->
+        <div class="reaction-picker">
+
+            <button type="button"
+                    class="reaction-toggle-btn"
+                    aria-label="React to this comment">
+                {% if comment.user_reaction %}
+                    {% for val, emoji in reaction_choices %}
+                        {% if val == comment.user_reaction %}{{ emoji }}{% endif %}
+                    {% endfor %}
+                {% else %}
+                    😊
+                {% endif %}
+                <span class="reaction-total">{{ comment.total_reactions }}</span>
+            </button>
+
+            <div class="reaction-menu d-none">
+                {% for value, emoji in reaction_choices %}
+                    <button type="button"
+                            class="reaction-option {% if comment.user_reaction == value %}selected{% endif %}"
+                            data-reaction="{{ value }}"
+                            data-url="{% url 'blog:comment_react' comment.pk %}"
+                            aria-label="React with {{ emoji }}">
+                        {{ emoji }}
+                    </button>
+                {% endfor %}
+            </div>
+
+        </div>
+
+        <!-- REPLY BUTTON -->
+        {% if user.is_authenticated %}
+            <button type="button"
+                    class="reply-toggle-btn"
+                    data-comment-id="{{ comment.pk }}">
+                Reply
+            </button>
+        {% endif %}
+
+        <!-- EDIT / DELETE -->
+        {% if user.is_authenticated %}
+            {% if user.is_superuser or user.role == "school_admin" or comment.author_id == user.pk %}
+                <button type="button"
+                        class="comment-edit-btn"
+                        data-comment-id="{{ comment.pk }}">
+                    Edit
+                </button>
+
+                <button type="button"
+                        class="comment-delete-btn"
+                        data-comment-id="{{ comment.pk }}"
+                        data-url="{% url 'blog:comment_delete' comment.pk %}">
+                    Delete
+                </button>
+            {% endif %}
+        {% endif %}
+
+    </div>
+
+    {% if comment.reaction_counts %}
+        <div class="reaction-summary">
+            {% for reaction, count in comment.reaction_counts.items %}
+                <span class="reaction-badge">{{ reaction }} {{ count }}</span>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- REPLY FORM (hidden by default) -->
+    {% if user.is_authenticated %}
+        <form class="reply-form d-none"
+              method="post"
+              action="{% url 'blog:add_reply' comment.post.slug comment.pk %}">
+            {% csrf_token %}
+            <textarea name="text"
+                      rows="2"
+                      class="reply-textarea"
+                      placeholder="Write a reply..."
+                      required></textarea>
+            <div class="reply-form-actions">
+                <button type="submit" class="reply-submit-btn">
+                    Reply
+                </button>
+                <button type="button"
+                        class="reply-cancel-btn"
+                        data-comment-id="{{ comment.pk }}">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    {% endif %}
+
+    <!-- =========================================================
+         NESTED REPLIES — Facebook-style collapsible toggle
+         ========================================================= -->
+    {% if comment.replies_list %}
+        <button type="button"
+                class="view-replies-btn"
+                data-target="replies-{{ comment.pk }}"
+                aria-expanded="false">
+            <span class="reply-caret"></span>
+            <span class="reply-label">
+                View {{ comment.replies_list|length }}
+                repl{{ comment.replies_list|length|pluralize:"y,ies" }}
+            </span>
+        </button>
+
+        <div class="comment-replies collapsed"
+             id="replies-{{ comment.pk }}">
+            {% for reply in comment.replies_list %}
+                {% include "blog/partials/_comment.html" with comment=reply %}
+            {% endfor %}
+        </div>
+    {% endif %}
+
+</div>
