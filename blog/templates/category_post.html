@@ -39,7 +39,7 @@
 
 
     <!-- =====================================================
-         CATEGORY NAVIGATION
+         CATEGORY NAVIGATION — 4 PER ROW ON PHONES
     ====================================================== -->
 
     {% if categories %}
@@ -192,7 +192,7 @@
 
 
                                     <!-- =========================
-                                         POST REACTIONS (new)
+                                         POST REACTIONS
                                     ========================== -->
 
                                     <div class="post-reactions-wrap">
@@ -201,7 +201,7 @@
 
 
                                     <!-- =========================
-                                         LATEST COMMENT (uses partial)
+                                         LATEST COMMENT
                                     ========================== -->
 
                                     {% with latest=post.comments_list|last %}
@@ -228,6 +228,7 @@
 
                                     <!-- =========================
                                          POST ACTIONS
+                                         SIDE BY SIDE ON PHONES
                                     ========================== -->
 
                                     <div class="post-actions">
@@ -236,18 +237,13 @@
                                             href="{% url 'blog:post_detail' post.slug %}"
                                             class="read-more-link"
                                         >
+                                            <i class="bi bi-book"></i>
                                             Read full post
                                         </a>
 
                                         {% if post.can_edit %}
 
-                                            <a
-                                                href="{% url 'blog:edit_post' post.pk %}"
-                                                class="btn btn-outline-secondary"
-                                            >
-                                                <i class="bi bi-pencil"></i>
-                                                Edit
-                                            </a>
+                                           
 
                                         {% endif %}
 
@@ -260,13 +256,7 @@
                                                 onsubmit="return confirm('Are you sure you want to delete this post?');"
                                             >
                                                 {% csrf_token %}
-                                                <button
-                                                    type="submit"
-                                                    class="btn btn-outline-danger"
-                                                >
-                                                    <i class="bi bi-trash"></i>
-                                                    Delete
-                                                </button>
+                                             
                                             </form>
 
                                         {% endif %}
@@ -313,8 +303,7 @@
 <style>
 
 /* =========================================================
-   DESIGN TOKENS — inherits from base theme
-   Falls back to light if base doesn't define them
+   DESIGN TOKENS
 ========================================================= */
 
 .category-page {
@@ -457,7 +446,7 @@
 
 
 /* =========================================================
-   CATEGORY NAVIGATION
+   CATEGORY NAVIGATION — 4 PER ROW ON PHONES
 ========================================================= */
 
 .categories-section {
@@ -548,6 +537,56 @@
 
 [data-theme="dark"] .category-chip.active i {
     color: #0a0e1a;
+}
+
+@media (max-width: 768px) {
+    .categories {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: .4rem;
+        flex-wrap: nowrap;
+    }
+
+    .category-chip {
+        width: 100%;
+        justify-content: center;
+        padding: .55rem .25rem;
+        gap: .25rem;
+        font-size: .68rem;
+        border-radius: 10px;
+        overflow: hidden;
+        min-width: 0;
+    }
+
+    .category-chip i {
+        font-size: .78rem;
+        flex-shrink: 0;
+    }
+
+    .category-chip span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        min-width: 0;
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 420px) {
+    .categories {
+        gap: .35rem;
+    }
+
+    .category-chip {
+        padding: .5rem .2rem;
+        font-size: .62rem;
+        gap: .2rem;
+        border-radius: 9px;
+    }
+
+    .category-chip i {
+        font-size: .7rem;
+    }
 }
 
 
@@ -772,7 +811,7 @@
 
 
 /* =========================================================
-   POST STATISTICS (new)
+   POST STATISTICS
 ========================================================= */
 
 .post-statistics {
@@ -801,7 +840,7 @@
 
 
 /* =========================================================
-   POST REACTIONS WRAP (new)
+   POST REACTIONS WRAP
 ========================================================= */
 
 .post-reactions-wrap {
@@ -813,7 +852,7 @@
 
 
 /* =========================================================
-   LATEST COMMENT SECTION (new)
+   LATEST COMMENT SECTION
 ========================================================= */
 
 .latest-comment-section {
@@ -882,7 +921,9 @@
 ========================================================= */
 
 .read-more-link {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     color: var(--cp-primary);
     font-weight: 600;
     font-size: .88rem;
@@ -899,7 +940,7 @@
 
 
 /* =========================================================
-   POST ACTIONS
+   POST ACTIONS — SIDE BY SIDE ON PHONES
 ========================================================= */
 
 .post-actions {
@@ -912,6 +953,7 @@
 
 .delete-form {
     margin: 0;
+    display: inline-flex;
 }
 
 
@@ -1057,12 +1099,12 @@
 
 
 /* =========================================================
-   MOBILE
+   MOBILE — 2 POSTS PER ROW, 4 CATEGORIES PER ROW
 ========================================================= */
 
 @media (max-width: 600px) {
     .category-header {
-        padding: 26px 16px 22px;
+        padding: 22px 14px 20px;
     }
     .category-icon {
         width: 54px;
@@ -1077,73 +1119,167 @@
         font-size: .875rem;
         line-height: 1.5;
     }
+
     .categories-section {
-        padding: 16px 14px;
+        padding: 14px 12px;
     }
     .section-label {
         font-size: .68rem;
         margin-bottom: 11px;
     }
     .categories {
-        gap: 8px;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: .4rem;
     }
     .category-chip {
-        padding: 8px 14px;
-        font-size: .8rem;
-    }
-    .posts-container {
-        padding: 22px 14px 52px;
-    }
-    .posts {
-        grid-template-columns: 1fr;
-        gap: 16px;
-    }
-    .post {
-        border-radius: 16px;
-    }
-    .post-image {
-        height: 185px;
-    }
-    .post.expanded .post-image {
-        height: 220px;
-    }
-    .post-body {
-        padding: 18px;
-    }
-    .post summary {
-        font-size: 1.02rem;
-        gap: 10px;
-    }
-    .expand-icon {
-        width: 32px;
-        height: 32px;
-        font-size: 13px;
-    }
-    .post-content {
-        padding-top: 16px;
-        font-size: .92rem;
-    }
-    .meta {
-        gap: 12px;
-        font-size: .78rem;
-    }
-    .post-stat {
-        font-size: .75rem;
-    }
-    .post-actions {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 10px;
-    }
-    .post-actions .btn,
-    .delete-form,
-    .delete-form .btn {
         width: 100%;
         justify-content: center;
+        padding: .55rem .25rem;
+        gap: .25rem;
+        font-size: .68rem;
+        border-radius: 10px;
+        min-width: 0;
+        overflow: hidden;
     }
-    .read-more-link {
+    .category-chip i {
+        font-size: .78rem;
+        flex-shrink: 0;
+    }
+    .category-chip span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        min-width: 0;
+    }
+
+    .posts-container {
+        padding: 18px 10px 52px;
+    }
+    .posts {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: .65rem;
+    }
+
+    .post.expanded {
+        grid-column: 1 / -1;
+    }
+
+    .post {
+        border-radius: 14px;
+    }
+    .post-image {
+        height: 130px;
+    }
+    .post.expanded .post-image {
+        height: 200px;
+    }
+    .post-body {
+        padding: 12px 13px 14px;
+    }
+    .post summary {
+        font-size: .82rem;
+        gap: .4rem;
+        line-height: 1.3;
+    }
+    .expand-icon {
+        width: 26px;
+        height: 26px;
+        font-size: 11px;
+    }
+    .post-content {
+        padding-top: 12px;
+        font-size: .82rem;
+        line-height: 1.6;
+    }
+    .excerpt {
+        padding: 10px 12px;
+        font-size: .78rem;
+        margin-bottom: 12px;
+    }
+    .post-statistics {
+        gap: 8px;
+        padding: 8px 0;
+        margin-top: 10px;
+    }
+    .post-stat {
+        font-size: .68rem;
+        gap: 4px;
+    }
+    .post-stat i {
+        font-size: .72rem;
+    }
+    .meta {
+        gap: 8px;
+        font-size: .68rem;
+        margin-top: 12px;
+        padding-top: 12px;
+    }
+    .meta i {
+        font-size: .75rem;
+    }
+
+    /* ---- POST ACTIONS: SIDE BY SIDE ---- */
+    .post-actions {
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: center;
+        gap: .35rem;
+        margin-top: 14px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        justify-content: flex-start;
+    }
+    .post-actions::-webkit-scrollbar {
+        display: none;
+    }
+
+    .post-actions .read-more-link,
+    .post-actions .btn,
+    .post-actions .delete-form,
+    .post-actions .delete-form .btn {
+        width: auto;
+        flex: 0 0 auto;
+        white-space: nowrap;
+        justify-content: center;
+        font-size: .68rem;
+        padding: 6px 10px;
+        gap: 4px;
         text-align: center;
-        padding: 6px 0;
+    }
+
+    .post-actions .read-more-link {
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid var(--cp-border);
+        background: var(--cp-surface-alt);
+        color: var(--cp-primary);
+        border-radius: 10px;
+        padding: 6px 10px;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .post-actions .read-more-link i {
+        font-size: .72rem;
+    }
+
+    .post-actions .btn i {
+        font-size: .72rem;
+    }
+
+    .post-reactions-wrap {
+        margin-top: 10px;
+        padding: 8px 0;
+    }
+    .latest-comment-section {
+        margin-top: 10px;
+        padding-top: 10px;
+    }
+    .latest-comment-heading {
+        font-size: .68rem;
+        margin-bottom: 8px;
     }
 }
 
@@ -1154,7 +1290,7 @@
 
 @media (max-width: 380px) {
     .category-header {
-        padding: 22px 14px 18px;
+        padding: 18px 12px 16px;
     }
     .category-icon {
         width: 48px;
@@ -1165,32 +1301,64 @@
         font-size: 1.25rem;
     }
     .category-header p {
-        font-size: .82rem;
+        font-size: .8rem;
     }
+
     .categories-section {
-        padding: 14px 12px;
+        padding: 12px 10px;
+    }
+    .categories {
+        gap: .3rem;
     }
     .category-chip {
-        padding: 7px 12px;
-        font-size: .76rem;
+        padding: .5rem .2rem;
+        font-size: .62rem;
+        gap: .2rem;
+        border-radius: 9px;
     }
+    .category-chip i {
+        font-size: .7rem;
+    }
+
     .posts-container {
-        padding-left: 12px;
-        padding-right: 12px;
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+    .posts {
+        gap: .5rem;
     }
     .post-body {
-        padding: 16px;
+        padding: 10px 11px 12px;
     }
     .post summary {
-        font-size: .98rem;
+        font-size: .78rem;
     }
     .expand-icon {
-        width: 30px;
-        height: 30px;
-        font-size: 12px;
+        width: 24px;
+        height: 24px;
+        font-size: 10px;
     }
     .post-stat {
-        font-size: .7rem;
+        font-size: .64rem;
+    }
+    .meta {
+        font-size: .64rem;
+    }
+
+    /* Even tighter actions on very small phones */
+    .post-actions {
+        gap: .25rem;
+    }
+    .post-actions .read-more-link,
+    .post-actions .btn,
+    .post-actions .delete-form .btn {
+        font-size: .62rem;
+        padding: 5px 7px;
+        gap: 3px;
+    }
+    .post-actions .read-more-link i,
+    .post-actions .btn i {
+        font-size: .66rem;
     }
 }
 
