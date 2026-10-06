@@ -1,14 +1,18 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Create Assignment | SmartMind{% endblock %}
+{% block title %}Edit Assignment · {{ assignment.title }} | SmartMind{% endblock %}
 
 {% block content %}
 
+{# CKEditor 5 JS + CSS for the description field #}
+{{ form.media }}
+
 <style>
   /* =====================================================
-     CREATE ASSIGNMENT PAGE — light & dark responsive
+     EDIT ASSIGNMENT PAGE — light & dark responsive
      Theme-aware via base.html [data-theme="dark"]
+     (Identical styling to create_assignment.html)
   ===================================================== */
 
   .ca-wrap {
@@ -134,12 +138,10 @@
   }
 
   /* =====================================================
-     GLOBAL RESET for this page
+     GLOBAL RESET
   ===================================================== */
   .ca-wrap,
-  .ca-wrap * {
-    box-sizing: border-box;
-  }
+  .ca-wrap * { box-sizing: border-box; }
 
   /* =====================================================
      CARD
@@ -160,7 +162,6 @@
     transition: background .25s ease, border-color .25s ease, box-shadow .25s ease;
   }
 
-  /* Subtle top gradient hairline */
   .ca-card::before {
     content: "";
     position: absolute;
@@ -208,6 +209,7 @@
     color: var(--ca-ink);
     letter-spacing: -0.025em;
     line-height: 1.15;
+    overflow-wrap: anywhere;
   }
 
   .ca-sub {
@@ -218,9 +220,7 @@
     max-width: 70ch;
   }
 
-  .ca-sub strong {
-    color: var(--ca-danger);
-  }
+  .ca-sub strong { color: var(--ca-danger); }
 
   /* =====================================================
      FORM GRID
@@ -231,10 +231,7 @@
     gap: 20px 28px;
   }
 
-  /* Full-width fields (description, instructions, textareas, etc.) */
-  .ca-field--full {
-    grid-column: 1 / -1;
-  }
+  .ca-field--full { grid-column: 1 / -1; }
 
   .ca-field {
     margin: 0;
@@ -257,7 +254,7 @@
   }
 
   /* =====================================================
-     INPUTS (plain form fields)
+     INPUTS
   ===================================================== */
   .ca-field input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
   .ca-field select,
@@ -281,15 +278,11 @@
   }
 
   .ca-field input::placeholder,
-  .ca-field textarea::placeholder {
-    color: var(--ca-placeholder);
-  }
+  .ca-field textarea::placeholder { color: var(--ca-placeholder); }
 
   .ca-field input:hover,
   .ca-field select:hover,
-  .ca-field textarea:hover {
-    border-color: var(--ca-input-hover-border);
-  }
+  .ca-field textarea:hover { border-color: var(--ca-input-hover-border); }
 
   .ca-field input:focus,
   .ca-field select:focus,
@@ -341,18 +334,13 @@
     line-height: 1.5;
   }
 
-  .ca-help ul {
-    margin: 4px 0 0 16px;
-    padding: 0;
-  }
+  .ca-help ul { margin: 4px 0 0 16px; padding: 0; }
 
   /* =====================================================
-     RICH-TEXT EDITOR OVERRIDES
-     (CKEditor 4, CKEditor 5, TinyMCE, Quill, django-ckeditor,
-      django-tinymce, and generic contenteditable containers)
+     RICH-TEXT EDITOR OVERRIDES (light + dark)
   ===================================================== */
 
-  /* --- CKEditor 4 / django-ckeditor --- */
+  /* CKEditor 4 */
   [data-theme="dark"] .ca-wrap .cke_chrome,
   [data-theme="dark"] .ca-wrap .cke_inner,
   [data-theme="dark"] .ca-wrap .cke_top,
@@ -364,12 +352,10 @@
     color: var(--ca-ink) !important;
     border-color: var(--ca-line) !important;
   }
-
   [data-theme="dark"] .ca-wrap .cke_top {
     background: var(--ca-line-soft) !important;
     border-bottom-color: var(--ca-line) !important;
   }
-
   [data-theme="dark"] .ca-wrap .cke_toolgroup,
   [data-theme="dark"] .ca-wrap .cke_combo_button,
   [data-theme="dark"] .ca-wrap .cke_button {
@@ -377,23 +363,15 @@
     border-color: transparent !important;
     color: var(--ca-ink) !important;
   }
-
   [data-theme="dark"] .ca-wrap .cke_button:hover,
   [data-theme="dark"] .ca-wrap .cke_button:focus {
     background: var(--ca-ghost-bg-hover) !important;
   }
-
   [data-theme="dark"] .ca-wrap .cke_button_icon {
     filter: invert(1) brightness(1.6);
   }
-
-  [data-theme="dark"] .ca-wrap .cke_combo_text {
-    color: var(--ca-ink) !important;
-  }
-
-  [data-theme="dark"] .ca-wrap .cke_combo_arrow {
-    border-top-color: var(--ca-ink) !important;
-  }
+  [data-theme="dark"] .ca-wrap .cke_combo_text { color: var(--ca-ink) !important; }
+  [data-theme="dark"] .ca-wrap .cke_combo_arrow { border-top-color: var(--ca-ink) !important; }
 
   /* CKEditor 5 */
   [data-theme="dark"] .ca-wrap .ck.ck-editor__main > .ck-editor__editable,
@@ -402,18 +380,9 @@
     color: var(--ca-ink) !important;
     border-color: var(--ca-line) !important;
   }
-
-  [data-theme="dark"] .ca-wrap .ck.ck-toolbar {
-    background: var(--ca-line-soft) !important;
-  }
-
-  [data-theme="dark"] .ca-wrap .ck.ck-button {
-    color: var(--ca-ink) !important;
-  }
-
-  [data-theme="dark"] .ca-wrap .ck.ck-button:hover {
-    background: var(--ca-ghost-bg-hover) !important;
-  }
+  [data-theme="dark"] .ca-wrap .ck.ck-toolbar { background: var(--ca-line-soft) !important; }
+  [data-theme="dark"] .ca-wrap .ck.ck-button { color: var(--ca-ink) !important; }
+  [data-theme="dark"] .ca-wrap .ck.ck-button:hover { background: var(--ca-ghost-bg-hover) !important; }
 
   /* TinyMCE */
   [data-theme="dark"] .ca-wrap .tox-tinymce,
@@ -428,23 +397,11 @@
     color: var(--ca-ink) !important;
     border-color: var(--ca-line) !important;
   }
-
-  [data-theme="dark"] .ca-wrap .tox .tox-tbtn {
-    color: var(--ca-ink) !important;
-  }
-
-  [data-theme="dark"] .ca-wrap .tox .tox-tbtn:hover {
-    background: var(--ca-ghost-bg-hover) !important;
-  }
-
-  [data-theme="dark"] .ca-wrap .tox .tox-tbtn svg {
-    fill: var(--ca-ink) !important;
-  }
-
+  [data-theme="dark"] .ca-wrap .tox .tox-tbtn { color: var(--ca-ink) !important; }
+  [data-theme="dark"] .ca-wrap .tox .tox-tbtn:hover { background: var(--ca-ghost-bg-hover) !important; }
+  [data-theme="dark"] .ca-wrap .tox .tox-tbtn svg { fill: var(--ca-ink) !important; }
   [data-theme="dark"] .ca-wrap .tox .tox-statusbar a,
-  [data-theme="dark"] .ca-wrap .tox .tox-statusbar__text-container {
-    color: var(--ca-ink-mute) !important;
-  }
+  [data-theme="dark"] .ca-wrap .tox .tox-statusbar__text-container { color: var(--ca-ink-mute) !important; }
 
   /* Quill */
   [data-theme="dark"] .ca-wrap .ql-toolbar,
@@ -454,20 +411,11 @@
     color: var(--ca-ink) !important;
     border-color: var(--ca-line) !important;
   }
+  [data-theme="dark"] .ca-wrap .ql-toolbar .ql-stroke { stroke: var(--ca-ink) !important; }
+  [data-theme="dark"] .ca-wrap .ql-toolbar .ql-fill { fill: var(--ca-ink) !important; }
+  [data-theme="dark"] .ca-wrap .ql-toolbar .ql-picker { color: var(--ca-ink) !important; }
 
-  [data-theme="dark"] .ca-wrap .ql-toolbar .ql-stroke {
-    stroke: var(--ca-ink) !important;
-  }
-
-  [data-theme="dark"] .ca-wrap .ql-toolbar .ql-fill {
-    fill: var(--ca-ink) !important;
-  }
-
-  [data-theme="dark"] .ca-wrap .ql-toolbar .ql-picker {
-    color: var(--ca-ink) !important;
-  }
-
-  /* Generic contenteditable / RichText fields */
+  /* Generic contenteditable */
   [data-theme="dark"] .ca-wrap .ca-field [contenteditable="true"],
   [data-theme="dark"] .ca-wrap .ca-field .richtext,
   [data-theme="dark"] .ca-wrap .ca-field .rich-text,
@@ -477,15 +425,11 @@
     color: var(--ca-ink) !important;
     border-color: var(--ca-line) !important;
   }
-
-  /* django-ckeditor's default widget wrapper */
   [data-theme="dark"] .ca-wrap .django-ckeditor-widget,
   [data-theme="dark"] .ca-wrap .django-ckeditor-widget .cke {
     background: var(--ca-input-bg) !important;
     border-color: var(--ca-line) !important;
   }
-
-  /* django-tinymce's default widget wrapper */
   [data-theme="dark"] .ca-wrap .django-tinymce,
   [data-theme="dark"] .ca-wrap .django-tinymce .tox-tinymce {
     background: var(--ca-input-bg) !important;
@@ -644,26 +588,13 @@
       margin-bottom: 8px;
     }
 
-    .ca-title {
-      font-size: 1.2rem;
-      margin-bottom: 4px;
-    }
+    .ca-title { font-size: 1.2rem; margin-bottom: 4px; }
+    .ca-sub { font-size: .84rem; line-height: 1.5; }
 
-    .ca-sub {
-      font-size: .84rem;
-      line-height: 1.5;
-    }
+    .ca-form { gap: 16px; }
 
-    .ca-form {
-      gap: 16px;
-    }
+    .ca-field label { font-size: .78rem; margin-bottom: 6px; }
 
-    .ca-field label {
-      font-size: .78rem;
-      margin-bottom: 6px;
-    }
-
-    /* 16px prevents iOS zoom-on-focus */
     .ca-field input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
     .ca-field select,
     .ca-field textarea {
@@ -672,20 +603,10 @@
       border-radius: 10px;
     }
 
-    .ca-field textarea {
-      min-height: 130px;
-    }
+    .ca-field textarea { min-height: 130px; }
+    .ca-help { font-size: .74rem; }
+    .ca-errors { font-size: .78rem; padding: 9px 12px; }
 
-    .ca-help {
-      font-size: .74rem;
-    }
-
-    .ca-errors {
-      font-size: .78rem;
-      padding: 9px 12px;
-    }
-
-    /* Actions stack: submit on top, back below */
     .ca-actions {
       flex-direction: column-reverse;
       gap: 10px;
@@ -708,29 +629,12 @@
   ===================================================== */
   @media (max-width: 420px) {
     .ca-wrap { padding: 12px 10px 32px; }
-
-    .ca-card {
-      padding: 18px 14px 22px;
-      border-radius: 12px;
-    }
-
-    .ca-header {
-      margin-bottom: 16px;
-      padding-bottom: 14px;
-    }
-
-    .ca-eyebrow {
-      font-size: .62rem;
-      padding: 3px 8px;
-      letter-spacing: .1em;
-    }
-
+    .ca-card { padding: 18px 14px 22px; border-radius: 12px; }
+    .ca-header { margin-bottom: 16px; padding-bottom: 14px; }
+    .ca-eyebrow { font-size: .62rem; padding: 3px 8px; letter-spacing: .1em; }
     .ca-title { font-size: 1.1rem; }
-
     .ca-sub { font-size: .8rem; }
-
     .ca-form { gap: 14px; }
-
     .ca-field label { font-size: .74rem; }
 
     .ca-field input,
@@ -741,7 +645,6 @@
     }
 
     .ca-field textarea { min-height: 110px; }
-
     .ca-help { font-size: .7rem; }
 
     .ca-btn {
@@ -756,16 +659,9 @@
   ===================================================== */
   @media (max-width: 360px) {
     .ca-wrap { padding: 10px 8px 28px; }
-
-    .ca-card {
-      padding: 16px 12px 18px;
-      border-radius: 10px;
-    }
-
+    .ca-card { padding: 16px 12px 18px; border-radius: 10px; }
     .ca-title { font-size: 1rem; }
-
     .ca-sub { font-size: .76rem; }
-
     .ca-form { gap: 12px; }
 
     .ca-field input,
@@ -803,10 +699,10 @@
     <!-- ================= HEADER ================= -->
     <div class="ca-header">
       <div class="ca-title-block">
-        <span class="ca-eyebrow">✦ New Assignment</span>
-        <h1 class="ca-title">Create Assignment</h1>
+        <span class="ca-eyebrow">✏️ Edit Assignment</span>
+        <h1 class="ca-title">{{ assignment.title }}</h1>
         <p class="ca-sub">
-          Fill in the details below. Fields marked with
+          Update the details below. Fields marked with
           <strong>*</strong> are required.
         </p>
       </div>
@@ -827,7 +723,6 @@
       {% endif %}
 
       {% for field in form %}
-        {# --- Detect field type for full-width decision --- #}
         {% with widget=field.field.widget %}
           <div class="ca-field
                       {% if field.errors %}has-error{% endif %}
@@ -866,11 +761,11 @@
       <!-- ================= ACTIONS ================= -->
       <div class="ca-actions">
         <a href="{% url 'manage_assignments' %}" class="ca-btn ca-btn-ghost">
-          ← Back
+          ← Cancel
         </a>
         <div class="ca-spacer"></div>
         <button type="submit" class="ca-btn ca-btn-primary">
-          💾 Save Assignment
+          💾 Save Changes
         </button>
       </div>
 

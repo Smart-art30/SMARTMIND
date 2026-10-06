@@ -20,9 +20,10 @@ urlpatterns = [
     path("quizzes/class/<int:class_id>/subject/<int:subject_id>/", views.quiz_list, name="quiz_list"),
 
     path("quizzes/start/<int:pk>/", views.start_quiz, name="start_quiz"),
-
+    path("dashboard/quiz/<int:pk>/preview/", views.preview_quiz, name="preview_quiz"),
     path("quizzes/submit/<int:pk>/", views.submit_quiz, name="submit_quiz"),
-
+    path("dashboard/assignment/<int:pk>/edit/",   views.edit_assignment,   name="edit_assignment"),
+    path("dashboard/assignment/<int:pk>/delete/", views.delete_assignment, name="delete_assignment"),
     path("quizzes/result/<int:attempt_id>/", views.quiz_result, name="quiz_result"),
     path("dashboard/quiz/<int:pk>/delete/", views.delete_quiz, name="delete_quiz"),
     path("schools/<int:school_id>/subjects/", views.school_subjects, name="school_subjects"),
@@ -39,3 +40,5 @@ urlpatterns = [
     path("submissions/<int:pk>/grade/",views.grade_submission,name="grade_submission",),
     path("<int:pk>/autosave/",views.autosave_submission,name="autosave_submission",),
 ]
+
+

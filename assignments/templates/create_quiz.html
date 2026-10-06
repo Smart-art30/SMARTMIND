@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-
 {% load static %}
 
 {% block title %}Create Quiz | SmartMind{% endblock %}
@@ -7,350 +6,635 @@
 {% block content %}
 
 <style>
-    .cq-container {
-        max-width: 950px;
-        margin: 40px auto;
-        padding: 20px;
+  /* =====================================================
+     CREATE QUIZ PAGE — light & dark responsive
+     Theme-aware via base.html [data-theme="dark"]
+     (Matches the styling of create_assignment.html)
+  ===================================================== */
+
+  .cq-wrap {
+    /* ---------- Light theme (default) ---------- */
+    --cq-bg-1: #f8fafc;
+    --cq-bg-2: #eef2ff;
+    --cq-ink: #0f172a;
+    --cq-ink-soft: #475569;
+    --cq-ink-mute: #94a3b8;
+    --cq-line: #e2e8f0;
+    --cq-line-soft: #f1f5f9;
+    --cq-accent: #4f46e5;
+    --cq-accent-2: #7c3aed;
+    --cq-accent-soft: #eef2ff;
+    --cq-info-bg: #eff6ff;
+    --cq-info-border: #2563eb;
+    --cq-info-text: #1e40af;
+    --cq-danger: #dc2626;
+    --cq-danger-soft: #fef2f2;
+    --cq-danger-border: #fecaca;
+    --cq-danger-text: #b91c1c;
+    --cq-input-bg: #ffffff;
+    --cq-input-hover-border: #cbd5e1;
+    --cq-placeholder: #cbd5e1;
+    --cq-card-bg: rgba(255, 255, 255, .88);
+    --cq-card-border: rgba(226, 232, 240, .9);
+    --cq-card-inset: rgba(255, 255, 255, .9);
+    --cq-card-shadow: 0 20px 45px -20px rgba(15, 23, 42, .18),
+                      0 8px 24px -12px rgba(79, 70, 229, .12);
+    --cq-glow-1: #e0e7ff;
+    --cq-glow-2: #fae8ff;
+    --cq-ghost-bg: #ffffff;
+    --cq-ghost-bg-hover: #f1f5f9;
+    --cq-ghost-border-hover: #cbd5e1;
+    --cq-radius: 14px;
+    --cq-radius-lg: 20px;
+
+    min-height: 100%;
+    width: 100%;
+    padding: 32px 32px 64px;
+    box-sizing: border-box;
+    background:
+      radial-gradient(1200px 500px at 10% -10%, var(--cq-glow-1) 0%, transparent 60%),
+      radial-gradient(1000px 500px at 100% 0%, var(--cq-glow-2) 0%, transparent 55%),
+      linear-gradient(180deg, var(--cq-bg-1) 0%, var(--cq-bg-2) 100%);
+    font-family: inherit;
+    color: var(--cq-ink);
+    transition: background .25s ease, color .25s ease;
+    overflow-x: hidden;
+  }
+
+  /* ---------- Dark theme via base.html switcher ---------- */
+  [data-theme="dark"] .cq-wrap {
+    --cq-bg-1: #0b1120;
+    --cq-bg-2: #0f172a;
+    --cq-ink: #f1f5f9;
+    --cq-ink-soft: #cbd5e1;
+    --cq-ink-mute: #94a3b8;
+    --cq-line: #334155;
+    --cq-line-soft: #1e293b;
+    --cq-accent: #818cf8;
+    --cq-accent-2: #a78bfa;
+    --cq-accent-soft: #1e1b4b;
+    --cq-info-bg: #1e3a8a;
+    --cq-info-border: #60a5fa;
+    --cq-info-text: #dbeafe;
+    --cq-danger: #f87171;
+    --cq-danger-soft: #7f1d1d;
+    --cq-danger-border: #991b1b;
+    --cq-danger-text: #fecaca;
+    --cq-input-bg: #1e293b;
+    --cq-input-hover-border: #475569;
+    --cq-placeholder: #64748b;
+    --cq-card-bg: rgba(30, 41, 59, .85);
+    --cq-card-border: rgba(51, 65, 85, .9);
+    --cq-card-inset: rgba(255, 255, 255, .04);
+    --cq-card-shadow: 0 20px 45px -20px rgba(0, 0, 0, .6),
+                      0 8px 24px -12px rgba(99, 102, 241, .25);
+    --cq-glow-1: #1e1b4b;
+    --cq-glow-2: #4c1d95;
+    --cq-ghost-bg: #1e293b;
+    --cq-ghost-bg-hover: #334155;
+    --cq-ghost-border-hover: #475569;
+  }
+
+  /* ---------- Dark theme via system preference (fallback) ---------- */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .cq-wrap {
+      --cq-bg-1: #0b1120;
+      --cq-bg-2: #0f172a;
+      --cq-ink: #f1f5f9;
+      --cq-ink-soft: #cbd5e1;
+      --cq-ink-mute: #94a3b8;
+      --cq-line: #334155;
+      --cq-line-soft: #1e293b;
+      --cq-accent: #818cf8;
+      --cq-accent-2: #a78bfa;
+      --cq-accent-soft: #1e1b4b;
+      --cq-info-bg: #1e3a8a;
+      --cq-info-border: #60a5fa;
+      --cq-info-text: #dbeafe;
+      --cq-danger: #f87171;
+      --cq-danger-soft: #7f1d1d;
+      --cq-danger-border: #991b1b;
+      --cq-danger-text: #fecaca;
+      --cq-input-bg: #1e293b;
+      --cq-input-hover-border: #475569;
+      --cq-placeholder: #64748b;
+      --cq-card-bg: rgba(30, 41, 59, .85);
+      --cq-card-border: rgba(51, 65, 85, .9);
+      --cq-card-inset: rgba(255, 255, 255, .04);
+      --cq-card-shadow: 0 20px 45px -20px rgba(0, 0, 0, .6),
+                        0 8px 24px -12px rgba(99, 102, 241, .25);
+      --cq-glow-1: #1e1b4b;
+      --cq-glow-2: #4c1d95;
+      --cq-ghost-bg: #1e293b;
+      --cq-ghost-bg-hover: #334155;
+      --cq-ghost-border-hover: #475569;
+    }
+  }
+
+  /* =====================================================
+     GLOBAL RESET
+  ===================================================== */
+  .cq-wrap,
+  .cq-wrap * { box-sizing: border-box; }
+
+  /* =====================================================
+     CARD
+  ===================================================== */
+  .cq-card {
+    width: 100%;
+    max-width: 950px;
+    margin: 0 auto;
+    background: var(--cq-card-bg);
+    backdrop-filter: saturate(180%) blur(14px);
+    -webkit-backdrop-filter: saturate(180%) blur(14px);
+    border: 1px solid var(--cq-card-border);
+    border-radius: var(--cq-radius-lg);
+    box-shadow: var(--cq-card-inset) 0 1px 0 inset, var(--cq-card-shadow);
+    padding: 36px 40px 40px;
+    box-sizing: border-box;
+    position: relative;
+    overflow: hidden;
+    transition: background .25s ease, border-color .25s ease, box-shadow .25s ease;
+  }
+
+  .cq-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 3px;
+    background: linear-gradient(90deg, #6366f1, #8b5cf6, #ec4899);
+    opacity: .9;
+  }
+
+  /* =====================================================
+     HEADER
+  ===================================================== */
+  .cq-header {
+    margin-bottom: 22px;
+  }
+
+  .cq-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--cq-accent);
+    background: var(--cq-accent-soft);
+    padding: 4px 10px;
+    border-radius: 100px;
+    margin-bottom: 10px;
+  }
+
+  .cq-title {
+    margin: 0;
+    font-size: 1.65rem;
+    font-weight: 750;
+    color: var(--cq-ink);
+    letter-spacing: -0.025em;
+    line-height: 1.15;
+  }
+
+  /* =====================================================
+     INFO BANNER
+  ===================================================== */
+  .cq-info {
+    background: var(--cq-info-bg);
+    border-left: 5px solid var(--cq-info-border);
+    padding: 14px 18px;
+    border-radius: var(--cq-radius);
+    margin-bottom: 26px;
+    color: var(--cq-info-text);
+    font-size: .92rem;
+    line-height: 1.55;
+    transition: background .25s ease, border-color .25s ease, color .25s ease;
+  }
+
+  /* =====================================================
+     ERRORS
+  ===================================================== */
+  .cq-errorlist {
+    list-style: none;
+    padding: 12px 16px;
+    margin: 0 0 22px;
+    background: var(--cq-danger-soft);
+    border: 1px solid var(--cq-danger-border);
+    border-left: 3px solid var(--cq-danger);
+    border-radius: 10px;
+    color: var(--cq-danger-text);
+    font-size: .9rem;
+    font-weight: 500;
+  }
+
+  .cq-errorlist li + li {
+    margin-top: 4px;
+  }
+
+  /* =====================================================
+     FORM FIELDS
+  ===================================================== */
+  .cq-form-group {
+    margin-bottom: 20px;
+  }
+
+  .cq-form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--cq-ink);
+    font-size: .9rem;
+  }
+
+  .cq-form-group input,
+  .cq-form-group select,
+  .cq-form-group textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--cq-line);
+    border-radius: var(--cq-radius);
+    font-size: 15px;
+    font-family: inherit;
+    color: var(--cq-ink);
+    background: var(--cq-input-bg);
+    box-sizing: border-box;
+    transition:
+      border-color .15s ease,
+      box-shadow .15s ease,
+      background-color .25s ease,
+      color .25s ease;
+  }
+
+  .cq-form-group input::placeholder,
+  .cq-form-group textarea::placeholder {
+    color: var(--cq-placeholder);
+  }
+
+  .cq-form-group input:hover,
+  .cq-form-group select:hover,
+  .cq-form-group textarea:hover {
+    border-color: var(--cq-input-hover-border);
+  }
+
+  .cq-form-group input:focus,
+  .cq-form-group select:focus,
+  .cq-form-group textarea:focus {
+    outline: none;
+    border-color: var(--cq-accent);
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, .18);
+  }
+
+  .cq-form-group textarea {
+    min-height: 120px;
+    resize: vertical;
+    line-height: 1.55;
+  }
+
+  /* =====================================================
+     BUTTONS
+  ===================================================== */
+  .cq-buttons {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 28px;
+    padding-top: 24px;
+    border-top: 1px dashed var(--cq-line);
+  }
+
+  .cq-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 22px;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: .95rem;
+    text-decoration: none;
+    cursor: pointer;
+    transition:
+      transform .12s ease,
+      box-shadow .18s ease,
+      background-color .18s ease,
+      border-color .18s ease,
+      color .18s ease;
+    white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .cq-btn:active { transform: translateY(1px); }
+
+  .cq-save {
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 60%, #4338ca 100%);
+    color: #fff;
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, .25) inset,
+      0 10px 20px -8px rgba(79, 70, 229, .55);
+  }
+  .cq-save:hover {
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, .3) inset,
+      0 14px 26px -10px rgba(79, 70, 229, .65);
+    transform: translateY(-1px);
+    color: #fff;
+  }
+
+  .cq-cancel {
+    background: var(--cq-ghost-bg);
+    color: var(--cq-ink-soft);
+    border-color: var(--cq-line);
+  }
+  .cq-cancel:hover {
+    background: var(--cq-ghost-bg-hover);
+    color: var(--cq-ink);
+    border-color: var(--cq-ghost-border-hover);
+  }
+
+  /* =====================================================
+     RESPONSIVE — TABLET (≤ 900px)
+  ===================================================== */
+  @media (max-width: 900px) {
+    .cq-wrap { padding: 24px 20px 48px; }
+    .cq-card { padding: 28px 26px 32px; border-radius: 18px; }
+    .cq-title { font-size: 1.4rem; }
+  }
+
+  /* =====================================================
+     RESPONSIVE — PHONE (≤ 640px)
+  ===================================================== */
+  @media (max-width: 640px) {
+    .cq-wrap {
+      padding: 16px 14px 40px;
+      background:
+        radial-gradient(600px 300px at 10% -10%, var(--cq-glow-1) 0%, transparent 60%),
+        radial-gradient(600px 300px at 100% 0%, var(--cq-glow-2) 0%, transparent 55%),
+        linear-gradient(180deg, var(--cq-bg-1) 0%, var(--cq-bg-2) 100%);
     }
 
     .cq-card {
-        background: #fff;
-        padding: 32px;
-        border-radius: 16px;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, .08);
-        border: 1px solid #e2e8f0;
+      padding: 22px 18px 26px;
+      border-radius: 14px;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
     }
 
-    .cq-card h1 {
-        margin: 0 0 8px;
-        font-size: 1.6rem;
-        color: #111827;
-        letter-spacing: -0.02em;
-    }
+    .cq-title { font-size: 1.2rem; }
 
     .cq-info {
-        background: #eff6ff;
-        border-left: 5px solid #2563eb;
-        padding: 14px 16px;
-        border-radius: 8px;
-        margin-bottom: 26px;
-        color: #1e40af;
-        font-size: .92rem;
-        line-height: 1.5;
+      font-size: .84rem;
+      padding: 12px 14px;
+      margin-bottom: 20px;
     }
 
-    .cq-form-group {
-        margin-bottom: 20px;
+    .cq-errorlist {
+      font-size: .82rem;
+      padding: 10px 12px;
     }
+
+    .cq-form-group { margin-bottom: 16px; }
 
     .cq-form-group label {
-        display: block;
-        margin-bottom: 8px;
-        font-weight: 600;
-        color: #374151;
-        font-size: .9rem;
+      font-size: .78rem;
+      margin-bottom: 6px;
     }
+
+    /* 16px prevents iOS zoom-on-focus */
+    .cq-form-group input,
+    .cq-form-group select,
+    .cq-form-group textarea {
+      padding: 12px 14px;
+      font-size: 16px;
+      border-radius: 10px;
+    }
+
+    .cq-form-group textarea {
+      min-height: 100px;
+    }
+
+    .cq-buttons {
+      flex-direction: column-reverse;
+      gap: 10px;
+      margin-top: 20px;
+      padding-top: 18px;
+    }
+
+    .cq-btn {
+      width: 100%;
+      padding: 13px 18px;
+      font-size: .92rem;
+      border-radius: 10px;
+    }
+  }
+
+  /* =====================================================
+     RESPONSIVE — SMALL PHONE (≤ 420px)
+  ===================================================== */
+  @media (max-width: 420px) {
+    .cq-wrap { padding: 12px 10px 32px; }
+
+    .cq-card {
+      padding: 18px 14px 22px;
+      border-radius: 12px;
+    }
+
+    .cq-title { font-size: 1.1rem; }
+
+    .cq-info {
+      font-size: .8rem;
+      padding: 10px 12px;
+    }
+
+    .cq-form-group { margin-bottom: 14px; }
+    .cq-form-group label { font-size: .74rem; }
 
     .cq-form-group input,
     .cq-form-group select,
     .cq-form-group textarea {
-        width: 100%;
-        padding: 12px 14px;
-        border: 1px solid #d1d5db;
-        border-radius: 10px;
-        font-size: 15px;
-        font-family: inherit;
-        color: #111827;
-        background: #fff;
-        box-sizing: border-box;
-        transition: border-color .15s ease, box-shadow .15s ease;
+      padding: 11px 12px;
+      border-radius: 9px;
     }
 
-    .cq-form-group input:focus,
-    .cq-form-group select:focus,
-    .cq-form-group textarea:focus {
-        outline: none;
-        border-color: #2563eb;
-        box-shadow: 0 0 0 3px rgba(37, 99, 235, .15);
-    }
-
-    .cq-form-group textarea {
-        min-height: 120px;
-        resize: vertical;
-    }
-
-    .cq-errorlist {
-        list-style: none;
-        padding: 12px 16px;
-        margin: 0 0 22px;
-        background: #fef2f2;
-        border: 1px solid #fecaca;
-        border-radius: 10px;
-        color: #b91c1c;
-        font-size: .9rem;
-    }
-
-    .cq-errorlist li + li {
-        margin-top: 4px;
-    }
-
-    .cq-buttons {
-        display: flex;
-        gap: 12px;
-        flex-wrap: wrap;
-        margin-top: 28px;
-    }
+    .cq-form-group textarea { min-height: 90px; }
 
     .cq-btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        padding: 12px 22px;
-        border: none;
-        border-radius: 10px;
-        font-weight: 600;
-        font-size: .95rem;
-        text-decoration: none;
-        cursor: pointer;
-        transition: all .15s ease;
+      padding: 12px 16px;
+      font-size: .88rem;
+      border-radius: 9px;
+    }
+  }
+
+  /* =====================================================
+     RESPONSIVE — TINY PHONE (≤ 360px)
+  ===================================================== */
+  @media (max-width: 360px) {
+    .cq-wrap { padding: 10px 8px 28px; }
+
+    .cq-card {
+      padding: 16px 12px 18px;
+      border-radius: 10px;
     }
 
-    .cq-save {
-        background: #2563eb;
-        color: #fff;
-        box-shadow: 0 2px 8px rgba(37, 99, 235, .25);
+    .cq-title { font-size: 1rem; }
+
+    .cq-info { font-size: .76rem; }
+
+    .cq-form-group input,
+    .cq-form-group select,
+    .cq-form-group textarea {
+      padding: 10px 10px;
+      font-size: 16px;
     }
 
-    .cq-save:hover {
-        background: #1d4ed8;
-        transform: translateY(-1px);
-        box-shadow: 0 6px 16px rgba(37, 99, 235, .3);
-        color: #fff;
+    .cq-form-group textarea { min-height: 80px; }
+
+    .cq-btn {
+      padding: 11px 14px;
+      font-size: .84rem;
     }
+  }
 
-    .cq-cancel {
-        background: #f1f5f9;
-        color: #475569;
-        border: 1px solid #e2e8f0;
+  /* =====================================================
+     REDUCED MOTION
+  ===================================================== */
+  @media (prefers-reduced-motion: reduce) {
+    .cq-btn,
+    .cq-form-group input,
+    .cq-form-group select,
+    .cq-form-group textarea {
+      transition: none !important;
+      transform: none !important;
     }
-
-    .cq-cancel:hover {
-        background: #e2e8f0;
-        color: #334155;
-    }
-
-    @media (max-width: 500px) {
-        .cq-container {
-            padding: 12px;
-        }
-
-        .cq-card {
-            padding: 22px;
-        }
-
-        .cq-buttons {
-            flex-direction: column;
-        }
-
-        .cq-btn {
-            width: 100%;
-        }
-    }
+  }
 </style>
 
-<div class="cq-container">
+<div class="cq-wrap">
+  <div class="cq-card">
 
-    <div class="cq-card">
-
-        <h1>❓ Create Quiz</h1>
-
-        <div class="cq-info">
-            Fill in the quiz details below. After saving, you'll be taken
-            to a page where you can add questions, correct answers,
-            marks, and time limits.
-        </div>
-
-        {% if errors %}
-            <ul class="cq-errorlist">
-                {% for e in errors %}
-                    <li>• {{ e }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
-
-        <form method="post" enctype="multipart/form-data">
-
-            {% csrf_token %}
-
-            <!-- Quiz title -->
-            <div class="cq-form-group">
-
-                <label for="title">Title</label>
-
-                <input
-                    type="text"
-                    id="title"
-                    name="title"
-                    required
-                    placeholder="e.g. Algebra Basics Quiz"
-                    value="{{ form_data.title|default:'' }}"
-                >
-
-            </div>
-
-
-            <!-- Description -->
-            <div class="cq-form-group">
-
-                <label for="description">Description</label>
-
-                <textarea
-                    id="description"
-                    name="description"
-                    placeholder="Briefly describe what this quiz covers"
-                >{{ form_data.description|default:'' }}</textarea>
-
-            </div>
-
-
-            <!-- Class -->
-            <div class="cq-form-group">
-
-                <label for="school_class">Class</label>
-
-                <select
-                    id="school_class"
-                    name="school_class"
-                    required
-                >
-
-                    <option value="">
-                        — Select class —
-                    </option>
-
-                    {% for c in classes %}
-
-                        <option
-                            value="{{ c.id }}"
-                            {% if form_data.school_class == c.id|stringformat:"s" %}
-                                selected
-                            {% endif %}
-                        >
-                            {{ c }}
-                        </option>
-
-                    {% empty %}
-
-                        <option value="" disabled>
-                            No classes available
-                        </option>
-
-                    {% endfor %}
-
-                </select>
-
-            </div>
-
-
-            <!-- Subject -->
-            <div class="cq-form-group">
-
-                <label for="subject">Subject</label>
-
-                <select
-                    id="subject"
-                    name="subject"
-                    required
-                >
-
-                    <option value="">
-                        — Select subject —
-                    </option>
-
-                    {% for s in subjects %}
-
-                        <option
-                            value="{{ s.id }}"
-                            {% if form_data.subject == s.id|stringformat:"s" %}
-                                selected
-                            {% endif %}
-                        >
-                            {{ s.name }}
-                        </option>
-
-                    {% empty %}
-
-                        <option value="" disabled>
-                            No subjects available
-                        </option>
-
-                    {% endfor %}
-
-                </select>
-
-            </div>
-
-
-            <!-- Due date -->
-            <div class="cq-form-group">
-
-                <label for="due_date">
-                    Due date
-                </label>
-
-                <input
-                    type="datetime-local"
-                    id="due_date"
-                    name="due_date"
-                    value="{{ form_data.due_date|default:'' }}"
-                >
-
-            </div>
-
-
-            <!-- Duration -->
-            <div class="cq-form-group">
-
-                <label for="duration_minutes">
-                    Duration (minutes)
-                </label>
-
-                <input
-                    type="number"
-                    id="duration_minutes"
-                    name="duration_minutes"
-                    min="1"
-                    value="{{ form_data.duration_minutes|default:30 }}"
-                >
-
-            </div>
-
-
-            <!-- Buttons -->
-            <div class="cq-buttons">
-
-                <button
-                    type="submit"
-                    class="cq-btn cq-save"
-                >
-                    💾 Save Quiz
-                </button>
-
-                <a
-                    href="{% url 'manage_quizzes' %}"
-                    class="cq-btn cq-cancel"
-                >
-                    ← Back
-                </a>
-
-            </div>
-
-        </form>
-
+    <!-- ================= HEADER ================= -->
+    <div class="cq-header">
+      <span class="cq-eyebrow">New Quiz</span>
+      <h1 class="cq-title">Create Quiz</h1>
     </div>
 
+    <!-- ================= INFO ================= -->
+    <div class="cq-info">
+      Fill in the quiz details below. After saving, you'll be taken
+      to a page where you can add questions, correct answers,
+      marks, and time limits.
+    </div>
+
+    <!-- ================= ERRORS ================= -->
+    {% if errors %}
+      <ul class="cq-errorlist">
+        {% for e in errors %}
+          <li>{{ e }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+
+    <!-- ================= FORM ================= -->
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      <!-- Title -->
+      <div class="cq-form-group">
+        <label for="title">Title</label>
+        <input
+          type="text"
+          id="title"
+          name="title"
+          required
+          placeholder="e.g. Algebra Basics Quiz"
+          value="{{ form_data.title|default:'' }}"
+        >
+      </div>
+
+      <!-- Description -->
+      <div class="cq-form-group">
+        <label for="description">Description</label>
+        <textarea
+          id="description"
+          name="description"
+          placeholder="Briefly describe what this quiz covers"
+        >{{ form_data.description|default:'' }}</textarea>
+      </div>
+
+      <!-- Class -->
+      <div class="cq-form-group">
+        <label for="school_class">Class</label>
+        <select id="school_class" name="school_class" required>
+          <option value="">— Select class —</option>
+          {% for c in classes %}
+            <option
+              value="{{ c.id }}"
+              {% if form_data.school_class == c.id|stringformat:"s" %}selected{% endif %}
+            >
+              {{ c }}
+            </option>
+          {% empty %}
+            <option value="" disabled>No classes available</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Subject -->
+      <div class="cq-form-group">
+        <label for="subject">Subject</label>
+        <select id="subject" name="subject" required>
+          <option value="">— Select subject —</option>
+          {% for s in subjects %}
+            <option
+              value="{{ s.id }}"
+              {% if form_data.subject == s.id|stringformat:"s" %}selected{% endif %}
+            >
+              {{ s.name }}
+            </option>
+          {% empty %}
+            <option value="" disabled>No subjects available</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Due date -->
+      <div class="cq-form-group">
+        <label for="due_date">Due date</label>
+        <input
+          type="datetime-local"
+          id="due_date"
+          name="due_date"
+          value="{{ form_data.due_date|default:'' }}"
+        >
+      </div>
+
+      <!-- Duration -->
+      <div class="cq-form-group">
+        <label for="duration_minutes">Duration (minutes)</label>
+        <input
+          type="number"
+          id="duration_minutes"
+          name="duration_minutes"
+          min="1"
+          value="{{ form_data.duration_minutes|default:30 }}"
+        >
+      </div>
+
+      <!-- Buttons -->
+      <div class="cq-buttons">
+        <a href="{% url 'manage_quizzes' %}" class="cq-btn cq-cancel">
+          ← Back
+        </a>
+        <button type="submit" class="cq-btn cq-save">
+          Save Quiz
+        </button>
+      </div>
+
+    </form>
+
+  </div>
 </div>
 
 {% endblock %}
-

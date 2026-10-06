@@ -1,0 +1,450 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Delete Assignment · {{ assignment.title }} | SmartMind{% endblock %}
+
+{% block content %}
+
+<style>
+  /* =====================================================
+     DELETE ASSIGNMENT — light & dark responsive
+     Theme-aware via base.html [data-theme="dark"]
+  ===================================================== */
+
+  .da-wrap {
+    /* ---------- Light theme (default) ---------- */
+    --da-bg-1: #f8fafc;
+    --da-bg-2: #eef2ff;
+    --da-ink: #0f172a;
+    --da-ink-soft: #475569;
+    --da-ink-mute: #94a3b8;
+    --da-line: #e2e8f0;
+    --da-line-soft: #f1f5f9;
+    --da-accent: #4f46e5;
+    --da-danger: #dc2626;
+    --da-danger-hover: #b91c1c;
+    --da-danger-soft: #fef2f2;
+    --da-danger-border: #fecaca;
+    --da-danger-text: #b91c1c;
+    --da-card-bg: rgba(255, 255, 255, .9);
+    --da-card-border: rgba(226, 232, 240, .9);
+    --da-card-inset: rgba(255, 255, 255, .9);
+    --da-card-shadow: 0 20px 45px -20px rgba(15, 23, 42, .18),
+                      0 8px 24px -12px rgba(79, 70, 229, .12);
+    --da-glow-1: #e0e7ff;
+    --da-glow-2: #fee2e2;
+    --da-ghost-bg: #ffffff;
+    --da-ghost-bg-hover: #f1f5f9;
+    --da-ghost-border-hover: #cbd5e1;
+    --da-radius: 14px;
+    --da-radius-lg: 20px;
+
+    min-height: 100%;
+    width: 100%;
+    padding: 40px 20px 64px;
+    box-sizing: border-box;
+    background:
+      radial-gradient(1000px 400px at 10% -10%, var(--da-glow-1) 0%, transparent 60%),
+      radial-gradient(800px 400px at 100% 0%, var(--da-glow-2) 0%, transparent 55%),
+      linear-gradient(180deg, var(--da-bg-1) 0%, var(--da-bg-2) 100%);
+    font-family: inherit;
+    color: var(--da-ink);
+    transition: background .25s ease, color .25s ease;
+    overflow-x: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ---------- Dark theme via base.html switcher ---------- */
+  [data-theme="dark"] .da-wrap {
+    --da-bg-1: #0b1120;
+    --da-bg-2: #0f172a;
+    --da-ink: #f1f5f9;
+    --da-ink-soft: #cbd5e1;
+    --da-ink-mute: #94a3b8;
+    --da-line: #334155;
+    --da-line-soft: #1e293b;
+    --da-accent: #818cf8;
+    --da-danger: #f87171;
+    --da-danger-hover: #fca5a5;
+    --da-danger-soft: #7f1d1d;
+    --da-danger-border: #991b1b;
+    --da-danger-text: #fecaca;
+    --da-card-bg: rgba(30, 41, 59, .85);
+    --da-card-border: rgba(51, 65, 85, .9);
+    --da-card-inset: rgba(255, 255, 255, .04);
+    --da-card-shadow: 0 20px 45px -20px rgba(0, 0, 0, .6),
+                      0 8px 24px -12px rgba(99, 102, 241, .25);
+    --da-glow-1: #1e1b4b;
+    --da-glow-2: #7f1d1d;
+    --da-ghost-bg: #1e293b;
+    --da-ghost-bg-hover: #334155;
+    --da-ghost-border-hover: #475569;
+  }
+
+  /* ---------- Dark theme via system preference (fallback) ---------- */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .da-wrap {
+      --da-bg-1: #0b1120;
+      --da-bg-2: #0f172a;
+      --da-ink: #f1f5f9;
+      --da-ink-soft: #cbd5e1;
+      --da-ink-mute: #94a3b8;
+      --da-line: #334155;
+      --da-line-soft: #1e293b;
+      --da-accent: #818cf8;
+      --da-danger: #f87171;
+      --da-danger-hover: #fca5a5;
+      --da-danger-soft: #7f1d1d;
+      --da-danger-border: #991b1b;
+      --da-danger-text: #fecaca;
+      --da-card-bg: rgba(30, 41, 59, .85);
+      --da-card-border: rgba(51, 65, 85, .9);
+      --da-card-inset: rgba(255, 255, 255, .04);
+      --da-card-shadow: 0 20px 45px -20px rgba(0, 0, 0, .6),
+                        0 8px 24px -12px rgba(99, 102, 241, .25);
+      --da-glow-1: #1e1b4b;
+      --da-glow-2: #7f1d1d;
+      --da-ghost-bg: #1e293b;
+      --da-ghost-bg-hover: #334155;
+      --da-ghost-border-hover: #475569;
+    }
+  }
+
+  /* =====================================================
+     RESET
+  ===================================================== */
+  .da-wrap,
+  .da-wrap * { box-sizing: border-box; }
+
+  /* =====================================================
+     CARD
+  ===================================================== */
+  .da-card {
+    width: 100%;
+    max-width: 520px;
+    background: var(--da-card-bg);
+    backdrop-filter: saturate(180%) blur(14px);
+    -webkit-backdrop-filter: saturate(180%) blur(14px);
+    border: 1px solid var(--da-card-border);
+    border-radius: var(--da-radius-lg);
+    box-shadow: var(--da-card-inset) 0 1px 0 inset, var(--da-card-shadow);
+    padding: 40px 36px 36px;
+    box-sizing: border-box;
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+    transition: background .25s ease, border-color .25s ease, box-shadow .25s ease;
+  }
+
+  /* Top hairline accent */
+  .da-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 3px;
+    background: linear-gradient(90deg, #ef4444, #f97316, #eab308);
+    opacity: .9;
+  }
+
+  /* =====================================================
+     ICON CIRCLE
+  ===================================================== */
+  .da-icon-wrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: var(--da-danger-soft);
+    border: 1px solid var(--da-danger-border);
+    margin: 0 auto 20px;
+    font-size: 2rem;
+    line-height: 1;
+    color: var(--da-danger);
+    animation: da-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes da-pulse {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.04); }
+  }
+
+  /* =====================================================
+     TEXT
+  ===================================================== */
+  .da-title {
+    margin: 0 0 12px;
+    font-size: 1.35rem;
+    font-weight: 750;
+    color: var(--da-ink);
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+  }
+
+  .da-text {
+    margin: 0 0 8px;
+    color: var(--da-ink-soft);
+    font-size: .95rem;
+    line-height: 1.6;
+  }
+
+  .da-name {
+    display: inline-block;
+    color: var(--da-danger-text);
+    font-weight: 700;
+    background: var(--da-danger-soft);
+    padding: 2px 10px;
+    border-radius: 6px;
+    margin: 4px 0;
+    overflow-wrap: anywhere;
+    max-width: 100%;
+  }
+
+  .da-warning {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 14px;
+    padding: 8px 14px;
+    border-radius: 100px;
+    background: var(--da-danger-soft);
+    color: var(--da-danger-text);
+    font-size: .78rem;
+    font-weight: 650;
+    letter-spacing: .02em;
+  }
+
+  /* =====================================================
+     ACTIONS
+  ===================================================== */
+  .da-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 28px;
+    padding-top: 24px;
+    border-top: 1px dashed var(--da-line);
+  }
+
+  .da-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: .9rem;
+    font-family: inherit;
+    text-decoration: none;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition:
+      transform .12s ease,
+      box-shadow .18s ease,
+      background-color .18s ease,
+      border-color .18s ease,
+      color .18s ease;
+    white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    min-width: 130px;
+  }
+
+  .da-btn:active { transform: translateY(1px); }
+
+  .da-btn-cancel {
+    background: var(--da-ghost-bg);
+    color: var(--da-ink-soft);
+    border-color: var(--da-line);
+  }
+  .da-btn-cancel:hover {
+    background: var(--da-ghost-bg-hover);
+    color: var(--da-ink);
+    border-color: var(--da-ghost-border-hover);
+  }
+
+  .da-btn-delete {
+    background: var(--da-danger);
+    color: #fff;
+    border-color: var(--da-danger);
+    box-shadow: 0 10px 20px -8px rgba(220, 38, 38, .55);
+  }
+  .da-btn-delete:hover {
+    background: var(--da-danger-hover);
+    border-color: var(--da-danger-hover);
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 14px 26px -10px rgba(220, 38, 38, .65);
+  }
+
+  /* =====================================================
+     RESPONSIVE — PHONE (<= 640px)
+  ===================================================== */
+  @media (max-width: 640px) {
+    .da-wrap {
+      padding: 24px 16px 48px;
+      background:
+        radial-gradient(600px 300px at 10% -10%, var(--da-glow-1) 0%, transparent 60%),
+        radial-gradient(500px 300px at 100% 0%, var(--da-glow-2) 0%, transparent 55%),
+        linear-gradient(180deg, var(--da-bg-1) 0%, var(--da-bg-2) 100%);
+    }
+
+    .da-card {
+      padding: 28px 22px 26px;
+      border-radius: 16px;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
+
+    .da-icon-wrap {
+      width: 60px;
+      height: 60px;
+      font-size: 1.6rem;
+      margin-bottom: 16px;
+    }
+
+    .da-title {
+      font-size: 1.15rem;
+      margin-bottom: 10px;
+    }
+
+    .da-text {
+      font-size: .88rem;
+      line-height: 1.55;
+    }
+
+    .da-actions {
+      flex-direction: column-reverse;
+      gap: 10px;
+      margin-top: 22px;
+      padding-top: 20px;
+    }
+
+    .da-btn {
+      width: 100%;
+      padding: 13px 18px;
+      font-size: .92rem;
+      border-radius: 10px;
+      min-width: 0;
+    }
+  }
+
+  /* =====================================================
+     SMALL PHONE (<= 420px)
+  ===================================================== */
+  @media (max-width: 420px) {
+    .da-wrap { padding: 16px 12px 40px; }
+
+    .da-card {
+      padding: 24px 18px 22px;
+      border-radius: 14px;
+    }
+
+    .da-icon-wrap {
+      width: 52px;
+      height: 52px;
+      font-size: 1.4rem;
+      margin-bottom: 14px;
+    }
+
+    .da-title { font-size: 1.05rem; }
+
+    .da-text { font-size: .84rem; }
+
+    .da-name {
+      font-size: .82rem;
+      padding: 2px 8px;
+    }
+
+    .da-warning {
+      font-size: .72rem;
+      padding: 7px 12px;
+    }
+
+    .da-btn {
+      padding: 12px 16px;
+      font-size: .88rem;
+      border-radius: 9px;
+    }
+  }
+
+  /* =====================================================
+     TINY PHONE (<= 360px)
+  ===================================================== */
+  @media (max-width: 360px) {
+    .da-wrap { padding: 12px 10px 32px; }
+
+    .da-card { padding: 20px 14px 18px; border-radius: 12px; }
+
+    .da-icon-wrap {
+      width: 46px;
+      height: 46px;
+      font-size: 1.2rem;
+      margin-bottom: 12px;
+    }
+
+    .da-title { font-size: .95rem; }
+
+    .da-text { font-size: .8rem; }
+
+    .da-btn {
+      padding: 11px 14px;
+      font-size: .84rem;
+      border-radius: 8px;
+    }
+  }
+
+  /* =====================================================
+     REDUCED MOTION
+  ===================================================== */
+  @media (prefers-reduced-motion: reduce) {
+    .da-icon-wrap {
+      animation: none !important;
+    }
+    .da-btn {
+      transition: none !important;
+      transform: none !important;
+    }
+  }
+</style>
+
+<div class="da-wrap">
+  <div class="da-card">
+
+    <!-- Icon -->
+    <div class="da-icon-wrap">🗑️</div>
+
+    <!-- Title -->
+    <h1 class="da-title">Delete this assignment?</h1>
+
+    <!-- Body -->
+    <p class="da-text">
+      You are about to permanently delete
+    </p>
+
+    <span class="da-name">“{{ assignment.title }}”</span>
+
+    <span class="da-warning">
+      ⚠️ This action cannot be undone
+    </span>
+
+    <!-- Actions -->
+    <form method="post" class="da-actions">
+      {% csrf_token %}
+      <a href="{% url 'manage_assignments' %}" class="da-btn da-btn-cancel">
+        Cancel
+      </a>
+      <button type="submit" class="da-btn da-btn-delete">
+        🗑️ Yes, delete it
+      </button>
+    </form>
+
+  </div>
+</div>
+
+{% endblock %}

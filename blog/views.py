@@ -62,12 +62,7 @@ ALLOWED_DOC_EXTENSIONS = {
     ".rar",
 }
 
-# 20MB — override via settings.MAX_DOCUMENT_SIZE if defined
-MAX_DOCUMENT_SIZE = getattr(
-    settings,
-    "MAX_DOCUMENT_SIZE",
-    20 * 1024 * 1024,
-)
+MAX_DOCUMENT_SIZE = getattr(settings,"MAX_DOCUMENT_SIZE", 200 * 1024 * 1024,)
 
 
 # ============================================================
@@ -891,7 +886,7 @@ def add_post(request):
                     )
                     return render(request, "add_post.html", {"form": form})
 
-            # Validate documents
+          
             for doc in uploaded_docs:
                 if not is_valid_document(doc):
                     messages.error(

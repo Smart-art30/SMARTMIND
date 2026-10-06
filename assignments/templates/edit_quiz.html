@@ -6,440 +6,938 @@
 {% block content %}
 
 <style>
+/* =========================================================
+   EDIT QUIZ PAGE — light & dark responsive
+   Theme-aware via base.html [data-theme="dark"]
+   ========================================================= */
+
+:root {
+  --eq-bg: #f6f8fc;
+  --eq-surface: #ffffff;
+  --eq-surface-soft: #f8fafc;
+  --eq-surface-muted: #fafcff;
+  --eq-text-primary: #0f172a;
+  --eq-text-secondary: #475569;
+  --eq-text-muted: #64748b;
+  --eq-text-hint: #94a3b8;
+  --eq-accent: #2563eb;
+  --eq-accent-hover: #1d4ed8;
+  --eq-accent-soft: #eff6ff;
+  --eq-accent-border: #bfdbfe;
+  --eq-success: #10b981;
+  --eq-success-hover: #059669;
+  --eq-success-soft: #ecfdf5;
+  --eq-danger: #dc2626;
+  --eq-danger-soft: #fee2e2;
+  --eq-danger-border: #fecaca;
+  --eq-correct: #047857;
+  --eq-purple-soft: #ede9fe;
+  --eq-purple: #6d28d9;
+  --eq-explanation-bg: #eff6ff;
+  --eq-explanation-border: #3b82f6;
+  --eq-explanation-text: #1e40af;
+  --eq-explanation-strong: #2563eb;
+  --eq-input-border: #cbd5e1;
+  --eq-border: #e2e8f0;
+  --eq-shadow-sm: 0 10px 25px rgba(0, 0, 0, .06);
+  --eq-shadow-md: 0 2px 8px rgba(37, 99, 235, .25);
+  --eq-radius: 16px;
+  --eq-radius-sm: 12px;
+  --eq-radius-xs: 10px;
+  --eq-transition: all .15s ease;
+}
+
+[data-theme="dark"] {
+  --eq-bg: #0b1120;
+  --eq-surface: #1e293b;
+  --eq-surface-soft: #0f172a;
+  --eq-surface-muted: #172033;
+  --eq-text-primary: #f1f5f9;
+  --eq-text-secondary: #cbd5e1;
+  --eq-text-muted: #94a3b8;
+  --eq-text-hint: #64748b;
+  --eq-accent: #60a5fa;
+  --eq-accent-hover: #93c5fd;
+  --eq-accent-soft: #1e3a8a;
+  --eq-accent-border: #1e40af;
+  --eq-success: #34d399;
+  --eq-success-hover: #6ee7b7;
+  --eq-success-soft: #064e3b;
+  --eq-danger: #f87171;
+  --eq-danger-soft: #7f1d1d;
+  --eq-danger-border: #991b1b;
+  --eq-correct: #6ee7b7;
+  --eq-purple-soft: #4c1d95;
+  --eq-purple: #c4b5fd;
+  --eq-explanation-bg: #1e3a8a;
+  --eq-explanation-border: #60a5fa;
+  --eq-explanation-text: #dbeafe;
+  --eq-explanation-strong: #93c5fd;
+  --eq-input-border: #334155;
+  --eq-border: #334155;
+  --eq-shadow-sm: 0 10px 25px rgba(0, 0, 0, .4);
+  --eq-shadow-md: 0 2px 8px rgba(96, 165, 250, .3);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --eq-bg: #0b1120;
+    --eq-surface: #1e293b;
+    --eq-surface-soft: #0f172a;
+    --eq-surface-muted: #172033;
+    --eq-text-primary: #f1f5f9;
+    --eq-text-secondary: #cbd5e1;
+    --eq-text-muted: #94a3b8;
+    --eq-text-hint: #64748b;
+    --eq-accent: #60a5fa;
+    --eq-accent-hover: #93c5fd;
+    --eq-accent-soft: #1e3a8a;
+    --eq-accent-border: #1e40af;
+    --eq-success: #34d399;
+    --eq-success-hover: #6ee7b7;
+    --eq-success-soft: #064e3b;
+    --eq-danger: #f87171;
+    --eq-danger-soft: #7f1d1d;
+    --eq-danger-border: #991b1b;
+    --eq-correct: #6ee7b7;
+    --eq-purple-soft: #4c1d95;
+    --eq-purple: #c4b5fd;
+    --eq-explanation-bg: #1e3a8a;
+    --eq-explanation-border: #60a5fa;
+    --eq-explanation-text: #dbeafe;
+    --eq-explanation-strong: #93c5fd;
+    --eq-input-border: #334155;
+    --eq-border: #334155;
+    --eq-shadow-sm: 0 10px 25px rgba(0, 0, 0, .4);
+    --eq-shadow-md: 0 2px 8px rgba(96, 165, 250, .3);
+  }
+}
+
+/* =========================================================
+   GLOBAL RESET for this page
+   ========================================================= */
+.eq-wrap,
+.eq-wrap * {
+  box-sizing: border-box;
+}
+
+/* =========================================================
+   WRAPPER
+   ========================================================= */
+.eq-wrap {
+  max-width: 1400px;
+  margin: 40px auto;
+  padding: 20px;
+  width: 100%;
+  color: var(--eq-text-primary);
+  background: var(--eq-bg);
+  min-height: 100vh;
+  transition: background .25s ease, color .25s ease;
+  overflow-x: hidden;
+}
+
+/* =========================================================
+   CARD
+   ========================================================= */
+.eq-card {
+  background: var(--eq-surface);
+  border: 1px solid var(--eq-border);
+  border-radius: var(--eq-radius);
+  padding: 28px 30px;
+  box-shadow: var(--eq-shadow-sm);
+  margin-bottom: 24px;
+  transition: var(--eq-transition);
+}
+
+.eq-header h1 {
+  margin: 0 0 6px;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--eq-text-primary);
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.eq-meta {
+  color: var(--eq-text-muted);
+  font-size: .9rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin-bottom: 4px;
+}
+
+.eq-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 100px;
+  background: var(--eq-purple-soft);
+  color: var(--eq-purple);
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.eq-section-title {
+  font-size: 1.1rem;
+  font-weight: 650;
+  color: var(--eq-text-primary);
+  margin: 0 0 16px;
+  letter-spacing: -0.01em;
+  flex-shrink: 0;
+}
+
+/* =========================================================
+   QUESTION LIST
+   ========================================================= */
+.eq-qlist {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 0;
+}
+
+.eq-qitem {
+  border: 1px solid var(--eq-border);
+  border-radius: var(--eq-radius-sm);
+  padding: 16px 18px;
+  background: var(--eq-surface-muted);
+  transition: var(--eq-transition);
+}
+
+.eq-qtext {
+  font-weight: 650;
+  color: var(--eq-text-primary);
+  margin-bottom: 10px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.eq-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 16px;
+  font-size: .875rem;
+  color: var(--eq-text-secondary);
+  margin-bottom: 10px;
+}
+
+.eq-options > div {
+  overflow-wrap: anywhere;
+}
+
+.eq-options .correct {
+  color: var(--eq-correct);
+  font-weight: 650;
+}
+
+/* Rich-text reset */
+.eq-qtext p,
+.eq-options p,
+.eq-explanation p {
+  margin: 0 0 .5em;
+}
+
+.eq-qtext p:last-child,
+.eq-options p:last-child,
+.eq-explanation p:last-child {
+  margin-bottom: 0;
+}
+
+.eq-qtext ul,
+.eq-qtext ol,
+.eq-options ul,
+.eq-options ol,
+.eq-explanation ul,
+.eq-explanation ol {
+  margin: .4em 0;
+  padding-left: 1.25em;
+}
+
+.eq-qtext img,
+.eq-options img,
+.eq-explanation img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+.eq-qfoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: .8rem;
+  color: var(--eq-text-muted);
+  flex-wrap: wrap;
+}
+
+/* =========================================================
+   EXPLANATION CALLOUT
+   ========================================================= */
+.eq-explanation {
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: var(--eq-explanation-bg);
+  border-left: 3px solid var(--eq-explanation-border);
+  border-radius: 6px;
+  font-size: .85rem;
+  color: var(--eq-explanation-text);
+  line-height: 1.55;
+}
+
+.eq-explanation > strong {
+  display: block;
+  font-size: .72rem;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--eq-explanation-strong);
+  margin-bottom: 3px;
+}
+
+.eq-explanation a {
+  color: var(--eq-explanation-strong);
+  text-decoration: underline;
+}
+
+.eq-explanation code {
+  background: rgba(255, 255, 255, .5);
+  padding: 1px 4px;
+  border-radius: 4px;
+  font-size: .85em;
+}
+
+[data-theme="dark"] .eq-explanation code {
+  background: rgba(0, 0, 0, .35);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .eq-explanation code {
+    background: rgba(0, 0, 0, .35);
+  }
+}
+
+/* =========================================================
+   QUESTION FOOTER BUTTONS
+   ========================================================= */
+.eq-delete-form {
+  display: inline;
+}
+
+.eq-delete-btn {
+  background: var(--eq-danger-soft);
+  color: var(--eq-danger);
+  border: 1px solid var(--eq-danger-border);
+  padding: 5px 12px;
+  border-radius: 8px;
+  font-size: .78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--eq-transition);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.eq-delete-btn:hover,
+.eq-delete-btn:active {
+  background: var(--eq-danger);
+  color: #fff;
+  border-color: var(--eq-danger);
+}
+
+.eq-edit-btn {
+  background: var(--eq-accent-soft);
+  color: var(--eq-accent);
+  border: 1px solid var(--eq-accent-border);
+  padding: 5px 12px;
+  border-radius: 8px;
+  font-size: .78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--eq-transition);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.eq-edit-btn:hover,
+.eq-edit-btn:active {
+  background: var(--eq-accent);
+  color: #fff;
+  border-color: var(--eq-accent);
+}
+
+/* =========================================================
+   INLINE EDIT PANEL
+   ========================================================= */
+.eq-edit-panel {
+  padding: 16px;
+  background: var(--eq-surface-soft);
+  border: 1px solid var(--eq-border);
+  border-radius: var(--eq-radius-xs);
+  margin-top: 8px;
+}
+
+/* =========================================================
+   EMPTY STATE
+   ========================================================= */
+.eq-empty {
+  padding: 32px 20px;
+  text-align: center;
+  border: 1px dashed var(--eq-input-border);
+  border-radius: var(--eq-radius-sm);
+  background: var(--eq-surface-soft);
+  color: var(--eq-text-muted);
+  font-size: .9rem;
+}
+
+/* =========================================================
+   FORM FIELDS
+   ========================================================= */
+.eq-field {
+  margin-bottom: 14px;
+}
+
+.eq-field label {
+  display: block;
+  font-weight: 600;
+  font-size: .85rem;
+  color: var(--eq-text-secondary);
+  margin-bottom: 6px;
+}
+
+.eq-field input,
+.eq-field select,
+.eq-field textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--eq-input-border);
+  border-radius: var(--eq-radius-xs);
+  font-size: .95rem;
+  font-family: inherit;
+  color: var(--eq-text-primary);
+  background: var(--eq-surface);
+  transition: border-color .15s ease, box-shadow .15s ease, background .15s ease, color .15s ease;
+}
+
+.eq-field input::placeholder,
+.eq-field textarea::placeholder {
+  color: var(--eq-text-hint);
+}
+
+.eq-field input:focus,
+.eq-field select:focus,
+.eq-field textarea:focus {
+  outline: none;
+  border-color: var(--eq-accent);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, .15);
+}
+
+.eq-field textarea {
+  min-height: 70px;
+  resize: vertical;
+}
+
+.eq-hint {
+  font-size: .78rem;
+  color: var(--eq-text-hint);
+  margin-top: 5px;
+}
+
+/* =========================================================
+   GRIDS
+   ========================================================= */
+.eq-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.eq-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 120px;
+  gap: 12px;
+}
+
+/* =========================================================
+   ACTIONS
+   ========================================================= */
+.eq-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.eq-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 20px;
+  border: none;
+  border-radius: var(--eq-radius-xs);
+  font-weight: 600;
+  font-size: .9rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: var(--eq-transition);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.eq-btn-primary {
+  background: var(--eq-accent);
+  color: #fff;
+  box-shadow: var(--eq-shadow-md);
+}
+
+.eq-btn-primary:hover {
+  background: var(--eq-accent-hover);
+  color: #fff;
+}
+
+.eq-btn-success {
+  background: var(--eq-success);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, .25);
+}
+
+.eq-btn-success:hover {
+  background: var(--eq-success-hover);
+  color: #fff;
+}
+
+.eq-btn-ghost {
+  background: var(--eq-surface-soft);
+  color: var(--eq-text-secondary);
+  border: 1px solid var(--eq-border);
+}
+
+.eq-btn-ghost:hover {
+  background: var(--eq-border);
+  color: var(--eq-text-primary);
+}
+
+/* =========================================================
+   CKEDITOR OVERRIDES (theme-aware)
+   ========================================================= */
+.ck.ck-editor {
+  width: 100%;
+}
+
+.ck.ck-editor__main > .ck-editor__editable {
+  border-radius: 0 0 10px 10px;
+  border-color: var(--eq-input-border);
+  min-height: 110px;
+  font-family: inherit;
+  font-size: .95rem;
+  color: var(--eq-text-primary);
+  background: var(--eq-surface);
+}
+
+.ck.ck-editor__top .ck-sticky-panel .ck-toolbar {
+  border-radius: 10px 10px 0 0;
+  border-color: var(--eq-input-border);
+  background: var(--eq-surface-soft);
+}
+
+[data-theme="dark"] .ck.ck-editor__top .ck-sticky-panel .ck-toolbar,
+[data-theme="dark"] .ck.ck-editor__main > .ck-editor__editable {
+  background: #1e293b;
+  color: #f1f5f9;
+  border-color: #334155;
+}
+
+[data-theme="dark"] .ck.ck-button {
+  color: #cbd5e1;
+}
+
+[data-theme="dark"] .ck.ck-button:hover {
+  background: #334155;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .ck.ck-editor__top .ck-sticky-panel .ck-toolbar,
+  :root:not([data-theme="light"]) .ck.ck-editor__main > .ck-editor__editable {
+    background: #1e293b;
+    color: #f1f5f9;
+    border-color: #334155;
+  }
+
+  :root:not([data-theme="light"]) .ck.ck-button {
+    color: #cbd5e1;
+  }
+
+  :root:not([data-theme="light"]) .ck.ck-button:hover {
+    background: #334155;
+  }
+}
+
+.ck.ck-editor__main > .ck-editor__editable:focus {
+  border-color: var(--eq-accent) !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, .15) !important;
+}
+
+.ck.ck-toolbar {
+  flex-wrap: wrap;
+}
+
+/* =========================================================
+   LARGE SCREEN CONTAINERS
+   ========================================================= */
+@media (min-width: 1440px) {
   .eq-wrap {
-    max-width: 1400px;
-    margin: 40px auto;
-    padding: 20px;
-    width: 100%;
+    max-width: 1500px;
+  }
+}
+
+@media (min-width: 1920px) {
+  .eq-wrap {
+    max-width: 1600px;
+  }
+}
+
+/* =========================================================
+   SCROLLABLE QUESTIONS PANEL
+   ========================================================= */
+.eq-card.eq-questions-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.eq-qlist-scroll {
+  overflow-y: auto;
+  padding-right: 6px;
+  flex: 1;
+  min-height: 0;
+}
+
+.eq-qlist-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.eq-qlist-scroll::-webkit-scrollbar-thumb {
+  background: var(--eq-input-border);
+  border-radius: 100px;
+}
+
+.eq-qlist-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--eq-text-hint);
+}
+
+.eq-qlist-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.eq-qlist-scroll .eq-qlist {
+  margin-bottom: 0;
+}
+
+@media (min-width: 1200px) {
+  .eq-card.eq-questions-card {
+    max-height: calc(100vh - 260px);
+  }
+}
+
+@media (max-width: 1199px) {
+  .eq-qlist-scroll {
+    max-height: 60vh;
+  }
+}
+
+/* =========================================================
+   RESPONSIVE — TABLET (<= 900px)
+   ========================================================= */
+@media (max-width: 900px) {
+  .eq-wrap {
+    margin: 24px auto;
+    padding: 16px;
   }
 
   .eq-card {
-    background: #fff;
-    border: 1px solid #e2e8f0;
-    border-radius: 16px;
-    padding: 28px 30px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, .06);
-    margin-bottom: 24px;
+    padding: 22px 22px;
+    border-radius: 14px;
   }
 
   .eq-header h1 {
-    margin: 0 0 6px;
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #0f172a;
-    letter-spacing: -0.02em;
+    font-size: 1.3rem;
+  }
+}
+
+/* =========================================================
+   RESPONSIVE — PHONE (<= 640px)
+   ========================================================= */
+@media (max-width: 640px) {
+  .eq-wrap {
+    margin: 12px auto;
+    padding: 12px;
+  }
+
+  .eq-card {
+    padding: 18px 16px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+  }
+
+  .eq-header h1 {
+    font-size: 1.15rem;
   }
 
   .eq-meta {
-    color: #64748b;
-    font-size: .9rem;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px 14px;
-    margin-bottom: 4px;
-  }
-
-  .eq-badge {
-    display: inline-block;
-    padding: 4px 10px;
-    border-radius: 100px;
-    background: #ede9fe;
-    color: #6d28d9;
-    font-size: .72rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: .04em;
+    font-size: .8rem;
+    gap: 4px 10px;
   }
 
   .eq-section-title {
-    font-size: 1.1rem;
-    font-weight: 650;
-    color: #0f172a;
-    margin: 0 0 16px;
-    letter-spacing: -0.01em;
-    flex-shrink: 0;
+    font-size: 1rem;
+    margin-bottom: 12px;
   }
 
-  /* ---------- Question list ---------- */
-  .eq-qlist {
-    display: grid;
-    gap: 12px;
-    margin-bottom: 0;
+  /* Grids collapse to a single column */
+  .eq-grid-2,
+  .eq-grid-3,
+  .eq-options {
+    grid-template-columns: 1fr;
   }
 
+  /* Buttons stack full-width */
+  .eq-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .eq-btn {
+    width: 100%;
+    padding: 13px 16px;
+    font-size: .92rem;
+  }
+
+  /* Question footer stacks */
+  .eq-qfoot {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .eq-qfoot > div {
+    width: 100%;
+    display: flex;
+    gap: 8px;
+  }
+
+  .eq-qfoot .eq-edit-btn,
+  .eq-qfoot .eq-delete-form {
+    flex: 1;
+  }
+
+  .eq-qfoot .eq-delete-form {
+    display: flex;
+  }
+
+  .eq-qfoot .eq-delete-btn,
+  .eq-qfoot .eq-edit-btn {
+    width: 100%;
+    padding: 9px 12px;
+    font-size: .82rem;
+  }
+
+  /* Question item tighter */
   .eq-qitem {
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 16px 18px;
-    background: #fafcff;
+    padding: 14px 14px;
+    border-radius: 10px;
   }
 
   .eq-qtext {
-    font-weight: 650;
-    color: #0f172a;
-    margin-bottom: 10px;
-    line-height: 1.45;
+    font-size: .92rem;
   }
 
   .eq-options {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 6px 16px;
-    font-size: .875rem;
-    color: #475569;
-    margin-bottom: 10px;
+    font-size: .82rem;
+    gap: 5px;
   }
 
-  .eq-options .correct {
-    color: #047857;
-    font-weight: 650;
+  .eq-explanation {
+    font-size: .8rem;
+    padding: 9px 11px;
+  }
+
+  /* Edit panel */
+  .eq-edit-panel {
+    padding: 14px 12px;
+  }
+
+  /* Inputs a bit taller for touch */
+  .eq-field input,
+  .eq-field select,
+  .eq-field textarea {
+    padding: 11px 12px;
+    font-size: 16px; /* prevents iOS zoom on focus */
+  }
+
+  .ck.ck-editor__main > .ck-editor__editable {
+    min-height: 90px;
+  }
+
+  .eq-qlist-scroll {
+    max-height: 55vh;
+  }
+
+  .eq-empty {
+    padding: 24px 16px;
+    font-size: .85rem;
+  }
+}
+
+/* =========================================================
+   RESPONSIVE — SMALL PHONE (<= 420px)
+   ========================================================= */
+@media (max-width: 420px) {
+  .eq-wrap {
+    padding: 10px;
+    margin: 8px auto;
+  }
+
+  .eq-card {
+    padding: 16px 14px;
+    border-radius: 10px;
+  }
+
+  .eq-header h1 {
+    font-size: 1.05rem;
+  }
+
+  .eq-badge {
+    padding: 3px 8px;
+    font-size: .66rem;
+  }
+
+  .eq-section-title {
+    font-size: .95rem;
+  }
+
+  .eq-qitem {
+    padding: 12px 12px;
+  }
+
+  .eq-qtext {
+    font-size: .88rem;
+  }
+
+  .eq-options {
+    font-size: .78rem;
+  }
+
+  .eq-explanation {
+    font-size: .76rem;
   }
 
   .eq-qfoot {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    font-size: .8rem;
-    color: #64748b;
+    font-size: .74rem;
   }
 
-  /* ---------- Explanation callout ---------- */
-  .eq-explanation {
-    margin-top: 12px;
-    padding: 10px 12px;
-    background: #eff6ff;
-    border-left: 3px solid #3b82f6;
-    border-radius: 6px;
-    font-size: .85rem;
-    color: #1e40af;
-    line-height: 1.55;
-  }
-
-  .eq-explanation > strong {
-    display: block;
-    font-size: .72rem;
-    text-transform: uppercase;
-    letter-spacing: .06em;
-    color: #2563eb;
-    margin-bottom: 3px;
-  }
-
-  .eq-explanation p { margin: 0 0 6px; }
-  .eq-explanation p:last-child { margin-bottom: 0; }
-  .eq-explanation ul,
-  .eq-explanation ol { margin: 6px 0 6px 20px; }
-  .eq-explanation a { color: #2563eb; text-decoration: underline; }
-  .eq-explanation code {
-    background: rgba(255,255,255,.6);
-    padding: 1px 4px;
-    border-radius: 4px;
-    font-size: .85em;
-  }
-
-  /* ---------- Buttons in question footer ---------- */
-  .eq-delete-form {
-    display: inline;
-  }
-
-  .eq-delete-btn {
-    background: #fee2e2;
-    color: #b91c1c;
-    border: 1px solid #fecaca;
-    padding: 5px 12px;
-    border-radius: 8px;
+  .eq-qfoot .eq-delete-btn,
+  .eq-qfoot .eq-edit-btn {
+    padding: 8px 10px;
     font-size: .78rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all .15s ease;
-  }
-
-  .eq-delete-btn:hover {
-    background: #dc2626;
-    color: #fff;
-    border-color: #dc2626;
-  }
-
-  .eq-edit-btn {
-    background: #eff6ff;
-    color: #1d4ed8;
-    border: 1px solid #bfdbfe;
-    padding: 5px 12px;
-    border-radius: 8px;
-    font-size: .78rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all .15s ease;
-  }
-
-  .eq-edit-btn:hover {
-    background: #2563eb;
-    color: #fff;
-    border-color: #2563eb;
-  }
-
-  /* ---------- Inline edit panel ---------- */
-  .eq-edit-panel {
-    padding: 16px;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
-    margin-top: 8px;
-  }
-
-  /* ---------- Empty state ---------- */
-  .eq-empty {
-    padding: 32px 20px;
-    text-align: center;
-    border: 1px dashed #cbd5e1;
-    border-radius: 12px;
-    background: #f8fafc;
-    color: #64748b;
-    font-size: .9rem;
-  }
-
-  /* ---------- Form fields ---------- */
-  .eq-field {
-    margin-bottom: 14px;
   }
 
   .eq-field label {
-    display: block;
-    font-weight: 600;
-    font-size: .85rem;
-    color: #334155;
-    margin-bottom: 6px;
+    font-size: .8rem;
   }
 
   .eq-field input,
   .eq-field select,
   .eq-field textarea {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid #cbd5e1;
-    border-radius: 10px;
-    font-size: .95rem;
-    font-family: inherit;
-    color: #0f172a;
-    background: #fff;
-    box-sizing: border-box;
-    transition: border-color .15s ease, box-shadow .15s ease;
-  }
-
-  .eq-field input:focus,
-  .eq-field select:focus,
-  .eq-field textarea:focus {
-    outline: none;
-    border-color: #2563eb;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, .15);
-  }
-
-  .eq-field textarea {
-    min-height: 70px;
-    resize: vertical;
-  }
-
-  .eq-hint {
-    font-size: .78rem;
-    color: #94a3b8;
-    margin-top: 5px;
-  }
-
-  /* ---------- Grids ---------- */
-  .eq-grid-2 {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
-  }
-
-  .eq-grid-3 {
-    display: grid;
-    grid-template-columns: 1fr 1fr 120px;
-    gap: 12px;
-  }
-
-  /* ---------- Actions ---------- */
-  .eq-actions {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin-top: 8px;
+    padding: 10px 10px;
+    border-radius: 8px;
   }
 
   .eq-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 11px 20px;
-    border: none;
-    border-radius: 10px;
-    font-weight: 600;
+    padding: 12px 14px;
+    font-size: .86rem;
+    border-radius: 8px;
+  }
+
+  .eq-hint {
+    font-size: .72rem;
+  }
+}
+
+/* =========================================================
+   RESPONSIVE — TINY PHONE (<= 360px)
+   ========================================================= */
+@media (max-width: 360px) {
+  .eq-wrap {
+    padding: 8px;
+  }
+
+  .eq-card {
+    padding: 14px 12px;
+    border-radius: 9px;
+    margin-bottom: 12px;
+  }
+
+  .eq-header h1 {
+    font-size: .98rem;
+  }
+
+  .eq-meta {
+    font-size: .74rem;
+  }
+
+  .eq-section-title {
     font-size: .9rem;
-    text-decoration: none;
-    cursor: pointer;
-    transition: all .15s ease;
   }
 
-  .eq-btn-primary {
-    background: #2563eb;
-    color: #fff;
-    box-shadow: 0 2px 8px rgba(37, 99, 235, .25);
-  }
-  .eq-btn-primary:hover {
-    background: #1d4ed8;
-    color: #fff;
+  .eq-qitem {
+    padding: 10px 10px;
+    border-radius: 8px;
   }
 
-  .eq-btn-success {
-    background: #10b981;
-    color: #fff;
-    box-shadow: 0 2px 8px rgba(16, 185, 129, .25);
-  }
-  .eq-btn-success:hover {
-    background: #059669;
-    color: #fff;
+  .eq-qtext {
+    font-size: .84rem;
   }
 
-  .eq-btn-ghost {
-    background: #f1f5f9;
-    color: #334155;
-    border: 1px solid #e2e8f0;
-  }
-  .eq-btn-ghost:hover {
-    background: #e2e8f0;
+  .eq-options {
+    font-size: .74rem;
   }
 
-  /* =====================================================
-     CKEDITOR OVERRIDES
-  ===================================================== */
-  .ck.ck-editor {
-    width: 100%;
+  .eq-explanation {
+    font-size: .72rem;
+    padding: 8px 10px;
   }
 
-  .ck.ck-editor__main > .ck-editor__editable {
-    border-radius: 0 0 10px 10px;
-    border-color: #cbd5e1;
-    min-height: 110px;
-    font-family: inherit;
-    font-size: .95rem;
-    color: #0f172a;
-    background: #fff;
+  .eq-qfoot {
+    font-size: .7rem;
   }
 
-  .ck.ck-editor__top .ck-sticky-panel .ck-toolbar {
-    border-radius: 10px 10px 0 0;
-    border-color: #cbd5e1;
-    background: #f8fafc;
+  .eq-qfoot .eq-delete-btn,
+  .eq-qfoot .eq-edit-btn {
+    padding: 7px 8px;
+    font-size: .72rem;
   }
 
-  .ck.ck-editor__main > .ck-editor__editable:focus {
-    border-color: #2563eb !important;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, .15) !important;
+  .eq-btn {
+    padding: 11px 12px;
+    font-size: .82rem;
   }
 
-  .ck.ck-toolbar {
-    flex-wrap: wrap;
+  .eq-empty {
+    padding: 20px 12px;
+    font-size: .8rem;
   }
+}
 
-  /* =====================================================
-     LARGE SCREEN CONTAINER
-  ===================================================== */
-  @media (min-width: 1440px) {
-    .eq-wrap {
-      max-width: 1500px;
-    }
+/* =========================================================
+   PREFERS-REDUCED-MOTION
+   ========================================================= */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
   }
-
-  @media (min-width: 1920px) {
-    .eq-wrap {
-      max-width: 1600px;
-    }
-  }
-
-  /* =====================================================
-     SCROLLABLE QUESTIONS PANEL
-  ===================================================== */
-
-  /* The questions card is a flex column so the list can flex-grow */
-  .eq-card.eq-questions-card {
-    display: flex;
-    flex-direction: column;
-  }
-
-  /* The scrollable region */
-  .eq-qlist-scroll {
-    overflow-y: auto;
-    padding-right: 6px;
-    flex: 1;
-    min-height: 0;
-  }
-
-  .eq-qlist-scroll::-webkit-scrollbar {
-    width: 8px;
-  }
-
-  .eq-qlist-scroll::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 100px;
-  }
-
-  .eq-qlist-scroll::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
-  }
-
-  .eq-qlist-scroll::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  /* The questions grid loses its own bottom margin inside the scroll wrapper */
-  .eq-qlist-scroll .eq-qlist {
-    margin-bottom: 0;
-  }
-
-  /* Cap the questions panel to the viewport height on big screens */
-  @media (min-width: 1200px) {
-    .eq-card.eq-questions-card {
-      max-height: calc(100vh - 260px);
-    }
-  }
-
-  /* Below 1200px, cap the list height too */
-  @media (max-width: 1199px) {
-    .eq-qlist-scroll {
-      max-height: 60vh;
-    }
-  }
-
-  /* Shorter cap on mobile */
-  @media (max-width: 640px) {
-    .eq-qlist-scroll {
-      max-height: 55vh;
-    }
-  }
-
-  /* ---------- Responsive (<= 640px) ---------- */
-  @media (max-width: 640px) {
-    .eq-grid-2,
-    .eq-grid-3,
-    .eq-options { grid-template-columns: 1fr; }
-    .eq-wrap { padding: 12px; }
-    .eq-card { padding: 20px; }
-    .eq-actions { flex-direction: column; }
-    .eq-btn { width: 100%; }
-    .eq-qfoot { flex-direction: column; align-items: flex-start; }
-
-    .ck.ck-editor__main > .ck-editor__editable {
-      min-height: 90px;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    * {
-      transition: none !important;
-      animation: none !important;
-    }
-  }
+}
 </style>
 
 <div class="eq-wrap">
@@ -449,7 +947,7 @@
   ====================================================== -->
   <div class="eq-card eq-header">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;">
-      <div>
+      <div style="min-width:0;">
         <h1>✏️ {{ quiz.title }}</h1>
         <div class="eq-meta">
           {% if quiz.subject %}📚 {{ quiz.subject }}{% endif %}
@@ -480,21 +978,21 @@
               <div id="view-{{ q.id }}">
 
                 <div class="eq-qtext">
-                  {{ forloop.counter }}. {{ q.text }}
+                  {{ forloop.counter }}. {{ q.text|safe }}
                 </div>
 
                 <div class="eq-options">
                   <div class="{% if q.correct_option == 'A' %}correct{% endif %}">
-                    A) {{ q.option_a }}
+                    A) {{ q.option_a|safe }}
                   </div>
                   <div class="{% if q.correct_option == 'B' %}correct{% endif %}">
-                    B) {{ q.option_b }}
+                    B) {{ q.option_b|safe }}
                   </div>
                   <div class="{% if q.correct_option == 'C' %}correct{% endif %}">
-                    C) {{ q.option_c }}
+                    C) {{ q.option_c|safe }}
                   </div>
                   <div class="{% if q.correct_option == 'D' %}correct{% endif %}">
-                    D) {{ q.option_d }}
+                    D) {{ q.option_d|safe }}
                   </div>
                 </div>
 
@@ -583,7 +1081,7 @@
                   <div class="eq-field">
                     <label>
                       Explanation
-                      <span style="color:#94a3b8;font-weight:500;">(optional)</span>
+                      <span style="color:var(--eq-text-hint);font-weight:500;">(optional)</span>
                     </label>
                     <textarea name="explanation"
                               id="explanation-{{ q.id }}"
@@ -673,7 +1171,7 @@
       <div class="eq-field">
         <label for="explanation-new">
           Explanation
-          <span style="color:#94a3b8;font-weight:500;">(optional)</span>
+          <span style="color:var(--eq-text-hint);font-weight:500;">(optional)</span>
         </label>
         <textarea id="explanation-new"
                   name="explanation"

@@ -20,7 +20,39 @@
     min-height: 100vh;
     perspective: 2400px;
     perspective-origin: 50% 45%;
+
+    /* Theme variables — scoped to .auth-wrapper only */
+    --card-bg: rgba(255, 255, 255, 0.85);
+    --card-inner-bg: rgba(255, 255, 255, 0.95);
+    --text-color: #0f172a;
+    --muted-color: #64748b;
+    --input-bg: #f8fafc;
+    --input-bg-focus: #fff;
+    --input-border: #e2e8f0;
+    --placeholder-color: #94a3b8;
+    --divider-color: #e2e8f0;
   }
+
+  /* Dark mode — scoped to .auth-wrapper.dark-mode ONLY */
+  .auth-wrapper.dark-mode {
+    --card-bg: rgba(15, 23, 42, 0.85);
+    --card-inner-bg: rgba(15, 23, 42, 0.95);
+    --text-color: #e2e8f0;
+    --muted-color: #94a3b8;
+    --input-bg: #1e293b;
+    --input-bg-focus: #0f172a;
+    --input-border: #334155;
+    --placeholder-color: #64748b;
+    --divider-color: #334155;
+  }
+  .auth-wrapper.dark-mode .right-panel h2 {
+    background: linear-gradient(135deg, #93c5fd, #3b82f6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .auth-wrapper.dark-mode .field-success .field-shell { background: #052e16 !important; }
+  .auth-wrapper.dark-mode .field-error .field-shell { background: #450a0a !important; }
 
   /* Animated background blobs */
   .bg-blobs {
@@ -75,7 +107,7 @@
     min-height: 700px;
     display: flex;
     flex-direction: row;
-    background: var(--card-bg, rgba(255, 255, 255, 0.85));
+    background: var(--card-bg);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border-radius: 2.5rem;
@@ -142,14 +174,14 @@
   }
 
   .right-panel {
-    background: var(--card-inner-bg, rgba(255, 255, 255, 0.95));
+    background: var(--card-inner-bg);
     backdrop-filter: blur(8px);
     position: relative;
     border-radius: 0 2.5rem 2.5rem 0;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    color: var(--text-color, #0f172a);
+    color: var(--text-color);
     transform-origin: right center;
     animation: rightCoverOpen 1.4s cubic-bezier(0.22, 0.61, 0.36, 1) 0.15s both;
   }
@@ -341,7 +373,7 @@
     right: 0;
     font-size: 0.78rem;
     font-weight: 600;
-    color: var(--muted-color, #64748b);
+    color: var(--muted-color);
     letter-spacing: 0.08em;
     text-transform: uppercase;
     opacity: 0.7;
@@ -361,17 +393,18 @@
   }
   .right-panel > p,
   .page > p {
-    color: var(--muted-color, #64748b);
+    color: var(--muted-color);
     margin-top: 0.25rem;
   }
 
-  /* Theme toggle */
+  /* ============================================
+     THEME TOGGLE — single button
+  ============================================ */
   .theme-toggle {
     position: absolute;
     right: 1.5rem;
     top: 1.5rem;
     display: flex;
-    gap: 4px;
     background: rgba(245, 247, 251, 0.8);
     backdrop-filter: blur(6px);
     border-radius: 3rem;
@@ -387,12 +420,17 @@
     background: white;
   }
   .theme-toggle button {
-    border: none; background: transparent;
-    width: 40px; height: 40px;
+    position: relative;
+    border: none;
+    background: transparent;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     cursor: pointer;
     font-size: 1.2rem;
-    display: flex; align-items: center; justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transition: all 0.2s ease;
     color: #1e293b;
   }
@@ -400,6 +438,29 @@
     background: white;
     transform: scale(1.05);
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  }
+  .theme-toggle button .icon-moon,
+  .theme-toggle button .icon-sun {
+    position: absolute;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+  }
+  .theme-toggle button .icon-moon { opacity: 1; transform: rotate(0deg); }
+  .theme-toggle button .icon-sun  { opacity: 0; transform: rotate(-90deg); }
+  .theme-toggle button.is-dark .icon-moon { opacity: 0; transform: rotate(90deg); }
+  .theme-toggle button.is-dark .icon-sun  { opacity: 1; transform: rotate(0deg); }
+
+  .auth-wrapper.dark-mode .theme-toggle {
+    background: rgba(30, 41, 59, 0.8);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  }
+  .auth-wrapper.dark-mode .theme-toggle:hover {
+    background: rgba(30, 41, 59, 1);
+  }
+  .auth-wrapper.dark-mode .theme-toggle button {
+    color: #e2e8f0;
+  }
+  .auth-wrapper.dark-mode .theme-toggle button:hover {
+    background: rgba(51, 65, 85, 0.9);
   }
 
   /* Labels */
@@ -409,7 +470,7 @@
     margin-bottom: 0.5rem;
     font-weight: 600;
     font-size: 0.9rem;
-    color: var(--text-color, #1e293b);
+    color: var(--text-color);
     letter-spacing: -0.01em;
   }
 
@@ -426,8 +487,8 @@
     border-radius: 1rem;
     box-sizing: border-box;
     overflow: hidden;
-    background: var(--input-bg, #f8fafc);
-    border: 1.5px solid var(--input-border, #e2e8f0);
+    background: var(--input-bg);
+    border: 1.5px solid var(--input-border);
     transition: all 0.25s cubic-bezier(0.2, 0.9, 0.4, 1);
   }
 
@@ -441,18 +502,18 @@
     background: transparent;
     font-size: 1rem;
     font-family: 'Inter', sans-serif;
-    color: var(--text-color, #0f172a);
+    color: var(--text-color);
     box-sizing: border-box;
     outline: none;
     z-index: 2;
   }
   .form-control::placeholder {
-    color: var(--placeholder-color, #94a3b8);
+    color: var(--placeholder-color);
   }
 
   .field-shell:focus-within {
     border-color: #2563eb;
-    background: var(--input-bg-focus, #fff);
+    background: var(--input-bg-focus);
     box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1), 0 4px 12px rgba(0, 0, 0, 0.02);
   }
 
@@ -677,13 +738,13 @@
     border-radius: 0.75rem;
     display: inline-flex; align-items: center; justify-content: center;
     cursor: pointer;
-    color: var(--muted-color, #64748b);
+    color: var(--muted-color);
     transition: all 0.2s ease;
     font-size: 1.1rem;
     z-index: 4;
   }
   .password-toggle:hover {
-    background: var(--input-bg, #eef2f8);
+    background: var(--input-bg);
     color: #2563eb;
     transform: translateY(-50%) scale(1.05);
   }
@@ -701,7 +762,7 @@
   }
   .d-flex small {
     display: flex; align-items: center; gap: 0.4rem;
-    color: var(--muted-color, #475569);
+    color: var(--muted-color);
     font-weight: 500; cursor: pointer;
   }
   .d-flex input[type="checkbox"] {
@@ -825,16 +886,16 @@
   /* Back button */
   .btn-back {
     background: transparent;
-    color: var(--muted-color, #64748b);
-    border: 1.5px solid var(--input-border, #e2e8f0);
+    color: var(--muted-color);
+    border: 1.5px solid var(--input-border);
     margin-top: 0.6rem;
     box-shadow: none;
     font-size: 0.9rem;
     padding: 0.75rem;
   }
   .btn-back:hover {
-    background: var(--input-bg, #f8fafc);
-    color: var(--text-color, #1e293b);
+    background: var(--input-bg);
+    color: var(--text-color);
     border-color: #cbd5e1;
     transform: translateY(-2px);
     box-shadow: 0 8px 14px -8px rgba(0,0,0,0.1);
@@ -845,7 +906,7 @@
   .divider {
     text-align: center;
     margin: 1.8rem 0 1.2rem;
-    color: var(--muted-color, #94a3b8);
+    color: var(--muted-color);
     font-size: 0.85rem;
     font-weight: 500;
     display: flex;
@@ -857,7 +918,7 @@
     content: "";
     flex: 1;
     height: 1px;
-    background: linear-gradient(to right, transparent, var(--divider-color, #e2e8f0), transparent);
+    background: linear-gradient(to right, transparent, var(--divider-color), transparent);
   }
 
   /* Social buttons */
@@ -865,14 +926,14 @@
     width: 100%;
     padding: 0.9rem 1.2rem;
     border-radius: 1rem;
-    border: 1.5px solid var(--input-border, #e2e8f0);
-    background: var(--input-bg-focus, #fff);
+    border: 1.5px solid var(--input-border);
+    background: var(--input-bg-focus);
     margin-bottom: 0.75rem;
     cursor: pointer;
     font-weight: 600;
     font-size: 0.95rem;
     font-family: 'Inter', sans-serif;
-    color: var(--text-color, #1e293b);
+    color: var(--text-color);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -882,7 +943,7 @@
   }
   .btn-social i { font-size: 1.2rem; }
   .btn-social:hover {
-    background: var(--input-bg, #f8fafc);
+    background: var(--input-bg);
     border-color: #cbd5e1;
     transform: translateY(-3px);
     box-shadow: 0 12px 22px -8px rgba(0,0,0,0.12);
@@ -891,7 +952,7 @@
   .text-center {
     margin-top: 1.5rem;
     font-size: 0.9rem;
-    color: var(--muted-color, #475569);
+    color: var(--muted-color);
     text-align: center;
   }
   .text-center a {
@@ -924,31 +985,6 @@
   .alert-message.error   { background:#fee2e2cc; color:#991b1b; border-color:#fca5a5; }
   .alert-message.warning { background:#fef3c7cc; color:#92400e; border-color:#fcd34d; }
   .alert-message.info    { background:#dbeafecc; color:#1e40af; border-color:#93c5fd; }
-
-  /* Dark mode */
-  [data-bs-theme="dark"] .auth-wrapper,
-  body.dark-mode .auth-wrapper {
-    --card-bg: rgba(15, 23, 42, 0.85);
-    --card-inner-bg: rgba(15, 23, 42, 0.95);
-    --text-color: #e2e8f0;
-    --muted-color: #94a3b8;
-    --input-bg: #1e293b;
-    --input-bg-focus: #0f172a;
-    --input-border: #334155;
-    --placeholder-color: #64748b;
-    --divider-color: #334155;
-  }
-  [data-bs-theme="dark"] .right-panel h2,
-  body.dark-mode .right-panel h2 {
-    background: linear-gradient(135deg, #93c5fd, #3b82f6);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-  [data-bs-theme="dark"] .field-success .field-shell,
-  body.dark-mode .field-success .field-shell { background: #052e16 !important; }
-  [data-bs-theme="dark"] .field-error .field-shell,
-  body.dark-mode .field-error .field-shell { background: #450a0a !important; }
 
   /* ============================================
      RESPONSIVE — image always stays on the left
@@ -1137,7 +1173,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="auth-wrapper">
+<div class="auth-wrapper" id="authWrapper">
   <div class="bg-blobs">
     <div class="blob blob-1"></div>
     <div class="blob blob-2"></div>
@@ -1169,12 +1205,16 @@
 
       <!-- RIGHT COVER — holds the two pages -->
       <div class="right-panel {% if login_failed %}on-page-2{% endif %}" id="rightPanel">
+
+        <!-- SINGLE-BUTTON THEME TOGGLE -->
         <div class="theme-toggle">
-          <button type="button" data-theme-toggle="light" aria-label="Light mode" title="Light mode">
-            <i class="fas fa-sun"></i>
-          </button>
-          <button type="button" data-theme-toggle="dark" aria-label="Dark mode" title="Dark mode">
-            <i class="fas fa-moon"></i>
+          <button type="button"
+                  id="themeToggleBtn"
+                  aria-label="Toggle dark mode"
+                  aria-pressed="false"
+                  title="Toggle dark mode">
+            <i class="fas fa-moon icon-moon"></i>
+            <i class="fas fa-sun icon-sun"></i>
           </button>
         </div>
 
@@ -1322,6 +1362,38 @@
 {% block extra_js %}
 <script>
   document.addEventListener("DOMContentLoaded", function () {
+
+    /* ============================================
+       SINGLE-BUTTON THEME TOGGLE — scoped to login page
+       Applies dark-mode ONLY to .auth-wrapper.
+       Does NOT touch <html>, <body>, or localStorage,
+       so it can never affect other pages.
+    ============================================ */
+    const authWrapper    = document.getElementById("authWrapper");
+    const themeToggleBtn = document.getElementById("themeToggleBtn");
+
+    function applyTheme(mode) {
+      const isDark = mode === "dark";
+      authWrapper.classList.toggle("dark-mode", isDark);
+      themeToggleBtn.classList.toggle("is-dark", isDark);
+      themeToggleBtn.setAttribute("aria-pressed", String(isDark));
+      themeToggleBtn.setAttribute(
+        "aria-label",
+        isDark ? "Switch to light mode" : "Switch to dark mode"
+      );
+      themeToggleBtn.setAttribute(
+        "title",
+        isDark ? "Switch to light mode" : "Switch to dark mode"
+      );
+    }
+
+    // Start in light mode (page-local). Never reads global state.
+    applyTheme("light");
+
+    themeToggleBtn.addEventListener("click", function () {
+      const currentlyDark = authWrapper.classList.contains("dark-mode");
+      applyTheme(currentlyDark ? "light" : "dark");
+    });
 
     /* ============================================
        PAGE FLIPPING (page 1 ↔ page 2)

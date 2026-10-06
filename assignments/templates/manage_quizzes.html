@@ -6,556 +6,1076 @@
 {% block content %}
 
 <style>
-  /* =====================================================
-     MANAGE QUIZZES
-  ===================================================== */
+/* =========================================================
+   MANAGE QUIZZES — light & dark responsive
+   Theme-aware via base.html [data-theme="dark"]
+   ========================================================= */
 
-  .mq-wrap {
+:root {
+    --mq-bg: #f6f8fc;
+    --mq-surface: #ffffff;
+    --mq-surface-soft: #f8fafc;
+    --mq-text-primary: #0b1c33;
+    --mq-text-secondary: #5b6f88;
+    --mq-accent: #4f46e5;
+    --mq-accent-soft: #eef2ff;
+    --mq-accent-hover: #4338ca;
+    --mq-success: #10b981;
+    --mq-success-soft: #ecfdf5;
+    --mq-warning: #f59e0b;
+    --mq-warning-soft: #fef3c7;
+    --mq-danger: #ef4444;
+    --mq-purple: #8b5cf6;
+    --mq-purple-soft: #ede9fe;
+    --mq-border: #e2e8f0;
+    --mq-shadow-sm: 0 2px 8px rgba(0, 0, 0, .02), 0 4px 16px rgba(0, 0, 0, .02);
+    --mq-shadow-md: 0 8px 30px rgba(0, 0, 0, .06);
+    --mq-radius: 20px;
+    --mq-radius-sm: 14px;
+    --mq-radius-xs: 10px;
+    --mq-transition: all .2s cubic-bezier(.4, 0, .2, 1);
+}
+
+[data-theme="dark"] {
+    --mq-bg: #0b1120;
+    --mq-surface: #1e293b;
+    --mq-surface-soft: #0f172a;
+    --mq-text-primary: #f1f5f9;
+    --mq-text-secondary: #94a3b8;
+    --mq-accent: #818cf8;
+    --mq-accent-soft: #1e1b4b;
+    --mq-accent-hover: #a5b4fc;
+    --mq-success: #34d399;
+    --mq-success-soft: #064e3b;
+    --mq-warning: #fbbf24;
+    --mq-warning-soft: #78350f;
+    --mq-danger: #f87171;
+    --mq-purple: #a78bfa;
+    --mq-purple-soft: #4c1d95;
+    --mq-border: #334155;
+    --mq-shadow-sm: 0 2px 8px rgba(0, 0, 0, .3), 0 4px 16px rgba(0, 0, 0, .3);
+    --mq-shadow-md: 0 8px 30px rgba(0, 0, 0, .5);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        --mq-bg: #0b1120;
+        --mq-surface: #1e293b;
+        --mq-surface-soft: #0f172a;
+        --mq-text-primary: #f1f5f9;
+        --mq-text-secondary: #94a3b8;
+        --mq-accent: #818cf8;
+        --mq-accent-soft: #1e1b4b;
+        --mq-accent-hover: #a5b4fc;
+        --mq-success: #34d399;
+        --mq-success-soft: #064e3b;
+        --mq-warning: #fbbf24;
+        --mq-warning-soft: #78350f;
+        --mq-danger: #f87171;
+        --mq-purple: #a78bfa;
+        --mq-purple-soft: #4c1d95;
+        --mq-border: #334155;
+        --mq-shadow-sm: 0 2px 8px rgba(0, 0, 0, .3), 0 4px 16px rgba(0, 0, 0, .3);
+        --mq-shadow-md: 0 8px 30px rgba(0, 0, 0, .5);
+    }
+}
+
+/* =========================================================
+   GLOBAL RESET
+   ========================================================= */
+.mq-wrap,
+.mq-wrap * {
+    box-sizing: border-box;
+}
+
+.mq-wrap {
+    width: 100%;
     max-width: 1400px;
     margin: 0 auto;
     padding: 32px 28px;
-  }
+    color: var(--mq-text-primary);
+    background: var(--mq-bg);
+    min-height: 100vh;
+    transition: background .25s ease, color .25s ease;
+    overflow-x: hidden;
+}
 
-  /* ---------- Header ---------- */
-  .mq-header {
+/* =========================================================
+   HEADER
+   ========================================================= */
+.mq-header {
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
     gap: 20px;
     flex-wrap: wrap;
     margin-bottom: 26px;
-  }
+}
 
-  .mq-header h1 {
+.mq-header h1 {
     margin: 0 0 6px;
-    font-size: 1.75rem;
+    font-size: clamp(1.4rem, 2.6vw, 1.75rem);
     font-weight: 800;
     letter-spacing: -0.025em;
-    color: #0f172a;
-  }
+    color: var(--mq-text-primary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    line-height: 1.2;
+}
 
-  .mq-header p {
+.mq-header p {
     margin: 0;
-    color: #64748b;
+    color: var(--mq-text-secondary);
     font-size: .95rem;
-  }
+}
 
-  .mq-create {
+.mq-create {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
     padding: 12px 22px;
-    border-radius: 12px;
-    background: #4f46e5;
+    border-radius: 100px;
+    background: var(--mq-accent);
     color: #fff;
     font-weight: 600;
     font-size: .92rem;
     text-decoration: none;
     border: none;
+    cursor: pointer;
     box-shadow: 0 4px 14px rgba(79, 70, 229, .28);
-    transition: all .18s cubic-bezier(.4, 0, .2, 1);
-  }
+    transition: var(--mq-transition);
+    white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
 
-  .mq-create:hover {
-    background: #4338ca;
+.mq-create:hover,
+.mq-create:active {
+    background: var(--mq-accent-hover);
     color: #fff;
     transform: translateY(-2px);
     box-shadow: 0 10px 22px rgba(79, 70, 229, .35);
-  }
+}
 
-  /* ---------- Stat row ---------- */
-  .mq-stats {
+/* =========================================================
+   STATS
+   ========================================================= */
+.mq-stats {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 16px;
     margin-bottom: 24px;
-  }
+}
 
-  .mq-stat {
-    background: #fff;
-    border: 1px solid #e2e8f0;
-    border-radius: 16px;
+.mq-stat {
+    background: var(--mq-surface);
+    border: 1px solid var(--mq-border);
+    border-radius: var(--mq-radius-sm);
     padding: 18px 20px;
-    box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
-  }
+    box-shadow: var(--mq-shadow-sm);
+    transition: var(--mq-transition);
+}
 
-  .mq-stat-label {
+.mq-stat:hover {
+    border-color: var(--mq-accent);
+    transform: translateY(-2px);
+    box-shadow: var(--mq-shadow-md);
+}
+
+.mq-stat-label {
     font-size: .72rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: .08em;
-    color: #64748b;
+    color: var(--mq-text-secondary);
     margin-bottom: 6px;
-  }
+}
 
-  .mq-stat-value {
+.mq-stat-value {
     font-size: 1.6rem;
     font-weight: 800;
     letter-spacing: -0.02em;
-    background: linear-gradient(135deg, #4f46e5, #06b6d4);
+    background: linear-gradient(135deg, var(--mq-accent), #06b6d4);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
     color: transparent;
     line-height: 1;
-  }
+}
 
-  /* ---------- Search ---------- */
-  .mq-search {
+/* =========================================================
+   SEARCH
+   ========================================================= */
+.mq-search {
     position: relative;
     margin-bottom: 20px;
-  }
+}
 
-  .mq-search i {
+.mq-search i {
     position: absolute;
     left: 16px;
     top: 50%;
     transform: translateY(-50%);
-    color: #94a3b8;
+    color: var(--mq-text-secondary);
     font-size: 1.05rem;
     pointer-events: none;
-  }
+}
 
-  .mq-search input {
+.mq-search input {
     width: 100%;
     padding: 13px 16px 13px 44px;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
+    border: 1px solid var(--mq-border);
+    border-radius: var(--mq-radius-sm);
     font-size: .95rem;
     font-family: inherit;
-    color: #0f172a;
-    background: #fff;
-    transition: border-color .15s ease, box-shadow .15s ease;
+    color: var(--mq-text-primary);
+    background: var(--mq-surface);
+    transition: border-color .15s ease, box-shadow .15s ease, background .25s ease, color .25s ease;
     box-sizing: border-box;
-  }
+}
 
-  .mq-search input:focus {
+.mq-search input::placeholder {
+    color: var(--mq-text-secondary);
+    opacity: .7;
+}
+
+.mq-search input:focus {
     outline: none;
-    border-color: #4f46e5;
-    box-shadow: 0 0 0 3px rgba(79, 70, 229, .12);
-  }
+    border-color: var(--mq-accent);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, .18);
+}
 
-  /* ---------- Card / table ---------- */
-  .mq-card {
-    background: #fff;
-    border: 1px solid #e2e8f0;
-    border-radius: 18px;
-    box-shadow: 0 1px 2px rgba(15, 23, 42, .04),
-                0 8px 24px rgba(15, 23, 42, .04);
+/* =========================================================
+   CARD / DESKTOP TABLE
+   ========================================================= */
+.mq-card {
+    background: var(--mq-surface);
+    border: 1px solid var(--mq-border);
+    border-radius: var(--mq-radius);
+    box-shadow: var(--mq-shadow-sm);
     overflow: hidden;
-  }
+    transition: var(--mq-transition);
+}
 
-  .mq-table {
+.mq-card:hover {
+    box-shadow: var(--mq-shadow-md);
+}
+
+.mq-table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
     font-size: .92rem;
-  }
+}
 
-  .mq-table thead th {
-    background: #f8fafc;
-    color: #475569;
+.mq-table thead th {
+    background: var(--mq-surface-soft);
+    color: var(--mq-text-secondary);
     font-size: .72rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: .08em;
     padding: 14px 20px;
     text-align: left;
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid var(--mq-border);
     white-space: nowrap;
-  }
+}
 
-  .mq-table tbody td {
+.mq-table thead th:last-child {
+    text-align: right;
+}
+
+.mq-table tbody td {
     padding: 16px 20px;
-    border-bottom: 1px solid #f1f5f9;
-    color: #334155;
+    border-bottom: 1px solid var(--mq-border);
+    color: var(--mq-text-primary);
     vertical-align: middle;
-  }
+}
 
-  .mq-table tbody tr:last-child td {
+.mq-table tbody tr:last-child td {
     border-bottom: none;
-  }
+}
 
-  .mq-table tbody tr {
+.mq-table tbody tr {
     transition: background .15s ease;
-  }
+}
 
-  .mq-table tbody tr:hover {
-    background: #f8fafc;
-  }
+.mq-table tbody tr:hover {
+    background: var(--mq-surface-soft);
+}
 
-  .mq-title {
+.mq-title {
     font-weight: 650;
-    color: #0f172a;
+    color: var(--mq-text-primary);
     font-size: .95rem;
-  }
+}
 
-  .mq-subtle {
-    color: #64748b;
+.mq-subtle {
+    color: var(--mq-text-secondary);
     font-size: .88rem;
-  }
+}
 
-  .mq-badge {
+.mq-badge {
     display: inline-block;
     padding: 4px 12px;
     border-radius: 100px;
     font-size: .75rem;
     font-weight: 700;
-    background: #fef3c7;
-    color: #b45309;
-    border: 1px solid #fde68a;
-  }
+    background: var(--mq-warning-soft);
+    color: var(--mq-warning);
+    border: 1px solid transparent;
+}
 
-  /* ---------- Action buttons ---------- */
-  .mq-actions {
-    display: flex;
-    gap: 6px;
+/* =========================================================
+   ACTIONS — simple text links, no emojis
+   ========================================================= */
+.mq-actions {
+    display: inline-flex;
+    gap: 14px;
+    justify-content: flex-end;
+    align-items: center;
     flex-wrap: wrap;
-  }
+}
 
-  .mq-action {
+.mq-link {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    padding: 7px 12px;
-    border-radius: 8px;
-    font-size: .78rem;
+    padding: 0;
+    background: none;
+    border: none;
+    font-size: .82rem;
     font-weight: 600;
     text-decoration: none;
-    border: 1px solid transparent;
-    transition: all .15s ease;
+    cursor: pointer;
+    font-family: inherit;
+    transition: var(--mq-transition);
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    border-bottom: 1.5px solid transparent;
     white-space: nowrap;
-  }
+}
 
-  .mq-action i { font-size: .85rem; }
+.mq-link.view {
+    color: var(--mq-text-secondary);
+}
+.mq-link.view:hover,
+.mq-link.view:active {
+    color: var(--mq-text-primary);
+    border-bottom-color: var(--mq-text-primary);
+}
 
-  .mq-action.view {
-    background: #ecfdf5;
-    color: #047857;
-    border-color: #a7f3d0;
-  }
-  .mq-action.view:hover {
-    background: #10b981;
-    color: #fff;
-    border-color: #10b981;
-  }
+.mq-link.edit {
+    color: var(--mq-accent);
+}
+.mq-link.edit:hover,
+.mq-link.edit:active {
+    color: var(--mq-accent-hover);
+    border-bottom-color: var(--mq-accent-hover);
+}
 
-  .mq-action.edit {
-    background: #eff6ff;
-    color: #1d4ed8;
-    border-color: #bfdbfe;
-  }
-  .mq-action.edit:hover {
-    background: #2563eb;
-    color: #fff;
-    border-color: #2563eb;
-  }
-
-  .mq-action.delete {
-    background: #fef2f2;
+.mq-link.delete {
+    color: var(--mq-danger);
+}
+.mq-link.delete:hover,
+.mq-link.delete:active {
     color: #b91c1c;
-    border-color: #fecaca;
-  }
-  .mq-action.delete:hover {
-    background: #dc2626;
-    color: #fff;
-    border-color: #dc2626;
-  }
+    border-bottom-color: #b91c1c;
+}
 
-  /* ---------- Empty state ---------- */
-  .mq-empty {
+/* =========================================================
+   EMPTY STATE
+   ========================================================= */
+.mq-empty {
     padding: 70px 24px;
     text-align: center;
-    color: #64748b;
-  }
+    color: var(--mq-text-secondary);
+}
 
-  .mq-empty-icon {
+.mq-empty-icon {
     font-size: 2.6rem;
     display: block;
     margin-bottom: 14px;
-  }
+    opacity: .7;
+}
 
-  .mq-empty h3 {
+.mq-empty h3 {
     margin: 0 0 6px;
     font-size: 1.1rem;
     font-weight: 700;
-    color: #0f172a;
-  }
+    color: var(--mq-text-primary);
+}
 
-  .mq-empty p {
+.mq-empty p {
     margin: 0 0 20px;
     font-size: .9rem;
-  }
+}
 
-  /* ---------- Responsive: card layout on mobile ---------- */
-  @media (max-width: 900px) {
+/* =========================================================
+   MOBILE GRID (3 per row)
+   ========================================================= */
+.mq-mobile-grid {
+    display: none;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
 
+.quiz-tile {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 10px;
+    background: var(--mq-surface);
+    border: 1px solid var(--mq-border);
+    border-radius: var(--mq-radius-xs);
+    box-shadow: var(--mq-shadow-sm);
+    transition: var(--mq-transition);
+    min-width: 0;
+    overflow: hidden;
+}
+
+.quiz-tile:hover {
+    border-color: var(--mq-accent);
+    box-shadow: var(--mq-shadow-md);
+}
+
+.quiz-tile-icon {
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    border-radius: 8px;
+    background: var(--mq-accent-soft);
+    font-size: .9rem;
+    flex-shrink: 0;
+}
+
+.quiz-tile-title {
+    font-weight: 650;
+    font-size: .78rem;
+    color: var(--mq-text-primary);
+    line-height: 1.25;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+}
+
+/* Class + Subject side by side */
+.quiz-tile-tags {
+    display: flex;
+    gap: 4px;
+    flex-wrap: nowrap;
+    min-width: 0;
+}
+
+.quiz-tag {
+    min-width: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 3px 6px;
+    border-radius: 6px;
+    font-size: .6rem;
+    font-weight: 600;
+    line-height: 1.25;
+    background: var(--mq-surface-soft);
+    color: var(--mq-text-secondary);
+    border: 1px solid var(--mq-border);
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.quiz-tag.tag-class {
+    flex: 0 0 auto;
+    background: var(--mq-accent-soft);
+    color: var(--mq-accent-hover);
+    border-color: transparent;
+    white-space: nowrap;
+}
+
+.quiz-tag.tag-subject {
+    flex: 1 1 auto;
+    background: var(--mq-purple-soft);
+    color: var(--mq-purple);
+    border-color: transparent;
+}
+
+[data-theme="dark"] .quiz-tag.tag-subject {
+    background: #4c1d95;
+    color: #c4b5fd;
+}
+
+/* Quiz meta row: questions + duration */
+.quiz-tile-meta {
+    display: flex;
+    gap: 6px;
+    font-size: .58rem;
+    color: var(--mq-text-secondary);
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.quiz-tile-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 2px 5px;
+    border-radius: 5px;
+    background: var(--mq-surface-soft);
+    border: 1px solid var(--mq-border);
+}
+
+/* Actions — simple text links */
+.quiz-tile-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: auto;
+    padding-top: 6px;
+    border-top: 1px solid var(--mq-border);
+    font-size: .68rem;
+}
+
+.tile-link {
+    background: none;
+    border: none;
+    padding: 0;
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: var(--mq-transition);
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    border-bottom: 1px solid transparent;
+}
+
+.tile-link.view {
+    color: var(--mq-text-secondary);
+}
+.tile-link.view:hover,
+.tile-link.view:active {
+    color: var(--mq-text-primary);
+    border-bottom-color: var(--mq-text-primary);
+}
+
+.tile-link.edit {
+    color: var(--mq-accent);
+}
+.tile-link.edit:hover,
+.tile-link.edit:active {
+    color: var(--mq-accent-hover);
+    border-bottom-color: var(--mq-accent-hover);
+}
+
+.tile-link.delete {
+    color: var(--mq-danger);
+}
+.tile-link.delete:hover,
+.tile-link.delete:active {
+    color: #b91c1c;
+    border-bottom-color: #b91c1c;
+}
+
+/* =========================================================
+   RESPONSIVE — PHONE (≤700px)
+   ========================================================= */
+@media (max-width: 700px) {
     .mq-wrap {
-      padding: 20px 14px;
+        padding: 16px 14px;
+    }
+
+    .mq-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 14px;
+        margin-bottom: 20px;
     }
 
     .mq-header h1 {
-      font-size: 1.4rem;
+        font-size: 1.3rem;
     }
 
-    .mq-table,
-    .mq-table thead,
-    .mq-table tbody,
-    .mq-table tr,
-    .mq-table td {
-      display: block;
-      width: 100%;
+    .mq-header p {
+        font-size: .85rem;
     }
 
-    .mq-table thead {
-      display: none;
-    }
-
-    .mq-table tbody {
-      padding: 14px;
-    }
-
-    .mq-table tbody tr {
-      background: #fff;
-      border: 1px solid #e2e8f0;
-      border-radius: 14px;
-      padding: 14px 16px;
-      margin-bottom: 12px;
-      box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
-    }
-
-    .mq-table tbody tr:hover {
-      background: #fff;
-      border-color: #c7d2fe;
-    }
-
-    .mq-table tbody tr:last-child {
-      margin-bottom: 0;
-    }
-
-    .mq-table tbody td {
-      padding: 8px 0;
-      border: none;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      text-align: right;
-    }
-
-    .mq-table tbody td::before {
-      content: attr(data-label);
-      font-size: .72rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: .08em;
-      color: #64748b;
-      flex-shrink: 0;
-    }
-
-    .mq-actions {
-      justify-content: flex-end;
-      width: 100%;
-    }
-
-    .mq-action {
-      flex: 1;
-      justify-content: center;
-      min-width: 0;
-    }
-  }
-
-  @media (max-width: 480px) {
-    .mq-stats {
-      grid-template-columns: 1fr;
-    }
     .mq-create {
-      width: 100%;
-      justify-content: center;
+        justify-content: center;
+        width: 100%;
+        padding: 14px 20px;
+        font-size: .95rem;
     }
-  }
 
-  @media (prefers-reduced-motion: reduce) {
-    * {
-      transition: none !important;
-      animation: none !important;
+    .mq-card .mq-table {
+        display: none;
     }
-  }
+
+    .mq-card {
+        background: transparent;
+        border: none;
+        box-shadow: none;
+        border-radius: 0;
+    }
+
+    .mq-card:hover {
+        box-shadow: none;
+    }
+
+    .mq-mobile-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+    }
+
+    .mq-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+
+    .mq-stat {
+        padding: 12px 14px;
+    }
+
+    .mq-stat-value {
+        font-size: 1.2rem;
+    }
+
+    .mq-stat-label {
+        font-size: .62rem;
+    }
+
+    .mq-search input {
+        padding: 12px 14px 12px 40px;
+        font-size: 16px;
+    }
+}
+
+/* =========================================================
+   RESPONSIVE — SMALL PHONE (≤480px)
+   ========================================================= */
+@media (max-width: 480px) {
+    .mq-wrap {
+        padding: 14px 12px;
+    }
+
+    .mq-header h1 {
+        font-size: 1.2rem;
+    }
+
+    .mq-stats {
+        gap: 6px;
+    }
+
+    .mq-stat {
+        padding: 10px 12px;
+    }
+
+    .mq-stat-value {
+        font-size: 1rem;
+    }
+
+    .mq-stat-label {
+        font-size: .55rem;
+    }
+
+    .mq-mobile-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+    }
+
+    .quiz-tile {
+        padding: 10px 8px;
+        gap: 6px;
+    }
+
+    .quiz-tile-title {
+        font-size: .72rem;
+    }
+
+    .quiz-tag {
+        font-size: .56rem;
+        padding: 2px 5px;
+    }
+
+    .quiz-tile-meta {
+        font-size: .54rem;
+    }
+
+    .quiz-tile-actions {
+        font-size: .62rem;
+        gap: 8px;
+    }
+}
+
+/* =========================================================
+   RESPONSIVE — TINY PHONE (≤360px)
+   ========================================================= */
+@media (max-width: 360px) {
+    .mq-wrap {
+        padding: 12px 10px;
+    }
+
+    .mq-header h1 {
+        font-size: 1.1rem;
+    }
+
+    .mq-header p {
+        font-size: .78rem;
+    }
+
+    .mq-stats {
+        gap: 4px;
+    }
+
+    .mq-stat {
+        padding: 8px 10px;
+        border-radius: 10px;
+    }
+
+    .mq-stat-value {
+        font-size: .95rem;
+    }
+
+    .mq-stat-label {
+        font-size: .48rem;
+    }
+
+    .mq-mobile-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 5px;
+    }
+
+    .quiz-tile {
+        padding: 8px 6px;
+        gap: 5px;
+    }
+
+    .quiz-tile-icon {
+        width: 24px;
+        height: 24px;
+        font-size: .72rem;
+        border-radius: 6px;
+    }
+
+    .quiz-tile-title {
+        font-size: .66rem;
+    }
+
+    .quiz-tag {
+        font-size: .52rem;
+        padding: 2px 4px;
+        gap: 2px;
+    }
+
+    .quiz-tile-meta {
+        font-size: .5rem;
+    }
+
+    .quiz-tile-actions {
+        font-size: .58rem;
+        gap: 6px;
+    }
+}
+
+/* =========================================================
+   RESPONSIVE — EXTRA TINY (≤320px)
+   ========================================================= */
+@media (max-width: 320px) {
+    .mq-wrap {
+        padding: 10px 8px;
+    }
+
+    .mq-header h1 {
+        font-size: 1rem;
+    }
+
+    .mq-create {
+        padding: 10px 12px;
+        font-size: .82rem;
+        gap: 5px;
+    }
+
+    .mq-stat-value {
+        font-size: .85rem;
+    }
+
+    .mq-stat-label {
+        font-size: .44rem;
+    }
+
+    .mq-mobile-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 4px;
+    }
+
+    .quiz-tile {
+        padding: 6px 5px;
+        gap: 4px;
+    }
+
+    .quiz-tile-title {
+        font-size: .62rem;
+    }
+
+    .quiz-tag {
+        font-size: .48rem;
+        padding: 1px 3px;
+    }
+
+    .quiz-tile-actions {
+        font-size: .54rem;
+        gap: 5px;
+    }
+}
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        transition: none !important;
+        animation: none !important;
+    }
+}
 </style>
 
 
 <div class="mq-wrap">
 
-  <!-- =====================================================
-       HEADER
-  ====================================================== -->
-  <div class="mq-header">
-    <div>
-      <h1>❓ Manage Quizzes</h1>
-      <p>Create, edit and monitor quizzes across your classes.</p>
-    </div>
-
-    <a href="{% url 'create_quiz' %}" class="mq-create">
-      <i class="bi bi-plus-lg"></i>
-      Create Quiz
-    </a>
-  </div>
-
-
-  <!-- =====================================================
-       STATS
-  ====================================================== -->
-  <div class="mq-stats">
-
-    <div class="mq-stat">
-      <div class="mq-stat-label">Total Quizzes</div>
-      <div class="mq-stat-value">{{ quizzes|length }}</div>
-    </div>
-
-    <div class="mq-stat">
-      <div class="mq-stat-label">Showing</div>
-      <div class="mq-stat-value" id="visibleCount">{{ quizzes|length }}</div>
-    </div>
-
-  </div>
-
-
-  <!-- =====================================================
-       SEARCH
-  ====================================================== -->
-  <div class="mq-search">
-    <i class="bi bi-search"></i>
-    <input
-      type="text"
-      id="search"
-      placeholder="Search by quiz title, subject or class…"
-      autocomplete="off">
-  </div>
-
-
-  <!-- =====================================================
-       TABLE / CARD LIST
-  ====================================================== -->
-  <div class="mq-card">
-
-    {% if quizzes %}
-
-      <table class="mq-table" id="quizTable">
-        <thead>
-          <tr>
-            <th>Quiz</th>
-            <th>Subject</th>
-            <th>Class</th>
-            <th>Duration</th>
-            <th>Questions</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          {% for quiz in quizzes %}
-            <tr>
-              <td data-label="Quiz">
-                <span class="mq-title">{{ quiz.title }}</span>
-              </td>
-
-              <td data-label="Subject">
-                <span class="mq-subtle">
-                  {{ quiz.subject.name|default:quiz.subject }}
-                </span>
-              </td>
-
-              <td data-label="Class">
-                <span class="mq-subtle">{{ quiz.school_class }}</span>
-              </td>
-
-              <td data-label="Duration">
-                <span class="mq-subtle">
-                  {% if quiz.duration_minutes %}
-                    {{ quiz.duration_minutes }} min
-                  {% else %}
-                    —
-                  {% endif %}
-                </span>
-              </td>
-
-              <td data-label="Questions">
-                <span class="mq-badge">
-                  {{ quiz.questions.count }}
-                </span>
-              </td>
-
-              <td data-label="Actions">
-                <div class="mq-actions">
-                  <a href="{% url 'start_quiz' quiz.id %}"
-                     class="mq-action view"
-                     title="Preview as student">
-                    <i class="bi bi-eye-fill"></i>
-                    View
-                  </a>
-
-                  <a href="{% url 'edit_quiz' quiz.id %}"
-                     class="mq-action edit"
-                     title="Edit quiz and questions">
-                    <i class="bi bi-pencil-fill"></i>
-                    Edit
-                  </a>
-
-                  <a href="{% url 'delete_quiz' quiz.id %}"
-                     class="mq-action delete"
-                     title="Delete quiz">
-                    <i class="bi bi-trash-fill"></i>
-                    Delete
-                  </a>
-                </div>
-              </td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-
-    {% else %}
-
-      <div class="mq-empty">
-        <span class="mq-empty-icon">📭</span>
-        <h3>No quizzes yet</h3>
-        <p>Create your first quiz to get started.</p>
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
+    <div class="mq-header">
+        <div>
+            <h1>Manage Quizzes</h1>
+            <p>Create, edit and monitor quizzes across your classes.</p>
+        </div>
 
         <a href="{% url 'create_quiz' %}" class="mq-create">
-          <i class="bi bi-plus-lg"></i>
-          Create Quiz
+            Create Quiz
         </a>
-      </div>
+    </div>
 
-    {% endif %}
 
-  </div>
+    <!-- =====================================================
+         STATS
+    ====================================================== -->
+    <div class="mq-stats">
+        <div class="mq-stat">
+            <div class="mq-stat-label">Total Quizzes</div>
+            <div class="mq-stat-value">{{ quizzes|length }}</div>
+        </div>
+
+        <div class="mq-stat">
+            <div class="mq-stat-label">Showing</div>
+            <div class="mq-stat-value" id="visibleCount">{{ quizzes|length }}</div>
+        </div>
+    </div>
+
+
+    <!-- =====================================================
+         SEARCH
+    ====================================================== -->
+    <div class="mq-search">
+        <i class="bi bi-search"></i>
+        <input
+            type="text"
+            id="search"
+            placeholder="Search by quiz title, subject or class…"
+            autocomplete="off">
+    </div>
+
+
+    <!-- =====================================================
+         QUIZZES — DESKTOP TABLE + MOBILE GRID
+    ====================================================== -->
+    <div class="mq-card">
+
+        {% if quizzes %}
+
+            <!-- ---------- DESKTOP TABLE ---------- -->
+            <table class="mq-table" id="quizTable">
+                <thead>
+                    <tr>
+                        <th>Quiz</th>
+                        <th>Subject</th>
+                        <th>Class</th>
+                        <th>Duration</th>
+                        <th>Questions</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for quiz in quizzes %}
+                        <tr>
+                            <td data-label="Quiz">
+                                <span class="mq-title">{{ quiz.title }}</span>
+                            </td>
+
+                            <td data-label="Subject">
+                                <span class="mq-subtle">
+                                    {{ quiz.subject.name|default:quiz.subject }}
+                                </span>
+                            </td>
+
+                            <td data-label="Class">
+                                <span class="mq-subtle">{{ quiz.school_class.name|default:quiz.school_class }}</span>
+                            </td>
+
+                            <td data-label="Duration">
+                                <span class="mq-subtle">
+                                    {% if quiz.duration_minutes %}
+                                        {{ quiz.duration_minutes }} min
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </span>
+                            </td>
+
+                            <td data-label="Questions">
+                                <span class="mq-badge">
+                                    {{ quiz.questions.count }}
+                                </span>
+                            </td>
+
+                            <td data-label="Actions">
+                                <div class="mq-actions">
+                                    <a href="{% url 'preview_quiz' quiz.id %}"
+                                       class="mq-link view"
+                                       title="Preview as student">
+                                        View
+                                    </a>
+
+                                    <a href="{% url 'edit_quiz' quiz.id %}"
+                                       class="mq-link edit"
+                                       title="Edit quiz and questions">
+                                        Edit
+                                    </a>
+
+                                    <a href="{% url 'delete_quiz' quiz.id %}"
+                                       class="mq-link delete"
+                                       title="Delete quiz"
+                                       onclick="return confirm('Delete this quiz?');">
+                                        Delete
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+
+            <!-- ---------- MOBILE GRID (3 per row) ---------- -->
+            <div class="mq-mobile-grid">
+                {% for quiz in quizzes %}
+                    <div class="quiz-tile">
+
+                        <div class="quiz-tile-icon">Q</div>
+
+                        <div class="quiz-tile-title">{{ quiz.title }}</div>
+
+                        <div class="quiz-tile-tags">
+                            {% if quiz.school_class %}
+                                <span class="quiz-tag tag-class">
+                                    {{ quiz.school_class.name }}
+                                </span>
+                            {% endif %}
+                            {% if quiz.subject %}
+                                <span class="quiz-tag tag-subject">
+                                    {{ quiz.subject.name }}
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        <div class="quiz-tile-meta">
+                            <span>{{ quiz.questions.count }} Q</span>
+                            {% if quiz.duration_minutes %}
+                                <span>{{ quiz.duration_minutes }}m</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="quiz-tile-actions">
+                            <a href="{% url 'preview_quiz' quiz.id %}" class="tile-link view">
+                                View
+                            </a>
+                            <a href="{% url 'edit_quiz' quiz.id %}" class="tile-link edit">
+                                Edit
+                            </a>
+                            <a href="{% url 'delete_quiz' quiz.id %}"
+                               class="tile-link delete"
+                               onclick="return confirm('Delete this quiz?');">
+                                Delete
+                            </a>
+                        </div>
+
+                    </div>
+                {% endfor %}
+            </div>
+
+        {% else %}
+
+            <!-- ---------- EMPTY STATE ---------- -->
+            <div class="mq-empty">
+                <span class="mq-empty-icon">📭</span>
+                <h3>No quizzes yet</h3>
+                <p>Create your first quiz to get started.</p>
+
+                <a href="{% url 'create_quiz' %}" class="mq-create" style="display: inline-flex;">
+                    Create Quiz
+                </a>
+            </div>
+
+        {% endif %}
+
+    </div>
 
 </div>
 
 
 <script>
-  (function () {
-    const search = document.getElementById("search");
-    const table = document.getElementById("quizTable");
-    const visibleCount = document.getElementById("visibleCount");
+    (function () {
+        const search = document.getElementById("search");
+        const table = document.getElementById("quizTable");
+        const grid = document.querySelector(".mq-mobile-grid");
+        const visibleCount = document.getElementById("visibleCount");
 
-    if (!search || !table) return;
+        if (!search) return;
 
-    const rows = table.querySelectorAll("tbody tr");
+        const rows = table ? Array.from(table.querySelectorAll("tbody tr")) : [];
+        const tiles = grid ? Array.from(grid.querySelectorAll(".quiz-tile")) : [];
 
-    search.addEventListener("input", function () {
-      const q = this.value.trim().toLowerCase();
-      let visible = 0;
+        search.addEventListener("input", function () {
+            const q = this.value.trim().toLowerCase();
+            let visible = 0;
 
-      rows.forEach(function (row) {
-        const match = row.innerText.toLowerCase().includes(q);
-        row.style.display = match ? "" : "none";
-        if (match) visible++;
-      });
+            rows.forEach(function (row) {
+                const match = row.innerText.toLowerCase().includes(q);
+                row.style.display = match ? "" : "none";
+                if (match) visible++;
+            });
 
-      if (visibleCount) visibleCount.textContent = visible;
-    });
-  })();
+            tiles.forEach(function (tile) {
+                const match = tile.innerText.toLowerCase().includes(q);
+                tile.style.display = match ? "" : "none";
+            });
+
+            // Count visible based on which view is active
+            if (table && getComputedStyle(table).display !== "none") {
+                // desktop — already counted
+            } else {
+                visible = tiles.filter(t => t.style.display !== "none").length;
+            }
+
+            if (visibleCount) visibleCount.textContent = visible;
+        });
+    })();
 </script>
 
 {% endblock %}

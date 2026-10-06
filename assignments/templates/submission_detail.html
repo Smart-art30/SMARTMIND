@@ -1,21 +1,607 @@
-<h2>{{ submission.assignment.title }}</h2>
+{% extends "base.html" %}
+{% load static %}
 
-<h3>Student</h3>
-<p>{{ submission.student.get_full_name|default:submission.student.username }}</p>
+{% block title %}{{ submission.assignment.title }} · Submission | SmartMind{% endblock %}
 
-<h3>Answer</h3>
-<p>{{ submission.content }}</p>
+{% block content %}
 
-{% if submission.file %}
-<p>
-    <a href="{{ submission.file.url }}" target="_blank">
-        Download Attachment
-    </a>
-</p>
-<a
-    href="{% url 'download_submission_pdf' submission.id %}"
-    class="download"
->
-    📄 Download Student Submission
-</a>
-{% endif %}
+<style>
+/* =========================================================
+   DESIGN TOKENS — LIGHT (default)
+========================================================= */
+.sd-wrap {
+    --sd-surface: #ffffff;
+    --sd-surface-alt: #f8fafc;
+    --sd-surface-muted: #f1f5f9;
+    --sd-surface-hover: #f8fbff;
+
+    --sd-text: #0f172a;
+    --sd-text-body: #334155;
+    --sd-text-muted: #64748b;
+    --sd-text-soft: #94a3b8;
+
+    --sd-border: #e2e8f0;
+    --sd-border-soft: #f1f5f9;
+    --sd-border-hover: #93c5fd;
+
+    --sd-primary: #6366f1;
+    --sd-primary-hover: #4f46e5;
+    --sd-primary-soft: #eef2ff;
+    --sd-primary-text: #4f46e5;
+
+    --sd-success: #10b981;
+    --sd-success-soft: #d1fae5;
+    --sd-success-text: #065f46;
+
+    --sd-info-soft: #eff6ff;
+    --sd-info-border: #3b82f6;
+    --sd-info-text: #1e40af;
+
+    --sd-radius: 18px;
+    --sd-radius-sm: 14px;
+    --sd-radius-xs: 10px;
+
+    --sd-shadow-xs: 0 2px 6px rgba(15, 23, 42, .03);
+    --sd-shadow-sm: 0 4px 12px rgba(15, 23, 42, .05);
+    --sd-shadow: 0 10px 30px rgba(15, 23, 42, .06);
+
+    --sd-ease: cubic-bezier(.4, 0, .2, 1);
+
+    /* Full-width by default; constrained by media queries below */
+    width: 100%;
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 20px;
+    box-sizing: border-box;
+    color: var(--sd-text);
+    transition: color .3s var(--sd-ease);
+}
+
+/* =========================================================
+   DESIGN TOKENS — DARK
+========================================================= */
+[data-theme="dark"] .sd-wrap {
+    --sd-surface: #111827;
+    --sd-surface-alt: #1a2234;
+    --sd-surface-muted: #1f2937;
+    --sd-surface-hover: #1e293b;
+
+    --sd-text: #f1f5f9;
+    --sd-text-body: #e2e8f0;
+    --sd-text-muted: #94a3b8;
+    --sd-text-soft: #64748b;
+
+    --sd-border: #1f2937;
+    --sd-border-soft: #1e293b;
+    --sd-border-hover: rgba(129, 140, 248, .5);
+
+    --sd-primary: #818cf8;
+    --sd-primary-hover: #a5b4fc;
+    --sd-primary-soft: #1e1b4b;
+    --sd-primary-text: #a5b4fc;
+
+    --sd-success: #34d399;
+    --sd-success-soft: rgba(52, 211, 153, .14);
+    --sd-success-text: #6ee7b7;
+
+    --sd-info-soft: rgba(59, 130, 246, .1);
+    --sd-info-border: #60a5fa;
+    --sd-info-text: #bfdbfe;
+
+    --sd-shadow-xs: 0 2px 6px rgba(0, 0, 0, .3);
+    --sd-shadow-sm: 0 4px 12px rgba(0, 0, 0, .4);
+    --sd-shadow: 0 10px 30px rgba(0, 0, 0, .5);
+}
+
+/* =========================================================
+   HERO / ASSIGNMENT HEADER
+========================================================= */
+.sd-hero {
+    background: var(--sd-surface);
+    border: 1px solid var(--sd-border);
+    border-radius: var(--sd-radius);
+    padding: 28px 32px;
+    box-shadow: var(--sd-shadow);
+    margin-bottom: 22px;
+    position: relative;
+    overflow: hidden;
+    transition: background-color .3s var(--sd-ease),
+                border-color .3s var(--sd-ease),
+                box-shadow .3s var(--sd-ease);
+}
+
+.sd-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--sd-primary), #8b5cf6);
+}
+
+.sd-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--sd-primary-text);
+    background: var(--sd-primary-soft);
+    padding: 4px 12px;
+    border-radius: 100px;
+    margin-bottom: 12px;
+}
+
+.sd-hero h1 {
+    margin: 0 0 6px;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--sd-text);
+    letter-spacing: -0.02em;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+    transition: color .3s var(--sd-ease);
+}
+
+.sd-hero p {
+    margin: 0;
+    color: var(--sd-text-muted);
+    font-size: .92rem;
+    transition: color .3s var(--sd-ease);
+}
+
+/* =========================================================
+   STUDENT CARD
+========================================================= */
+.sd-student {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--sd-surface);
+    border: 1px solid var(--sd-border);
+    border-radius: var(--sd-radius-sm);
+    padding: 16px 20px;
+    margin-bottom: 22px;
+    box-shadow: var(--sd-shadow-xs);
+    transition: background-color .3s var(--sd-ease),
+                border-color .3s var(--sd-ease);
+}
+
+.sd-avatar {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--sd-primary), #8b5cf6);
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 1rem;
+    flex-shrink: 0;
+    letter-spacing: -0.02em;
+}
+
+[data-theme="dark"] .sd-avatar {
+    color: #0a0e1a;
+}
+
+.sd-student-info {
+    min-width: 0;
+}
+
+.sd-student-label {
+    font-size: .7rem;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--sd-text-muted);
+    margin-bottom: 3px;
+    transition: color .3s var(--sd-ease);
+}
+
+.sd-student-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--sd-text);
+    overflow-wrap: anywhere;
+    transition: color .3s var(--sd-ease);
+}
+
+/* =========================================================
+   SECTION CARD
+========================================================= */
+.sd-card {
+    background: var(--sd-surface);
+    border: 1px solid var(--sd-border);
+    border-radius: var(--sd-radius);
+    padding: 24px 28px;
+    box-shadow: var(--sd-shadow-sm);
+    margin-bottom: 22px;
+    transition: background-color .3s var(--sd-ease),
+                border-color .3s var(--sd-ease),
+                box-shadow .3s var(--sd-ease);
+}
+
+.sd-card-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: .8rem;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--sd-text-muted);
+    margin: 0 0 14px;
+    transition: color .3s var(--sd-ease);
+}
+
+.sd-card-title::before {
+    content: "";
+    width: 4px;
+    height: 16px;
+    border-radius: 100px;
+    background: linear-gradient(180deg, var(--sd-primary), #8b5cf6);
+    flex-shrink: 0;
+}
+
+.sd-content {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: var(--sd-text-body);
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    transition: color .3s var(--sd-ease);
+}
+
+/* =========================================================
+   ATTACHMENTS
+========================================================= */
+.sd-attachments {
+    display: grid;
+    gap: 10px;
+}
+
+.sd-attachment {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    border: 1px solid var(--sd-border);
+    border-radius: var(--sd-radius-xs);
+    background: var(--sd-surface-alt);
+    text-decoration: none;
+    color: inherit;
+    transition: all .2s var(--sd-ease);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.sd-attachment:hover {
+    border-color: var(--sd-border-hover);
+    background: var(--sd-surface-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--sd-shadow-xs);
+}
+
+.sd-attachment:active {
+    transform: translateY(0) scale(.99);
+}
+
+.sd-attachment-icon {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: var(--sd-primary-soft);
+    color: var(--sd-primary-text);
+    font-size: 1.15rem;
+    flex-shrink: 0;
+    transition: background-color .3s var(--sd-ease),
+                color .3s var(--sd-ease);
+}
+
+.sd-attachment-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.sd-attachment-name {
+    font-weight: 700;
+    font-size: .92rem;
+    color: var(--sd-text);
+    margin-bottom: 2px;
+    overflow-wrap: anywhere;
+    transition: color .3s var(--sd-ease);
+}
+
+.sd-attachment-hint {
+    font-size: .78rem;
+    color: var(--sd-text-muted);
+    transition: color .3s var(--sd-ease);
+}
+
+.sd-attachment-arrow {
+    font-size: 1.1rem;
+    color: var(--sd-text-soft);
+    flex-shrink: 0;
+    transition: color .2s var(--sd-ease),
+                transform .2s var(--sd-ease);
+}
+
+.sd-attachment:hover .sd-attachment-arrow {
+    color: var(--sd-primary);
+    transform: translateX(3px);
+}
+
+/* Primary "Download PDF" variant */
+.sd-attachment.primary {
+    background: var(--sd-primary-soft);
+    border-color: transparent;
+}
+
+.sd-attachment.primary .sd-attachment-icon {
+    background: var(--sd-primary);
+    color: #ffffff;
+}
+
+[data-theme="dark"] .sd-attachment.primary .sd-attachment-icon {
+    color: #0a0e1a;
+}
+
+.sd-attachment.primary .sd-attachment-name {
+    color: var(--sd-primary-text);
+}
+
+.sd-attachment.primary:hover {
+    border-color: var(--sd-primary);
+    box-shadow: 0 6px 18px rgba(99, 102, 241, .2);
+}
+
+/* =========================================================
+   RESPONSIVE — EDGE-TO-EDGE ON PHONES
+========================================================= */
+
+/* Tablets: narrow the outer gutter */
+@media (max-width: 1024px) {
+    .sd-wrap {
+        max-width: 100%;
+        padding: 18px 20px;
+        margin: 24px auto;
+    }
+}
+
+/* Phones: fill the screen edge-to-edge */
+@media (max-width: 640px) {
+    .sd-wrap {
+        /* Fill the viewport completely — no side margins, no rounded
+           outer padding — so cards touch the screen edges. */
+        max-width: 100%;
+        padding: 0;
+        margin: 0;
+        border-radius: 0;
+    }
+
+    .sd-hero,
+    .sd-student,
+    .sd-card {
+        /* Square off the outer corners since we're flush to the edges,
+           but keep internal spacing and the top accent bar. */
+        border-radius: 0;
+        border-left: 0;
+        border-right: 0;
+        margin-bottom: 12px;
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .sd-hero {
+        padding-top: 22px;
+        padding-bottom: 22px;
+    }
+
+    .sd-student {
+        padding-top: 14px;
+        padding-bottom: 14px;
+        border-radius: 0;
+    }
+
+    .sd-card {
+        padding-top: 18px;
+        padding-bottom: 18px;
+    }
+
+    /* Keep the first and last items flush without weird gaps */
+    .sd-hero:first-child {
+        margin-top: 0;
+    }
+
+    .sd-card:last-child {
+        margin-bottom: 0;
+    }
+
+    .sd-hero h1 {
+        font-size: 1.2rem;
+    }
+
+    .sd-hero p {
+        font-size: .85rem;
+    }
+
+    .sd-eyebrow {
+        font-size: .68rem;
+        padding: 3px 10px;
+        margin-bottom: 10px;
+    }
+
+    .sd-avatar {
+        width: 38px;
+        height: 38px;
+        font-size: .9rem;
+    }
+
+    .sd-student-name {
+        font-size: .95rem;
+    }
+
+    .sd-card-title {
+        font-size: .74rem;
+        margin-bottom: 12px;
+    }
+
+    .sd-content {
+        font-size: .95rem;
+        line-height: 1.65;
+    }
+
+    .sd-attachment {
+        padding: 12px 14px;
+        gap: 12px;
+        border-radius: 10px;
+    }
+
+    .sd-attachment-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 1rem;
+    }
+
+    .sd-attachment-name {
+        font-size: .88rem;
+    }
+
+    .sd-attachment-hint {
+        font-size: .72rem;
+    }
+}
+
+/* Small phones: tighten internal padding a touch */
+@media (max-width: 420px) {
+    .sd-hero {
+        padding-left: 14px;
+        padding-right: 14px;
+    }
+
+    .sd-hero h1 {
+        font-size: 1.1rem;
+    }
+
+    .sd-student,
+    .sd-card {
+        padding-left: 14px;
+        padding-right: 14px;
+    }
+
+    .sd-content {
+        font-size: .9rem;
+    }
+}
+
+/* =========================================================
+   LARGE DESKTOP
+========================================================= */
+@media (min-width: 1440px) {
+    .sd-wrap {
+        max-width: 1000px;
+        padding: 24px 28px;
+    }
+
+    .sd-hero {
+        padding: 32px 40px;
+    }
+
+    .sd-card {
+        padding: 28px 34px;
+    }
+
+    .sd-hero h1 {
+        font-size: 1.65rem;
+    }
+}
+
+@media (min-width: 1920px) {
+    .sd-wrap {
+        max-width: 1100px;
+    }
+}
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+@media (prefers-reduced-motion: reduce) {
+    .sd-wrap *,
+    .sd-wrap *::before,
+    .sd-wrap *::after {
+        transition: none !important;
+        animation: none !important;
+    }
+}
+</style>
+
+<div class="sd-wrap">
+
+  <!-- ============ HERO ============ -->
+  <div class="sd-hero">
+    <span class="sd-eyebrow">📄 Submission</span>
+    <h1>{{ submission.assignment.title }}</h1>
+    <p>Submitted work and attachments</p>
+  </div>
+
+  <!-- ============ STUDENT ============ -->
+  <div class="sd-student">
+    <div class="sd-avatar" aria-hidden="true">
+      {{ submission.student.get_full_name|default:submission.student.username|slice:":1"|upper }}
+    </div>
+    <div class="sd-student-info">
+      <div class="sd-student-label">Student</div>
+      <div class="sd-student-name">
+        {{ submission.student.get_full_name|default:submission.student.username }}
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ ANSWER ============ -->
+  <div class="sd-card">
+    <h2 class="sd-card-title">Answer</h2>
+    <div class="sd-content">{{ submission.content }}</div>
+  </div>
+
+  <!-- ============ ATTACHMENTS ============ -->
+  {% if submission.file %}
+    <div class="sd-card">
+      <h2 class="sd-card-title">Attachments</h2>
+      <div class="sd-attachments">
+
+        <a href="{{ submission.file.url }}"
+           target="_blank"
+           rel="noopener noreferrer"
+           class="sd-attachment">
+          <span class="sd-attachment-icon" aria-hidden="true">📎</span>
+          <span class="sd-attachment-body">
+            <span class="sd-attachment-name">
+              {{ submission.file.name|cut:"submissions/" }}
+            </span>
+            <span class="sd-attachment-hint">Open in a new tab</span>
+          </span>
+          <span class="sd-attachment-arrow" aria-hidden="true">→</span>
+        </a>
+
+        <a href="{% url 'download_submission_pdf' submission.id %}"
+           class="sd-attachment primary">
+          <span class="sd-attachment-icon" aria-hidden="true">📄</span>
+          <span class="sd-attachment-body">
+            <span class="sd-attachment-name">
+              Download Student Submission
+            </span>
+            <span class="sd-attachment-hint">PDF · formatted for review</span>
+          </span>
+          <span class="sd-attachment-arrow" aria-hidden="true">→</span>
+        </a>
+
+      </div>
+    </div>
+  {% endif %}
+
+</div>
+
+{% endblock %}

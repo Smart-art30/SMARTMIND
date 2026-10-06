@@ -458,7 +458,6 @@ def school_subjects(request, school_id):
         "subjects": subjects
     })
 
-
 @login_required
 def manage_assignments(request):
     user = request.user
@@ -466,19 +465,40 @@ def manage_assignments(request):
     if not (user.is_teacher or user.is_school_admin):
         return HttpResponseForbidden("Permission denied.")
 
+    # Everything that is NOT a quiz
+    base = Assignment.objects.exclude(assignment_type="quiz")
+
     if user.is_school_admin:
-        assignments = Assignment.objects.filter(
-            school_class__school=user.school
-        ).select_related("school_class", "subject", "teacher")
+        assignments = base.filter(school_class__school=user.school)
     else:
-        assignments = Assignment.objects.filter(
-            teacher=user
-        ).select_related("school_class", "subject", "teacher")
+        assignments = base.filter(teacher=user)
+
+    assignments = assignments.select_related(
+        "school_class", "subject", "teacher"
+    ).order_by("-created_at")
+
+    # ---- Stats for the header pills ----
+    quiz_qs = Assignment.objects.filter(assignment_type="quiz")
+    if user.is_school_admin:
+        quiz_qs = quiz_qs.filter(school_class__school=user.school)
+    else:
+        quiz_qs = quiz_qs.filter(teacher=user)
+
+    quiz_count = quiz_qs.count()
+
+    subject_count = (
+        assignments
+        .exclude(subject__isnull=True)
+        .values_list("subject", flat=True)
+        .distinct()
+        .count()
+    )
 
     return render(request, "manage_assignments.html", {
         "assignments": assignments,
+        "quiz_count": quiz_count,
+        "subject_count": subject_count,
     })
-
 
 @login_required
 def manage_quizzes(request):
@@ -543,23 +563,30 @@ def gradebook(request):
         "lowest": stats["lowest"] or 0,
     })
 
-
 @login_required
 def create_assignment(request):
+    if request.user.role != "teacher":
+        return HttpResponseForbidden("Only teachers can create assignments.")
+
     if request.method == "POST":
         form = AssignmentForm(request.POST, request.FILES)
-
         if form.is_valid():
             assignment = form.save(commit=False)
             assignment.teacher = request.user
+            # Do NOT force assignment_type — the form handles it
             assignment.save()
+            messages.success(request, "Assignment created successfully.")
             return redirect("manage_assignments")
+        else:
+            print("Assignment form errors:", form.errors)
     else:
         form = AssignmentForm()
 
     return render(request, "create_assignment.html", {
         "form": form,
     })
+
+
 @login_required
 def create_quiz(request):
     # ---------- Permission ----------
@@ -918,3 +945,81 @@ def delete_quiz(request, pk):
         return redirect("manage_quizzes")
 
     return render(request, "delete_quiz.html", {"quiz": quiz})
+
+
+
+@login_required
+def edit_assignment(request, pk):
+    if request.user.role != "teacher":
+        return HttpResponseForbidden("Only teachers can edit assignments.")
+
+    assignment = get_object_or_404(
+        Assignment,
+        pk=pk,
+        teacher=request.user,
+    )
+    if assignment.assignment_type == "quiz":
+        return HttpResponseForbidden("Use the quiz editor for quizzes.")
+
+    if request.method == "POST":
+        form = AssignmentForm(request.POST, request.FILES, instance=assignment)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Assignment updated.")
+            return redirect("manage_assignments")
+    else:
+        form = AssignmentForm(instance=assignment)
+
+    return render(request, "edit_assignment.html", {
+        "form": form,
+        "assignment": assignment,
+    })
+
+
+@login_required
+def delete_assignment(request, pk):
+    if request.user.role != "teacher":
+        return HttpResponseForbidden("Only teachers can delete assignments.")
+
+    assignment = get_object_or_404(
+        Assignment,
+        pk=pk,
+        teacher=request.user,
+    )
+    if assignment.assignment_type == "quiz":
+        return HttpResponseForbidden("Use the quiz delete view for quizzes.")
+
+    if request.method == "POST":
+        title = assignment.title
+        assignment.delete()
+        messages.success(request, f'Assignment "{title}" deleted.')
+        return redirect("manage_assignments")
+
+    return render(request, "delete_assignment.html", {
+        "assignment": assignment,
+    })
+
+@login_required
+def preview_quiz(request, pk):
+    if request.user.role not in ("teacher", "school_admin"):
+        return HttpResponseForbidden("Only teachers can preview quizzes.")
+
+    quiz = get_object_or_404(
+        Assignment,
+        pk=pk,
+        assignment_type="quiz",
+    )
+
+   
+    if request.user.role == "teacher" and quiz.teacher != request.user:
+        return HttpResponseForbidden("You can only preview your own quizzes.")
+
+    if request.user.role == "school_admin" and quiz.school_class.school != request.user.school:
+        return HttpResponseForbidden("You can only preview quizzes in your school.")
+
+    questions = quiz.questions.all()
+
+    return render(request, "preview_quiz.html", {
+        "quiz": quiz,
+        "questions": questions,
+    })

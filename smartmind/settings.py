@@ -197,3 +197,159 @@ cloudinary.config(
     api_secret=config("CLOUDINARY_API_SECRET"),
     secure=True,
 )
+
+
+CKEDITOR_5_CONFIGS = {
+    # ---------- Microsoft Word / Google Docs style ----------
+    "word_like": {
+        "toolbar": [
+            "heading",
+            "|",
+            "fontFamily",
+            "fontSize",
+            "fontColor",
+            "fontBackgroundColor",
+            "|",
+            "bold",
+            "italic",
+            "underline",
+            "strikethrough",
+            "subscript",
+            "superscript",
+            "code",
+            "|",
+            "alignment",
+            "|",
+            "bulletedList",
+            "numberedList",
+            "todoList",
+            "outdent",
+            "indent",
+            "|",
+            "link",
+            "blockQuote",
+            "insertTable",
+            "uploadImage",
+            "mediaEmbed",
+            "horizontalLine",
+            "|",
+            "specialCharacters",
+            "removeFormat",
+            "|",
+            "sourceEditing",
+            "|",
+            "undo",
+            "redo",
+             "|",
+                "specialCharacters",   
+                "|",
+        ],
+        "heading": {
+            "options": [
+                {
+                    "model": "paragraph",
+                    "title": "Paragraph",
+                    "class": "ck-heading_paragraph",
+                },
+                {
+                    "model": "heading1",
+                    "view": "h1",
+                    "title": "Heading 1",
+                    "class": "ck-heading_heading1",
+                },
+                {
+                    "model": "heading2",
+                    "view": "h2",
+                    "title": "Heading 2",
+                    "class": "ck-heading_heading2",
+                },
+                {
+                    "model": "heading3",
+                    "view": "h3",
+                    "title": "Heading 3",
+                    "class": "ck-heading_heading3",
+                },
+                {
+                    "model": "heading4",
+                    "view": "h4",
+                    "title": "Heading 4",
+                    "class": "ck-heading_heading4",
+                },
+            ]
+        },
+        "fontSize": {
+            "options": [10, 11, 12, "default", 14, 16, 18, 20, 22, 24, 28, 32, 36]
+        },
+        "fontFamily": {
+            "options": [
+                "default",
+                "Arial, Helvetica, sans-serif",
+                "Courier New, Courier, monospace",
+                "Georgia, serif",
+                "Lucida Sans Unicode, Lucida Grande, sans-serif",
+                "Tahoma, Geneva, sans-serif",
+                "Times New Roman, Times, serif",
+                "Trebuchet MS, Helvetica, sans-serif",
+                "Verdana, Geneva, sans-serif",
+            ]
+        },
+        "alignment": {
+            "options": ["left", "center", "right", "justify"]
+        },
+        "table": {
+            "contentToolbar": [
+                "tableColumn",
+                "tableRow",
+                "mergeTableCells",
+                "tableProperties",
+                "tableCellProperties",
+            ]
+        },
+        "list": {
+            "properties": {
+                "styles": True,
+                "startIndex": True,
+                "reversed": True,
+            }
+        },
+        "image": {
+            "toolbar": [
+                "imageStyle:inline",
+                "imageStyle:block",
+                "imageStyle:side",
+                "|",
+                "toggleImageCaption",
+                "imageTextAlternative",
+                "|",
+                "linkImage",
+            ]
+        },
+        "language": "en",
+        "height": 500,
+        "width": "100%",
+        "htmlSupport": {
+            "allow": [
+                {"name": "/.*/", "attributes": True, "classes": True, "styles": True}
+            ]
+        },
+    },
+
+    # ---------- Keep a "default" as a fallback ----------
+    "default": {
+        "toolbar": [
+            "heading", "|",
+            "bold", "italic", "underline", "link",
+            "bulletedList", "numberedList",
+            "|", "undo", "redo",
+        ],
+        "height": 300,
+        "width": "100%",
+    },
+}
+
+
+MAX_DOCUMENT_SIZE = 200 * 1024 * 1024   
+MAX_IMAGE_SIZE    = 10  * 1024 * 1024  
+MAX_VIDEO_SIZE    = 200 * 1024 * 1024   
+DATA_UPLOAD_MAX_MEMORY_SIZE = 250 * 1024 * 1024   
+FILE_UPLOAD_MAX_MEMORY_SIZE = 250 * 1024 * 1024   
