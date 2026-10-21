@@ -75,6 +75,8 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "accounts.middleware.ApprovalMiddleware",
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -353,3 +355,9 @@ MAX_IMAGE_SIZE    = 10  * 1024 * 1024
 MAX_VIDEO_SIZE    = 200 * 1024 * 1024   
 DATA_UPLOAD_MAX_MEMORY_SIZE = 250 * 1024 * 1024   
 FILE_UPLOAD_MAX_MEMORY_SIZE = 250 * 1024 * 1024   
+
+
+AUTHENTICATION_BACKENDS = [
+    "accounts.backends.ApprovalBackend",
+    "django.contrib.auth.backends.ModelBackend", 
+]

@@ -11,6 +11,13 @@ from .models import TeacherRole, TeacherPermission, TeachingAssignment
 User = get_user_model()
 
 
+# ---------------------------------------------------------------
+# Roles that a member of the public may pick at self-registration.
+# "superadmin" is deliberately omitted — nobody can self-escalate.
+# ---------------------------------------------------------------
+SELF_SERVICE_ROLES = ("student", "teacher", "parent", "school_admin")
+
+
 class CustomUserCreationForm(UserCreationForm):
     school = forms.ModelChoiceField(
         queryset=School.objects.all(),
@@ -24,7 +31,9 @@ class CustomUserCreationForm(UserCreationForm):
         queryset=TeacherRole.objects.none(),
         required=False,
     )
-    role = forms.ChoiceField(choices=User.ROLE_CHOICES)
+    role = forms.ChoiceField(
+        choices=[(r, r.replace("_", " ").title()) for r in SELF_SERVICE_ROLES],
+    )
     admission_number = forms.CharField(required=False)
     employee_number = forms.CharField(required=False)
     tsc_number = forms.CharField(required=False)
@@ -59,6 +68,7 @@ class CustomUserCreationForm(UserCreationForm):
         self.fields["password1"].widget.attrs["placeholder"] = "Password"
         self.fields["password2"].widget.attrs["placeholder"] = "Confirm Password"
 
+        # ---- dependent querysets (unchanged) ----
         if "school" in self.data:
             try:
                 school_id = int(self.data.get("school"))
@@ -88,6 +98,30 @@ class CustomUserCreationForm(UserCreationForm):
                 ).order_by("name")
             )
 
+    # -----------------------------------------------------------
+    # Field-level uniqueness checks
+    # -----------------------------------------------------------
+    def clean_email(self):
+        email = (self.cleaned_data.get("email") or "").strip().lower()
+        if email and User.objects.filter(email__iexact=email).exists():
+            raise forms.ValidationError("An account with this email already exists.")
+        return email
+
+    def clean_admission_number(self):
+        val = (self.cleaned_data.get("admission_number") or "").strip()
+        if val and User.objects.filter(admission_number__iexact=val).exists():
+            raise forms.ValidationError("This admission number is already registered.")
+        return val or None
+
+    def clean_employee_number(self):
+        val = (self.cleaned_data.get("employee_number") or "").strip()
+        if val and User.objects.filter(employee_number__iexact=val).exists():
+            raise forms.ValidationError("This employee number is already registered.")
+        return val or None
+
+    # -----------------------------------------------------------
+    # Cross-field validation (your original logic + role whitelist)
+    # -----------------------------------------------------------
     def clean(self):
         cleaned_data = super().clean()
 
@@ -103,6 +137,11 @@ class CustomUserCreationForm(UserCreationForm):
         cleaned_data["employee_number"] = employee_number or None
         cleaned_data["admission_number"] = admission_number or None
         cleaned_data["tsc_number"] = tsc_number or None
+
+        # 🔒 Role whitelist — cannot be "superadmin" or any other value
+        if role not in SELF_SERVICE_ROLES:
+            self.add_error("role", "That role cannot be self-assigned.")
+            return cleaned_data
 
         if school and school_class and school_class.school != school:
             self.add_error(
@@ -152,6 +191,45 @@ class CustomUserCreationForm(UserCreationForm):
             cleaned_data["tsc_number"] = None
 
         return cleaned_data
+
+    # -----------------------------------------------------------
+    # save() — the security-critical part
+    # -----------------------------------------------------------
+    def save(self, commit=True):
+        user = super().save(commit=False)
+
+        # 🔒 Hard-set privilege flags — cannot be set by the form/POST
+        user.is_superuser = False
+        user.is_staff = False
+        user.is_active = True
+
+        role = self.cleaned_data["role"]
+
+        # Students are auto-approved; teacher/parent/school_admin wait for superadmin.
+        if role == "student":
+            user.is_approved = True
+        else:
+            user.is_approved = False
+
+        # Teacher signup needs a teacher_role because User.clean() requires it.
+        # Use a "Pending Approval" placeholder; the superadmin will reassign
+        # the real role when they approve the account.
+        if role == "teacher" and not user.teacher_role and user.school:
+            pending_role, _ = TeacherRole.objects.get_or_create(
+                school=user.school,
+                name="Pending Approval",
+                defaults={
+                    "description": (
+                        "Auto-created for teacher signup. "
+                        "Superadmin must reassign a real role on approval."
+                    ),
+                },
+            )
+            user.teacher_role = pending_role
+
+        if commit:
+            user.save()
+        return user
 
 
 class TeacherForm(forms.ModelForm):

@@ -75,7 +75,9 @@ MAX_DOCUMENT_SIZE = getattr(
     "MAX_DOCUMENT_SIZE",
     200 * 1024 * 1024,
 )
-
+import io
+from django.http import FileResponse, Http404
+from .watermark import watermark_pdf
 
 # ============================================================
 # FORMS
@@ -575,10 +577,127 @@ def post_detail(request, slug):
 
     return render(request, "post_detail.html", context)
 
+# ============================================================
+# DOWNLOAD ATTACHMENT (with Smarmind watermark)
+# ============================================================
 
-# ============================================================
-# CATEGORY POSTS
-# ============================================================
+import requests  # add this to the top of views.py with the other imports
+def _read_file_bytes(file_field, extension=""):
+    """
+    Read raw bytes from a FileField supporting:
+      - local filesystem storage
+      - remote storage (Cloudinary, S3)
+      - Cloudinary raw uploads missing their extension
+
+    `extension` should be passed WITHOUT the dot (e.g. "pdf", "txt").
+    """
+    # 1) Try the normal Django way first (local FS storage)
+    try:
+        with file_field.open("rb") as fh:
+            return fh.read()
+    except (OSError, IOError, NotImplementedError):
+        pass
+
+    # 2) HTTP fallback (Cloudinary, S3, etc.)
+    url = file_field.url
+
+    # --- Cloudinary quirk: raw uploads often drop the extension.
+    # If the URL has no file extension and we know what it should be,
+    # append it before fetching.
+    if extension:
+        ext_lower = extension.lower().lstrip(".")
+        if not url.lower().endswith("." + ext_lower):
+            # Only append if the URL doesn't already end with ANY extension
+            # (avoid doubling like .pdf.pdf)
+            if not url.lower().rsplit("/", 1)[-1].count("."):
+                url = url + "." + ext_lower
+
+    response = requests.get(url, timeout=30)
+    response.raise_for_status()
+    return response.content
+
+
+@login_required
+def download_attachment(request, pk):
+    """
+    Stream a PostAttachment to the learner.
+
+    - PDFs are watermarked with "Smarmind" on the fly.
+    - TXT files get a header line.
+    - Other formats are served unmodified.
+    """
+
+    doc = get_object_or_404(
+        PostAttachment.objects.select_related("post"),
+        pk=pk,
+    )
+
+    post = doc.post
+
+    # --- Permission check ---
+    if not post.visible_to_all:
+        if not request.user.is_superuser:
+            role = getattr(request.user, "role", None)
+            is_staff_viewer = role in ("school_admin", "teacher")
+
+            allowed = (
+                is_staff_viewer
+                or post.target_classes.filter(
+                    students=request.user
+                ).exists()
+            )
+            if not allowed:
+                raise Http404
+
+    ext = (doc.extension or "").lower()
+    original = doc.original_name or f"document.{ext}"
+
+    # ---------- PDF: watermark ----------
+    if ext == "pdf":
+        pdf_bytes = _read_file_bytes(doc.file, extension=ext)
+
+        label = f"Smarmind · {request.user.username}"
+        marked = watermark_pdf(pdf_bytes, label=label)
+
+        response = FileResponse(
+            marked,
+            as_attachment=True,
+            filename=original,
+            content_type="application/pdf",
+        )
+        response["Cache-Control"] = "private, no-store"
+        return response
+
+    # ---------- TXT: prepend a header ----------
+    if ext == "txt":
+        body_bytes = _read_file_bytes(doc.file, extension=ext)
+        body = body_bytes.decode("utf-8", errors="ignore")
+
+        header = (
+            f"----- Smarmind -----\n"
+            f"Downloaded by: {request.user.username}\n"
+            f"Source: {post.title}\n"
+            f"---------------------\n\n"
+        )
+        data = (header + body).encode("utf-8")
+
+        response = FileResponse(
+            io.BytesIO(data),
+            as_attachment=True,
+            filename=original,
+            content_type="text/plain",
+        )
+        response["Cache-Control"] = "private, no-store"
+        return response
+
+    # ---------- Everything else: redirect to Cloudinary ----------
+    # Instead of streaming through Django (which would need to fetch
+    # the whole file again), just redirect the browser to the direct
+    # Cloudinary URL. This is faster and avoids proxy buffering.
+    from django.shortcuts import redirect
+    return redirect(doc.file.url)
+
+
 
 def category_post(request, slug):
 
@@ -907,6 +1026,10 @@ def post_react(request, slug):
 # ============================================================
 # ADD POST
 # ============================================================
+import logging
+import time
+logger = logging.getLogger(__name__)
+
 
 @login_required
 @require_http_methods(["GET", "POST"])
@@ -934,6 +1057,10 @@ def add_post(request):
             uploaded_images = request.FILES.getlist("images")
             uploaded_docs = request.FILES.getlist("attachments")
 
+            # -----------------------------------------
+            # VALIDATE IMAGES
+            # -----------------------------------------
+
             for image in uploaded_images:
 
                 if not is_valid_image(image):
@@ -952,13 +1079,17 @@ def add_post(request):
                     messages.error(
                         request,
                         f'Image "{image.name}" exceeds '
-                        f"{settings.MAX_IMAGE_SIZE // (1024*1024)}MB limit."
+                        f"{settings.MAX_IMAGE_SIZE // (1024 * 1024)}MB limit."
                     )
                     return render(
                         request,
                         "add_post.html",
                         {"form": form},
                     )
+
+            # -----------------------------------------
+            # VALIDATE DOCUMENTS
+            # -----------------------------------------
 
             for doc in uploaded_docs:
 
@@ -979,13 +1110,17 @@ def add_post(request):
                     messages.error(
                         request,
                         f'Document "{doc.name}" exceeds '
-                        f"{MAX_DOCUMENT_SIZE // (1024*1024)}MB limit."
+                        f"{MAX_DOCUMENT_SIZE // (1024 * 1024)}MB limit."
                     )
                     return render(
                         request,
                         "add_post.html",
                         {"form": form},
                     )
+
+            # -----------------------------------------
+            # VALIDATE VIDEO
+            # -----------------------------------------
 
             if "video" in request.FILES:
 
@@ -1007,7 +1142,7 @@ def add_post(request):
                     messages.error(
                         request,
                         f"Video exceeds "
-                        f"{settings.MAX_VIDEO_SIZE // (1024*1024)}MB limit."
+                        f"{settings.MAX_VIDEO_SIZE // (1024 * 1024)}MB limit."
                     )
                     return render(
                         request,
@@ -1015,23 +1150,60 @@ def add_post(request):
                         {"form": form},
                     )
 
+            # -----------------------------------------
+            # SAVE POST AND MEASURE PERFORMANCE
+            # -----------------------------------------
+
             try:
 
+                total_start = time.perf_counter()
+
                 with transaction.atomic():
+
+                    # Save the main post
+                    step_start = time.perf_counter()
 
                     post = form.save(commit=False)
                     post.author = request.user
                     post.save()
+
+                    logger.info(
+                        "POST TIMING: post.save() took %.2f seconds",
+                        time.perf_counter() - step_start,
+                    )
+
+                    # Save tags and other many-to-many fields
+                    step_start = time.perf_counter()
+
                     form.save_m2m()
 
+                    logger.info(
+                        "POST TIMING: form.save_m2m() took %.2f seconds",
+                        time.perf_counter() - step_start,
+                    )
+
+                    # Save gallery images
                     for position, image in enumerate(uploaded_images):
+
+                        step_start = time.perf_counter()
+
                         PostImage.objects.create(
                             post=post,
                             image=image,
                             position=position,
                         )
 
+                        logger.info(
+                            "POST TIMING: image '%s' took %.2f seconds",
+                            image.name,
+                            time.perf_counter() - step_start,
+                        )
+
+                    # Save document attachments
                     for position, doc in enumerate(uploaded_docs):
+
+                        step_start = time.perf_counter()
+
                         PostAttachment.objects.create(
                             post=post,
                             file=doc,
@@ -1039,17 +1211,36 @@ def add_post(request):
                             position=position,
                         )
 
+                        logger.info(
+                            "POST TIMING: document '%s' took %.2f seconds",
+                            doc.name,
+                            time.perf_counter() - step_start,
+                        )
+
+                logger.info(
+                    "POST TIMING: all saves and transaction took %.2f seconds",
+                    time.perf_counter() - total_start,
+                )
+
                 messages.success(
                     request,
                     f'Post "{post.title}" created successfully!'
                 )
+
                 return redirect("blog:home")
 
-            except Exception as e:
+            except Exception:
+
+                logger.exception(
+                    "Error creating post"
+                )
+
                 messages.error(
                     request,
-                    f"Error creating post: {str(e)}"
+                    "An error occurred while creating the post. "
+                    "Please check the server logs."
                 )
+
                 return render(
                     request,
                     "add_post.html",
@@ -1058,8 +1249,14 @@ def add_post(request):
 
         else:
 
+            # -----------------------------------------
+            # DISPLAY FORM VALIDATION ERRORS
+            # -----------------------------------------
+
             for field, errors in form.errors.items():
+
                 for error in errors:
+
                     messages.error(
                         request,
                         f"{field}: {error}"
@@ -1074,8 +1271,6 @@ def add_post(request):
         "add_post.html",
         {"form": form}
     )
-
-
 # ============================================================
 # EDIT POST
 # ============================================================

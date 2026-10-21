@@ -6,6 +6,7 @@ from django.template.defaultfilters import slugify
 import uuid
 import os
 from .storage import PostDocumentStorage
+from cloudinary.models import CloudinaryField
 
 
 User = get_user_model()
@@ -139,12 +140,12 @@ class Post(models.Model):
 
     
 
-    video = models.FileField(
-        upload_to="videos/",
-        blank=True,
-        null=True
-    )
-
+    video = CloudinaryField(
+    resource_type='video',
+    folder='videos/',
+    blank=True,
+    null=True,
+)
     youtube_url = models.URLField(
         blank=True,
         null=True

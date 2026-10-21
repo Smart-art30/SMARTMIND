@@ -5,9 +5,11 @@ from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.db.models import Avg
+from django.db.models import Q
 from django.utils import timezone
 from django.utils.text import slugify
-
+from django.core.paginator import Paginator
+from collections import OrderedDict
 from .models import (
     TeacherPermission,
     TeachingAssignment,
@@ -74,16 +76,12 @@ def get_blog_context():
 # ============================================================
 # LOGIN
 # ============================================================
-
 def user_login(request):
-
     if request.method == "POST":
-
         username_or_email = request.POST.get("username", "").strip()
         password = request.POST.get("password", "")
 
         user = None
-
         try:
             user_obj = User.objects.get(email=username_or_email)
             user = authenticate(
@@ -99,46 +97,52 @@ def user_login(request):
             )
 
         if user is not None:
+            if not user.is_active:
+                messages.warning(
+                    request,
+                    "Your account is inactive. Contact the school administrator.",
+                )
+                return render(request, "login.html", {
+                    "login_failed": True,
+                    "form": {"username": username_or_email},
+                })
 
-            if user.is_active:
+            # 🔒 Pending accounts cannot log in (superusers bypass)
+            if not user.is_superuser and not user.is_approved:
+                messages.warning(
+                    request,
+                    "Your account is awaiting superadmin approval. "
+                    "You will be able to sign in once it is approved.",
+                )
+                return render(request, "login.html", {
+                    "login_failed": True,
+                    "form": {"username": username_or_email},
+                })
 
-                login(request, user)
+            login(request, user)
 
-                if user.role == "student":
-                    messages.success(
-                        request,
-                        "Welcome learner. Your classes and assignments are ready."
-                    )
-                elif user.role == "teacher":
-                    messages.success(
-                        request,
-                        "Welcome teacher. Your teaching dashboard is ready."
-                    )
-                elif user.role == "school_admin":
-                    messages.success(
-                        request,
-                        "Welcome administrator. School management tools are ready."
-                    )
-                elif user.role == "parent":
-                    messages.success(
-                        request,
-                        "Welcome parent. You can now monitor learner progress."
-                    )
+            if user.role == "student":
+                messages.success(request, "Welcome learner. Your classes and assignments are ready.")
+            elif user.role == "teacher":
+                messages.success(request, "Welcome teacher. Your teaching dashboard is ready.")
+            elif user.role == "school_admin":
+                messages.success(request, "Welcome administrator. School management tools are ready.")
+            elif user.role == "parent":
+                messages.success(request, "Welcome parent. You can now monitor learner progress.")
 
-                if user.is_superuser:
-                    return redirect("/admin/")
+            if user.is_superuser:
+                return redirect("/admin/")
 
-                return redirect("dashboard")
+            return redirect("dashboard")
 
-            messages.warning(
-                request,
-                "Your account is inactive. Contact the school administrator."
-            )
-        else:
-            messages.error(
-                request,
-                "Invalid username or password. Please enter the correct login details."
-            )
+        messages.error(
+            request,
+            "Invalid username or password. Please enter the correct login details.",
+        )
+        return render(request, "login.html", {
+            "login_failed": True,
+            "form": {"username": username_or_email},
+        })
 
     return render(request, "login.html")
 
@@ -146,43 +150,53 @@ def user_login(request):
 # ============================================================
 # REGISTRATION
 # ============================================================
-
 def register(request):
-
     if request.method == "POST":
-
         form = CustomUserCreationForm(request.POST)
-
         if form.is_valid():
-
             user = form.save(commit=False)
+
+            # 🚨 Your User.clean() requires employee_number & teacher_role for teachers.
+            #    New teachers don't have a teacher_role yet → give them a sensible default
+            #    or use a "Pending Teacher" role, otherwise save() will raise.
+            if user.role == "teacher" and not user.teacher_role and user.school:
+                pending_role, _ = TeacherRole.objects.get_or_create(
+                    school=user.school,
+                    name="Pending Approval",
+                    defaults={"description": "Auto-created for teacher signup; superadmin must reassign."},
+                )
+                user.teacher_role = pending_role
+
             user.save()
 
-            # Student self-enrollment → PENDING for admin approval
+            # Student → create a PENDING enrollment record for admin approval
             if user.role == "student" and user.school_class:
-
                 Enrollment.objects.get_or_create(
                     student=user,
                     school_class=user.school_class,
                     defaults={"status": "PENDING"},
                 )
+                login(request, user)
+                messages.success(
+                    request,
+                    "Account created successfully. "
+                    "Your enrollment is awaiting admin approval.",
+                )
+                return redirect("dashboard")
 
-            login(request, user)
-
-            messages.success(
+            # Teacher / Parent / School Admin → wait for superadmin approval
+            messages.info(
                 request,
-                "Account created successfully. "
-                "Your enrollment is awaiting admin approval."
+                "Your account request has been submitted. "
+                "A superadmin must approve it before you can sign in.",
             )
-
-            return redirect("dashboard")
+            return redirect("login")
 
         print("REGISTER ERRORS:", form.errors)
         return render(request, "register.html", {"form": form})
 
     form = CustomUserCreationForm()
     return render(request, "register.html", {"form": form})
-
 
 # ============================================================
 # LOAD CLASSES
@@ -891,18 +905,109 @@ def teacher_permission_list(request):
 # STUDENT LIST
 # ============================================================
 
+
+
+
 @login_required
 def student_list(request):
+    school = request.user.school
 
-    students = User.objects.filter(
-        role="student",
-        school=request.user.school,
-    ).select_related("school_class")
+    qs = (
+        User.objects
+        .filter(role="student", school=school)
+        .select_related("school_class")
+        .prefetch_related("enrollments")
+        .order_by(
+            "school_class__order",
+            "school_class__name",
+            "first_name",
+            "last_name",
+            "username",
+        )
+    )
+
+    # ---------- filters ----------
+    q = request.GET.get("q", "").strip()
+    class_filter = request.GET.get("class", "").strip()
+    status_filter = request.GET.get("status", "").strip()
+
+    if q:
+        qs = qs.filter(
+            Q(first_name__icontains=q)
+            | Q(last_name__icontains=q)
+            | Q(username__icontains=q)
+            | Q(admission_number__icontains=q)
+            | Q(email__icontains=q)
+        )
+
+    if class_filter:
+        if class_filter == "unassigned":
+            qs = qs.filter(school_class__isnull=True)
+        else:
+            qs = qs.filter(school_class_id=class_filter)
+
+    if status_filter == "active":
+        qs = qs.filter(is_active=True)
+    elif status_filter == "inactive":
+        qs = qs.filter(is_active=False)
+    elif status_filter == "pending":
+        qs = qs.filter(enrollments__status="PENDING").distinct()
+    elif status_filter == "unassigned":
+        qs = qs.filter(school_class__isnull=True)
+
+    # ---------- pagination ----------
+    paginator = Paginator(qs, 25)
+    page_obj = paginator.get_page(request.GET.get("page"))
+
+    # ---------- 🆕 group by class (for this page only) ----------
+    grouped = OrderedDict()
+    for student in page_obj.object_list:
+        grouped.setdefault(student.school_class, []).append(student)
+
+    # None ("Unassigned") goes last; others ordered by class.order/name
+    class_groups = sorted(
+        grouped.items(),
+        key=lambda kv: (
+            kv[0] is None,
+            kv[0].order if kv[0] else 0,
+            kv[0].name if kv[0] else "",
+        ),
+    )
+
+    # ---------- stats ----------
+    total_students      = User.objects.filter(school=school, role="student").count()
+    active_students     = User.objects.filter(school=school, role="student", is_active=True).count()
+    pending_students    = User.objects.filter(
+        school=school, role="student", enrollments__status="PENDING"
+    ).distinct().count()
+    unassigned_students = User.objects.filter(
+        school=school, role="student", school_class__isnull=True
+    ).count()
+
+    all_classes = (
+        SchoolClass.objects
+        .filter(school=school, is_active=True)
+        .order_by("order", "name")
+    )
 
     return render(
         request,
         "student_list.html",
-        {"students": students},
+        {
+            "students": page_obj.object_list,  
+            "class_groups": class_groups,     
+            "page_obj": page_obj,
+            "paginator": paginator,
+            "q": q,
+            "class_filter": class_filter,
+            "status_filter": status_filter,
+            "all_classes": all_classes,
+            "total_students": total_students,
+            "active_students": active_students,
+            "pending_students": pending_students,
+            "unassigned_students": unassigned_students,
+            "pending_count": pending_students,
+        },
     )
 
 

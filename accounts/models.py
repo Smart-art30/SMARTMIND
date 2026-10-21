@@ -78,21 +78,76 @@ class User(AbstractUser):
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 
+    is_approved = models.BooleanField(
+        default=False,
+        db_index=True,
+        help_text=(
+            "False for teacher/parent/school_admin until a superadmin approves. "
+            "Students are auto-approved in clean()."
+        ),
+    )
+    # NOTE: default=timezone.now (not auto_now_add) so you can reset the
+    # timestamp on re-request, in tests, and via fixtures.
+    approval_requested_at = models.DateTimeField(default=timezone.now)
+    approved_by = models.ForeignKey(
+        "self",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="approved_users",
+    )
+
+    # ------------------------------------------------------------------
+    # Validation
+    # ------------------------------------------------------------------
     def clean(self):
         super().clean()
 
+        # Superusers bypass every rule.
         if self.is_superuser:
             return
 
+        # Detect role change (existing user) so we can reset approval.
+        role_changed = False
+        if self.pk:
+            previous = (
+                type(self)
+                .objects.filter(pk=self.pk)
+                .values_list("role", flat=True)
+                .first()
+            )
+            if previous is not None and previous != self.role:
+                role_changed = True
+
+        # ---- Approval rules -----------------------------------------
+        if self.role == "student":
+            # Students are always auto-approved.
+            self.is_approved = True
+            self.approved_by = None
+        elif not self.pk or role_changed:
+            # Brand-new non-student account, OR role changed to a
+            # privileged role → must wait for superadmin approval again.
+            self.is_approved = False
+            self.approved_by = None
+            self.approval_requested_at = timezone.now()
+
+        # ---- Role-specific field rules ------------------------------
         if self.role == "teacher":
             if not self.employee_number:
-                raise ValidationError({"employee_number": "Teachers must have an employee number."})
+                raise ValidationError(
+                    {"employee_number": "Teachers must have an employee number."}
+                )
             if not self.teacher_role:
-                raise ValidationError({"teacher_role": "Teachers must have a teacher role."})
+                raise ValidationError(
+                    {"teacher_role": "Teachers must have a teacher role."}
+                )
 
         if self.role == "student" and not self.admission_number:
-            raise ValidationError({"admission_number": "Students must have an admission number."})
+            raise ValidationError(
+                {"admission_number": "Students must have an admission number."}
+            )
 
+        # Only teachers may hold a teacher_role.
         if self.role != "teacher":
             self.teacher_role = None
 
@@ -100,15 +155,33 @@ class User(AbstractUser):
         self.full_clean()
         super().save(*args, **kwargs)
 
+    # ------------------------------------------------------------------
+    # Convenience permission helpers
+    # ------------------------------------------------------------------
     def can_create_assignments(self):
-        return bool(self.is_teacher and self.teacher_permissions and self.teacher_permissions.can_create_assignments)
+        return bool(
+            self.is_teacher
+            and self.teacher_permissions
+            and self.teacher_permissions.can_create_assignments
+        )
 
     def can_add_resources(self):
-        return bool(self.is_teacher and self.teacher_permissions and self.teacher_permissions.can_add_resources)
+        return bool(
+            self.is_teacher
+            and self.teacher_permissions
+            and self.teacher_permissions.can_add_resources
+        )
 
     def can_enter_marks(self):
-        return bool(self.is_teacher and self.teacher_permissions and self.teacher_permissions.can_enter_marks)
+        return bool(
+            self.is_teacher
+            and self.teacher_permissions
+            and self.teacher_permissions.can_enter_marks
+        )
 
+    # ------------------------------------------------------------------
+    # Properties
+    # ------------------------------------------------------------------
     @property
     def full_name(self):
         return self.get_full_name() or self.username
@@ -175,7 +248,11 @@ class TeachingAssignment(models.Model):
         if self.teacher and self.school and self.teacher.school != self.school:
             raise ValidationError("Teacher does not belong to this school.")
 
-        if self.school_class and self.school and self.school_class.school != self.school:
+        if (
+            self.school_class
+            and self.school
+            and self.school_class.school != self.school
+        ):
             raise ValidationError("Class does not belong to this school.")
 
     def save(self, *args, **kwargs):
