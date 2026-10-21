@@ -1354,20 +1354,17 @@
                                     <i class="bi {{ doc.icon_class }}"></i>
                                 </div>
                                 <div class="doc-info">
-                                    <a href="{{ doc.file.url }}"
-                                       target="_blank"
-                                       rel="noopener"
-                                       class="doc-name">
+                                   <a href="{% url 'blog:download_attachment' doc.id %}"
+                                    class="doc-name">
                                         {{ doc.original_name }}
                                     </a>
                                     <small class="doc-meta">
                                         .{{ doc.extension }} &middot; {{ doc.size_display }}
                                     </small>
                                 </div>
-                                <a href="{{ doc.file.url }}"
-                                   download
-                                   class="doc-download"
-                                   aria-label="Download {{ doc.original_name }}">
+                              <a href="{% url 'blog:download_attachment' doc.id %}"
+                                class="doc-download"
+                                aria-label="Download {{ doc.original_name }}">
                                     <i class="bi bi-download"></i>
                                 </a>
                             </div>

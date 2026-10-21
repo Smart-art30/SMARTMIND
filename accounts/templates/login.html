@@ -85,7 +85,7 @@
   }
 
   /* ============================================
-     BOOK — opening on load, then page-flipping
+     BOOK — opening on load
   ============================================ */
   .book {
     position: relative;
@@ -197,8 +197,6 @@
     transform-origin: right center;
     animation: rightCoverOpen 1.4s cubic-bezier(0.22, 0.61, 0.36, 1) 0.15s both;
     overflow: visible;
-    perspective: 1800px;
-    perspective-origin: left center;
   }
 
   @keyframes leftCoverOpen {
@@ -290,7 +288,6 @@
     animation: fadeInScale 1s ease-out 1.5s both;
   }
 
-  /* === YOUR ORIGINAL IMAGE — untouched visually, now fluid === */
   .login-image {
     width: 100%;
     max-width: 100%;
@@ -317,84 +314,6 @@
     to   { opacity: 1; transform: scale(1); }
   }
 
-  /* Pages */
-  .page-stage {
-    position: relative;
-    width: 100%;
-    min-height: 520px;
-    transform-style: preserve-3d;
-  }
-
-  .page {
-    position: absolute;
-    inset: 0;
-    padding: 0;
-    transform-style: preserve-3d;
-    backface-visibility: hidden;
-    transform-origin: left center;
-    transition:
-      transform 1.05s cubic-bezier(0.65, 0, 0.35, 1),
-      opacity 0.6s ease 0.15s;
-    will-change: transform, opacity;
-  }
-
-  .page-1 {
-    z-index: 2;
-    transform: rotateY(0deg);
-    opacity: 1;
-  }
-
-  .page-2 {
-    z-index: 1;
-    transform: rotateY(-180deg);
-    opacity: 0;
-  }
-
-  .right-panel.on-page-2 .page-1 {
-    transform: rotateY(180deg);
-    opacity: 0;
-    z-index: 1;
-  }
-  .right-panel.on-page-2 .page-2 {
-    transform: rotateY(0deg);
-    opacity: 1;
-    z-index: 2;
-  }
-
-  .page::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      to right,
-      rgba(0,0,0,0.14) 0%,
-      rgba(0,0,0,0.04) 14%,
-      transparent 26%
-    );
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.6s ease;
-    border-radius: inherit;
-  }
-  .page-flipping .page-1::after,
-  .page-flipping .page-2::after {
-    opacity: 1;
-  }
-
-  .page-number {
-    position: absolute;
-    bottom: -34px;
-    right: 0;
-    font-size: 0.78rem;
-    font-weight: 600;
-    color: var(--muted-color);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    opacity: 0.7;
-  }
-  .page-1 .page-number { left: 0; right: auto; }
-  .page-2 .page-number { right: 0; left: auto; }
-
   /* Right panel typography */
   .right-panel h2 {
     font-size: clamp(1.8rem, 3vw, 2.5rem);
@@ -405,8 +324,7 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
-  .right-panel > p,
-  .page > p {
+  .right-panel > p {
     color: var(--muted-color);
     margin-top: 0.25rem;
   }
@@ -794,9 +712,8 @@
   }
   .d-flex a:hover { border-bottom-color: #1d4ed8; }
 
-  /* Buttons */
-  .btn-login,
-  .btn-continue {
+  /* Login button — base */
+  .btn-login {
     width: 100%;
     margin-top: 1.5rem;
     padding: 1rem;
@@ -819,8 +736,7 @@
     justify-content: center;
     gap: 0.75rem;
   }
-  .btn-login::after,
-  .btn-continue::after {
+  .btn-login::after {
     content: "";
     position: absolute;
     top: 0; left: -100%;
@@ -828,25 +744,53 @@
     background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
     transition: left 0.6s ease;
   }
-  .btn-login:hover,
-  .btn-continue:hover {
+  .btn-login:hover {
     background-position: right center;
     transform: translateY(-2px);
     box-shadow: 0 18px 30px -8px rgba(37, 99, 235, 0.5);
   }
-  .btn-login:hover::after,
-  .btn-continue:hover::after { left: 100%; }
-  .btn-login:active,
-  .btn-continue:active { transform: translateY(0); }
+  .btn-login:hover::after { left: 100%; }
+  .btn-login:active { transform: translateY(0); }
+  .btn-login:disabled { cursor: not-allowed; }
 
-  /* SUCCESS state (thumbs up) */
+  /* All inner states hidden by default */
+  .btn-login .btn-text,
+  .btn-login .btn-loading,
+  .btn-login .btn-feedback,
+  .btn-login .btn-feedback-error { display: none; }
+
+  /* Default: show text */
+  .btn-login:not(.loading):not(.success):not(.error) .btn-text {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  /* LOADING state — shows while submitting, before server responds */
+  .btn-login.loading {
+    background: linear-gradient(105deg, #2563eb, #3b82f6, #2563eb);
+    background-size: 200% auto;
+    animation: loadingPulse 1.2s ease-in-out infinite;
+    cursor: progress;
+    pointer-events: none;
+  }
+  .btn-login.loading .btn-loading {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    animation: popIn 0.35s ease-out;
+  }
+  @keyframes loadingPulse {
+    0%, 100% { box-shadow: 0 10px 20px -8px rgba(37,99,235,0.4); }
+    50%      { box-shadow: 0 10px 24px -4px rgba(37,99,235,0.7); }
+  }
+
+  /* SUCCESS state — only shown when server confirms correct credentials */
   .btn-login.success {
     background: linear-gradient(105deg, #16a34a, #22c55e, #16a34a);
     background-size: 200% auto;
     box-shadow: 0 10px 20px -8px rgba(34, 197, 94, 0.5);
     pointer-events: none;
   }
-  .btn-login.success .btn-text { display: none; }
   .btn-login.success .btn-feedback {
     display: inline-flex;
     align-items: center;
@@ -854,23 +798,19 @@
     animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
-  /* ERROR state (thumbs down) */
+  /* ERROR state — shown when server rejects credentials */
   .btn-login.error {
     background: linear-gradient(105deg, #dc2626, #ef4444, #dc2626);
     background-size: 200% auto;
     box-shadow: 0 10px 20px -8px rgba(239, 68, 68, 0.5);
     animation: buttonErrorShake 0.5s ease-in-out;
   }
-  .btn-login.error .btn-text { display: none; }
   .btn-login.error .btn-feedback-error {
     display: inline-flex;
     align-items: center;
     gap: 0.6rem;
     animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
-
-  .btn-login .btn-feedback,
-  .btn-login .btn-feedback-error { display: none; }
 
   .btn-login .btn-feedback i {
     font-size: 1.3rem;
@@ -896,25 +836,6 @@
     60% { transform: translateX(-5px); }
     80% { transform: translateX(5px); }
   }
-
-  /* Back button */
-  .btn-back {
-    background: transparent;
-    color: var(--muted-color);
-    border: 1.5px solid var(--input-border);
-    margin-top: 0.6rem;
-    box-shadow: none;
-    font-size: 0.9rem;
-    padding: 0.75rem;
-  }
-  .btn-back:hover {
-    background: var(--input-bg);
-    color: var(--text-color);
-    border-color: #cbd5e1;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 14px -8px rgba(0,0,0,0.1);
-  }
-  .btn-back i { font-size: 0.85rem; }
 
   /* Divider */
   .divider {
@@ -1001,8 +922,7 @@
   .alert-message.info    { background:#dbeafecc; color:#1e40af; border-color:#93c5fd; }
 
   /* ============================================
-     RESPONSIVE — image always stays on the left
-     Layout stays two-column at every width.
+     RESPONSIVE
   ============================================ */
   @media (max-width: 992px) {
     .auth-wrapper {
@@ -1061,14 +981,7 @@
 
     .auth-card::before { display: block; }
 
-    .right-panel { perspective: 1800px; perspective-origin: left center; }
-    .page { transform-origin: left center; }
-    .page-2 { transform: rotateY(-180deg); }
-    .right-panel.on-page-2 .page-1 { transform: rotateY(180deg); opacity: 0; z-index: 1; }
-    .right-panel.on-page-2 .page-2 { transform: rotateY(0deg); opacity: 1; z-index: 2; }
-
     .right-panel h2 { font-size: clamp(1.4rem, 3vw, 2rem); }
-    .page-stage { min-height: 460px; }
 
     .field-shell { height: 50px; }
     .form-control { padding: 0 1rem 0 3.6rem; font-size: 0.92rem; }
@@ -1112,14 +1025,13 @@
     .theme-toggle button { width: 30px; height: 30px; font-size: 0.9rem; }
 
     .right-panel h2 { font-size: 1.15rem; }
-    .page > p { font-size: 0.78rem; }
+    .right-panel > p { font-size: 0.78rem; }
 
     .field-shell { height: 44px; border-radius: 0.75rem; }
     .form-control { padding: 0 0.8rem 0 3.2rem; font-size: 0.85rem; }
     .walker-3d { width: 20px; height: 20px; }
 
-    .btn-login,
-    .btn-continue {
+    .btn-login {
       margin-top: 1rem;
       padding: 0.75rem;
       font-size: 0.85rem;
@@ -1140,9 +1052,6 @@
     .btn-social i { font-size: 1rem; }
 
     .text-center { font-size: 0.75rem; margin-top: 1rem; }
-
-    .page-stage { min-height: 400px; }
-    .page-number { font-size: 0.65rem; bottom: -26px; }
   }
 
   @media (max-width: 480px) {
@@ -1157,21 +1066,18 @@
     .login-image { max-height: 110px; border-radius: 0.75rem; }
 
     .right-panel h2 { font-size: 1rem; }
-    .page > p { font-size: 0.7rem; }
+    .right-panel > p { font-size: 0.7rem; }
 
     .field-shell { height: 40px; }
     .form-control { padding: 0 0.6rem 0 2.8rem; font-size: 0.78rem; }
     .walker-3d { width: 16px; height: 16px; bottom: 1px; left: 0.4rem; }
 
-    .btn-login,
-    .btn-continue { padding: 0.65rem; font-size: 0.78rem; }
+    .btn-login { padding: 0.65rem; font-size: 0.78rem; }
 
     .btn-social { font-size: 0.72rem; padding: 0.55rem 0.6rem; }
     .btn-social i { font-size: 0.9rem; }
 
     .theme-toggle button { width: 26px; height: 26px; font-size: 0.8rem; }
-
-    .page-stage { min-height: 360px; }
   }
 
   @media (min-width: 1800px) {
@@ -1191,13 +1097,13 @@
     .book,
     .left-panel,
     .right-panel,
-    .page,
     .walker-3d,
     .walker-3d .human,
     .human-arm,
     .human-leg,
     .walker-3d::after,
-    .btn-login.error {
+    .btn-login.error,
+    .btn-login.loading {
       animation: none !important;
       transition: none !important;
     }
@@ -1224,7 +1130,6 @@
         </div>
 
         <div class="illustration">
-          <!-- === YOUR ORIGINAL IMAGE — untouched === -->
           <img src="{% static 'images/login-illustration.png' %}"
                alt="Login Illustration"
                class="login-image">
@@ -1236,10 +1141,10 @@
         </blockquote>
       </div>
 
-      <!-- RIGHT COVER — holds the two pages -->
-      <div class="right-panel {% if login_failed %}on-page-2{% endif %}" id="rightPanel">
+      <!-- RIGHT COVER — single page with both fields -->
+      <div class="right-panel" id="rightPanel">
 
-        <!-- SINGLE-BUTTON THEME TOGGLE -->
+        <!-- THEME TOGGLE -->
         <div class="theme-toggle">
           <button type="button"
                   id="themeToggleBtn"
@@ -1251,139 +1156,115 @@
           </button>
         </div>
 
-        <form method="post" action="{% url 'login' %}" id="loginForm">
+        <form method="post" action="{% url 'login' %}" id="loginForm" novalidate>
           {% csrf_token %}
 
-          <div class="page-stage">
+          <h2>Login</h2>
+          <p>Enter your credentials to sign in.</p>
 
-            <!-- PAGE 1 — Username -->
-            <section class="page page-1" id="page1" aria-label="Page 1 of 2">
-              <h2>Login</h2>
-              <p>Let's start with your username.</p>
+          {% if messages %}
+            {% for message in messages %}
+              <div class="alert-message {{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
 
-              <div class="field-animate" id="usernameField">
-                <label for="username">Username or Email</label>
-
-                <div class="field-shell">
-                  <div class="walker-scene" aria-hidden="true">
-                    <div class="walker-3d">
-                      <div class="human">
-                        <div class="human-arm back"></div>
-                        <div class="human-leg back"></div>
-                        <div class="human-head"></div>
-                        <div class="human-torso"></div>
-                        <div class="human-leg front"></div>
-                        <div class="human-arm front"></div>
-                      </div>
-                    </div>
+          <!-- USERNAME FIELD -->
+          <div class="field-animate {% if login_failed %}field-active{% endif %}" id="usernameField">
+            <label for="username">Username or Email</label>
+            <div class="field-shell">
+              <div class="walker-scene" aria-hidden="true">
+                <div class="walker-3d">
+                  <div class="human">
+                    <div class="human-arm back"></div>
+                    <div class="human-leg back"></div>
+                    <div class="human-head"></div>
+                    <div class="human-torso"></div>
+                    <div class="human-leg front"></div>
+                    <div class="human-arm front"></div>
                   </div>
-
-                  <input type="text" id="username" name="username" class="form-control"
-                         placeholder="Enter your username or email"
-                         autocomplete="username" required
-                         value="{{ form.username.value|default:'' }}">
                 </div>
               </div>
-
-              <button type="button" class="btn-continue" id="continueBtn">
-                Continue <i class="fas fa-arrow-right" style="font-size: 0.85rem;"></i>
-              </button>
-
-              <p class="text-center" style="margin-top: 1rem;">
-                Don't have an account? <a href="{% url 'register' %}">Sign up</a>
-              </p>
-
-              <span class="page-number">Page 1 / 2</span>
-            </section>
-
-            <!-- PAGE 2 — Password + submit -->
-            <section class="page page-2" id="page2" aria-label="Page 2 of 2">
-              <h2>Almost there</h2>
-              <p>Now enter your password to sign in.</p>
-
-              {% if messages %}
-                {% for message in messages %}
-                  <div class="alert-message {{ message.tags }}">
-                    {{ message }}
-                  </div>
-                {% endfor %}
-              {% endif %}
-
-              <div class="field-animate {% if login_failed %}field-error field-active{% endif %}" id="passwordField">
-                <label for="id_password">Password</label>
-
-                <div class="field-shell">
-                  <div class="walker-scene" aria-hidden="true">
-                    <div class="walker-3d">
-                      <div class="human">
-                        <div class="human-arm back"></div>
-                        <div class="human-leg back"></div>
-                        <div class="human-head"></div>
-                        <div class="human-torso"></div>
-                        <div class="human-leg front"></div>
-                        <div class="human-arm front"></div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <input type="password"
-                         name="password"
-                         id="id_password"
-                         class="form-control"
-                         placeholder="Enter your password"
-                         autocomplete="current-password" required>
-
-                  <button type="button"
-                          class="password-toggle"
-                          data-toggle-password="id_password"
-                          aria-label="Show password"
-                          aria-pressed="false"
-                          title="Show password">
-                    <i class="fas fa-eye icon-eye"></i>
-                    <i class="fas fa-eye-slash icon-eye-off" style="display: none;"></i>
-                  </button>
-                </div>
-              </div>
-
-              <div class="d-flex">
-                <small><input type="checkbox" name="remember_me"> Remember me</small>
-                <a href="#">Forgot?</a>
-              </div>
-
-              <button type="submit"
-                      class="btn-login {% if login_failed %}error{% endif %}"
-                      id="loginBtn">
-                <span class="btn-text">Login</span>
-
-                <span class="btn-feedback">
-                  <i class="fas fa-thumbs-up"></i>
-                  <i class="fas fa-check-circle"></i>
-                  Success!
-                </span>
-
-                <span class="btn-feedback-error">
-                  <i class="fas fa-thumbs-down"></i>
-                  Try again
-                </span>
-              </button>
-
-              <button type="button" class="btn-continue btn-back" id="backBtn">
-                <i class="fas fa-arrow-left"></i> Back
-              </button>
-
-              <span class="page-number">Page 2 / 2</span>
-            </section>
-
+              <input type="text" id="username" name="username" class="form-control"
+                     placeholder="Enter your username or email"
+                     autocomplete="username" required
+                     value="{{ form.username.value|default:'' }}">
+            </div>
           </div>
+
+          <!-- PASSWORD FIELD -->
+          <div class="field-animate {% if login_failed %}field-error field-active{% endif %}" id="passwordField">
+            <label for="id_password">Password</label>
+            <div class="field-shell">
+              <div class="walker-scene" aria-hidden="true">
+                <div class="walker-3d">
+                  <div class="human">
+                    <div class="human-arm back"></div>
+                    <div class="human-leg back"></div>
+                    <div class="human-head"></div>
+                    <div class="human-torso"></div>
+                    <div class="human-leg front"></div>
+                    <div class="human-arm front"></div>
+                  </div>
+                </div>
+              </div>
+              <input type="password"
+                     name="password"
+                     id="id_password"
+                     class="form-control"
+                     placeholder="Enter your password"
+                     autocomplete="current-password" required>
+              <button type="button"
+                      class="password-toggle"
+                      data-toggle-password="id_password"
+                      aria-label="Show password"
+                      aria-pressed="false"
+                      title="Show password">
+                <i class="fas fa-eye icon-eye"></i>
+                <i class="fas fa-eye-slash icon-eye-off" style="display: none;"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="d-flex">
+            <small><input type="checkbox" name="remember_me"> Remember me</small>
+            <a href="#">Forgot?</a>
+          </div>
+
+          <!-- LOGIN BUTTON — 4 states: normal / loading / success / error -->
+          <button type="submit"
+                  class="btn-login {% if login_failed %}error{% elif login_success %}success{% endif %}"
+                  id="loginBtn"
+                  {% if login_success %}disabled{% endif %}>
+            <span class="btn-text">Login</span>
+
+            <span class="btn-loading">
+              <i class="fas fa-spinner fa-spin"></i>
+              Signing in…
+            </span>
+
+            <span class="btn-feedback">
+              <i class="fas fa-thumbs-up"></i>
+              <i class="fas fa-check-circle"></i>
+              Success!
+            </span>
+
+            <span class="btn-feedback-error">
+              <i class="fas fa-thumbs-down"></i>
+              Try again
+            </span>
+          </button>
+
+          <p class="text-center">
+            Don't have an account? <a href="{% url 'register' %}">Sign up</a>
+          </p>
         </form>
 
         <div class="divider">or continue with</div>
 
-        <button class="btn-social">
+        <button type="button" class="btn-social">
           <i class="fab fa-google" style="color: #DB4437;"></i> Continue with Google
         </button>
-
-        <button class="btn-social">
+        <button type="button" class="btn-social">
           <i class="fab fa-microsoft" style="color: #00A4EF;"></i> Continue with Microsoft
         </button>
       </div>
@@ -1397,10 +1278,7 @@
   document.addEventListener("DOMContentLoaded", function () {
 
     /* ============================================
-       SINGLE-BUTTON THEME TOGGLE — scoped to login page
-       Applies dark-mode ONLY to .auth-wrapper.
-       Does NOT touch <html>, <body>, or localStorage,
-       so it can never affect other pages.
+       THEME TOGGLE
     ============================================ */
     const authWrapper    = document.getElementById("authWrapper");
     const themeToggleBtn = document.getElementById("themeToggleBtn");
@@ -1420,56 +1298,11 @@
       );
     }
 
-    // Start in light mode (page-local). Never reads global state.
     applyTheme("light");
 
     themeToggleBtn.addEventListener("click", function () {
       const currentlyDark = authWrapper.classList.contains("dark-mode");
       applyTheme(currentlyDark ? "light" : "dark");
-    });
-
-    /* ============================================
-       PAGE FLIPPING (page 1 ↔ page 2)
-    ============================================ */
-    const rightPanel  = document.getElementById("rightPanel");
-    const continueBtn = document.getElementById("continueBtn");
-    const backBtn     = document.getElementById("backBtn");
-    const usernameIn  = document.getElementById("username");
-
-    function flipToPage2() {
-      if (!usernameIn.value.trim()) {
-        document.getElementById("usernameField")
-          .classList.add("field-error", "field-active");
-        return;
-      }
-      document.getElementById("usernameField")
-        .classList.add("field-success", "field-active");
-
-      rightPanel.classList.add("page-flipping");
-      rightPanel.classList.add("on-page-2");
-      setTimeout(() => rightPanel.classList.remove("page-flipping"), 1100);
-
-      setTimeout(() => {
-        const pw = document.getElementById("id_password");
-        if (pw) pw.focus();
-      }, 900);
-    }
-
-    function flipToPage1() {
-      rightPanel.classList.add("page-flipping");
-      rightPanel.classList.remove("on-page-2");
-      setTimeout(() => rightPanel.classList.remove("page-flipping"), 1100);
-      setTimeout(() => usernameIn.focus(), 900);
-    }
-
-    if (continueBtn) continueBtn.addEventListener("click", flipToPage2);
-    if (backBtn)     backBtn.addEventListener("click", flipToPage1);
-
-    usernameIn.addEventListener("keydown", function (e) {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        flipToPage2();
-      }
     });
 
     /* ============================================
@@ -1498,7 +1331,7 @@
     });
 
     /* ============================================
-       WALKER
+       WALKER ANIMATION
     ============================================ */
     function animateWalker(field) {
       const scene  = field.querySelector(".walker-scene");
@@ -1565,11 +1398,14 @@
     });
 
     /* ============================================
-       FINAL SUBMIT
+       FORM SUBMIT — validate, show LOADING only.
+       Success/Error states are decided by the server
+       via login_success / login_failed flags.
     ============================================ */
     const loginForm     = document.getElementById("loginForm");
     const usernameField = document.getElementById("usernameField");
     const passwordField = document.getElementById("passwordField");
+    const usernameIn    = document.getElementById("username");
     const passwordInput = document.getElementById("id_password");
     const loginBtn      = document.getElementById("loginBtn");
 
@@ -1577,11 +1413,17 @@
       input.addEventListener("input", function () {
         const parent = this.closest(".field-animate");
         if (parent) parent.classList.remove("field-success", "field-error");
-        loginBtn.classList.remove("success", "error");
+        // Only reset button if it's NOT showing a final result from server
+        if (!loginBtn.classList.contains("success") &&
+            !loginBtn.classList.contains("error")) {
+          loginBtn.classList.remove("loading");
+          loginBtn.disabled = false;
+        }
       });
     });
 
     loginForm.addEventListener("submit", function (e) {
+      // Reset visual field states
       usernameField.classList.remove("field-success", "field-error");
       passwordField.classList.remove("field-success", "field-error");
 
@@ -1591,7 +1433,6 @@
 
       if (!usernameVal) {
         usernameField.classList.add("field-error", "field-active");
-        rightPanel.classList.remove("on-page-2");
         isValid = false;
       } else {
         usernameField.classList.add("field-success", "field-active");
@@ -1609,19 +1450,33 @@
         return;
       }
 
-      loginBtn.classList.add("success");
+      // ✅ Valid form → show LOADING (NOT success).
+      // Django will respond with login_success=True or login_failed=True.
+      loginBtn.classList.remove("success", "error");
+      loginBtn.classList.add("loading");
+      loginBtn.disabled = true;
     });
 
     /* ============================================
-       If Django returns with login_failed=True,
-       show the thumbs-down state on the button.
+       SERVER-SIDE OUTCOME ON PAGE LOAD
     ============================================ */
     {% if login_failed %}
-      rightPanel.classList.add("on-page-2");
+      // Credentials were rejected → thumbs-down
       setTimeout(() => {
+        loginBtn.classList.remove("loading", "success");
         loginBtn.classList.add("error");
+        loginBtn.disabled = false;
         if (passwordInput) passwordInput.focus();
-      }, 700);
+      }, 300);
+    {% endif %}
+
+    {% if login_success %}
+      // Credentials were correct → thumbs-up
+      setTimeout(() => {
+        loginBtn.classList.remove("loading", "error");
+        loginBtn.classList.add("success");
+        loginBtn.disabled = true;
+      }, 300);
     {% endif %}
   });
 </script>

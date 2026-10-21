@@ -1,14 +1,24 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
-from . import views
+from . import views, admin_views
 from .views import user_login, dashboard
 
 urlpatterns = [
     # auth
-    path('login/', user_login, name='login'),
-    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
-    path('register/', views.register, name='register'),
-
+    path("login/", user_login, name="login"),
+    path("logout/", auth_views.LogoutView.as_view(), name="logout"),
+    path("register/", views.register, name="register"),
+    path("school/pending/",admin_views.school_pending_approvals,name="school_pending_approvals",),
+    path("school/<int:user_id>/approve/",admin_views.school_approve_user,name="school_approve_user",),
+    path("school/<int:user_id>/reject/",admin_views.school_reject_user,name="school_reject_user",),
+    path("pending/",admin_views.pending_approvals,name="pending_approvals",),
+    path("<int:user_id>/approve/",admin_views.approve_user,name="approve_user",),
+    path("<int:user_id>/reject/",admin_views.reject_user,name="reject_user",),
+    path("<int:user_id>/promote/",admin_views.promote_to_superuser,name="promote_to_superuser",),
+    path("enrollments/<int:enrollment_id>/approve/",admin_views.approve_enrollment,name="approve_enrollment",),
+    path("school/pending/",admin_views.school_pending_approvals,name="school_pending_approvals",),
+    path("school/<int:user_id>/approve/",admin_views.school_approve_user,name="school_approve_user",),
+    path("school/<int:user_id>/reject/",admin_views.school_reject_user,name="school_reject_user",),
     # dashboards
     path('dashboard/', dashboard, name='dashboard'),
     path('dashboard/school-admin/', views.school_admin_dashboard, name='school_admin_dashboard'),

@@ -176,7 +176,7 @@
                                         <i class="bi {{ doc.icon_class }}"></i>
                                     </div>
                                     <div class="doc-info">
-                                        <a href="{{ doc.file.url }}" target="_blank" rel="noopener"
+                                        <a href="{% url 'blog:download_attachment' doc.id %}"
                                            class="doc-name">{{ doc.original_name }}</a>
                                         <small class="doc-meta">
                                             .{{ doc.extension }} &middot; {{ doc.size_display }}

@@ -77,7 +77,6 @@ body {
     transition: background var(--transition), color var(--transition);
 }
 
-/* Custom scrollbar (WebKit) */
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
@@ -94,10 +93,7 @@ body {
     padding: 24px 20px 80px;
 }
 
-/* =========================
-   HEADER
-========================= */
-
+/* HEADER */
 .dashboard-header {
     position: sticky;
     top: 0;
@@ -114,7 +110,6 @@ body {
     -webkit-backdrop-filter: saturate(180%) blur(16px);
     border-bottom: 1px solid var(--border);
 }
-
 .dashboard-header h2 {
     font-size: clamp(1.35rem, 2.4vw, 1.9rem);
     margin: 0 0 2px;
@@ -122,103 +117,51 @@ body {
     letter-spacing: -.025em;
     line-height: 1.15;
 }
-
-.header-title {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
+.header-title { display: flex; align-items: center; gap: 10px; }
 .header-title .glyph {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 40px; height: 40px; border-radius: 12px;
     background: linear-gradient(135deg, var(--primary), var(--primary-2));
-    color: #fff;
-    font-size: 1.15rem;
+    color: #fff; font-size: 1.15rem;
     box-shadow: 0 8px 20px rgba(47, 111, 237, .35);
     flex-shrink: 0;
 }
-
 .small {
     color: var(--muted);
     font-size: clamp(.8rem, 1vw, .88rem);
     display: block;
 }
-
-.header-actions {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-/* =========================
-   BADGES & CHIPS
-========================= */
+.header-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 
 .badge-admin {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
+    display: inline-flex; align-items: center; gap: 6px;
     background: linear-gradient(135deg, var(--primary), var(--primary-2));
-    color: #fff;
-    padding: 8px 14px;
-    border-radius: 999px;
-    font-size: .8rem;
-    font-weight: 600;
-    letter-spacing: .02em;
+    color: #fff; padding: 8px 14px; border-radius: 999px;
+    font-size: .8rem; font-weight: 600; letter-spacing: .02em;
     box-shadow: 0 6px 16px rgba(47, 111, 237, .3);
 }
-
 .badge-admin::before {
-    content: "";
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: #7dffa8;
-    box-shadow: 0 0 0 3px rgba(125, 255, 168, .25);
+    content: ""; width: 6px; height: 6px; border-radius: 50%;
+    background: #7dffa8; box-shadow: 0 0 0 3px rgba(125, 255, 168, .25);
 }
-
 .icon-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
-    border: 1px solid var(--border);
-    background: var(--surface);
-    color: var(--text);
-    cursor: pointer;
-    font-size: 1.05rem;
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 40px; height: 40px; border-radius: 12px;
+    border: 1px solid var(--border); background: var(--surface);
+    color: var(--text); cursor: pointer; font-size: 1.05rem;
     transition: var(--transition);
 }
-
 .icon-btn:hover {
-    border-color: var(--primary);
-    color: var(--primary);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-sm);
+    border-color: var(--primary); color: var(--primary);
+    transform: translateY(-1px); box-shadow: var(--shadow-sm);
 }
 
-/* =========================
-   STATISTICS GRID
-========================= */
-
+/* GRID + CARDS */
 .grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 16px;
 }
-
-/* =========================
-   CARDS
-========================= */
-
 .card {
     position: relative;
     border: 1px solid var(--border);
@@ -229,95 +172,60 @@ body {
     transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
     overflow: hidden;
 }
-
 .card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-md);
+    transform: translateY(-4px); box-shadow: var(--shadow-md);
     border-color: color-mix(in srgb, var(--primary) 25%, var(--border));
 }
-
 .card.stat {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+    display: flex; flex-direction: column; gap: 12px;
     animation: fadeUp .5s cubic-bezier(.4, 0, .2, 1) both;
 }
-
 .card.stat:nth-child(1) { animation-delay: .02s; }
 .card.stat:nth-child(2) { animation-delay: .06s; }
 .card.stat:nth-child(3) { animation-delay: .10s; }
 .card.stat:nth-child(4) { animation-delay: .14s; }
 .card.stat:nth-child(5) { animation-delay: .18s; }
 .card.stat:nth-child(6) { animation-delay: .22s; }
+.card.stat:nth-child(7) { animation-delay: .26s; }
 
 @keyframes fadeUp {
     from { opacity: 0; transform: translateY(10px); }
     to   { opacity: 1; transform: translateY(0); }
 }
-
 .stat-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 46px;
-    height: 46px;
-    border-radius: 14px;
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 46px; height: 46px; border-radius: 14px;
     font-size: 1.35rem;
     background: linear-gradient(135deg, var(--primary), var(--primary-2));
-    color: #fff;
-    box-shadow: 0 8px 20px rgba(47, 111, 237, .28);
+    color: #fff; box-shadow: 0 8px 20px rgba(47, 111, 237, .28);
 }
-
 .stat-icon.green  { background: linear-gradient(135deg, #22c55e, #16a34a); box-shadow: 0 8px 20px rgba(22, 163, 74, .28); }
 .stat-icon.amber  { background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 8px 20px rgba(217, 119, 6, .28); }
 .stat-icon.red    { background: linear-gradient(135deg, #ef4444, #dc2626); box-shadow: 0 8px 20px rgba(220, 38, 38, .28); }
-
 .number {
     font-size: clamp(1.7rem, 3.2vw, 2.2rem);
-    font-weight: 800;
-    letter-spacing: -.035em;
-    line-height: 1;
+    font-weight: 800; letter-spacing: -.035em; line-height: 1;
     font-variant-numeric: tabular-nums;
 }
-
-.label {
-    color: var(--muted);
-    font-size: .88rem;
-    font-weight: 500;
-}
-
-/* Attention state for pending card */
+.label { color: var(--muted); font-size: .88rem; font-weight: 500; }
 .card.attention {
     border-color: color-mix(in srgb, var(--warning) 45%, var(--border));
     box-shadow: 0 0 0 4px var(--warning-soft), var(--shadow-sm);
 }
-
 .card.attention .number { color: var(--warning); }
-
 .card.attention::after {
-    content: "";
-    position: absolute;
-    top: 14px;
-    right: 14px;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--warning);
-    box-shadow: 0 0 0 4px var(--warning-soft);
+    content: ""; position: absolute; top: 14px; right: 14px;
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--warning); box-shadow: 0 0 0 4px var(--warning-soft);
     animation: pulse 2s ease-in-out infinite;
 }
-
 @keyframes pulse {
     0%, 100% { transform: scale(1);   opacity: 1; }
     50%      { transform: scale(1.2); opacity: .7; }
 }
 
-/* =========================
-   PERFORMANCE
-========================= */
-
-.performance,
-.list {
+/* PERFORMANCE + LISTS */
+.performance, .list {
     margin-top: 26px;
     border: 1px solid var(--border);
     border-radius: var(--radius);
@@ -325,469 +233,230 @@ body {
     padding: 26px;
     box-shadow: var(--shadow-sm);
 }
-
 .performance {
     display: grid;
     grid-template-columns: 180px 1fr;
-    gap: 30px;
-    align-items: center;
+    gap: 30px; align-items: center;
 }
-
 @media (max-width: 640px) {
     .performance { grid-template-columns: 1fr; text-align: center; }
 }
-
-.ring-wrap {
-    position: relative;
-    width: 180px;
-    height: 180px;
-    margin: auto;
-}
-
-.ring-wrap svg {
-    transform: rotate(-90deg);
-    display: block;
-}
-
+.ring-wrap { position: relative; width: 180px; height: 180px; margin: auto; }
+.ring-wrap svg { transform: rotate(-90deg); display: block; }
 .ring-track { stroke: var(--surface-2); }
-
 .ring-fill {
     stroke: url(#perfGrad);
     stroke-linecap: round;
     transition: stroke-dashoffset 1.1s cubic-bezier(.4, 0, .2, 1);
 }
-
 .ring-center {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
 }
-
 .ring-center .val {
-    font-size: 2.1rem;
-    font-weight: 800;
-    letter-spacing: -.03em;
-    line-height: 1;
+    font-size: 2.1rem; font-weight: 800;
+    letter-spacing: -.03em; line-height: 1;
     font-variant-numeric: tabular-nums;
 }
-
 .ring-center .cap {
-    color: var(--muted);
-    font-size: .78rem;
-    margin-top: 4px;
-    text-transform: uppercase;
-    letter-spacing: .08em;
+    color: var(--muted); font-size: .78rem; margin-top: 4px;
+    text-transform: uppercase; letter-spacing: .08em;
 }
-
 .performance .info h4 {
-    font-weight: 800;
-    margin: 0 0 8px;
-    letter-spacing: -.02em;
+    font-weight: 800; margin: 0 0 8px; letter-spacing: -.02em;
 }
+.performance .info p { color: var(--muted); margin: 0; line-height: 1.6; }
+.perf-stats { display: flex; gap: 24px; margin-top: 16px; flex-wrap: wrap; }
+.perf-stat { display: flex; flex-direction: column; }
+.perf-stat .v { font-weight: 800; font-size: 1.15rem; letter-spacing: -.02em; }
+.perf-stat .k { color: var(--muted); font-size: .8rem; margin-top: 2px; }
 
-.performance .info p {
-    color: var(--muted);
-    margin: 0;
-    line-height: 1.6;
-}
-
-.perf-stats {
-    display: flex;
-    gap: 24px;
-    margin-top: 16px;
-    flex-wrap: wrap;
-}
-
-.perf-stat {
-    display: flex;
-    flex-direction: column;
-}
-
-.perf-stat .v {
-    font-weight: 800;
-    font-size: 1.15rem;
-    letter-spacing: -.02em;
-}
-
-.perf-stat .k {
-    color: var(--muted);
-    font-size: .8rem;
-    margin-top: 2px;
-}
-
-/* =========================
-   BUTTONS
-========================= */
-
+/* BUTTONS */
 .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    border-radius: var(--radius-sm);
-    padding: 11px 16px;
-    font-weight: 600;
-    font-size: .92rem;
-    border: 1px solid transparent;
-    text-decoration: none;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: var(--transition);
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 8px; border-radius: var(--radius-sm);
+    padding: 11px 16px; font-weight: 600; font-size: .92rem;
+    border: 1px solid transparent; text-decoration: none;
+    cursor: pointer; white-space: nowrap; transition: var(--transition);
 }
-
 .btn:active { transform: scale(.98); }
-
 .btn-primary {
     background: linear-gradient(135deg, var(--primary), var(--primary-2));
-    color: #fff;
-    border: none;
-    box-shadow: 0 6px 16px rgba(47, 111, 237, .28);
+    color: #fff; border: none; box-shadow: 0 6px 16px rgba(47, 111, 237, .28);
 }
-
 .btn-primary:hover {
     box-shadow: 0 10px 24px rgba(47, 111, 237, .38);
     transform: translateY(-1px);
 }
-
 .btn-outline-primary {
-    background: var(--surface);
-    color: var(--text);
-    border-color: var(--border);
-    justify-content: flex-start;
+    background: var(--surface); color: var(--text);
+    border-color: var(--border); justify-content: flex-start;
 }
-
 .btn-outline-primary:hover {
-    border-color: var(--primary);
-    color: var(--primary);
-    background: var(--primary-soft);
-    transform: translateY(-1px);
+    border-color: var(--primary); color: var(--primary);
+    background: var(--primary-soft); transform: translateY(-1px);
 }
-
 .btn-outline-success {
-    background: var(--surface);
-    color: var(--text);
-    border-color: var(--border);
-    justify-content: flex-start;
+    background: var(--surface); color: var(--text);
+    border-color: var(--border); justify-content: flex-start;
 }
-
 .btn-outline-success:hover {
-    border-color: var(--success);
-    color: var(--success);
-    background: var(--success-soft);
-    transform: translateY(-1px);
+    border-color: var(--success); color: var(--success);
+    background: var(--success-soft); transform: translateY(-1px);
 }
-
 .btn-outline-warning {
-    background: var(--surface);
-    color: var(--text);
-    border-color: var(--border);
-    justify-content: flex-start;
+    background: var(--surface); color: var(--text);
+    border-color: var(--border); justify-content: flex-start;
 }
-
 .btn-outline-warning:hover {
-    border-color: var(--warning);
-    color: var(--warning);
-    background: var(--warning-soft);
-    transform: translateY(-1px);
+    border-color: var(--warning); color: var(--warning);
+    background: var(--warning-soft); transform: translateY(-1px);
 }
-
 .btn-success {
     background: linear-gradient(135deg, #22c55e, #16a34a);
-    color: #fff;
-    border: none;
+    color: #fff; border: none;
 }
-
 .btn-outline-danger {
-    background: var(--surface);
-    color: var(--danger);
+    background: var(--surface); color: var(--danger);
     border-color: var(--border);
 }
-
 .btn-outline-danger:hover {
-    background: var(--danger-soft);
-    border-color: var(--danger);
+    background: var(--danger-soft); border-color: var(--danger);
 }
+.btn-dark { background: var(--text); color: var(--surface); border: none; }
+.btn-dark:hover { opacity: .9; transform: translateY(-1px); }
+.btn-sm { padding: 8px 14px; font-size: .82rem; border-radius: 10px; }
 
-.btn-dark {
-    background: var(--text);
-    color: var(--surface);
-    border: none;
-}
-
-.btn-dark:hover {
-    opacity: .9;
-    transform: translateY(-1px);
-}
-
-.btn-sm {
-    padding: 8px 14px;
-    font-size: .82rem;
-    border-radius: 10px;
-}
-
-.section-card {
-    padding: 22px;
-}
-
+.section-card { padding: 22px; }
 .section-card h5 {
-    font-weight: 800;
-    margin: 0 0 18px;
-    letter-spacing: -.02em;
-    font-size: 1.02rem;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    font-weight: 800; margin: 0 0 18px; letter-spacing: -.02em;
+    font-size: 1.02rem; display: flex; align-items: center; gap: 8px;
 }
-
 .section-card.accent-staff      { border-top: 3px solid var(--primary); }
 .section-card.accent-students   { border-top: 3px solid var(--success); }
 .section-card.accent-academics  { border-top: 3px solid var(--warning); }
 
-/* =========================
-   CATEGORY BUTTONS
-========================= */
-
+/* CATEGORIES */
 .category-list {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 10px;
-    margin-top: 14px;
+    display: flex; flex-wrap: wrap; align-items: center;
+    gap: 10px; margin-top: 14px;
 }
-
 .category-btn {
     width: auto !important;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 9px 14px;
-    border-radius: 999px;
-    font-size: .88rem;
-    text-decoration: none;
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    color: var(--text);
-    transition: var(--transition);
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 9px 14px; border-radius: 999px;
+    font-size: .88rem; text-decoration: none;
+    background: var(--surface-2); border: 1px solid var(--border);
+    color: var(--text); transition: var(--transition);
 }
-
 .category-btn:hover {
-    border-color: var(--primary);
-    color: var(--primary);
-    background: var(--primary-soft);
-    transform: translateY(-1px);
+    border-color: var(--primary); color: var(--primary);
+    background: var(--primary-soft); transform: translateY(-1px);
 }
 
-/* =========================
-   BLOG POSTS
-========================= */
-
-.item {
-    padding: 18px 0;
-    border-bottom: 1px solid var(--border);
-}
-
+/* BLOG */
+.item { padding: 18px 0; border-bottom: 1px solid var(--border); }
 .item:last-child { border-bottom: none; }
-
 .post-image {
-    display: block;
-    width: 100%;
-    max-height: 220px;
-    margin-bottom: 12px;
-    border-radius: 12px;
-    object-fit: cover;
+    display: block; width: 100%; max-height: 220px;
+    margin-bottom: 12px; border-radius: 12px; object-fit: cover;
 }
-
 .post-summary {
-    padding: 6px 0;
-    list-style: none;
-    color: var(--text);
-    font-size: 1.02rem;
-    font-weight: 700;
-    cursor: pointer;
-    letter-spacing: -.01em;
-    transition: var(--transition);
+    padding: 6px 0; list-style: none; color: var(--text);
+    font-size: 1.02rem; font-weight: 700; cursor: pointer;
+    letter-spacing: -.01em; transition: var(--transition);
 }
-
 .post-summary:hover { color: var(--primary); }
-
 .post-summary::-webkit-details-marker { display: none; }
-
 .post-summary::after {
-    content: "＋";
-    float: right;
-    color: var(--muted);
-    font-size: 1.15rem;
-    transition: var(--transition);
+    content: "＋"; float: right; color: var(--muted);
+    font-size: 1.15rem; transition: var(--transition);
 }
-
 details[open] .post-summary::after { content: "−"; color: var(--primary); }
-
 .post-content {
-    margin-top: 12px;
-    color: var(--text);
-    line-height: 1.7;
+    margin-top: 12px; color: var(--text); line-height: 1.7;
 }
-
 .post-content img { max-width: 100%; height: auto; border-radius: 10px; }
 .post-content iframe { max-width: 100%; }
-
 .empty {
-    padding: 32px 20px;
-    color: var(--muted);
-    text-align: center;
-    font-size: .92rem;
+    padding: 32px 20px; color: var(--muted);
+    text-align: center; font-size: .92rem;
 }
 
-/* =========================
-   ENROLLMENT QUEUE
-========================= */
-
+/* ENROLLMENT + APPROVAL ROWS */
 .enroll-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 16px;
-    padding: 16px;
-    margin: 0 -8px;
-    border-radius: 14px;
-    transition: var(--transition);
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 16px; padding: 16px; margin: 0 -8px;
+    border-radius: 14px; transition: var(--transition);
 }
-
-.enroll-row:hover {
-    background: var(--surface-2);
-}
-
-.enroll-row + .enroll-row {
-    margin-top: 4px;
-}
-
+.enroll-row:hover { background: var(--surface-2); }
+.enroll-row + .enroll-row { margin-top: 4px; }
 .enroll-info {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    min-width: 0;
+    display: flex; align-items: center; gap: 12px; min-width: 0;
 }
-
 .enroll-avatar {
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
+    width: 42px; height: 42px; border-radius: 50%;
     background: linear-gradient(135deg, var(--primary), var(--primary-2));
-    color: #fff;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: .95rem;
-    flex-shrink: 0;
-    box-shadow: 0 4px 12px rgba(47, 111, 237, .25);
+    color: #fff; display: inline-flex;
+    align-items: center; justify-content: center;
+    font-weight: 700; font-size: .95rem;
+    flex-shrink: 0; box-shadow: 0 4px 12px rgba(47, 111, 237, .25);
 }
-
 .enroll-info strong {
-    font-weight: 700;
-    display: block;
-    margin-bottom: 2px;
+    font-weight: 700; display: block; margin-bottom: 2px;
     letter-spacing: -.01em;
 }
-
-.enroll-info .small {
-    display: block;
-    font-size: .82rem;
-}
-
+.enroll-info .small { display: block; font-size: .82rem; }
 .enroll-actions {
-    display: flex;
-    gap: 8px;
-    flex-shrink: 0;
-    flex-wrap: wrap;
+    display: flex; gap: 8px; flex-shrink: 0; flex-wrap: wrap;
 }
-
 .enroll-actions form { margin: 0; }
 
-/* =========================
-   ALERTS
-========================= */
-
+/* FLASH */
 .flash-stack {
-    position: fixed;
-    top: 90px;
-    right: 20px;
-    z-index: 100;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    max-width: 360px;
+    position: fixed; top: 90px; right: 20px; z-index: 100;
+    display: flex; flex-direction: column; gap: 10px; max-width: 360px;
 }
-
 .flash {
-    padding: 14px 16px;
-    border-radius: var(--radius-sm);
-    background: var(--surface);
-    border-left: 4px solid var(--primary);
-    box-shadow: var(--shadow-md);
-    font-size: .9rem;
-    font-weight: 500;
+    padding: 14px 16px; border-radius: var(--radius-sm);
+    background: var(--surface); border-left: 4px solid var(--primary);
+    box-shadow: var(--shadow-md); font-size: .9rem; font-weight: 500;
     animation: slideIn .35s cubic-bezier(.4, 0, .2, 1);
 }
-
 .flash.success { border-color: var(--success); }
 .flash.warning { border-color: var(--warning); }
 .flash.error   { border-color: var(--danger); }
-
 @keyframes slideIn {
     from { opacity: 0; transform: translateX(24px); }
     to   { opacity: 1; transform: translateX(0); }
 }
 
-/* =========================
-   RESPONSIVE
-========================= */
-
+/* RESPONSIVE */
 @media (max-width: 576px) {
     .container { padding: 16px; }
-
     .dashboard-header {
-        margin: -16px -16px 22px;
-        padding: 14px 16px;
-        justify-content: center;
-        text-align: center;
+        margin: -16px -16px 22px; padding: 14px 16px;
+        justify-content: center; text-align: center;
     }
-
     .header-title { justify-content: center; width: 100%; }
     .header-actions { justify-content: center; width: 100%; }
-
-    .enroll-row {
-        flex-direction: column;
-        align-items: flex-start;
-        padding: 14px;
-    }
-
+    .enroll-row { flex-direction: column; align-items: flex-start; padding: 14px; }
     .enroll-actions { width: 100%; }
-
-    .enroll-actions .btn,
-    .enroll-actions form { flex: 1; }
-
+    .enroll-actions .btn, .enroll-actions form { flex: 1; }
     .performance { padding: 20px; }
     .list { padding: 20px; }
     .card { padding: 18px; }
 }
-
 @media (min-width: 768px) {
     .grid { grid-template-columns: repeat(3, 1fr); }
 }
-
 @media (min-width: 1200px) {
     .grid { grid-template-columns: repeat(6, 1fr); }
 }
-
 @media (min-width: 1800px) {
     .container { max-width: 1800px; }
     .card { padding: 26px; }
 }
-
 @media (min-width: 2500px) {
     html { font-size: 22px; }
     .container { max-width: 2400px; }
@@ -798,27 +467,18 @@ details[open] .post-summary::after { content: "−"; color: var(--primary); }
 
 <div class="container">
 
-    <!-- =========================
-         FLASH MESSAGES
-    ========================== -->
-
+    <!-- FLASH MESSAGES -->
     {% if messages %}
     <div class="flash-stack" id="flashStack">
         {% for message in messages %}
-            <div class="flash {{ message.tags }}">
-                {{ message }}
-            </div>
+            <div class="flash {{ message.tags }}">{{ message }}</div>
         {% endfor %}
     </div>
     {% endif %}
 
 
-    <!-- =========================
-         HEADER
-    ========================== -->
-
+    <!-- HEADER -->
     <div class="dashboard-header">
-
         <div class="header-title">
             <span class="glyph">🏫</span>
             <div>
@@ -828,87 +488,78 @@ details[open] .post-summary::after { content: "−"; color: var(--primary); }
         </div>
 
         <div class="header-actions">
+            {% if request.user.is_superuser %}
+                <span class="badge-admin">Superadmin</span>
+            {% else %}
+                <span class="badge-admin">School Admin</span>
+            {% endif %}
 
-            <span class="badge-admin">School Admin</span>
+            {% if pending_account_approvals_count %}
+                <a href="{% if request.user.is_superuser %}{% url 'pending_approvals' %}{% else %}{% url 'school_pending_approvals' %}{% endif %}"
+                   class="btn btn-outline-warning btn-sm d-inline-flex align-items-center"
+                   style="gap:6px;"
+                   title="Pending account approvals">
+                    🛡️ {{ pending_account_approvals_count }}
+                </a>
+            {% endif %}
 
-            <button
-                type="button"
-                class="icon-btn"
-                id="themeToggle"
-                title="Toggle theme"
-                aria-label="Toggle theme"
-            >
-                🌙
-            </button>
+            <!-- Theme toggle is provided by base.html — do not duplicate here -->
 
             <form method="post" action="{% url 'logout' %}">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-dark btn-sm">
-                    Logout
-                </button>
+                <button type="submit" class="btn btn-dark btn-sm">Logout</button>
             </form>
-
         </div>
-
     </div>
 
 
-    <!-- =========================
-         STATISTICS
-    ========================== -->
-
+    <!-- STATISTICS -->
     <div class="grid">
-
         <div class="card stat">
             <span class="stat-icon">👨‍🎓</span>
             <div class="number">{{ students_count }}</div>
             <div class="label">Students</div>
         </div>
-
         <div class="card stat">
             <span class="stat-icon green">👨‍🏫</span>
             <div class="number">{{ teachers_count }}</div>
             <div class="label">Teachers</div>
         </div>
-
         <div class="card stat">
             <span class="stat-icon amber">🏫</span>
             <div class="number">{{ classes_count }}</div>
             <div class="label">Classes</div>
         </div>
-
         <div class="card stat">
             <span class="stat-icon">📝</span>
             <div class="number">{{ assignments_count }}</div>
             <div class="label">Assignments</div>
         </div>
-
         <div class="card stat">
             <span class="stat-icon green">🧠</span>
             <div class="number">{{ quiz_attempts_count }}</div>
             <div class="label">Quiz Attempts</div>
         </div>
-
         <div class="card stat {% if pending_enrollments_count %}attention{% endif %}">
             <span class="stat-icon red">🕓</span>
             <div class="number">{{ pending_enrollments_count|default:0 }}</div>
             <div class="label">Pending Enrollments</div>
         </div>
-
+        <div class="card stat {% if pending_account_approvals_count %}attention{% endif %}">
+            <span class="stat-icon amber">🛡️</span>
+            <div class="number">{{ pending_account_approvals_count|default:0 }}</div>
+            <div class="label">Pending Account Approvals</div>
+        </div>
     </div>
 
 
-    <!-- =========================
-         PERFORMANCE
-    ========================== -->
-
+    <!-- PERFORMANCE -->
     <div class="performance">
-
         <div class="ring-wrap">
             <svg width="180" height="180" viewBox="0 0 180 180">
                 <defs>
                     <linearGradient id="perfGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%"  stop-color="#22c55e"/>
+                        <stop offset="0%" stop-color="#22c55e"/>
                         <stop offset="100%" stop-color="#16a34a"/>
                     </linearGradient>
                 </defs>
@@ -928,11 +579,7 @@ details[open] .post-summary::after { content: "−"; color: var(--primary); }
 
         <div class="info">
             <h4>📊 Overall Performance</h4>
-            <p>
-                Average learner performance across the school, based on graded
-                quiz attempts and assignments.
-            </p>
-
+            <p>Average learner performance across the school, based on graded quiz attempts and assignments.</p>
             <div class="perf-stats">
                 <div class="perf-stat">
                     <span class="v">{{ students_count }}</span>
@@ -948,34 +595,24 @@ details[open] .post-summary::after { content: "−"; color: var(--primary); }
                 </div>
             </div>
         </div>
-
     </div>
 
 
-    <!-- =========================
-         PENDING ENROLLMENT QUEUE
-    ========================== -->
-
+    <!-- PENDING ENROLLMENT QUEUE -->
     <div class="list">
-
         <h4>🕓 Pending Enrollments</h4>
         <p class="small" style="margin-bottom: 14px;">
             Learners who self-registered and are awaiting your approval.
         </p>
-
         {% if pending_enrollments %}
-
             {% for e in pending_enrollments %}
             <div class="enroll-row">
-
                 <div class="enroll-info">
                     <span class="enroll-avatar">
                         {{ e.student.first_name|first|default:e.student.username|first|upper }}
                     </span>
                     <div>
-                        <strong>
-                            {{ e.student.get_full_name|default:e.student.username }}
-                        </strong>
+                        <strong>{{ e.student.get_full_name|default:e.student.username }}</strong>
                         <span class="small">
                             Adm: {{ e.student.admission_no|default:"—" }} ·
                             Class: {{ e.school_class.name }} ·
@@ -983,249 +620,182 @@ details[open] .post-summary::after { content: "−"; color: var(--primary); }
                         </span>
                     </div>
                 </div>
-
                 <div class="enroll-actions">
-
-                    <form method="post"
-                          action="{% url 'enrollment_approve' e.id %}">
+                    <form method="post" action="{% url 'enrollment_approve' e.id %}">
                         {% csrf_token %}
-                        <button class="btn btn-success btn-sm">
-                            ✓ Approve
-                        </button>
+                        <button class="btn btn-success btn-sm">✓ Approve</button>
                     </form>
-
                     <a href="{% url 'enrollment_transfer' e.id %}"
-                       class="btn btn-outline-primary btn-sm">
-                        ⇄ Transfer
-                    </a>
-
-                    <form method="post"
-                          action="{% url 'enrollment_reject' e.id %}">
+                       class="btn btn-outline-primary btn-sm">⇄ Transfer</a>
+                    <form method="post" action="{% url 'enrollment_reject' e.id %}">
                         {% csrf_token %}
-                        <button class="btn btn-outline-danger btn-sm">
-                            ✕ Reject
-                        </button>
+                        <button class="btn btn-outline-danger btn-sm">✕ Reject</button>
                     </form>
-
                 </div>
-
             </div>
             {% endfor %}
-
         {% else %}
-
-            <p class="empty">
-                🎉 No pending enrollments. Everything is up to date.
-            </p>
-
+            <p class="empty">🎉 No pending enrollments. Everything is up to date.</p>
         {% endif %}
-
     </div>
 
 
     <!-- =========================
-         MANAGEMENT SECTIONS
+         PENDING ACCOUNT APPROVALS
     ========================== -->
+    <div class="list">
+        <h4>
+            🛡️ Pending Account Approvals
+            {% if pending_account_approvals_count %}
+                <span class="badge bg-danger rounded-pill"
+                      style="margin-left:8px; font-size:.75rem;">
+                    {{ pending_account_approvals_count }}
+                </span>
+            {% endif %}
+        </h4>
+        <p class="small" style="margin-bottom: 14px;">
+            {% if request.user.is_superuser %}
+                Approve teacher, parent, and school-admin accounts across all schools.
+            {% else %}
+                Approve teacher, parent, and school-admin accounts for {{ school.name }}.
+            {% endif %}
+        </p>
 
+        {% if request.user.is_superuser %}
+            <a href="{% url 'pending_approvals' %}"
+               class="btn btn-primary d-inline-flex align-items-center"
+               style="gap:8px;">
+                <span>🛡️ Open Superadmin Approval Queue</span>
+                {% if pending_account_approvals_count %}
+                    <span class="badge bg-danger rounded-pill" style="font-size:.72rem;">
+                        {{ pending_account_approvals_count }}
+                    </span>
+                {% endif %}
+            </a>
+        {% else %}
+            <a href="{% url 'school_pending_approvals' %}"
+               class="btn btn-primary d-inline-flex align-items-center"
+               style="gap:8px;">
+                <span>🛡️ Open School Approval Queue</span>
+                {% if pending_account_approvals_count %}
+                    <span class="badge bg-danger rounded-pill" style="font-size:.72rem;">
+                        {{ pending_account_approvals_count }}
+                    </span>
+                {% endif %}
+            </a>
+        {% endif %}
+    </div>
+
+
+    <!-- MANAGEMENT SECTIONS -->
     <div class="row mt-4">
 
         <!-- STAFF -->
         <div class="col-lg-4 mb-4">
             <div class="card section-card accent-staff h-100">
-
                 <h5>👨‍🏫 Staff Management</h5>
-
                 <div class="d-grid gap-2">
-
-                    <a href="{% url 'teacher_list' %}"
-                       class="btn btn-outline-primary">
-                        Teachers
-                    </a>
-
-                    <a href="{% url 'teacher_assignment_list' %}"
-                       class="btn btn-outline-primary">
-                        Teaching Assignments
-                    </a>
-
-                    <a href="{% url 'teacher_role_list' %}"
-                       class="btn btn-outline-primary">
-                        Teacher Roles
-                    </a>
-
-                    <a href="{% url 'teacher_permission_list' %}"
-                       class="btn btn-outline-primary">
-                        Permissions
-                    </a>
-
+                    <a href="{% url 'teacher_list' %}" class="btn btn-outline-primary">Teachers</a>
+                    <a href="{% url 'teacher_assignment_list' %}" class="btn btn-outline-primary">Teaching Assignments</a>
+                    <a href="{% url 'teacher_role_list' %}" class="btn btn-outline-primary">Teacher Roles</a>
+                    <a href="{% url 'teacher_permission_list' %}" class="btn btn-outline-primary">Permissions</a>
                 </div>
             </div>
         </div>
-
 
         <!-- STUDENTS -->
         <div class="col-lg-4 mb-4">
             <div class="card section-card accent-students h-100">
-
                 <h5>👨‍🎓 Student Management</h5>
-
                 <div class="d-grid gap-2">
-
-                    <a href="{% url 'student_list' %}"
-                       class="btn btn-outline-success">
-                        Students
-                    </a>
-
+                    <a href="{% url 'student_list' %}" class="btn btn-outline-success">Students</a>
                     <a href="{% url 'enrollment_review_list' %}"
                        class="btn btn-outline-success d-flex justify-content-between align-items-center">
                         <span>Enrollment Approvals</span>
                         {% if pending_enrollments_count %}
-                            <span class="badge bg-danger rounded-pill">
-                                {{ pending_enrollments_count }}
-                            </span>
+                            <span class="badge bg-danger rounded-pill">{{ pending_enrollments_count }}</span>
                         {% endif %}
                     </a>
+                    <a href="{% url 'class_list' %}" class="btn btn-outline-success">Classes</a>
+                    <a href="{% url 'attendance_dashboard' %}" class="btn btn-outline-success">Attendance</a>
+                    <a href="{% url 'parent_list' %}" class="btn btn-outline-success">Parents</a>
 
-                    <a href="{% url 'class_list' %}"
-                       class="btn btn-outline-success">
-                        Classes
-                    </a>
-
-                    <a href="{% url 'attendance_dashboard' %}"
-                       class="btn btn-outline-success">
-                        Attendance
-                    </a>
-
-                    <a href="{% url 'parent_list' %}"
-                       class="btn btn-outline-success">
-                        Parents
-                    </a>
-
+                    {% if request.user.is_superuser %}
+                        <a href="{% url 'pending_approvals' %}"
+                           class="btn btn-outline-warning d-flex justify-content-between align-items-center">
+                            <span>🛡️ Account Approvals</span>
+                            {% if pending_account_approvals_count %}
+                                <span class="badge bg-danger rounded-pill">{{ pending_account_approvals_count }}</span>
+                            {% endif %}
+                        </a>
+                    {% else %}
+                        <a href="{% url 'school_pending_approvals' %}"
+                           class="btn btn-outline-warning d-flex justify-content-between align-items-center">
+                            <span>🛡️ Account Approvals</span>
+                            {% if pending_account_approvals_count %}
+                                <span class="badge bg-danger rounded-pill">{{ pending_account_approvals_count }}</span>
+                            {% endif %}
+                        </a>
+                    {% endif %}
                 </div>
             </div>
         </div>
-
 
         <!-- ACADEMICS -->
         <div class="col-lg-4 mb-4">
             <div class="card section-card accent-academics h-100">
-
                 <h5>📚 Academics</h5>
-
                 <div class="d-grid gap-2">
-
-                    <a href="{% url 'school_subjects' school.id %}"
-                       class="btn btn-outline-warning">
-                        Learning Areas
-                    </a>
-
-                    <a href="{% url 'library:resource_list' %}"
-                       class="btn btn-outline-warning">
-                        Resources
-                    </a>
-
-                    <a href="{% url 'assignment_list' %}"
-                       class="btn btn-outline-warning">
-                        Assignments
-                    </a>
-
-                    <a href="{% url 'quiz_home' %}"
-                       class="btn btn-outline-warning">
-                        Quizzes
-                    </a>
-
-                    <a href="{% url 'gradebook' %}"
-                       class="btn btn-outline-warning">
-                        Marks
-                    </a>
-
+                    <a href="{% url 'school_subjects' school.id %}" class="btn btn-outline-warning">Learning Areas</a>
+                    <a href="{% url 'library:resource_list' %}" class="btn btn-outline-warning">Resources</a>
+                    <a href="{% url 'assignment_list' %}" class="btn btn-outline-warning">Assignments</a>
+                    <a href="{% url 'quiz_home' %}" class="btn btn-outline-warning">Quizzes</a>
+                    <a href="{% url 'gradebook' %}" class="btn btn-outline-warning">Marks</a>
                 </div>
             </div>
         </div>
-
     </div>
 
 
-    <!-- =========================
-         BLOG CATEGORIES
-    ========================== -->
-
+    <!-- BLOG CATEGORIES -->
     <div class="list">
-
         <h4>📂 Blog Categories</h4>
-        <p class="small" style="margin-bottom: 14px;">
-            Browse learning content by category.
-        </p>
-
+        <p class="small" style="margin-bottom: 14px;">Browse learning content by category.</p>
         <div class="category-list">
-
             {% for category in categories %}
-
-                <a href="{% url 'blog:category_post' category.slug %}"
-                   class="category-btn">
+                <a href="{% url 'blog:category_post' category.slug %}" class="category-btn">
                     📁 {{ category.name }}
                 </a>
-
             {% empty %}
-
                 <p class="empty">No categories available.</p>
-
             {% endfor %}
-
         </div>
     </div>
 
 
-    <!-- =========================
-         LATEST BLOG POSTS
-    ========================== -->
-
+    <!-- LATEST BLOG POSTS -->
     <div class="list">
-
         <h4>📚 Latest Blog Posts</h4>
-
         {% for post in posts %}
-
             <div class="item">
-
                 {% if post.image %}
-                    <img src="{{ post.image.url }}"
-                         alt="{{ post.title }}"
-                         class="post-image">
+                    <img src="{{ post.image.url }}" alt="{{ post.title }}" class="post-image">
                 {% endif %}
-
                 <details>
-                    <summary class="post-summary">
-                        {{ post.title }}
-                    </summary>
-
+                    <summary class="post-summary">{{ post.title }}</summary>
                     <div class="post-content">
-
-                        {% if post.excerpt %}
-                            <p>{{ post.excerpt }}</p>
-                        {% endif %}
-
-                        {% if post.content %}
-                            {{ post.content|safe }}
-                        {% endif %}
-
+                        {% if post.excerpt %}<p>{{ post.excerpt }}</p>{% endif %}
+                        {% if post.content %}{{ post.content|safe }}{% endif %}
                         <span class="small" style="margin-top: 12px;">
                             {{ post.author }}
-                            {% if post.created_at %}
-                                • {{ post.created_at|date:"M d, Y" }}
-                            {% endif %}
+                            {% if post.created_at %} • {{ post.created_at|date:"M d, Y" }}{% endif %}
                         </span>
-
                     </div>
                 </details>
-
             </div>
-
         {% empty %}
-
             <p class="empty">No blog posts available.</p>
-
         {% endfor %}
-
     </div>
 
 </div>
@@ -1233,51 +803,19 @@ details[open] .post-summary::after { content: "−"; color: var(--primary); }
 
 <script>
 (function () {
-    // ------------------------------------
-    // Theme toggle
-    // ------------------------------------
-    const root = document.documentElement;
-    const toggle = document.getElementById('themeToggle');
-    const stored = localStorage.getItem('theme');
+    // ----------------------------------------------------------
+    // Theme is handled by base.html — no local toggle here.
+    // We only keep the ring animation + flash auto-dismiss.
+    // ----------------------------------------------------------
 
-    if (stored === 'dark') {
-        root.setAttribute('data-theme', 'dark');
-        if (toggle) toggle.textContent = '☀️';
-    }
-
-    if (toggle) {
-        toggle.addEventListener('click', () => {
-            const isDark = root.getAttribute('data-theme') === 'dark';
-            if (isDark) {
-                root.removeAttribute('data-theme');
-                localStorage.setItem('theme', 'light');
-                toggle.textContent = '🌙';
-            } else {
-                root.setAttribute('data-theme', 'dark');
-                localStorage.setItem('theme', 'dark');
-                toggle.textContent = '☀️';
-            }
-        });
-    }
-
-    // ------------------------------------
-    // Performance ring
-    // ------------------------------------
     const ring = document.querySelector('.ring-fill');
     if (ring) {
         const pct = Math.max(0, Math.min(100, parseFloat(ring.dataset.percent) || 0));
-        const circumference = 2 * Math.PI * 74; // r = 74
+        const circumference = 2 * Math.PI * 74;
         const offset = circumference * (1 - pct / 100);
-
-        // Trigger the transition on next frame so it animates on load
-        requestAnimationFrame(() => {
-            ring.style.strokeDashoffset = offset;
-        });
+        requestAnimationFrame(() => { ring.style.strokeDashoffset = offset; });
     }
 
-    // ------------------------------------
-    // Auto-dismiss flash messages
-    // ------------------------------------
     const flashStack = document.getElementById('flashStack');
     if (flashStack) {
         setTimeout(() => {

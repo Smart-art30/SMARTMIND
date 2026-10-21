@@ -70,5 +70,10 @@ urlpatterns = [
     path(    "comment/<int:comment_id>/delete/",
     views.comment_delete,
     name="comment_delete",),
+    path(
+        "download/<int:pk>/",
+        views.download_attachment,
+        name="download_attachment",
+    ),
 
 ]

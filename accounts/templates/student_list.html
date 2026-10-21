@@ -61,7 +61,6 @@ body {
 /* =========================
    HEADER
 ========================= */
-
 .page-header {
     display: flex;
     justify-content: space-between;
@@ -70,18 +69,15 @@ body {
     gap: 16px;
     margin-bottom: 22px;
 }
-
 .page-header h3 {
     margin: 0 0 4px;
     font-weight: 800;
     letter-spacing: -.02em;
 }
-
 .page-header .sub {
     color: var(--muted);
     font-size: .9rem;
 }
-
 .page-actions {
     display: flex;
     gap: 8px;
@@ -91,7 +87,6 @@ body {
 /* =========================
    TOOLBAR
 ========================= */
-
 .toolbar {
     display: flex;
     flex-wrap: wrap;
@@ -104,7 +99,6 @@ body {
     box-shadow: var(--shadow-sm);
     margin-bottom: 18px;
 }
-
 .toolbar input[type="search"],
 .toolbar select {
     border: 1px solid var(--border);
@@ -116,15 +110,8 @@ body {
     transition: var(--transition);
     min-width: 0;
 }
-
-.toolbar input[type="search"] {
-    flex: 1 1 260px;
-}
-
-.toolbar select {
-    flex: 0 1 200px;
-}
-
+.toolbar input[type="search"] { flex: 1 1 260px; }
+.toolbar select { flex: 0 1 200px; }
 .toolbar input:focus,
 .toolbar select:focus {
     outline: none;
@@ -135,14 +122,12 @@ body {
 /* =========================
    STATS ROW
 ========================= */
-
 .stats {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
     gap: 12px;
     margin-bottom: 18px;
 }
-
 .stat {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -150,13 +135,11 @@ body {
     padding: 14px 16px;
     box-shadow: var(--shadow-sm);
 }
-
 .stat .n {
     font-size: 1.5rem;
     font-weight: 800;
     letter-spacing: -.02em;
 }
-
 .stat .l {
     color: var(--muted);
     font-size: .82rem;
@@ -164,10 +147,15 @@ body {
 }
 
 /* =========================
-   TABLE
+   CLASS GROUPS
 ========================= */
+.class-list {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
 
-.table-card {
+.class-card {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius);
@@ -175,6 +163,46 @@ body {
     overflow: hidden;
 }
 
+.class-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 14px 18px;
+    background: linear-gradient(135deg, var(--primary-soft), transparent);
+    border-bottom: 1px solid var(--border);
+}
+
+.class-card-head h4 {
+    margin: 0;
+    font-size: 1.02rem;
+    font-weight: 800;
+    letter-spacing: -.02em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.class-card-head .count {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: .72rem;
+    font-weight: 700;
+    background: var(--primary);
+    color: #fff;
+}
+
+.class-card-head .head-meta {
+    color: var(--muted);
+    font-size: .82rem;
+}
+
+/* =========================
+   TABLE
+========================= */
 .table-responsive {
     overflow-x: auto;
 }
@@ -184,7 +212,6 @@ table.students {
     border-collapse: collapse;
     font-size: .92rem;
 }
-
 table.students thead th {
     text-align: left;
     padding: 12px 16px;
@@ -197,27 +224,19 @@ table.students thead th {
     border-bottom: 1px solid var(--border);
     white-space: nowrap;
 }
-
 table.students tbody td {
     padding: 14px 16px;
     border-bottom: 1px solid var(--border);
     vertical-align: middle;
 }
-
-table.students tbody tr:last-child td {
-    border-bottom: none;
-}
-
-table.students tbody tr:hover {
-    background: var(--primary-soft);
-}
+table.students tbody tr:last-child td { border-bottom: none; }
+table.students tbody tr:hover { background: var(--primary-soft); }
 
 .name-cell {
     display: flex;
     align-items: center;
     gap: 10px;
 }
-
 .avatar {
     width: 36px;
     height: 36px;
@@ -231,21 +250,12 @@ table.students tbody tr:hover {
     font-size: .85rem;
     flex-shrink: 0;
 }
-
-.name-cell .full {
-    font-weight: 600;
-    color: var(--text);
-}
-
-.name-cell .username {
-    color: var(--muted);
-    font-size: .8rem;
-}
+.name-cell .full { font-weight: 600; color: var(--text); }
+.name-cell .username { color: var(--muted); font-size: .8rem; }
 
 /* =========================
    BADGES
 ========================= */
-
 .badge {
     display: inline-flex;
     align-items: center;
@@ -257,7 +267,6 @@ table.students tbody tr:hover {
     line-height: 1;
     white-space: nowrap;
 }
-
 .badge-active   { background: var(--success-soft); color: var(--success); }
 .badge-pending  { background: var(--warning-soft); color: var(--warning); }
 .badge-inactive { background: var(--danger-soft);  color: var(--danger); }
@@ -266,7 +275,6 @@ table.students tbody tr:hover {
 /* =========================
    BUTTONS
 ========================= */
-
 .btn {
     display: inline-flex;
     align-items: center;
@@ -281,48 +289,33 @@ table.students tbody tr:hover {
     transition: var(--transition);
     white-space: nowrap;
 }
-
 .btn:hover { transform: translateY(-1px); }
 .btn:active { transform: scale(.98); }
-
 .btn-primary {
     background: linear-gradient(135deg, var(--primary), #5b8bff);
     color: #fff;
     box-shadow: 0 4px 12px rgba(47, 111, 237, .25);
 }
-
 .btn-outline {
     background: transparent;
     border-color: var(--border);
     color: var(--text);
 }
-
 .btn-outline:hover {
     border-color: var(--primary);
     color: var(--primary);
 }
-
-.btn-sm {
-    padding: 6px 10px;
-    font-size: .8rem;
-}
-
-.row-actions {
-    display: flex;
-    gap: 6px;
-    justify-content: flex-end;
-}
+.btn-sm { padding: 6px 10px; font-size: .8rem; }
+.row-actions { display: flex; gap: 6px; justify-content: flex-end; }
 
 /* =========================
    EMPTY / NO RESULTS
 ========================= */
-
 .empty {
     padding: 50px 20px;
     text-align: center;
     color: var(--muted);
 }
-
 .empty .icon {
     font-size: 2.2rem;
     margin-bottom: 8px;
@@ -332,16 +325,18 @@ table.students tbody tr:hover {
 /* =========================
    PAGINATION
 ========================= */
-
 .pager {
     display: flex;
     justify-content: center;
     align-items: center;
     gap: 6px;
     padding: 16px;
-    border-top: 1px solid var(--border);
+    margin-top: 18px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    box-shadow: var(--shadow-sm);
 }
-
 .pager a,
 .pager span {
     min-width: 34px;
@@ -358,34 +353,23 @@ table.students tbody tr:hover {
     font-size: .85rem;
     font-weight: 600;
 }
-
-.pager a:hover {
-    border-color: var(--primary);
-    color: var(--primary);
-}
-
+.pager a:hover { border-color: var(--primary); color: var(--primary); }
 .pager .current {
     background: var(--primary);
     color: #fff;
     border-color: var(--primary);
 }
-
-.pager .disabled {
-    opacity: .4;
-    pointer-events: none;
-}
+.pager .disabled { opacity: .4; pointer-events: none; }
 
 /* =========================
    ALERTS
 ========================= */
-
 .messages {
     display: flex;
     flex-direction: column;
     gap: 8px;
     margin-bottom: 16px;
 }
-
 .msg {
     padding: 12px 16px;
     border-radius: var(--radius-sm);
@@ -394,7 +378,6 @@ table.students tbody tr:hover {
     box-shadow: var(--shadow-sm);
     font-size: .9rem;
 }
-
 .msg.success { border-color: var(--success); }
 .msg.warning { border-color: var(--warning); }
 .msg.error   { border-color: var(--danger); }
@@ -402,41 +385,24 @@ table.students tbody tr:hover {
 /* =========================
    RESPONSIVE
 ========================= */
-
 @media (max-width: 720px) {
-
     .page { padding: 16px; }
-
-    .page-header {
-        text-align: left;
-    }
-
-    .toolbar {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .toolbar input,
-    .toolbar select {
-        flex: 1 1 auto;
-        width: 100%;
-    }
+    .page-header { text-align: left; }
+    .toolbar { flex-direction: column; align-items: stretch; }
+    .toolbar input, .toolbar select { flex: 1 1 auto; width: 100%; }
 
     table.students thead { display: none; }
-
     table.students tbody tr {
         display: block;
         padding: 12px 14px;
         border-bottom: 1px solid var(--border);
     }
-
     table.students tbody td {
         display: flex;
         justify-content: space-between;
         padding: 6px 0;
         border: none;
     }
-
     table.students tbody td::before {
         content: attr(data-label);
         font-weight: 600;
@@ -446,56 +412,40 @@ table.students tbody tr:hover {
         letter-spacing: .04em;
         margin-right: 12px;
     }
-
-    .row-actions {
-        justify-content: flex-start;
-        width: 100%;
-        margin-top: 6px;
-    }
-
+    .row-actions { justify-content: flex-start; width: 100%; margin-top: 6px; }
     .name-cell { width: 100%; }
+    .class-card-head { flex-direction: column; align-items: flex-start; }
 }
 </style>
 
 
 <div class="page">
 
-    <!-- =========================
-         HEADER
-    ========================== -->
-
+    <!-- HEADER -->
     <div class="page-header">
-
         <div>
             <h3>👨‍🎓 Students</h3>
             <div class="sub">
                 {{ request.user.school.name }} ·
-                Manage learner accounts and enrollments
+                Grouped per class
             </div>
         </div>
 
         <div class="page-actions">
-            <a href="{% url 'enrollment_review_list' %}"
-               class="btn btn-outline">
+            <a href="{% url 'enrollment_review_list' %}" class="btn btn-outline">
                 🕓 Enrollment Approvals
                 {% if pending_count %}
                     <span class="badge badge-pending">{{ pending_count }}</span>
                 {% endif %}
             </a>
-
-            <a href="{% url 'school_admin_dashboard' %}"
-               class="btn btn-outline">
+            <a href="{% url 'school_admin_dashboard' %}" class="btn btn-outline">
                 ← Dashboard
             </a>
         </div>
-
     </div>
 
 
-    <!-- =========================
-         MESSAGES
-    ========================== -->
-
+    <!-- MESSAGES -->
     {% if messages %}
         <div class="messages">
             {% for m in messages %}
@@ -505,10 +455,7 @@ table.students tbody tr:hover {
     {% endif %}
 
 
-    <!-- =========================
-         STATS
-    ========================== -->
-
+    <!-- STATS -->
     <div class="stats">
         <div class="stat">
             <div class="n">{{ total_students }}</div>
@@ -529,12 +476,8 @@ table.students tbody tr:hover {
     </div>
 
 
-    <!-- =========================
-         TOOLBAR
-    ========================== -->
-
+    <!-- TOOLBAR -->
     <form method="get" class="toolbar">
-
         <input type="search"
                name="q"
                value="{{ q }}"
@@ -552,9 +495,9 @@ table.students tbody tr:hover {
 
         <select name="status">
             <option value="">Any status</option>
-            <option value="active"   {% if status_filter == "active" %}selected{% endif %}>Active</option>
-            <option value="pending"  {% if status_filter == "pending" %}selected{% endif %}>Pending</option>
-            <option value="inactive" {% if status_filter == "inactive" %}selected{% endif %}>Inactive</option>
+            <option value="active"     {% if status_filter == "active" %}selected{% endif %}>Active</option>
+            <option value="pending"    {% if status_filter == "pending" %}selected{% endif %}>Pending</option>
+            <option value="inactive"   {% if status_filter == "inactive" %}selected{% endif %}>Inactive</option>
             <option value="unassigned" {% if status_filter == "unassigned" %}selected{% endif %}>No class</option>
         </select>
 
@@ -563,167 +506,159 @@ table.students tbody tr:hover {
         {% if q or class_filter or status_filter %}
             <a href="{% url 'student_list' %}" class="btn btn-outline">Clear</a>
         {% endif %}
-
     </form>
 
 
-    <!-- =========================
-         TABLE
-    ========================== -->
+    <!-- CLASS GROUPED LIST -->
+    {% if class_groups %}
 
-    <div class="table-card">
+        <div class="class-list">
 
-        {% if students %}
+            {% for school_class, students_in_class in class_groups %}
 
-            <div class="table-responsive">
-                <table class="students">
-                    <thead>
-                        <tr>
-                            <th>Learner</th>
-                            <th>Admission no.</th>
-                            <th>Class</th>
-                            <th>Enrollment</th>
-                            <th>Status</th>
-                            <th>Joined</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for s in students %}
-                        <tr>
+                <div class="class-card">
 
-                            <td data-label="Learner">
-                                <div class="name-cell">
-                                    <span class="avatar">
-                                        {{ s.first_name|first|default:s.username|first|upper }}
-                                    </span>
-                                    <div>
-                                        <div class="full">
-                                            {{ s.get_full_name|default:s.username }}
-                                        </div>
-                                        <div class="username">
-                                            {{ s.username }}
-                                        </div>
-                                    </div>
-                                </div>
-                            </td>
+                    <div class="class-card-head">
+                        <h4>
+                            {% if school_class %}
+                                🏫 {{ school_class.name }}
+                            {% else %}
+                                📭 Unassigned
+                            {% endif %}
+                            <span class="count">{{ students_in_class|length }}</span>
+                        </h4>
 
-                            <td data-label="Admission no.">
-                                {{ s.admission_no|default:"—" }}
-                            </td>
-
-                            <td data-label="Class">
-                                {% if s.school_class %}
-                                    {{ s.school_class.name }}
-                                {% else %}
-                                    <span style="color: var(--muted);">—</span>
+                        <div class="head-meta">
+                            {% if school_class %}
+                                {% if school_class.teacher %}
+                                    Class teacher: {{ school_class.teacher.full_name }}
                                 {% endif %}
-                            </td>
+                            {% else %}
+                                Learners awaiting a class assignment
+                            {% endif %}
+                        </div>
+                    </div>
 
-                            <td data-label="Enrollment">
-                                {% with s.enrollments.all|first as e %}
-                                    {% if e %}
-                                        {% if e.status == "ACTIVE" %}
-                                            <span class="badge badge-active">Active</span>
-                                        {% elif e.status == "PENDING" %}
-                                            <span class="badge badge-pending">Pending</span>
-                                        {% elif e.status == "REJECTED" %}
-                                            <span class="badge badge-inactive">Rejected</span>
-                                        {% else %}
-                                            <span class="badge badge-neutral">
-                                                {{ e.get_status_display }}
-                                            </span>
-                                        {% endif %}
-                                    {% else %}
-                                        <span class="badge badge-neutral">None</span>
-                                    {% endif %}
-                                {% endwith %}
-                            </td>
+                    <div class="table-responsive">
+                        <table class="students">
+                            <thead>
+                                <tr>
+                                    <th>Learner</th>
+                                    <th>Admission no.</th>
+                                    <th>Enrollment</th>
+                                    <th>Status</th>
+                                    <th>Joined</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for s in students_in_class %}
+                                    <tr>
+                                        <td data-label="Learner">
+                                            <div class="name-cell">
+                                                <span class="avatar">
+                                                    {{ s.first_name|first|default:s.username|first|upper }}
+                                                </span>
+                                                <div>
+                                                    <div class="full">{{ s.get_full_name|default:s.username }}</div>
+                                                    <div class="username">{{ s.username }}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td data-label="Admission no.">
+                                            {{ s.admission_number|default:"—" }}
+                                        </td>
+                                        <td data-label="Enrollment">
+                                            {% with s.enrollments.all|first as e %}
+                                                {% if e %}
+                                                    {% if e.status == "ACTIVE" %}
+                                                        <span class="badge badge-active">Active</span>
+                                                    {% elif e.status == "PENDING" %}
+                                                        <span class="badge badge-pending">Pending</span>
+                                                    {% elif e.status == "REJECTED" %}
+                                                        <span class="badge badge-inactive">Rejected</span>
+                                                    {% else %}
+                                                        <span class="badge badge-neutral">{{ e.get_status_display }}</span>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <span class="badge badge-neutral">None</span>
+                                                {% endif %}
+                                            {% endwith %}
+                                        </td>
+                                        <td data-label="Status">
+                                            {% if s.is_active %}
+                                                <span class="badge badge-active">Active</span>
+                                            {% else %}
+                                                <span class="badge badge-inactive">Inactive</span>
+                                            {% endif %}
+                                        </td>
+                                        <td data-label="Joined">
+                                            {{ s.date_joined|date:"M d, Y" }}
+                                        </td>
+                                        <td data-label="">
+                                            <div class="row-actions">
+                                                <a href="{% url 'student_detail' s.id %}"
+                                                   class="btn btn-sm btn-outline">
+                                                    View
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
 
-                            <td data-label="Status">
-                                {% if s.is_active %}
-                                    <span class="badge badge-active">Active</span>
-                                {% else %}
-                                    <span class="badge badge-inactive">Inactive</span>
-                                {% endif %}
-                            </td>
+                </div>
 
-                            <td data-label="Joined">
-                                {{ s.date_joined|date:"M d, Y" }}
-                            </td>
+            {% endfor %}
 
-                            <td data-label="">
-                                <div class="row-actions">
-                                    <a href="{% url 'student_detail' s.id %}"
-                                       class="btn btn-sm btn-outline">
-                                        View
-                                    </a>
-                                </div>
-                            </td>
+        </div>
 
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+    {% else %}
+
+        <div class="empty">
+            <span class="icon">🔍</span>
+            {% if q or class_filter or status_filter %}
+                <p>No students match your filters.</p>
+                <a href="{% url 'student_list' %}" class="btn btn-outline">
+                    Clear filters
+                </a>
+            {% else %}
+                <p>No students yet.</p>
+                <p style="font-size:.85rem;">
+                    Learners will appear here once they register.
+                </p>
+            {% endif %}
+        </div>
+
+    {% endif %}
 
 
-            <!-- =========================
-                 PAGINATION
-            ========================== -->
-
-            {% if page_obj.has_other_pages %}
-            <div class="pager">
-
-                {% if page_obj.has_previous %}
-                    <a href="?{% if q %}q={{ q }}&{% endif %}{% if class_filter %}class={{ class_filter }}&{% endif %}{% if status_filter %}status={{ status_filter }}&{% endif %}page={{ page_obj.previous_page_number }}">
-                        ←
-                    </a>
-                {% else %}
-                    <span class="disabled">←</span>
-                {% endif %}
-
-                {% for num in page_obj.paginator.page_range %}
-                    {% if num == page_obj.number %}
-                        <span class="current">{{ num }}</span>
-                    {% elif num > page_obj.number|add:"-3" and num < page_obj.number|add:"3" %}
-                        <a href="?{% if q %}q={{ q }}&{% endif %}{% if class_filter %}class={{ class_filter }}&{% endif %}{% if status_filter %}status={{ status_filter }}&{% endif %}page={{ num }}">
-                            {{ num }}
-                        </a>
-                    {% endif %}
-                {% endfor %}
-
-                {% if page_obj.has_next %}
-                    <a href="?{% if q %}q={{ q }}&{% endif %}{% if class_filter %}class={{ class_filter }}&{% endif %}{% if status_filter %}status={{ status_filter }}&{% endif %}page={{ page_obj.next_page_number }}">
-                        →
-                    </a>
-                {% else %}
-                    <span class="disabled">→</span>
-                {% endif %}
-
-            </div>
+    <!-- PAGINATION -->
+    {% if page_obj.has_other_pages %}
+        <div class="pager">
+            {% if page_obj.has_previous %}
+                <a href="?{% if q %}q={{ q }}&{% endif %}{% if class_filter %}class={{ class_filter }}&{% endif %}{% if status_filter %}status={{ status_filter }}&{% endif %}page={{ page_obj.previous_page_number }}">←</a>
+            {% else %}
+                <span class="disabled">←</span>
             {% endif %}
 
-        {% else %}
-
-            <div class="empty">
-                <span class="icon">🔍</span>
-                {% if q or class_filter or status_filter %}
-                    <p>No students match your filters.</p>
-                    <a href="{% url 'student_list' %}" class="btn btn-outline">
-                        Clear filters
-                    </a>
-                {% else %}
-                    <p>No students yet.</p>
-                    <p style="font-size:.85rem;">
-                        Learners will appear here once they register.
-                    </p>
+            {% for num in page_obj.paginator.page_range %}
+                {% if num == page_obj.number %}
+                    <span class="current">{{ num }}</span>
+                {% elif num > page_obj.number|add:"-3" and num < page_obj.number|add:"3" %}
+                    <a href="?{% if q %}q={{ q }}&{% endif %}{% if class_filter %}class={{ class_filter }}&{% endif %}{% if status_filter %}status={{ status_filter }}&{% endif %}page={{ num }}">{{ num }}</a>
                 {% endif %}
-            </div>
+            {% endfor %}
 
-        {% endif %}
-
-    </div>
+            {% if page_obj.has_next %}
+                <a href="?{% if q %}q={{ q }}&{% endif %}{% if class_filter %}class={{ class_filter }}&{% endif %}{% if status_filter %}status={{ status_filter }}&{% endif %}page={{ page_obj.next_page_number }}">→</a>
+            {% else %}
+                <span class="disabled">→</span>
+            {% endif %}
+        </div>
+    {% endif %}
 
 </div>
 

@@ -1,0 +1,294 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ school.name }} | Pending Approvals{% endblock %}
+
+{% block content %}
+<style>
+  :root {
+    --bg: #eef2f9;
+    --surface: #ffffff;
+    --surface-2: #f7f9fc;
+    --text: #0b1324;
+    --muted: #6b7794;
+    --border: #e3e9f2;
+    --primary: #2f6fed;
+    --primary-2: #5b8bff;
+    --primary-soft: #eaf1ff;
+    --success: #16a34a;
+    --warning: #d97706;
+    --danger: #dc2626;
+    --danger-soft: #fdecec;
+    --radius: 20px;
+    --radius-sm: 12px;
+    --shadow-sm: 0 2px 8px rgba(15,23,42,.06);
+    --shadow-md: 0 10px 30px rgba(15,23,42,.08);
+    --transition: .25s cubic-bezier(.4,0,.2,1);
+  }
+
+  html[data-theme="dark"] {
+    --bg: #070c17;
+    --surface: #101828;
+    --surface-2: #0d1424;
+    --text: #e8eefb;
+    --muted: #8b98b4;
+    --border: #1c2740;
+    --primary: #5b8bff;
+    --primary-2: #7ba3ff;
+    --primary-soft: #16233f;
+    --shadow-sm: 0 2px 8px rgba(0,0,0,.45);
+    --shadow-md: 0 10px 30px rgba(0,0,0,.55);
+    --danger-soft: #2a1212;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    transition: background var(--transition), color var(--transition);
+  }
+
+  .pa-wrap { max-width: 1200px; margin: 2rem auto; padding: 0 1rem 4rem; }
+
+  .pa-header {
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 12px; margin-bottom: 1.5rem;
+  }
+  .pa-header h1 {
+    font-size: 1.75rem; font-weight: 800; margin: 0 0 4px;
+    letter-spacing: -0.025em;
+  }
+  .pa-header .lead { color: var(--muted); margin: 0; font-size: .95rem; }
+
+  .pa-back {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--text); border-radius: 10px; padding: 9px 14px;
+    font-size: .88rem; font-weight: 600; text-decoration: none;
+    transition: var(--transition);
+  }
+  .pa-back:hover {
+    border-color: var(--primary); color: var(--primary);
+    background: var(--primary-soft);
+  }
+
+  .pa-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); box-shadow: var(--shadow-sm);
+    overflow: hidden; margin-bottom: 1.5rem;
+  }
+  .pa-card table { width: 100%; border-collapse: collapse; }
+  .pa-card th, .pa-card td {
+    padding: .85rem 1rem; text-align: left; font-size: .9rem;
+    border-bottom: 1px solid var(--border); vertical-align: middle;
+  }
+  .pa-card th {
+    background: var(--surface-2); font-size: .72rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .06em; color: var(--muted);
+  }
+  .pa-card tr:last-child td { border-bottom: none; }
+
+  .pa-card h2 {
+    font-size: 1.1rem; font-weight: 800; margin: 0;
+    padding: 1rem 1.25rem; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .pa-badge {
+    display: inline-block; padding: .18rem .65rem; border-radius: .5rem;
+    font-size: .72rem; font-weight: 700;
+  }
+  .pa-badge.teacher { background: #dcfce7; color: #166534; }
+  .pa-badge.parent  { background: #fef3c7; color: #92400e; }
+  .pa-badge.admin   { background: #fee2e2; color: #991b1b; }
+
+  .pa-actions { display: flex; gap: .45rem; flex-wrap: wrap; align-items: center; }
+  .pa-actions form { margin: 0; }
+
+  .pa-actions select {
+    font-size: .82rem; padding: .4rem .5rem;
+    border: 1.5px solid var(--border); border-radius: .5rem;
+    background: var(--surface); color: var(--text); font-family: inherit;
+  }
+
+  .pa-btn {
+    font-size: .82rem; font-weight: 700; padding: .45rem .85rem;
+    border-radius: .55rem; border: 1.5px solid transparent;
+    cursor: pointer; font-family: inherit; transition: var(--transition);
+  }
+  .pa-btn-approve { background: var(--success); color: #fff; border-color: var(--success); }
+  .pa-btn-approve:hover { filter: brightness(.92); }
+  .pa-btn-reject {
+    background: var(--surface); color: var(--danger);
+    border-color: var(--danger);
+  }
+  .pa-btn-reject:hover { background: var(--danger-soft); }
+
+  .pa-empty {
+    padding: 2rem 1rem; text-align: center;
+    color: var(--muted); font-size: .92rem; font-style: italic;
+  }
+
+  .flash-stack {
+    position: fixed; top: 20px; right: 20px; z-index: 100;
+    display: flex; flex-direction: column; gap: 10px; max-width: 360px;
+  }
+  .flash {
+    padding: 14px 16px; border-radius: var(--radius-sm);
+    background: var(--surface); border-left: 4px solid var(--primary);
+    box-shadow: var(--shadow-md); font-size: .9rem; font-weight: 500;
+  }
+  .flash.success { border-color: var(--success); }
+  .flash.warning { border-color: var(--warning); }
+  .flash.error   { border-color: var(--danger); }
+</style>
+
+{% if messages %}
+<div class="flash-stack" id="flashStack">
+    {% for message in messages %}
+        <div class="flash {{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="pa-wrap">
+
+    <div class="pa-header">
+        <div>
+            <h1>🛡️ Pending Approvals</h1>
+            <p class="lead">
+                Approve accounts for <strong>{{ school.name }}</strong>.
+                Only accounts in your school appear here.
+            </p>
+        </div>
+        <a href="{% url 'dashboard' %}" class="pa-back">← Dashboard</a>
+    </div>
+
+    <!-- ============ User accounts ============ -->
+    <div class="pa-card">
+        <h2>Account Requests</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Requested</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in pending_users %}
+                    <tr>
+                        <td>{{ u.username }}</td>
+                        <td>{{ u.email }}</td>
+                        <td>
+                            <span class="pa-badge
+                                {% if u.role == 'teacher' %}teacher
+                                {% elif u.role == 'parent' %}parent
+                                {% else %}admin{% endif %}">
+                                {{ u.get_role_display }}
+                            </span>
+                        </td>
+                        <td>{{ u.approval_requested_at|date:"Y-m-d H:i" }}</td>
+                        <td>
+                            <div class="pa-actions">
+                                <form method="post"
+                                      action="{% url 'school_approve_user' u.id %}">
+                                    {% csrf_token %}
+                                    {% if u.role == 'teacher' %}
+                                        <select name="teacher_role" required>
+                                            <option value="">Assign teacher role…</option>
+                                            {% for tr in teacher_roles %}
+                                                <option value="{{ tr.id }}">{{ tr.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    {% endif %}
+                                    <button type="submit" class="pa-btn pa-btn-approve">
+                                        ✓ Approve
+                                    </button>
+                                </form>
+                                <form method="post"
+                                      action="{% url 'school_reject_user' u.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="pa-btn pa-btn-reject">
+                                        ✕ Reject
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="5" class="pa-empty">
+                            🎉 No account requests pending.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ============ Student enrollments ============ -->
+    {% if pending_enrollments %}
+        <div class="pa-card">
+            <h2>Student Enrollments</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Class</th>
+                        <th>Requested</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for e in pending_enrollments %}
+                        <tr>
+                            <td>{{ e.student.get_full_name|default:e.student.username }}</td>
+                            <td>{{ e.school_class.name }}</td>
+                            <td>{{ e.created_at|date:"Y-m-d H:i" }}</td>
+                            <td>
+                                <form method="post"
+                                      action="{% url 'enrollment_approve' e.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="pa-btn pa-btn-approve">
+                                        ✓ Approve
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+
+</div>
+
+<script>
+(function () {
+    // Theme sync (reads the same key the dashboard writes)
+    const stored = localStorage.getItem('theme');
+    if (stored === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+    }
+
+    // Auto-dismiss flash messages
+    const stack = document.getElementById('flashStack');
+    if (stack) {
+        setTimeout(() => {
+            stack.querySelectorAll('.flash').forEach(el => {
+                el.style.transition = 'opacity .4s, transform .4s';
+                el.style.opacity = '0';
+                el.style.transform = 'translateX(20px)';
+                setTimeout(() => el.remove(), 400);
+            });
+        }, 5000);
+    }
+})();
+</script>
+
+{% endblock %}

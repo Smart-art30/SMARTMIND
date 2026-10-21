@@ -1,0 +1,70 @@
+{% extends "base_admin.html" %}
+{% block content %}
+<h1>Pending Approvals</h1>
+
+<section>
+  <h2>User Accounts Awaiting Approval</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Username</th><th>Email</th><th>Role</th><th>School</th>
+        <th>Requested</th><th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for u in pending_users %}
+      <tr>
+        <td>{{ u.username }}</td>
+        <td>{{ u.email }}</td>
+        <td>{{ u.get_role_display }}</td>
+        <td>{{ u.school|default:"—" }}</td>
+        <td>{{ u.approval_requested_at|date:"Y-m-d H:i" }}</td>
+        <td>
+          <form method="post" action="{% url 'approve_user' u.id %}" style="display:inline">
+            {% csrf_token %}
+            {% if u.role == "teacher" %}
+              <select name="teacher_role" required>
+                <option value="">Assign teacher role…</option>
+                {% for tr in teacher_roles %}
+                  {% if tr.school_id == u.school_id %}
+                    <option value="{{ tr.id }}">{{ tr.name }}</option>
+                  {% endif %}
+                {% endfor %}
+              </select>
+            {% endif %}
+            <button type="submit">Approve</button>
+          </form>
+          <form method="post" action="{% url 'reject_user' u.id %}" style="display:inline">
+            {% csrf_token %}<button type="submit">Reject</button>
+          </form>
+        </td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="6">No pending user accounts.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>Student Enrollments Awaiting Approval</h2>
+  <table>
+    <thead><tr><th>Student</th><th>Class</th><th>Action</th></tr></thead>
+    <tbody>
+    {% for e in pending_enrollments %}
+      <tr>
+        <td>{{ e.student.username }}</td>
+        <td>{{ e.school_class }}</td>
+        <td>
+          <form method="post" action="{% url 'approve_enrollment' e.id %}" style="display:inline">
+            {% csrf_token %}<button type="submit">Approve</button>
+          </form>
+        </td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="3">No pending enrollments.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}
