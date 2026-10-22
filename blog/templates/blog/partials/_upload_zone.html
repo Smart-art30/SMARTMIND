@@ -1,0 +1,115 @@
+{% load static %}
+
+<div class="edit-label-row">
+    <label class="edit-label" for="{{ field.id_for_label }}">
+        {{ field.label }}
+        {% if field.field.required %}<span class="edit-required">*</span>{% endif %}
+    </label>
+    <span class="edit-hint">
+        {% if field.name == "images" or field.name == "attachments" %}Multiple allowed
+        {% elif field.name == "video" %}MP4 / WebM / OGG
+        {% else %}JPG / PNG / GIF / WebP{% endif %}
+    </span>
+</div>
+
+<div class="upload-zone"
+     tabindex="0"
+     data-field="{{ field.name }}"
+     data-multiple="{% if field.name == 'images' or field.name == 'attachments' %}1{% else %}0{% endif %}">
+
+    <div class="upload-head">
+        <div class="upload-icon">
+            {% if field.name == "images" %}<i class="bi bi-images"></i>
+            {% elif field.name == "attachments" %}<i class="bi bi-paperclip"></i>
+            {% elif field.name == "video" %}<i class="bi bi-camera-video"></i>
+            {% else %}<i class="bi bi-image"></i>{% endif %}
+        </div>
+        <div class="upload-copy">
+            <strong>
+                {% if field.name == "images" %}Photos
+                {% elif field.name == "attachments" %}Attachments
+                {% elif field.name == "video" %}Video
+                {% else %}Image{% endif %}
+            </strong>
+            <span>Drag, paste, or <u>browse</u></span>
+        </div>
+        <kbd class="upload-kbd">Ctrl+V</kbd>
+    </div>
+
+    {# Existing photos #}
+    {% if field.name == "images" and existing_images %}
+        <div class="existing-files" data-existing="images">
+            <div class="existing-files-title">
+                <i class="bi bi-collection"></i>
+                Existing (<span class="existing-count">{{ existing_images|length }}</span>)
+            </div>
+            <div class="existing-grid">
+                {% for img in existing_images %}
+                    <div class="existing-thumb-wrap"
+                         data-remove-url="{% url 'blog:remove_image' img.pk %}"
+                         data-id="{{ img.pk }}"
+                         title="{{ img.image.name }}">
+                        <img src="{{ img.image.url }}" alt="" class="existing-thumb">
+                        <button type="button" class="existing-remove"
+                                aria-label="Remove photo">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+    {# Existing attachments #}
+    {% if field.name == "attachments" and existing_attachments %}
+        <div class="existing-files" data-existing="attachments">
+            <div class="existing-files-title">
+                <i class="bi bi-paperclip"></i>
+                Existing (<span class="existing-count">{{ existing_attachments|length }}</span>)
+            </div>
+            <ul class="existing-list">
+                {% for doc in existing_attachments %}
+                    <li class="existing-doc"
+                        data-remove-url="{% url 'blog:remove_document' doc.pk %}"
+                        data-id="{{ doc.pk }}">
+                        <i class="bi bi-file-earmark-text"></i>
+                        <span class="existing-doc-name">
+                            {{ doc.original_name|default:doc.file.name }}
+                        </span>
+                        <a href="{{ doc.file.url }}" target="_blank" rel="noopener"
+                           class="existing-doc-open" title="Open">
+                            <i class="bi bi-box-arrow-up-right"></i>
+                        </a>
+                        <button type="button" class="existing-remove"
+                                aria-label="Remove attachment">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    {# Existing video #}
+    {% if field.name == "video" and field.value %}
+        <div class="existing-video">
+            <div class="existing-files-title">
+                <i class="bi bi-camera-video"></i> Current video
+            </div>
+            <video class="video-preview" controls preload="metadata"
+                   src="{{ field.value.url }}"></video>
+            <div class="existing-video-meta">
+                <a href="{{ field.value.url }}" target="_blank" rel="noopener">
+                    {{ field.value.name }}
+                </a>
+            </div>
+        </div>
+    {% endif %}
+
+    {{ field }}
+
+    <div class="preview-area"></div>
+    <div class="preview-meta"></div>
+    <div class="preview-actions"></div>
+    <div class="upload-status"></div>
+</div>

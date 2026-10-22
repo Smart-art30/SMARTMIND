@@ -148,13 +148,52 @@ class MultipleImageField(forms.ImageField):
         ]
 
 
+class MultipleFileField(forms.FileField):
+    """
+    FileField that returns a LIST of uploaded files.
+
+    Pairs with MultipleFileInput (<input multiple>).
+    """
+
+    def __init__(self, *args, **kwargs):
+
+        kwargs.setdefault(
+            "widget",
+            MultipleFileInput(
+                attrs={
+                    "class": "form-control",
+                    "style": "display: none;",
+                }
+            ),
+        )
+
+        super().__init__(*args, **kwargs)
+
+    def clean(self, data, initial=None):
+
+        if not data:
+            return []
+
+        if not isinstance(data, (list, tuple)):
+            data = [data]
+
+        cleaned = []
+
+        for f in data:
+            cleaned.append(
+                super(MultipleFileField, self).clean(f, initial)
+            )
+
+        return cleaned
+
+
 # ============================================================
 # POST FORM
 # ============================================================
 
 class PostForm(forms.ModelForm):
 
-    images = forms.FileField(
+    images = MultipleFileField(
         widget=MultipleFileInput(
             attrs={
                 "accept": "image/*",
@@ -162,11 +201,34 @@ class PostForm(forms.ModelForm):
                 "name": "images",
                 "class": "form-control",
                 "style": "display: none;",
+                "multiple": "multiple",
             }
         ),
         required=False,
         label="Photos",
         help_text="Select multiple photos (JPG, PNG, GIF, WebP)",
+    )
+
+    attachments = MultipleFileField(
+        widget=MultipleFileInput(
+            attrs={
+                "accept": (
+                    ".pdf,.doc,.docx,.xls,.xlsx,"
+                    ".ppt,.pptx,.txt,.csv,.zip,.rar"
+                ),
+                "id": "id_attachments",
+                "name": "attachments",
+                "class": "form-control",
+                "style": "display: none;",
+                "multiple": "multiple",
+            }
+        ),
+        required=False,
+        label="Attachments",
+        help_text=(
+            "PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, "
+            "TXT, CSV, ZIP, RAR"
+        ),
     )
 
     class Meta:
@@ -244,6 +306,11 @@ class PostForm(forms.ModelForm):
                 .order_by("name")
             )
 
+        # Ensure `multiple` is always present on the
+        # multi-file widgets, even if a subclass replaces them.
+        for name in ("images", "attachments"):
+            if name in self.fields:
+                self.fields[name].widget.attrs["multiple"] = "multiple"
 
 # ============================================================
 # HELPER FUNCTIONS
@@ -1286,6 +1353,23 @@ def edit_post(request, pk):
             "You do not have permission to edit this post."
         )
 
+    # Helper so every render() gets the same context.
+    def _render(form):
+        return render(
+            request,
+            "edit_post.html",
+            {
+                "form": form,
+                "post": post,
+                "existing_images": post.images.all().order_by(
+                    "position", "id"
+                ),
+                "existing_attachments": post.attachments.all().order_by(
+                    "position", "id"
+                ),
+            },
+        )
+
     if request.method == "POST":
 
         form = PostForm(
@@ -1307,23 +1391,15 @@ def edit_post(request, pk):
                         f"Invalid image: {image.name}. "
                         "Please use JPG, PNG, GIF, or WebP."
                     )
-                    return render(
-                        request,
-                        "edit_post.html",
-                        {"form": form, "post": post},
-                    )
+                    return _render(form)
 
                 if image.size > settings.MAX_IMAGE_SIZE:
                     messages.error(
                         request,
                         f'Image "{image.name}" exceeds '
-                        f"{settings.MAX_IMAGE_SIZE // (1024*1024)}MB limit."
+                        f"{settings.MAX_IMAGE_SIZE // (1024 * 1024)}MB limit."
                     )
-                    return render(
-                        request,
-                        "edit_post.html",
-                        {"form": form, "post": post},
-                    )
+                    return _render(form)
 
             for doc in uploaded_docs:
 
@@ -1334,23 +1410,15 @@ def edit_post(request, pk):
                         "Allowed: PDF, DOC, DOCX, XLS, XLSX, "
                         "PPT, PPTX, TXT, CSV, ZIP, RAR."
                     )
-                    return render(
-                        request,
-                        "edit_post.html",
-                        {"form": form, "post": post},
-                    )
+                    return _render(form)
 
                 if doc.size > MAX_DOCUMENT_SIZE:
                     messages.error(
                         request,
                         f'Document "{doc.name}" exceeds '
-                        f"{MAX_DOCUMENT_SIZE // (1024*1024)}MB limit."
+                        f"{MAX_DOCUMENT_SIZE // (1024 * 1024)}MB limit."
                     )
-                    return render(
-                        request,
-                        "edit_post.html",
-                        {"form": form, "post": post},
-                    )
+                    return _render(form)
 
             if "video" in request.FILES:
 
@@ -1362,23 +1430,15 @@ def edit_post(request, pk):
                         "Invalid video format. "
                         "Please use MP4, WebM, or OGG."
                     )
-                    return render(
-                        request,
-                        "edit_post.html",
-                        {"form": form, "post": post},
-                    )
+                    return _render(form)
 
                 if video.size > settings.MAX_VIDEO_SIZE:
                     messages.error(
                         request,
                         f"Video exceeds "
-                        f"{settings.MAX_VIDEO_SIZE // (1024*1024)}MB limit."
+                        f"{settings.MAX_VIDEO_SIZE // (1024 * 1024)}MB limit."
                     )
-                    return render(
-                        request,
-                        "edit_post.html",
-                        {"form": form, "post": post},
-                    )
+                    return _render(form)
 
             try:
 
@@ -1389,6 +1449,7 @@ def edit_post(request, pk):
                     updated_post.save()
                     form.save_m2m()
 
+                    # Continue positions after whatever already exists.
                     current_count = post.images.count()
 
                     for index, image in enumerate(
@@ -1420,16 +1481,16 @@ def edit_post(request, pk):
                 )
                 return redirect(updated_post.get_absolute_url())
 
-            except Exception as e:
+            except Exception:
+                # Don't leak exception text to the user.
+                logger.exception("Error updating post pk=%s", pk)
+
                 messages.error(
                     request,
-                    f"Error updating post: {str(e)}"
+                    "An error occurred while updating the post. "
+                    "Please check the server logs."
                 )
-                return render(
-                    request,
-                    "edit_post.html",
-                    {"form": form, "post": post},
-                )
+                return _render(form)
 
         else:
 
@@ -1444,13 +1505,8 @@ def edit_post(request, pk):
 
         form = PostForm(instance=post)
 
-    return render(
-        request,
-        "edit_post.html",
-        {"form": form, "post": post},
-    )
-
-
+    return _render(form)
+    
 # ============================================================
 # FILE VALIDATORS
 # ============================================================

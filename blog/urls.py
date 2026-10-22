@@ -75,5 +75,15 @@ urlpatterns = [
         views.download_attachment,
         name="download_attachment",
     ),
+     path(
+        "images/<int:image_id>/remove/",
+        views.remove_image,
+        name="remove_image",
+    ),
+    path(
+        "documents/<int:pk>/remove/",
+        views.remove_document,
+        name="remove_document",
+    ),
 
 ]
