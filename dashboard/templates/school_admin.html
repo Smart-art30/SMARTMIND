@@ -495,15 +495,21 @@ details[open] .post-summary::after { content: "−"; color: var(--primary); }
             {% endif %}
 
             {% if pending_account_approvals_count %}
-                <a href="{% if request.user.is_superuser %}{% url 'pending_approvals' %}{% else %}{% url 'school_pending_approvals' %}{% endif %}"
-                   class="btn btn-outline-warning btn-sm d-inline-flex align-items-center"
-                   style="gap:6px;"
-                   title="Pending account approvals">
-                    🛡️ {{ pending_account_approvals_count }}
-                </a>
+                {# ── FIX ── both queue URLs must exist; guard with a single if #}
+                {% if request.user.is_superuser %}
+                    <a href="{% url 'pending_approvals' %}"
+                       class="btn btn-outline-warning btn-sm"
+                       style="gap:6px;" title="Pending account approvals">
+                        🛡️ {{ pending_account_approvals_count }}
+                    </a>
+                {% else %}
+                    <a href="{% url 'school_pending_approvals' %}"
+                       class="btn btn-outline-warning btn-sm"
+                       style="gap:6px;" title="Pending account approvals">
+                        🛡️ {{ pending_account_approvals_count }}
+                    </a>
+                {% endif %}
             {% endif %}
-
-            <!-- Theme toggle is provided by base.html — do not duplicate here -->
 
             <form method="post" action="{% url 'logout' %}">
                 {% csrf_token %}
@@ -614,22 +620,25 @@ details[open] .post-summary::after { content: "−"; color: var(--primary); }
                     <div>
                         <strong>{{ e.student.get_full_name|default:e.student.username }}</strong>
                         <span class="small">
-                            Adm: {{ e.student.admission_no|default:"—" }} ·
+                            Adm: {{ e.student.admission_number|default:"—" }} ·
                             Class: {{ e.school_class.name }} ·
                             {{ e.created_at|date:"M d, Y" }}
                         </span>
                     </div>
                 </div>
                 <div class="enroll-actions">
+                    {# ── FIX ── pass `next` so the view redirects back here, not to a foreign host #}
                     <form method="post" action="{% url 'enrollment_approve' e.id %}">
                         {% csrf_token %}
-                        <button class="btn btn-success btn-sm">✓ Approve</button>
+                        <input type="hidden" name="next" value="{% url 'school_admin_dashboard' %}">
+                        <button type="submit" class="btn btn-success btn-sm">✓ Approve</button>
                     </form>
                     <a href="{% url 'enrollment_transfer' e.id %}"
                        class="btn btn-outline-primary btn-sm">⇄ Transfer</a>
                     <form method="post" action="{% url 'enrollment_reject' e.id %}">
                         {% csrf_token %}
-                        <button class="btn btn-outline-danger btn-sm">✕ Reject</button>
+                        <input type="hidden" name="next" value="{% url 'school_admin_dashboard' %}">
+                        <button type="submit" class="btn btn-outline-danger btn-sm">✕ Reject</button>
                     </form>
                 </div>
             </div>
@@ -640,9 +649,7 @@ details[open] .post-summary::after { content: "−"; color: var(--primary); }
     </div>
 
 
-    <!-- =========================
-         PENDING ACCOUNT APPROVALS
-    ========================== -->
+    <!-- PENDING ACCOUNT APPROVALS -->
     <div class="list">
         <h4>
             🛡️ Pending Account Approvals
@@ -663,7 +670,7 @@ details[open] .post-summary::after { content: "−"; color: var(--primary); }
 
         {% if request.user.is_superuser %}
             <a href="{% url 'pending_approvals' %}"
-               class="btn btn-primary d-inline-flex align-items-center"
+               class="btn btn-primary"
                style="gap:8px;">
                 <span>🛡️ Open Superadmin Approval Queue</span>
                 {% if pending_account_approvals_count %}
@@ -674,7 +681,7 @@ details[open] .post-summary::after { content: "−"; color: var(--primary); }
             </a>
         {% else %}
             <a href="{% url 'school_pending_approvals' %}"
-               class="btn btn-primary d-inline-flex align-items-center"
+               class="btn btn-primary"
                style="gap:8px;">
                 <span>🛡️ Open School Approval Queue</span>
                 {% if pending_account_approvals_count %}
@@ -803,11 +810,6 @@ details[open] .post-summary::after { content: "−"; color: var(--primary); }
 
 <script>
 (function () {
-    // ----------------------------------------------------------
-    // Theme is handled by base.html — no local toggle here.
-    // We only keep the ring animation + flash auto-dismiss.
-    // ----------------------------------------------------------
-
     const ring = document.querySelector('.ring-fill');
     if (ring) {
         const pct = Math.max(0, Math.min(100, parseFloat(ring.dataset.percent) || 0));

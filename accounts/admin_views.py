@@ -57,22 +57,48 @@ def _school_admin_can_manage(school_admin, target_user):
 # ==================================================================
 # SUPERADMIN (GLOBAL) APPROVALS
 # ==================================================================
-@superuser_required
+@school_admin_required
 def pending_approvals(request):
-    pending_users = (
-        User.objects
-        .filter(is_approved=False, is_superuser=False)
-        .select_related("school", "teacher_role")
-        .order_by("approval_requested_at")
-    )
+    if request.user.is_superuser:
+        pending_users = User.objects.filter(
+            is_approved=False,
+            is_superuser=False,
+        ).exclude(
+            role="student"
+        ).select_related(
+            "school", "teacher_role"
+        ).order_by("approval_requested_at")
 
-    pending_enrollments = (
-        Enrollment.objects
-        .filter(status="PENDING")
-        .select_related("student", "school_class")
-    )
+        pending_enrollments = Enrollment.objects.filter(
+            status="PENDING"
+        ).select_related("student", "school_class")
 
-    teacher_roles = TeacherRole.objects.all().order_by("school__name", "name")
+        teacher_roles = TeacherRole.objects.all().order_by(
+            "school__name", "name"
+        )
+    else:
+        school = request.user.school
+
+        pending_users = User.objects.filter(
+            school=school,
+            is_approved=False,
+            is_superuser=False,
+        ).exclude(
+            role="student"
+        ).exclude(
+            pk=request.user.pk
+        ).select_related(
+            "school", "teacher_role"
+        ).order_by("approval_requested_at")
+
+        pending_enrollments = Enrollment.objects.filter(
+            school_class__school=school,
+            status="PENDING",
+        ).select_related("student", "school_class")
+
+        teacher_roles = TeacherRole.objects.filter(
+            school=school
+        ).order_by("name")
 
     return render(request, "admin/pending_approvals.html", {
         "pending_users": pending_users,
@@ -80,24 +106,33 @@ def pending_approvals(request):
         "teacher_roles": teacher_roles,
     })
 
-
-@superuser_required
+@school_admin_required
 def approve_user(request, user_id):
-    user = get_object_or_404(User, pk=user_id, is_superuser=False)
+    user = get_object_or_404(
+        User,
+        pk=user_id,
+        is_superuser=False,
+    )
+
+    if not _school_admin_can_manage(request.user, user):
+        messages.error(request, "You cannot approve that account.")
+        return redirect("pending_approvals")
 
     if request.method == "POST":
-        # Teachers must be assigned a real teacher_role from their own school
         if user.role == "teacher":
             teacher_role_id = request.POST.get("teacher_role")
+
             if not teacher_role_id:
                 messages.error(
                     request,
-                    f"Cannot approve {user.username}: choose a teacher role first.",
+                    "Choose a teacher role before approving this teacher.",
                 )
                 return redirect("pending_approvals")
 
             user.teacher_role = get_object_or_404(
-                TeacherRole, pk=teacher_role_id, school=user.school
+                TeacherRole,
+                pk=teacher_role_id,
+                school=user.school,
             )
 
         user.is_approved = True
@@ -108,6 +143,29 @@ def approve_user(request, user_id):
             TeacherPermission.objects.get_or_create(teacher=user)
 
         messages.success(request, f"{user.username} approved.")
+
+    return redirect("pending_approvals")
+
+
+@school_admin_required
+def reject_user(request, user_id):
+    user = get_object_or_404(
+        User,
+        pk=user_id,
+        is_superuser=False,
+    )
+
+    if not _school_admin_can_manage(request.user, user):
+        messages.error(request, "You cannot reject that account.")
+        return redirect("pending_approvals")
+
+    if request.method == "POST":
+        user.is_approved = False
+        user.is_active = False
+        user.approved_by = None
+        user.save()
+
+        messages.warning(request, f"{user.username} rejected.")
 
     return redirect("pending_approvals")
 
