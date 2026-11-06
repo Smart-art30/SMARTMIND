@@ -1225,10 +1225,17 @@
             </div>
           </div>
 
-          <div class="d-flex">
-            <small><input type="checkbox" name="remember_me"> Remember me</small>
-            <a href="#">Forgot?</a>
-          </div>
+
+<div class="d-flex">
+    <small>
+        <input type="checkbox" name="remember_me">
+        Remember me
+    </small>
+
+    <a href="{% url 'password_reset' %}">
+        Forgot Password?
+    </a>
+</div>
 
           <!-- LOGIN BUTTON — 4 states: normal / loading / success / error -->
           <button type="submit"
