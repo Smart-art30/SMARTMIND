@@ -1600,7 +1600,7 @@ def delete_post(request, pk):
 
 
 def can_manage_comment(request, comment):
-       if not request.user.is_authenticated:
+    if not request.user.is_authenticated:
         return False
     if request.user.is_superuser:
         return True
@@ -1608,7 +1608,6 @@ def can_manage_comment(request, comment):
     if role == "school_admin":
         return True
     return comment.author_id == request.user.pk
-
 
 @login_required
 @require_POST
