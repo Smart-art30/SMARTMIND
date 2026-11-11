@@ -38,23 +38,8 @@ from .forms import (
 
 User = get_user_model()
 
-# Default backend used when a freshly-created user (never authenticated)
-# needs to be logged in. Required when AUTHENTICATION_BACKENDS has >1 entry.
 DEFAULT_AUTH_BACKEND = "django.contrib.auth.backends.ModelBackend"
-
-
-# ============================================================
-# SHARED HELPERS
-# ============================================================
-
 def _safe_next(request, default_name):
-    """
-    Redirect to the POSTed/GETed `next` URL if it is on this host,
-    otherwise redirect to the named route `default_name`.
-
-    Never trust HTTP_REFERER — it is user-controlled and may be
-    cross-origin, which drops SameSite cookies and logs the user out.
-    """
     nxt = request.POST.get("next") or request.GET.get("next")
     if nxt and url_has_allowed_host_and_scheme(
         url=nxt,
@@ -70,33 +55,19 @@ def _is_school_admin(user):
 
 
 def _admin_school_or_403(request):
-    """
-    Return (admin, school) or raise PermissionDenied.
-    School admins must have a school; superusers are allowed but
-    have no implicit school (callers must derive it from the object).
-    """
-    user = request.user
 
+    user = request.user
     if user.is_superuser:
         return user, getattr(user, "school", None)
-
     if not _is_school_admin(user):
         raise PermissionDenied("Only school admins can perform this action.")
-
     if not user.school:
         raise PermissionDenied("No school is assigned to this admin.")
-
     return user, user.school
 
 
 def _resolve_enrollment_for_user(request, pk):
-    """
-    Fetch an Enrollment and derive its school.
-    Enforces permission:
-      - superuser    → any enrollment
-      - school_admin → only enrollments in their own school
-    Returns (enrollment, school).
-    """
+
     enrollment = get_object_or_404(
         Enrollment.objects.select_related(
             "school_class__school", "student"
@@ -104,36 +75,25 @@ def _resolve_enrollment_for_user(request, pk):
         pk=pk,
     )
     school = enrollment.school_class.school
-
     user = request.user
     if not user.is_superuser:
         if not _is_school_admin(user) or user.school_id != school.id:
             raise PermissionDenied("You cannot manage this enrollment.")
-
     return enrollment, school
 
 
-# ============================================================
-# BLOG DATA FOR ALL DASHBOARDS
-# ============================================================
-
 def get_blog_categories():
     categories = list(Category.objects.all().order_by("name"))
-
     published_posts = Post.objects.filter(
         status="published"
     ).select_related("author", "category").order_by("-created_at")
-
     posts_by_category = {}
     for post in published_posts:
         if post.category_id:
             posts_by_category.setdefault(post.category_id, []).append(post)
-
     for category in categories:
         category.dashboard_posts = posts_by_category.get(category.id, [])
-
     return categories
-
 
 def get_blog_posts():
     return Post.objects.filter(
@@ -148,42 +108,23 @@ def get_blog_context():
     }
 
 
-# ============================================================
-# LOGIN
-# ============================================================
-
 def user_login(request):
     if request.method == "POST":
         username_or_email = request.POST.get("username", "").strip()
         password = request.POST.get("password", "")
-
         user = None
         try:
             user_obj = User.objects.get(email=username_or_email)
-            user = authenticate(
-                request,
-                username=user_obj.username,
-                password=password,
-            )
+            user = authenticate(request,username=user_obj.username,password=password, )
         except User.DoesNotExist:
-            user = authenticate(
-                request,
-                username=username_or_email,
-                password=password,
-            )
-
+            user = authenticate(request,username=username_or_email,password=password,)
         if user is not None:
             if not user.is_active:
-                messages.warning(
-                    request,
-                    "Your account is inactive. Contact the school administrator.",
-                )
+                messages.warning(request,"Your account is inactive. Contact the school administrator.",)
                 return render(request, "login.html", {
                     "login_failed": True,
                     "form": {"username": username_or_email},
                 })
-
-            # Pending accounts cannot log in (superusers bypass).
             if not user.is_superuser and not user.is_approved:
                 messages.warning(
                     request,
@@ -195,8 +136,7 @@ def user_login(request):
                     "form": {"username": username_or_email},
                 })
 
-            # authenticate() sets user.backend; pass it explicitly so we
-            # stay safe if multiple backends are configured.
+           
             backend = getattr(user, "backend", DEFAULT_AUTH_BACKEND)
             login(request, user, backend=backend)
 
@@ -208,16 +148,10 @@ def user_login(request):
                 messages.success(request, "Welcome administrator. School management tools are ready.")
             elif user.role == "parent":
                 messages.success(request, "Welcome parent. You can now monitor learner progress.")
-
             if user.is_superuser:
                 return redirect("/admin/")
-
             return redirect("dashboard")
-
-        messages.error(
-            request,
-            "Invalid username or password. Please enter the correct login details.",
-        )
+        messages.error(request,"Invalid username or password. Please enter the correct login details.",)
         return render(request, "login.html", {
             "login_failed": True,
             "form": {"username": username_or_email},
@@ -236,8 +170,7 @@ def register(request):
         if form.is_valid():
             user = form.save(commit=False)
 
-            # User.clean() requires employee_number & teacher_role for
-            # teachers. Provide a default placeholder role.
+           
             if user.role == "teacher" and not user.teacher_role and user.school:
                 pending_role, _ = TeacherRole.objects.get_or_create(
                     school=user.school,
@@ -253,7 +186,7 @@ def register(request):
 
             user.save()
 
-            # Student → create a PENDING enrollment record for admin approval.
+     
             if user.role == "student" and user.school_class:
                 Enrollment.objects.get_or_create(
                     student=user,

@@ -644,20 +644,11 @@ def post_detail(request, slug):
 
     return render(request, "post_detail.html", context)
 
-# ============================================================
-# DOWNLOAD ATTACHMENT (with Smarmind watermark)
-# ============================================================
 
-import requests  # add this to the top of views.py with the other imports
+
+import requests  
 def _read_file_bytes(file_field, extension=""):
-    """
-    Read raw bytes from a FileField supporting:
-      - local filesystem storage
-      - remote storage (Cloudinary, S3)
-      - Cloudinary raw uploads missing their extension
 
-    `extension` should be passed WITHOUT the dot (e.g. "pdf", "txt").
-    """
     # 1) Try the normal Django way first (local FS storage)
     try:
         with file_field.open("rb") as fh:
@@ -686,13 +677,7 @@ def _read_file_bytes(file_field, extension=""):
 
 @login_required
 def download_attachment(request, pk):
-    """
-    Stream a PostAttachment to the learner.
 
-    - PDFs are watermarked with "Smarmind" on the fly.
-    - TXT files get a header line.
-    - Other formats are served unmodified.
-    """
 
     doc = get_object_or_404(
         PostAttachment.objects.select_related("post"),
@@ -723,7 +708,7 @@ def download_attachment(request, pk):
     if ext == "pdf":
         pdf_bytes = _read_file_bytes(doc.file, extension=ext)
 
-        label = f"Smarmind · {request.user.username}"
+        label = f"SmartMind · {request.user.username}"
         marked = watermark_pdf(pdf_bytes, label=label)
 
         response = FileResponse(
@@ -735,7 +720,7 @@ def download_attachment(request, pk):
         response["Cache-Control"] = "private, no-store"
         return response
 
-    # ---------- TXT: prepend a header ----------
+    
     if ext == "txt":
         body_bytes = _read_file_bytes(doc.file, extension=ext)
         body = body_bytes.decode("utf-8", errors="ignore")
@@ -757,14 +742,9 @@ def download_attachment(request, pk):
         response["Cache-Control"] = "private, no-store"
         return response
 
-    # ---------- Everything else: redirect to Cloudinary ----------
-    # Instead of streaming through Django (which would need to fetch
-    # the whole file again), just redirect the browser to the direct
-    # Cloudinary URL. This is faster and avoids proxy buffering.
+    
     from django.shortcuts import redirect
     return redirect(doc.file.url)
-
-
 
 def category_post(request, slug):
 
@@ -1124,9 +1104,7 @@ def add_post(request):
             uploaded_images = request.FILES.getlist("images")
             uploaded_docs = request.FILES.getlist("attachments")
 
-            # -----------------------------------------
-            # VALIDATE IMAGES
-            # -----------------------------------------
+    
 
             for image in uploaded_images:
 
@@ -1507,9 +1485,7 @@ def edit_post(request, pk):
 
     return _render(form)
     
-# ============================================================
-# FILE VALIDATORS
-# ============================================================
+
 
 def is_valid_image(file):
     valid_types = [
@@ -1535,9 +1511,6 @@ def is_valid_document(file):
     return ext in ALLOWED_DOC_EXTENSIONS
 
 
-# ============================================================
-# REMOVE IMAGE (AJAX)
-# ============================================================
 
 @login_required
 @require_POST
@@ -1570,9 +1543,6 @@ def remove_image(request, image_id):
         )
 
 
-# ============================================================
-# REMOVE DOCUMENT (AJAX)
-# ============================================================
 
 @login_required
 @require_POST
@@ -1606,9 +1576,6 @@ def remove_document(request, pk):
         )
 
 
-# ============================================================
-# DELETE POST
-# ============================================================
 
 @login_required
 @require_http_methods(["GET", "POST"])
@@ -1633,31 +1600,20 @@ def delete_post(request, pk):
 
 
 def can_manage_comment(request, comment):
-   
-    if not request.user.is_authenticated:
+       if not request.user.is_authenticated:
         return False
-
     if request.user.is_superuser:
         return True
-
     role = getattr(request.user, "role", None)
-
     if role == "school_admin":
         return True
-
     return comment.author_id == request.user.pk
 
-
-# ============================================================
-# EDIT COMMENT (AJAX)
-# ============================================================
 
 @login_required
 @require_POST
 def comment_edit(request, comment_id):
-
     comment = get_object_or_404(Comment, pk=comment_id)
-
     if not can_manage_comment(request, comment):
         return JsonResponse(
             {"success": False, "message": "Permission denied"},
@@ -1682,9 +1638,6 @@ def comment_edit(request, comment_id):
     })
 
 
-# ============================================================
-# DELETE COMMENT (AJAX)
-# ============================================================
 
 @login_required
 @require_POST
@@ -1702,7 +1655,7 @@ def comment_delete(request, comment_id):
     post_id = comment.post_id
     comment.delete()
 
-    # Return the new total comment count for the post
+   
     total = Comment.objects.filter(post_id=post_id).count()
 
     return JsonResponse({
