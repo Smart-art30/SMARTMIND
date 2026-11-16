@@ -85,5 +85,6 @@ urlpatterns = [
         views.remove_document,
         name="remove_document",
     ),
+    path("trending/", views.trending, name="trending"),
 
 ]

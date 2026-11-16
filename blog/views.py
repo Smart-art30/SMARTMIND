@@ -1,7 +1,3 @@
-# ============================================================
-# IMPORTS
-# ============================================================
-
 from django import forms
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
@@ -47,14 +43,12 @@ from .models import (
     PostAttachment,
     PostReaction,
 )
-
+from datetime import timedelta
+from django.utils import timezone
 from .widgets import MultipleFileInput
-
+from django.core.paginator import Paginator
 from django.template.loader import render_to_string
 from django.http import JsonResponse
-# ============================================================
-# DOCUMENT UPLOAD CONSTANTS
-# ============================================================
 
 ALLOWED_DOC_EXTENSIONS = {
     ".pdf",
@@ -1636,8 +1630,6 @@ def comment_edit(request, comment_id):
         "text": comment.text,
     })
 
-
-
 @login_required
 @require_POST
 def comment_delete(request, comment_id):
@@ -1662,3 +1654,31 @@ def comment_delete(request, comment_id):
         "parent_id": parent_id,
         "comments_count": total,
     })
+
+
+
+def trending(request):
+    """Most-read posts from the last 7 days, with an all-time fallback."""
+    cutoff = timezone.now() - timedelta(days=7)
+
+    # Only count posts that are actually visible to readers.
+    base = (
+        Post.objects
+        .filter(approved=True)          # ← use `approved`, not `is_published`
+        .select_related("author", "category", "school")
+    )
+
+    qs = (
+        base
+        .filter(created_at__gte=cutoff)
+        .order_by("-view_count", "-created_at")   # ← use view_count, not views
+    )
+
+    # Fallback: if nothing published in the last 7 days, show all-time top posts.
+    if not qs.exists():
+        qs = base.order_by("-view_count", "-created_at")[:20]
+
+    paginator = Paginator(qs, 12)
+    page = paginator.get_page(request.GET.get("page"))
+    return render(request, "trending.html", {"page": page})
+

@@ -15,18 +15,12 @@
     <link rel="stylesheet" href="{% static 'django_ckeditor_5/dist/styles.css' %}">
     <link rel="stylesheet" href="{% static 'css/comments.css' %}">
 
-    <!-- =========================================================
-         PREVENT THEME FLASH — runs before paint
-         Default is LIGHT. Only switches to dark if the user
-         has explicitly chosen it (saved in localStorage).
-    ========================================================== -->
+    <!-- Prevent theme flash — default light, user choice persists -->
     <script>
         (function () {
             try {
                 var stored = localStorage.getItem('smartmind-theme');
-                var theme = (stored === 'dark' || stored === 'light')
-                    ? stored
-                    : 'light';   // ← always default to light
+                var theme = (stored === 'dark' || stored === 'light') ? stored : 'light';
                 document.documentElement.setAttribute('data-theme', theme);
             } catch (e) {
                 document.documentElement.setAttribute('data-theme', 'light');
@@ -38,49 +32,50 @@
 
     <style>
         /* =====================================================
-           DESIGN TOKENS — LIGHT (default)
+           Tokens — light (default)
         ===================================================== */
         :root,
         [data-theme="light"] {
-            --bg: #f6f8fc;
-            --surface: rgba(255, 255, 255, 0.82);
+            --bg: #f7f6f3;
+            --surface: rgba(255, 255, 255, 0.86);
             --surface-solid: #ffffff;
-            --surface-alt: #f8fafc;
-            --text: #0f172a;
-            --muted: #64748b;
-            --primary: #6366f1;
-            --primary-2: #4f46e5;
-            --primary-soft: #eef2ff;
-            --border: rgba(148, 163, 184, 0.18);
-            --border-solid: #e9eef4;
-            --shadow: 0 12px 35px rgba(15, 23, 42, 0.08);
-            --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
-            --navbar-bg: rgba(255, 255, 255, 0.76);
-            --radius: 18px;
-            --navbar-h: 72px;
-            --sidebar-w: 280px;
-            --layout-pad: 20px;
-            --ease: cubic-bezier(.4, 0, .2, 1);
+            --surface-alt: #faf9f7;
+            --text: #1e242b;
+            --muted: #6b7280;
+            --primary: #2f6b7c;
+            --primary-2: #245462;
+            --primary-soft: #e6eef0;
+            --border: rgba(100, 110, 120, 0.16);
+            --border-solid: #e5e2dc;
+            --shadow: 0 10px 28px rgba(30, 36, 43, 0.07);
+            --shadow-sm: 0 3px 10px rgba(30, 36, 43, 0.05);
+            --navbar-bg: rgba(255, 255, 255, 0.82);
+            --radius: 16px;
+            --navbar-h: 68px;          /* synced to real height via JS */
+            --sidebar-w: 268px;
+            --layout-pad: 20px;        /* outer gutter */
+            --content-pad-x: 0px;      /* horizontal padding applied to <main> children */
+            --ease: ease;
         }
 
         /* =====================================================
-           DESIGN TOKENS — DARK
+           Tokens — dark
         ===================================================== */
         [data-theme="dark"] {
-            --bg: #0a0e1a;
-            --surface: rgba(17, 24, 39, 0.85);
-            --surface-solid: #111827;
-            --surface-alt: #1a2234;
-            --text: #f1f5f9;
-            --muted: #94a3b8;
-            --primary: #818cf8;
-            --primary-2: #a5b4fc;
-            --primary-soft: #1e1b4b;
-            --border: rgba(148, 163, 184, 0.12);
-            --border-solid: #1f2937;
-            --shadow: 0 12px 35px rgba(0, 0, 0, 0.5);
-            --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.35);
-            --navbar-bg: rgba(17, 24, 39, 0.82);
+            --bg: #14171c;
+            --surface: rgba(28, 32, 39, 0.88);
+            --surface-solid: #1c2027;
+            --surface-alt: #232830;
+            --text: #e7e4df;
+            --muted: #9aa0a8;
+            --primary: #7fa8b5;
+            --primary-2: #9dbfca;
+            --primary-soft: #223038;
+            --border: rgba(160, 170, 180, 0.12);
+            --border-solid: #2c323a;
+            --shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+            --shadow-sm: 0 3px 10px rgba(0, 0, 0, 0.3);
+            --navbar-bg: rgba(20, 23, 28, 0.88);
         }
 
         * { box-sizing: border-box; }
@@ -90,24 +85,16 @@
         body {
             margin: 0;
             font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            background:
-                radial-gradient(circle at top left, rgba(99, 102, 241, 0.10), transparent 28%),
-                linear-gradient(180deg, var(--bg) 0%, var(--bg) 100%);
+            background: var(--bg);
             color: var(--text);
             overflow-x: hidden;
-            transition: background-color .3s var(--ease), color .3s var(--ease);
-        }
-
-        [data-theme="dark"] body {
-            background:
-                radial-gradient(circle at top left, rgba(129, 140, 248, 0.08), transparent 30%),
-                linear-gradient(180deg, var(--bg) 0%, var(--bg) 100%);
+            transition: background-color .2s var(--ease), color .2s var(--ease);
         }
 
         a { text-decoration: none; }
 
         /* =====================================================
-           SHELL
+           Shell
         ===================================================== */
         .site-shell {
             min-height: 100vh;
@@ -116,23 +103,23 @@
         }
 
         /* =====================================================
-           NAVBAR
+           Navbar
         ===================================================== */
         .site-navbar {
             position: sticky;
             top: 0;
             z-index: 1030;
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
             background: var(--navbar-bg);
             border-bottom: 1px solid var(--border);
-            transition: background-color .3s var(--ease), border-color .3s var(--ease);
+            transition: background-color .2s var(--ease), border-color .2s var(--ease);
         }
 
         .nav-inner {
-            max-width: 1400px;
+            max-width: 1360px;
             margin: 0 auto;
-            padding: 14px 20px;
+            padding: 12px 20px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -143,34 +130,35 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            font-weight: 800;
-            color: var(--primary);
-            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text);
+            font-size: 1.08rem;
             white-space: nowrap;
         }
 
         .brand-badge {
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
             display: grid;
             place-items: center;
-            border-radius: 14px;
-            background: linear-gradient(135deg, var(--primary), #7c3aed);
+            border-radius: 10px;
+            background: var(--primary);
             color: #fff;
-            box-shadow: var(--shadow-sm);
+            font-size: .95rem;
         }
 
         .nav-links {
             display: flex;
             align-items: center;
-            gap: 18px;
+            gap: 20px;
             flex-wrap: wrap;
         }
 
         .nav-links a {
             color: var(--muted);
             font-weight: 500;
-            transition: color 0.2s ease;
+            font-size: .92rem;
+            transition: color .15s var(--ease);
         }
 
         .nav-links a:hover,
@@ -187,19 +175,20 @@
         .user-box {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             color: var(--muted);
+            font-size: .9rem;
         }
 
         .btn-pill {
             border: 1px solid var(--border-solid);
             background: var(--surface-solid);
-            color: var(--primary);
-            padding: 9px 15px;
+            color: var(--text);
+            padding: 7px 14px;
             border-radius: 999px;
-            font-weight: 600;
-            transition: all 0.2s var(--ease);
-            font-size: .9rem;
+            font-weight: 500;
+            font-size: .86rem;
+            transition: background .15s var(--ease), color .15s var(--ease), border-color .15s var(--ease);
         }
 
         .btn-pill:hover {
@@ -208,16 +197,12 @@
             border-color: var(--primary);
         }
 
-        [data-theme="dark"] .btn-pill:hover {
-            color: #0a0e1a;
-        }
-
         /* =====================================================
-           THEME TOGGLE
+           Theme toggle
         ===================================================== */
         .theme-toggle {
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             border: 1px solid var(--border-solid);
             background: var(--surface-solid);
@@ -226,8 +211,8 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.05rem;
-            transition: all .2s var(--ease);
+            font-size: 1rem;
+            transition: background .15s var(--ease), color .15s var(--ease), border-color .15s var(--ease);
             -webkit-tap-highlight-color: transparent;
             flex-shrink: 0;
             padding: 0;
@@ -235,13 +220,7 @@
 
         .theme-toggle:hover {
             color: var(--primary);
-            background: var(--primary-soft);
-            border-color: rgba(99, 102, 241, .35);
-            transform: rotate(15deg);
-        }
-
-        .theme-toggle:active {
-            transform: scale(.92) rotate(15deg);
+            border-color: var(--border-solid);
         }
 
         .theme-toggle .icon-sun { display: none; }
@@ -250,12 +229,27 @@
         [data-theme="dark"] .theme-toggle .icon-sun { display: inline; }
         [data-theme="dark"] .theme-toggle .icon-moon { display: none; }
 
-        .mobile-menu-btn {
+        .sidebar-toggle {
             display: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            border: 1px solid var(--border-solid);
+            background: var(--surface-solid);
+            color: var(--text);
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.05rem;
+            padding: 0;
+        }
+
+        .sidebar-toggle:hover {
+            color: var(--primary);
         }
 
         /* =====================================================
-           LAYOUT
+           Layout
         ===================================================== */
         .layout {
             display: flex;
@@ -266,7 +260,7 @@
         }
 
         /* =====================================================
-           SIDEBAR
+           Sidebar — desktop rail, mobile drawer
         ===================================================== */
         .sidebar {
             position: fixed;
@@ -276,57 +270,88 @@
             height: calc(100vh - var(--navbar-h) - (var(--layout-pad) * 2));
             overflow-y: auto;
             background: var(--surface);
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
             border: 1px solid var(--border);
             border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            padding: 20px;
-            transition: background-color .3s var(--ease),
-                        border-color .3s var(--ease),
-                        box-shadow .3s var(--ease);
+            box-shadow: var(--shadow-sm);
+            padding: 18px;
+            z-index: 1040;
+            transition: background-color .2s var(--ease),
+                        border-color .2s var(--ease),
+                        transform .2s var(--ease);
         }
 
         .sidebar-section + .sidebar-section {
-            margin-top: 24px;
-            padding-top: 20px;
+            margin-top: 20px;
+            padding-top: 18px;
             border-top: 1px solid var(--border);
         }
 
         .sidebar h3 {
-            margin: 0 0 14px;
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--text);
+            margin: 0 0 10px;
+            font-size: .82rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: var(--muted);
         }
 
         .sidebar-links {
             display: grid;
-            gap: 8px;
+            gap: 2px;
         }
 
         .sidebar-links a {
             display: flex;
             align-items: center;
             gap: 10px;
-            padding: 10px 12px;
-            border-radius: 12px;
-            color: var(--muted);
-            transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+            padding: 9px 10px;
+            border-radius: 10px;
+            color: var(--text);
+            font-size: .9rem;
+            transition: background .15s var(--ease), color .15s var(--ease);
         }
 
         .sidebar-links a:hover {
             background: var(--primary-soft);
             color: var(--primary);
-            transform: translateX(2px);
+        }
+
+        .sidebar-links a i {
+            color: var(--muted);
+            font-size: .95rem;
+            width: 18px;
+            text-align: center;
+        }
+
+        .sidebar-links a:hover i {
+            color: var(--primary);
+        }
+
+        /* Drawer state, driven by [data-sidebar-open] on <html> */
+        html[data-sidebar-open="true"] { overflow: hidden; }
+
+        .sidebar-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(20, 23, 28, .42);
+            z-index: 1039;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity .2s var(--ease), visibility .2s var(--ease);
         }
 
         /* =====================================================
-           MAIN
+           Main
+           - On desktop: offset from fixed sidebar by
+             (sidebar-w + layout-pad + layout-pad)
+           - Horizontal padding is owned by .layout, so <main>
+             has NO extra padding. Children should NOT add
+             horizontal padding of their own — use the tokens.
         ===================================================== */
         main {
             flex: 1;
-            margin-left: calc(var(--sidebar-w) + var(--layout-pad) + 20px);
+            margin-left: calc(var(--sidebar-w) + (var(--layout-pad) * 2));
             min-width: 0;
             padding: 0;
         }
@@ -334,41 +359,43 @@
         .content-wrap {
             background: transparent;
             min-width: 0;
+            /* No horizontal padding here — .layout already provides the gutter.
+               Templates must NOT add their own left/right padding to .container. */
         }
 
         /* =====================================================
-           OFFCANVAS (mobile sidebar)
+           Responsive
         ===================================================== */
-        .offcanvas {
-            background: var(--surface-solid);
-            color: var(--text);
-            transition: background-color .3s var(--ease), color .3s var(--ease);
-        }
-
-        .offcanvas-header {
-            border-bottom: 1px solid var(--border);
-        }
-
-        .offcanvas-title {
-            color: var(--text);
-            font-weight: 700;
-        }
-
-        [data-theme="dark"] .btn-close {
-            filter: invert(1) grayscale(100%) brightness(200%);
-        }
-
-        /* =====================================================
-           RESPONSIVE
-        ===================================================== */
-        @media (max-width: 992px) {
+        @media (max-width: 991px) {
             .sidebar {
-                display: none !important;
+                top: 0;
+                left: 0;
+                height: 100vh;
+                border-radius: 0;
+                border-left: none;
+                border-top: none;
+                border-bottom: none;
+                transform: translateX(-100%);
+                box-shadow: var(--shadow);
+            }
+
+            html[data-sidebar-open="true"] .sidebar {
+                transform: translateX(0);
+            }
+
+            html[data-sidebar-open="true"] .sidebar-backdrop {
+                opacity: 1;
+                visibility: visible;
+                pointer-events: auto;
             }
 
             main {
                 margin-left: 0 !important;
                 width: 100% !important;
+            }
+
+            .sidebar-toggle {
+                display: inline-flex;
             }
 
             .layout {
@@ -382,14 +409,8 @@
                 display: none;
             }
 
-            .mobile-menu-btn {
-                display: inline-flex;
-                align-items: center;
-                gap: 8px;
-            }
-
             .nav-inner {
-                padding: 12px 14px;
+                padding: 10px 14px;
             }
 
             .layout {
@@ -399,39 +420,25 @@
             .brand {
                 font-size: 1rem;
             }
-
-            .brand-badge {
-                width: 36px;
-                height: 36px;
-                border-radius: 12px;
-            }
-
-            .theme-toggle {
-                width: 38px;
-                height: 38px;
-                font-size: 1rem;
-            }
         }
 
         @media (max-width: 576px) {
             .nav-inner {
-                padding: 10px 12px;
+                padding: 9px 12px;
             }
 
             .layout {
                 padding: 10px;
             }
 
-            .theme-toggle {
-                width: 36px;
-                height: 36px;
-                font-size: .95rem;
+            .theme-toggle,
+            .sidebar-toggle {
+                width: 34px;
+                height: 34px;
+                font-size: .92rem;
             }
         }
 
-        /* =====================================================
-           REDUCED MOTION
-        ===================================================== */
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after {
                 transition: none !important;
@@ -445,13 +452,13 @@
 <div class="site-shell">
 
     <!-- =========================================================
-         NAVBAR
+         Navbar
     ========================================================= -->
-    <header class="site-navbar">
+    <header class="site-navbar" id="siteNavbar">
         <div class="nav-inner">
 
             <a href="{% url 'dashboard' %}" class="brand">
-                <span class="brand-badge">🎓</span>
+                <span class="brand-badge"><i class="bi bi-mortarboard"></i></span>
                 <span>SmartMind</span>
             </a>
 
@@ -461,21 +468,19 @@
                 {% else %}
                     <a href="{% url 'blog:home' %}">Home</a>
                 {% endif %}
-                <a href="#">Categories</a>
-                <a href="#">Trending</a>
+                <a href="{% url 'blog:trending' %}">Trending</a>
                 <a href="#">About</a>
                 <a href="{% url 'library:home' %}">Library</a>
 
                 {% if user.is_authenticated %}
                     {% if user.is_superuser or user.role == "school_admin" or user.role == "teacher" %}
-                        <a href="{% url 'blog:add_post' %}">+ Post</a>
+                        <a href="{% url 'blog:add_post' %}">Post</a>
                     {% endif %}
                 {% endif %}
             </nav>
 
             <div class="nav-actions">
 
-                <!-- Theme toggle — visible on all screen sizes -->
                 <button type="button"
                         class="theme-toggle"
                         id="themeToggle"
@@ -487,22 +492,23 @@
 
                 <div class="user-box">
                     {% if user.is_authenticated %}
-                        <span>Hi, <strong>{{ user.username }}</strong></span>
+                        <span>{{ user.username }}</span>
                         <form action="{% url 'logout' %}" method="post" class="m-0">
                             {% csrf_token %}
-                            <button type="submit" class="btn-pill">Logout</button>
+                            <button type="submit" class="btn-pill">Sign out</button>
                         </form>
                     {% else %}
-                        <a href="{% url 'login' %}" class="btn-pill">Login</a>
+                        <a href="{% url 'login' %}" class="btn-pill">Sign in</a>
                     {% endif %}
                 </div>
 
-                <button class="btn btn-outline-primary mobile-menu-btn"
-                        type="button"
-                        data-bs-toggle="offcanvas"
-                        data-bs-target="#mobileSidebar"
-                        aria-controls="mobileSidebar">
-                    <i class="bi bi-list"></i> Menu
+                <button type="button"
+                        class="sidebar-toggle"
+                        id="sidebarToggle"
+                        aria-label="Toggle sidebar"
+                        aria-controls="appSidebar"
+                        aria-expanded="false">
+                    <i class="bi bi-list"></i>
                 </button>
 
             </div>
@@ -512,15 +518,15 @@
 
 
     <!-- =========================================================
-         LAYOUT
+         Layout
     ========================================================= -->
     <div class="layout">
 
         <!-- =================================================
-             DESKTOP SIDEBAR
+             Sidebar — plain markup, no block.
+             Desktop: persistent rail. Mobile: drawer.
         ================================================= -->
-        <aside class="sidebar d-none d-lg-block">
-
+        <aside class="sidebar" id="appSidebar">
             <div class="sidebar-section">
                 <h3>Categories</h3>
                 <div class="sidebar-links">
@@ -530,38 +536,35 @@
                             <span>{{ category.name }}</span>
                         </a>
                     {% empty %}
-                        <p class="text-muted mb-0">No categories available.</p>
+                        <p class="text-muted mb-0" style="font-size:.85rem;">No categories yet.</p>
                     {% endfor %}
                 </div>
             </div>
 
             <div class="sidebar-section">
-                <h3>Quick Links</h3>
+                <h3>Explore</h3>
                 <div class="sidebar-links">
-                    <a href="#"><i class="bi bi-lightning-charge"></i><span>Latest Posts</span></a>
-                    <a href="#"><i class="bi bi-eye"></i><span>Most Viewed</span></a>
-                    <a href="#"><i class="bi bi-bookmark"></i><span>Bookmarks</span></a>
-                    <a href="{% url 'library:home' %}"><i class="bi bi-journal-text"></i><span>Library</span></a>
-                </div>
-
-                <div class="user-box mt-3">
+                    <a href="{% url 'library:home' %}">
+                        <i class="bi bi-journal-text"></i>
+                        <span>Library</span>
+                    </a>
                     {% if user.is_authenticated %}
-                        <span>Hi, <strong>{{ user.username }}</strong></span>
-                        <form action="{% url 'logout' %}" method="post" class="m-0">
-                            {% csrf_token %}
-                            <button type="submit" class="btn-pill">Logout</button>
-                        </form>
-                    {% else %}
-                        <a href="{% url 'login' %}" class="btn-pill">Login</a>
+                        <a href="{% url 'dashboard' %}">
+                            <i class="bi bi-speedometer2"></i>
+                            <span>My dashboard</span>
+                        </a>
                     {% endif %}
                 </div>
             </div>
-
         </aside>
 
+        <div class="sidebar-backdrop" id="sidebarBackdrop" aria-hidden="true"></div>
 
         <!-- =================================================
-             MAIN CONTENT
+             Main content
+             NOTE: <main> has NO horizontal padding — the
+             .layout parent owns the gutter. Child templates
+             should NOT add left/right padding either.
         ================================================= -->
         <main>
             <div class="content-wrap">
@@ -575,93 +578,7 @@
 
 
 <!-- =========================================================
-     MOBILE SIDEBAR (OFFCANVAS)
-========================================================= -->
-<div class="offcanvas offcanvas-start"
-     tabindex="-1"
-     id="mobileSidebar"
-     aria-labelledby="mobileSidebarLabel">
-
-    <div class="offcanvas-header">
-        <h5 class="offcanvas-title" id="mobileSidebarLabel">SmartMind Menu</h5>
-        <button type="button"
-                class="btn-close"
-                data-bs-dismiss="offcanvas"
-                aria-label="Close"></button>
-    </div>
-
-    <div class="offcanvas-body">
-
-        {% if user.is_authenticated %}
-            <p class="mb-3">Hi, <strong>{{ user.username }}</strong></p>
-        {% endif %}
-
-        <div class="sidebar-section">
-            <h3>Navigation</h3>
-            <div class="sidebar-links">
-                {% if user.is_authenticated %}
-                    <a href="{% url 'dashboard' %}"><i class="bi bi-house"></i><span>Home</span></a>
-                {% else %}
-                    <a href="{% url 'blog:home' %}"><i class="bi bi-house"></i><span>Home</span></a>
-                {% endif %}
-                <a href="#"><i class="bi bi-collection"></i><span>Categories</span></a>
-                <a href="#"><i class="bi bi-fire"></i><span>Trending</span></a>
-                <a href="#"><i class="bi bi-info-circle"></i><span>About</span></a>
-                <a href="{% url 'library:home' %}"><i class="bi bi-journal-text"></i><span>Library</span></a>
-
-                {% if user.is_authenticated %}
-                    {% if user.is_superuser or user.role == "school_admin" or user.role == "teacher" %}
-                        <a href="{% url 'blog:add_post' %}"><i class="bi bi-plus-circle"></i><span>+ Post</span></a>
-                    {% endif %}
-                {% endif %}
-            </div>
-        </div>
-
-        <div class="sidebar-section">
-            <h3>Categories</h3>
-            <div class="sidebar-links">
-                {% for category in categories %}
-                    <a href="{% url 'blog:category_post' category.slug %}">
-                        <i class="bi bi-folder2"></i>
-                        <span>{{ category.name }}</span>
-                    </a>
-                {% empty %}
-                    <p class="text-muted mb-0">No categories available.</p>
-                {% endfor %}
-            </div>
-        </div>
-
-        {% if user.is_authenticated %}
-            <div class="sidebar-section">
-                <h3>Account</h3>
-                <div class="sidebar-links">
-                    <form action="{% url 'logout' %}" method="post" class="m-0 w-100">
-                        {% csrf_token %}
-                        <button type="submit"
-                                class="btn-pill w-100"
-                                style="justify-content:center;">
-                            Logout
-                        </button>
-                    </form>
-                </div>
-            </div>
-        {% else %}
-            <div class="sidebar-section">
-                <h3>Account</h3>
-                <div class="sidebar-links">
-                    <a href="{% url 'login' %}" class="btn-pill" style="justify-content:center;">
-                        Login
-                    </a>
-                </div>
-            </div>
-        {% endif %}
-
-    </div>
-</div>
-
-
-<!-- =========================================================
-     SCRIPTS
+     Scripts
 ========================================================= -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -674,9 +591,33 @@
 
 
 <!-- =========================================================
-     THEME TOGGLE LOGIC
-     Default = light. User choice = saved & respected.
-     No OS preference override.
+     Measure real navbar height → set --navbar-h
+     (so sticky child headers land in the right place)
+========================================================= -->
+<script>
+(function () {
+    var navbar = document.getElementById('siteNavbar');
+    if (!navbar) return;
+
+    function sync() {
+        var h = navbar.getBoundingClientRect().height;
+        if (h > 0) {
+            document.documentElement.style.setProperty('--navbar-h', h + 'px');
+        }
+    }
+
+    sync();
+    window.addEventListener('resize', sync, { passive: true });
+    if (window.ResizeObserver) {
+        new ResizeObserver(sync).observe(navbar);
+    }
+    window.addEventListener('load', sync);
+})();
+</script>
+
+
+<!-- =========================================================
+     Theme toggle
 ========================================================= -->
 <script>
 (function () {
@@ -707,14 +648,11 @@
     function initToggle() {
         var toggle = document.getElementById('themeToggle');
         if (!toggle) return;
-
         toggle.addEventListener('click', function () {
-            var next = currentTheme() === 'dark' ? 'light' : 'dark';
-            setTheme(next, true);
+            setTheme(currentTheme() === 'dark' ? 'light' : 'dark', true);
         });
     }
 
-    /* Ensure a consistent starting state even if the head script was skipped */
     (function ensureTheme() {
         var stored = getStored();
         var theme = stored || DEFAULT_THEME;
@@ -728,6 +666,56 @@
     } else {
         initToggle();
     }
+})();
+</script>
+
+
+<!-- =========================================================
+     Sidebar drawer (mobile)
+========================================================= -->
+<script>
+(function () {
+    var root = document.documentElement;
+    var toggle = document.getElementById('sidebarToggle');
+    var backdrop = document.getElementById('sidebarBackdrop');
+    if (!toggle || !backdrop) return;
+
+    function isOpen() {
+        return root.getAttribute('data-sidebar-open') === 'true';
+    }
+
+    function open() {
+        root.setAttribute('data-sidebar-open', 'true');
+        toggle.setAttribute('aria-expanded', 'true');
+    }
+
+    function close() {
+        root.removeAttribute('data-sidebar-open');
+        toggle.setAttribute('aria-expanded', 'false');
+    }
+
+    toggle.addEventListener('click', function () {
+        isOpen() ? close() : open();
+    });
+
+    backdrop.addEventListener('click', close);
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && isOpen()) close();
+    });
+
+    /* Close on link tap in the drawer */
+    document.querySelectorAll('#appSidebar a').forEach(function (a) {
+        a.addEventListener('click', function () {
+            if (window.matchMedia('(max-width: 991px)').matches) close();
+        });
+    });
+
+    /* Reset when crossing back to desktop */
+    var mq = window.matchMedia('(min-width: 992px)');
+    mq.addEventListener('change', function (e) {
+        if (e.matches) close();
+    });
 })();
 </script>
 

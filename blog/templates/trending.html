@@ -1,0 +1,429 @@
+{% extends "base.html" %}
+{% block title %}Trending · SmartMind{% endblock %}
+
+{% block body_class %}no-sidebar{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* =====================================================
+       Trending page — editorial list, full-width, no rail
+    ===================================================== */
+
+    .trending-page {
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 40px 20px 80px;
+    }
+
+    /* ---- Header ---- */
+    .trending-header {
+        margin-bottom: 36px;
+    }
+
+    .trending-header h1 {
+        font-size: clamp(1.5rem, 3.2vw, 2rem);
+        font-weight: 700;
+        letter-spacing: -.025em;
+        line-height: 1.2;
+        margin: 0 0 10px;
+        color: var(--text);
+    }
+
+    .trending-header p {
+        color: var(--muted);
+        font-size: .95rem;
+        line-height: 1.6;
+        margin: 0;
+        max-width: 520px;
+    }
+
+    /* ---- List ---- */
+    .trending-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        border-top: 1px solid var(--border-solid);
+    }
+
+    .trending-item {
+        display: grid;
+        grid-template-columns: 32px 1fr 128px;
+        gap: 20px;
+        align-items: start;
+        padding: 22px 0;
+        border-bottom: 1px solid var(--border-solid);
+    }
+
+    .trending-item:last-child {
+        border-bottom: none;
+    }
+
+    /* ---- Rank ---- */
+    .trending-rank {
+        font-size: 1.1rem;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        color: var(--muted);
+        line-height: 1.3;
+        padding-top: 1px;
+    }
+
+    .trending-item:first-child .trending-rank {
+        color: var(--primary);
+    }
+
+    /* ---- Body ---- */
+    .trending-item-body {
+        min-width: 0;
+    }
+
+    .trending-meta-top {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 6px;
+        font-size: .76rem;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        font-weight: 500;
+    }
+
+    .trending-category {
+        color: var(--primary);
+    }
+
+    .trending-dot {
+        color: var(--border-solid);
+    }
+
+    .trending-item h2 {
+        font-size: 1.15rem;
+        font-weight: 700;
+        line-height: 1.35;
+        letter-spacing: -.015em;
+        margin: 0 0 6px;
+    }
+
+    .trending-item h2 a {
+        color: var(--text);
+        transition: color .15s var(--ease);
+    }
+
+    .trending-item h2 a:hover {
+        color: var(--primary);
+    }
+
+    .trending-excerpt {
+        color: var(--muted);
+        font-size: .9rem;
+        line-height: 1.6;
+        margin: 0 0 10px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .trending-meta {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+        font-size: .8rem;
+        color: var(--muted);
+    }
+
+    .trending-meta .author {
+        font-weight: 500;
+        color: var(--text);
+    }
+
+    .trending-meta .dot {
+        color: var(--border-solid);
+    }
+
+    .trending-meta .stat {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+    }
+
+    .trending-meta .stat i {
+        font-size: .76rem;
+        opacity: .65;
+    }
+
+    /* ---- Thumbnail ---- */
+    .trending-thumb {
+        display: block;
+        width: 128px;
+        height: 92px;
+        border-radius: 8px;
+        overflow: hidden;
+        background: var(--surface-alt);
+        flex-shrink: 0;
+    }
+
+    .trending-thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        transition: transform .3s var(--ease);
+    }
+
+    .trending-thumb:hover img {
+        transform: scale(1.05);
+    }
+
+    /* ---- Pager ---- */
+    .trending-pager {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 36px;
+        font-size: .86rem;
+    }
+
+    .trending-pager a {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--text);
+        font-weight: 500;
+        padding: 8px 14px;
+        border: 1px solid var(--border-solid);
+        border-radius: 8px;
+        transition: border-color .15s var(--ease), color .15s var(--ease);
+    }
+
+    .trending-pager a:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+
+    .trending-pager .spacer {
+        flex: 1;
+    }
+
+    .trending-pager .page-info {
+        color: var(--muted);
+        font-size: .8rem;
+        white-space: nowrap;
+    }
+
+    /* ---- Empty ---- */
+    .trending-empty {
+        padding: 56px 24px;
+        text-align: center;
+        color: var(--muted);
+        border: 1px dashed var(--border-solid);
+        border-radius: 12px;
+    }
+
+    .trending-empty .title {
+        font-size: .95rem;
+        color: var(--text);
+        font-weight: 500;
+        margin: 0 0 4px;
+    }
+
+    .trending-empty .hint {
+        font-size: .85rem;
+        margin: 0;
+    }
+
+    /* =====================================================
+       Responsive — collapse thumbnail, tighten spacing
+    ===================================================== */
+
+    @media (max-width: 720px) {
+        .trending-page {
+            padding: 28px 16px 64px;
+        }
+
+        .trending-header {
+            margin-bottom: 24px;
+        }
+
+        .trending-header h1 {
+            font-size: 1.4rem;
+        }
+
+        .trending-header p {
+            font-size: .9rem;
+        }
+
+        .trending-item {
+            grid-template-columns: 28px 1fr;
+            gap: 14px;
+            padding: 20px 0;
+        }
+
+        .trending-thumb {
+            display: none;
+        }
+
+        .trending-item h2 {
+            font-size: 1.05rem;
+        }
+
+        .trending-excerpt {
+            font-size: .86rem;
+            -webkit-line-clamp: 2;
+        }
+
+        .trending-meta {
+            font-size: .76rem;
+        }
+    }
+
+    /* Very small phones — drop the excerpt to keep the list scannable */
+    @media (max-width: 420px) {
+        .trending-page {
+            padding: 20px 14px 56px;
+        }
+
+        .trending-header h1 {
+            font-size: 1.25rem;
+        }
+
+        .trending-item {
+            grid-template-columns: 24px 1fr;
+            gap: 10px;
+            padding: 16px 0;
+        }
+
+        .trending-rank {
+            font-size: .95rem;
+        }
+
+        .trending-item h2 {
+            font-size: .98rem;
+            line-height: 1.4;
+        }
+
+        .trending-excerpt {
+            display: none;
+        }
+
+        .trending-meta-top {
+            font-size: .7rem;
+            margin-bottom: 4px;
+        }
+
+        .trending-pager {
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .trending-pager .spacer {
+            display: none;
+        }
+
+        .trending-pager .page-info {
+            order: -1;
+            flex-basis: 100%;
+            text-align: center;
+            margin-bottom: 4px;
+        }
+    }
+
+    /* Reduced motion — respect user preference */
+    @media (prefers-reduced-motion: reduce) {
+        .trending-thumb img {
+            transition: none;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="trending-page">
+
+    <header class="trending-header">
+        <h1>Trending this week</h1>
+        <p>The posts people are reading most right now.</p>
+    </header>
+
+    {% if page.object_list %}
+        <ol class="trending-list">
+            {% for post in page %}
+                <li class="trending-item">
+
+                    <span class="trending-rank">{{ forloop.counter }}</span>
+
+                    <div class="trending-item-body">
+
+                        <div class="trending-meta-top">
+                            {% if post.category %}
+                                <span class="trending-category">{{ post.category.name }}</span>
+                                <span class="trending-dot">·</span>
+                            {% endif %}
+                            <span>{{ post.created_at|date:"M j" }}</span>
+                        </div>
+
+                        <h2>
+                            <a href="{% url 'blog:post_detail' post.slug %}">{{ post.title }}</a>
+                        </h2>
+
+                        {% if post.excerpt %}
+                            <p class="trending-excerpt">{{ post.excerpt|truncatewords:22 }}</p>
+                        {% endif %}
+
+                        <div class="trending-meta">
+                            <span class="author">{{ post.author.get_full_name|default:post.author.username }}</span>
+                            <span class="dot">·</span>
+                            <span class="stat">
+                                <i class="bi bi-eye"></i>
+                                {{ post.view_count }}
+                            </span>
+                        </div>
+
+                    </div>
+
+                    {% with thumb=post.images.first %}
+                        {% if thumb %}
+                            <a href="{% url 'blog:post_detail' post.slug %}" class="trending-thumb" tabindex="-1" aria-hidden="true">
+                                <img src="{{ thumb.image.url }}" alt="">
+                            </a>
+                        {% endif %}
+                    {% endwith %}
+
+                </li>
+            {% endfor %}
+        </ol>
+
+        {% if page.has_other_pages %}
+            <nav class="trending-pager" aria-label="Pagination">
+                {% if page.has_previous %}
+                    <a href="?page={{ page.previous_page_number }}">
+                        <i class="bi bi-arrow-left"></i> Newer
+                    </a>
+                {% else %}
+                    <span class="spacer"></span>
+                {% endif %}
+
+                <span class="page-info">{{ page.number }} / {{ page.paginator.num_pages }}</span>
+
+                {% if page.has_next %}
+                    <a href="?page={{ page.next_page_number }}">
+                        Older <i class="bi bi-arrow-right"></i>
+                    </a>
+                {% else %}
+                    <span class="spacer"></span>
+                {% endif %}
+            </nav>
+        {% endif %}
+
+    {% else %}
+        <div class="trending-empty">
+            <p class="title">Nothing here yet.</p>
+            <p class="hint">New posts will show up as soon as they're published.</p>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}
