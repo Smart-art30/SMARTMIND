@@ -152,8 +152,9 @@ class Post(models.Model):
     )
 
     view_count = models.PositiveIntegerField(
-        default=0
-    )
+    default=0,
+    editable=False,
+)
 
     likes = models.ManyToManyField(
         User,

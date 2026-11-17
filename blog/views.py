@@ -29,10 +29,16 @@ from django.conf import settings
 from django.db.models import (
     Count,
     F,
+    Q,
     Prefetch,
 )
 
 import os
+import io
+import logging
+import time
+
+import requests
 
 from .models import (
     Category,
@@ -48,7 +54,10 @@ from django.utils import timezone
 from .widgets import MultipleFileInput
 from django.core.paginator import Paginator
 from django.template.loader import render_to_string
-from django.http import JsonResponse
+from django.http import FileResponse, Http404
+from .watermark import watermark_pdf
+
+logger = logging.getLogger(__name__)
 
 ALLOWED_DOC_EXTENSIONS = {
     ".pdf",
@@ -69,9 +78,7 @@ MAX_DOCUMENT_SIZE = getattr(
     "MAX_DOCUMENT_SIZE",
     200 * 1024 * 1024,
 )
-import io
-from django.http import FileResponse, Http404
-from .watermark import watermark_pdf
+
 
 # ============================================================
 # FORMS
@@ -111,46 +118,35 @@ ReplyForm = modelform_factory(
 # ============================================================
 
 class MultipleImageInput(ClearableFileInput):
-
     allow_multiple_selected = True
 
 
 class MultipleImageField(forms.ImageField):
 
     def __init__(self, *args, **kwargs):
-
         kwargs["widget"] = MultipleImageInput(
             attrs={
                 "class": "photo-file-input",
                 "accept": "image/*",
             }
         )
-
         super().__init__(*args, **kwargs)
 
     def clean(self, data, initial=None):
-
         if not data:
             return []
-
         if not isinstance(data, (list, tuple)):
             data = [data]
-
-        return [
-            super().clean(file, initial)
-            for file in data
-        ]
+        return [super().clean(file, initial) for file in data]
 
 
 class MultipleFileField(forms.FileField):
     """
     FileField that returns a LIST of uploaded files.
-
     Pairs with MultipleFileInput (<input multiple>).
     """
 
     def __init__(self, *args, **kwargs):
-
         kwargs.setdefault(
             "widget",
             MultipleFileInput(
@@ -160,24 +156,16 @@ class MultipleFileField(forms.FileField):
                 }
             ),
         )
-
         super().__init__(*args, **kwargs)
 
     def clean(self, data, initial=None):
-
         if not data:
             return []
-
         if not isinstance(data, (list, tuple)):
             data = [data]
-
         cleaned = []
-
         for f in data:
-            cleaned.append(
-                super(MultipleFileField, self).clean(f, initial)
-            )
-
+            cleaned.append(super(MultipleFileField, self).clean(f, initial))
         return cleaned
 
 
@@ -226,9 +214,7 @@ class PostForm(forms.ModelForm):
     )
 
     class Meta:
-
         model = Post
-
         fields = [
             "title",
             "category",
@@ -242,7 +228,6 @@ class PostForm(forms.ModelForm):
             "visible_to_all",
             "status",
         ]
-
         widgets = {
             "title": forms.TextInput(
                 attrs={
@@ -290,14 +275,11 @@ class PostForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
-
         super().__init__(*args, **kwargs)
 
         if "target_classes" in self.fields:
             self.fields["target_classes"].queryset = (
-                self.fields["target_classes"]
-                .queryset
-                .order_by("name")
+                self.fields["target_classes"].queryset.order_by("name")
             )
 
         # Ensure `multiple` is always present on the
@@ -306,21 +288,19 @@ class PostForm(forms.ModelForm):
             if name in self.fields:
                 self.fields[name].widget.attrs["multiple"] = "multiple"
 
+
 # ============================================================
 # HELPER FUNCTIONS
 # ============================================================
 
 def get_user_role(request):
     """Safely return the logged-in user's role."""
-
     return getattr(request.user, "role", None)
 
 
 def is_staff_user(request):
     """True for superusers, school_admins and teachers."""
-
     user_role = get_user_role(request)
-
     return (
         request.user.is_authenticated
         and (
@@ -332,9 +312,7 @@ def is_staff_user(request):
 
 def can_manage_post(request, post):
     """Can the current user edit / delete this post?"""
-
     user_role = get_user_role(request)
-
     return (
         request.user.is_authenticated
         and (
@@ -346,6 +324,33 @@ def can_manage_post(request, post):
             )
         )
     )
+
+
+def _increment_view_count(request, post):
+    """
+    Increment a post's view_count once per session per post.
+
+    Works from any view (home, category, trending, detail).
+    Returns the current view_count.
+
+    NOTE: `Post.view_count` must have `default=0` (not nullable).
+    `F("view_count") + 1` on NULL stays NULL.
+    """
+    if post is None:
+        return 0
+
+    viewed_posts = request.session.get("viewed_posts", [])
+
+    if post.pk not in viewed_posts:
+        Post.objects.filter(pk=post.pk).update(
+            view_count=F("view_count") + 1
+        )
+        viewed_posts.append(post.pk)
+        request.session["viewed_posts"] = viewed_posts
+        request.session.modified = True
+
+    post.refresh_from_db(fields=["view_count"])
+    return post.view_count
 
 
 def _attach_comment_meta(comment, user_id):
@@ -360,7 +365,6 @@ def _attach_comment_meta(comment, user_id):
         total_reactions   -> int
         replies_list      -> [] (populated later by _build_comment_tree)
     """
-
     comment.likes_count = comment.liked_by.count()
 
     if user_id:
@@ -393,7 +397,6 @@ def _build_comment_tree(comments):
     and return only the top-level ones, with `.replies_list`
     populated recursively to arbitrary depth.
     """
-
     by_id = {c.pk: c for c in comments}
 
     # Ensure each comment starts with an empty replies_list
@@ -429,7 +432,6 @@ def get_post_comments(request, post):
     Returns only the top-level comments; replies live under
     `.replies_list` on each comment.
     """
-
     all_comments = list(
         Comment.objects
         .filter(post=post)
@@ -452,7 +454,6 @@ def get_post_comments(request, post):
 
 def _attach_post_reactions(request, post):
     """Add reaction aggregates to a Post instance."""
-
     counts = dict(
         PostReaction.objects
         .filter(post=post)
@@ -502,6 +503,9 @@ def home(request):
     posts = []
 
     for post in posts_qs:
+
+        # ---- View count (once per session per post) ----
+        _increment_view_count(request, post)
 
         comments = get_post_comments(request, post)
 
@@ -556,6 +560,7 @@ def home(request):
 
     if featured_post:
         _attach_post_reactions(request, featured_post)
+        _increment_view_count(request, featured_post)
 
     context = {
         "posts": posts,
@@ -585,18 +590,8 @@ def post_detail(request, slug):
         slug=slug,
     )
 
-    # ---- View count (once per session) ----
-    viewed_posts = request.session.get("viewed_posts", [])
-
-    if post.pk not in viewed_posts:
-
-        Post.objects.filter(pk=post.pk).update(
-            view_count=F("view_count") + 1
-        )
-        post.refresh_from_db(fields=["view_count"])
-
-        viewed_posts.append(post.pk)
-        request.session["viewed_posts"] = viewed_posts
+    # ---- View count (once per session per post) ----
+    _increment_view_count(request, post)
 
     # ---- Comments (infinite-depth tree) ----
     comments = get_post_comments(request, post)
@@ -639,10 +634,11 @@ def post_detail(request, slug):
     return render(request, "post_detail.html", context)
 
 
+# ============================================================
+# ATTACHMENT DOWNLOAD
+# ============================================================
 
-import requests  
 def _read_file_bytes(file_field, extension=""):
-
     # 1) Try the normal Django way first (local FS storage)
     try:
         with file_field.open("rb") as fh:
@@ -671,7 +667,6 @@ def _read_file_bytes(file_field, extension=""):
 
 @login_required
 def download_attachment(request, pk):
-
 
     doc = get_object_or_404(
         PostAttachment.objects.select_related("post"),
@@ -714,7 +709,6 @@ def download_attachment(request, pk):
         response["Cache-Control"] = "private, no-store"
         return response
 
-    
     if ext == "txt":
         body_bytes = _read_file_bytes(doc.file, extension=ext)
         body = body_bytes.decode("utf-8", errors="ignore")
@@ -736,9 +730,12 @@ def download_attachment(request, pk):
         response["Cache-Control"] = "private, no-store"
         return response
 
-    
-    from django.shortcuts import redirect
     return redirect(doc.file.url)
+
+
+# ============================================================
+# CATEGORY POSTS
+# ============================================================
 
 def category_post(request, slug):
 
@@ -760,6 +757,9 @@ def category_post(request, slug):
     posts = []
 
     for post in posts_qs:
+
+        # ---- View count (once per session per post) ----
+        _increment_view_count(request, post)
 
         comments = get_post_comments(request, post)
 
@@ -844,6 +844,7 @@ def like_toggle(request, slug):
 # ============================================================
 # ADD COMMENT
 # ============================================================
+
 @login_required
 @require_POST
 def add_comment(request, slug):
@@ -934,6 +935,8 @@ def add_reply(request, slug, comment_id):
         })
 
     return redirect(f"{post.get_absolute_url()}#comment-{parent.pk}")
+
+
 # ============================================================
 # COMMENT LIKE TOGGLE
 # ============================================================
@@ -1067,10 +1070,6 @@ def post_react(request, slug):
 # ============================================================
 # ADD POST
 # ============================================================
-import logging
-import time
-logger = logging.getLogger(__name__)
-
 
 @login_required
 @require_http_methods(["GET", "POST"])
@@ -1097,8 +1096,6 @@ def add_post(request):
 
             uploaded_images = request.FILES.getlist("images")
             uploaded_docs = request.FILES.getlist("attachments")
-
-    
 
             for image in uploaded_images:
 
@@ -1310,6 +1307,8 @@ def add_post(request):
         "add_post.html",
         {"form": form}
     )
+
+
 # ============================================================
 # EDIT POST
 # ============================================================
@@ -1478,8 +1477,11 @@ def edit_post(request, pk):
         form = PostForm(instance=post)
 
     return _render(form)
-    
 
+
+# ============================================================
+# VALIDATORS
+# ============================================================
 
 def is_valid_image(file):
     valid_types = [
@@ -1505,6 +1507,9 @@ def is_valid_document(file):
     return ext in ALLOWED_DOC_EXTENSIONS
 
 
+# ============================================================
+# REMOVE IMAGE / DOCUMENT
+# ============================================================
 
 @login_required
 @require_POST
@@ -1535,7 +1540,6 @@ def remove_image(request, image_id):
             {"success": False, "message": str(e)},
             status=500,
         )
-
 
 
 @login_required
@@ -1570,6 +1574,9 @@ def remove_document(request, pk):
         )
 
 
+# ============================================================
+# DELETE POST
+# ============================================================
 
 @login_required
 @require_http_methods(["GET", "POST"])
@@ -1593,6 +1600,10 @@ def delete_post(request, pk):
     )
 
 
+# ============================================================
+# COMMENT EDIT / DELETE
+# ============================================================
+
 def can_manage_comment(request, comment):
     if not request.user.is_authenticated:
         return False
@@ -1603,10 +1614,13 @@ def can_manage_comment(request, comment):
         return True
     return comment.author_id == request.user.pk
 
+
 @login_required
 @require_POST
 def comment_edit(request, comment_id):
+
     comment = get_object_or_404(Comment, pk=comment_id)
+
     if not can_manage_comment(request, comment):
         return JsonResponse(
             {"success": False, "message": "Permission denied"},
@@ -1630,6 +1644,7 @@ def comment_edit(request, comment_id):
         "text": comment.text,
     })
 
+
 @login_required
 @require_POST
 def comment_delete(request, comment_id):
@@ -1646,7 +1661,6 @@ def comment_delete(request, comment_id):
     post_id = comment.post_id
     comment.delete()
 
-   
     total = Comment.objects.filter(post_id=post_id).count()
 
     return JsonResponse({
@@ -1656,6 +1670,10 @@ def comment_delete(request, comment_id):
     })
 
 
+# ============================================================
+# TRENDING
+# ============================================================
+
 def trending(request):
     """Most-read posts, ranked by views then recency.
 
@@ -1664,8 +1682,6 @@ def trending(request):
       - Logged-in users also see their own unapproved posts.
       - Superusers and school admins see everything.
     """
-    from django.db.models import Q
-
     base = (
         Post.objects
         .select_related("author", "category", "school")
@@ -1683,9 +1699,13 @@ def trending(request):
     else:
         base = base.filter(approved=True)
 
-
     qs = base.order_by("-view_count", "-created_at")
 
     paginator = Paginator(qs, 12)
     page = paginator.get_page(request.GET.get("page"))
+
+    # ---- View count for every post shown on this page ----
+    for post in page:
+        _increment_view_count(request, post)
+
     return render(request, "trending.html", {"page": page})
