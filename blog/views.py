@@ -1656,29 +1656,36 @@ def comment_delete(request, comment_id):
     })
 
 
-
 def trending(request):
-    """Most-read posts from the last 7 days, with an all-time fallback."""
-    cutoff = timezone.now() - timedelta(days=7)
+    """Most-read posts, ranked by views then recency.
 
-    # Only count posts that are actually visible to readers.
+    Visibility rules:
+      - Everyone sees approved posts.
+      - Logged-in users also see their own unapproved posts.
+      - Superusers and school admins see everything.
+    """
+    from django.db.models import Q
+
     base = (
         Post.objects
-        .filter(approved=True)          # ← use `approved`, not `is_published`
         .select_related("author", "category", "school")
     )
 
-    qs = (
-        base
-        .filter(created_at__gte=cutoff)
-        .order_by("-view_count", "-created_at")   # ← use view_count, not views
-    )
+    # Visibility
+    if request.user.is_authenticated:
+        role = getattr(request.user, "role", None)
+        if request.user.is_superuser or role == "school_admin":
+            pass  # see everything
+        else:
+            base = base.filter(
+                Q(approved=True) | Q(author=request.user)
+            )
+    else:
+        base = base.filter(approved=True)
 
-    # Fallback: if nothing published in the last 7 days, show all-time top posts.
-    if not qs.exists():
-        qs = base.order_by("-view_count", "-created_at")[:20]
+
+    qs = base.order_by("-view_count", "-created_at")
 
     paginator = Paginator(qs, 12)
     page = paginator.get_page(request.GET.get("page"))
     return render(request, "trending.html", {"page": page})
-

@@ -236,7 +236,10 @@
     }
 
     /* =====================================================
-       Responsive — collapse thumbnail, tighten spacing
+       Responsive
+       - 720px: collapse thumbnail, keep single column
+       - 600px: switch to a 2-column card grid
+       - 420px: tighten further
     ===================================================== */
 
     @media (max-width: 720px) {
@@ -280,7 +283,90 @@
         }
     }
 
-    /* Very small phones — drop the excerpt to keep the list scannable */
+    /* ---- 2-column card grid on phones ---- */
+    @media (max-width: 600px) {
+        .trending-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            border-top: none;
+            padding: 0;
+        }
+
+        .trending-item {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 14px;
+            border: 1px solid var(--border-solid);
+            border-radius: 12px;
+            background: var(--surface-solid);
+            position: relative;
+        }
+
+        .trending-item:last-child {
+            border-bottom: 1px solid var(--border-solid);
+        }
+
+        /* Rank as a small floating badge */
+        .trending-rank {
+            position: absolute;
+            top: 10px;
+            right: 12px;
+            font-size: .82rem;
+            color: var(--muted);
+            background: var(--surface-alt);
+            padding: 2px 7px;
+            border-radius: 999px;
+            line-height: 1.2;
+        }
+
+        .trending-item:first-child .trending-rank {
+            background: var(--primary-soft);
+            color: var(--primary);
+        }
+
+        .trending-item-body {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-width: 0;
+        }
+
+        .trending-meta-top {
+            font-size: .68rem;
+            margin-bottom: 0;
+            padding-right: 34px; /* leave room for rank badge */
+        }
+
+        .trending-item h2 {
+            font-size: .95rem;
+            line-height: 1.35;
+            margin: 0;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .trending-excerpt {
+            display: none; /* too much for a card; title + meta is enough */
+        }
+
+        .trending-meta {
+            font-size: .72rem;
+            margin-top: auto;
+        }
+
+        .trending-meta .author {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 100%;
+        }
+    }
+
+    /* ---- Very small phones — still 2-up, just tighter ---- */
     @media (max-width: 420px) {
         .trending-page {
             padding: 20px 14px 56px;
@@ -290,28 +376,33 @@
             font-size: 1.25rem;
         }
 
+        .trending-list {
+            gap: 8px;
+        }
+
         .trending-item {
-            grid-template-columns: 24px 1fr;
-            gap: 10px;
-            padding: 16px 0;
+            padding: 12px;
         }
 
         .trending-rank {
-            font-size: .95rem;
+            top: 8px;
+            right: 10px;
+            font-size: .76rem;
+            padding: 1px 6px;
         }
 
         .trending-item h2 {
-            font-size: .98rem;
-            line-height: 1.4;
-        }
-
-        .trending-excerpt {
-            display: none;
+            font-size: .88rem;
+            -webkit-line-clamp: 4;
         }
 
         .trending-meta-top {
-            font-size: .7rem;
-            margin-bottom: 4px;
+            font-size: .64rem;
+            padding-right: 30px;
+        }
+
+        .trending-meta {
+            font-size: .68rem;
         }
 
         .trending-pager {
