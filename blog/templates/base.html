@@ -51,10 +51,9 @@
             --shadow-sm: 0 3px 10px rgba(30, 36, 43, 0.05);
             --navbar-bg: rgba(255, 255, 255, 0.82);
             --radius: 16px;
-            --navbar-h: 68px;          /* synced to real height via JS */
+            --navbar-h: 68px;
             --sidebar-w: 268px;
-            --layout-pad: 20px;        /* outer gutter */
-            --content-pad-x: 0px;      /* horizontal padding applied to <main> children */
+            --layout-pad: 20px;
             --ease: ease;
         }
 
@@ -244,9 +243,7 @@
             padding: 0;
         }
 
-        .sidebar-toggle:hover {
-            color: var(--primary);
-        }
+        .sidebar-toggle:hover { color: var(--primary); }
 
         /* =====================================================
            Layout
@@ -300,7 +297,8 @@
             gap: 2px;
         }
 
-        .sidebar-links a {
+        .sidebar-links a,
+        .sidebar-link-btn {
             display: flex;
             align-items: center;
             gap: 10px;
@@ -309,25 +307,37 @@
             color: var(--text);
             font-size: .9rem;
             transition: background .15s var(--ease), color .15s var(--ease);
+            background: none;
+            border: none;
+            width: 100%;
+            text-align: left;
+            font-family: inherit;
+            cursor: pointer;
         }
 
-        .sidebar-links a:hover {
+        .sidebar-links a:hover,
+        .sidebar-link-btn:hover {
             background: var(--primary-soft);
             color: var(--primary);
         }
 
-        .sidebar-links a i {
+        .sidebar-links a i,
+        .sidebar-link-btn i {
             color: var(--muted);
             font-size: .95rem;
             width: 18px;
             text-align: center;
         }
 
-        .sidebar-links a:hover i {
+        .sidebar-links a:hover i,
+        .sidebar-link-btn:hover i {
             color: var(--primary);
         }
 
-        /* Drawer state, driven by [data-sidebar-open] on <html> */
+        /* Primary nav section — visible only in mobile drawer */
+        .sidebar .nav-section { display: none; }
+
+        /* Drawer state */
         html[data-sidebar-open="true"] { overflow: hidden; }
 
         .sidebar-backdrop {
@@ -343,11 +353,6 @@
 
         /* =====================================================
            Main
-           - On desktop: offset from fixed sidebar by
-             (sidebar-w + layout-pad + layout-pad)
-           - Horizontal padding is owned by .layout, so <main>
-             has NO extra padding. Children should NOT add
-             horizontal padding of their own — use the tokens.
         ===================================================== */
         main {
             flex: 1;
@@ -359,8 +364,6 @@
         .content-wrap {
             background: transparent;
             min-width: 0;
-            /* No horizontal padding here — .layout already provides the gutter.
-               Templates must NOT add their own left/right padding to .container. */
         }
 
         /* =====================================================
@@ -401,14 +404,20 @@
             .layout {
                 padding: 14px;
             }
-        }
 
-        @media (max-width: 768px) {
+            /* Hide desktop nav — drawer now owns navigation */
             .nav-links,
             .user-box {
                 display: none;
             }
 
+            /* Show primary nav section inside the drawer */
+            .sidebar .nav-section {
+                display: block;
+            }
+        }
+
+        @media (max-width: 768px) {
             .nav-inner {
                 padding: 10px 14px;
             }
@@ -527,6 +536,54 @@
              Desktop: persistent rail. Mobile: drawer.
         ================================================= -->
         <aside class="sidebar" id="appSidebar">
+
+            <!-- Primary nav — mobile drawer only -->
+            <div class="sidebar-section nav-section">
+                <h3>Navigation</h3>
+                <div class="sidebar-links">
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'dashboard' %}">
+                            <i class="bi bi-house"></i><span>Home</span>
+                        </a>
+                    {% else %}
+                        <a href="{% url 'blog:home' %}">
+                            <i class="bi bi-house"></i><span>Home</span>
+                        </a>
+                    {% endif %}
+                    <a href="{% url 'blog:trending' %}">
+                        <i class="bi bi-fire"></i><span>Trending</span>
+                    </a>
+                    <a href="#">
+                        <i class="bi bi-info-circle"></i><span>About</span>
+                    </a>
+                    <a href="{% url 'library:home' %}">
+                        <i class="bi bi-journal-text"></i><span>Library</span>
+                    </a>
+
+                    {% if user.is_authenticated %}
+                        {% if user.is_superuser or user.role == "school_admin" or user.role == "teacher" %}
+                            <a href="{% url 'blog:add_post' %}">
+                                <i class="bi bi-pencil-square"></i><span>Post</span>
+                            </a>
+                        {% endif %}
+                    {% endif %}
+
+                    {% if user.is_authenticated %}
+                        <form action="{% url 'logout' %}" method="post" class="m-0">
+                            {% csrf_token %}
+                            <button type="submit" class="sidebar-link-btn">
+                                <i class="bi bi-box-arrow-right"></i><span>Sign out</span>
+                            </button>
+                        </form>
+                    {% else %}
+                        <a href="{% url 'login' %}">
+                            <i class="bi bi-box-arrow-in-right"></i><span>Sign in</span>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Categories -->
             <div class="sidebar-section">
                 <h3>Categories</h3>
                 <div class="sidebar-links">
@@ -541,6 +598,7 @@
                 </div>
             </div>
 
+            <!-- Explore -->
             <div class="sidebar-section">
                 <h3>Explore</h3>
                 <div class="sidebar-links">
@@ -562,9 +620,6 @@
 
         <!-- =================================================
              Main content
-             NOTE: <main> has NO horizontal padding — the
-             .layout parent owns the gutter. Child templates
-             should NOT add left/right padding either.
         ================================================= -->
         <main>
             <div class="content-wrap">
@@ -592,7 +647,6 @@
 
 <!-- =========================================================
      Measure real navbar height → set --navbar-h
-     (so sticky child headers land in the right place)
 ========================================================= -->
 <script>
 (function () {
