@@ -12,12 +12,14 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 import os
+from dotenv import load_dotenv
 from decouple import config
 import cloudinary
 import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / ".env")
 
 
 # Quick-start development settings - unsuitable for production
@@ -102,14 +104,26 @@ WSGI_APPLICATION = 'smartmind.wsgi.application'
 
 
 
+# ==========================
+# DATABASE CONFIGURATION
+# ==========================
 
-DATABASES = {
-    "default": dj_database_url.config(
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
-        conn_max_age=600,
-        conn_health_checks=True,
-    )
-}
+USE_SQLITE = config("USE_SQLITE", default=True, cast=bool)
+
+if USE_SQLITE:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
+else:
+    DATABASES = {
+        "default": dj_database_url.config(
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
@@ -373,3 +387,30 @@ EMAIL_HOST_USER = config("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
 
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+
+SITE_URL = os.environ.get("SITE_URL", "http://localhost:8000")
+
+# ==========================
+# M-PESA DARAJA CONFIGURATION
+# ==========================
+
+MPESA_ENVIRONMENT = config("MPESA_ENVIRONMENT", default="sandbox")
+
+MPESA_CONSUMER_KEY = config("MPESA_CONSUMER_KEY")
+
+MPESA_CONSUMER_SECRET = config("MPESA_CONSUMER_SECRET")
+
+MPESA_PASSKEY = config("MPESA_PASSKEY")
+
+MPESA_SHORTCODE = config("MPESA_SHORTCODE", default="174379")
+
+MPESA_CALLBACK_URL = config(
+    "MPESA_CALLBACK_URL",
+    default="",
+)
+
+if MPESA_ENVIRONMENT == "sandbox":
+    MPESA_BASE_URL = "https://sandbox.safaricom.co.ke"
+else:
+    MPESA_BASE_URL = "https://api.safaricom.co.ke"

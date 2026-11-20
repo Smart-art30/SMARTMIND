@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}All sessions · SmartMind{% endblock %}
+{% block content %}
+{% include "attendance/_base_styles.html" %}
+<div class="attendance-page">
+
+  <div class="page-head">
+    <div>
+      <h3>All sessions</h3>
+      <div class="sub">Every active class session</div>
+    </div>
+    <a href="{% url 'attendance_dashboard' %}" class="btn btn-sm">
+      <i class="bi bi-arrow-left"></i> Back
+    </a>
+  </div>
+
+  <div class="section">
+    <div class="session-list">
+      {% for s in sessions %}
+        <div class="session-item">
+          <div class="session-icon"><i class="bi bi-people"></i></div>
+          <div class="session-body">
+            <p class="session-title">{{ s.name }}</p>
+            <div class="session-meta">
+              <span><i class="bi bi-building"></i>{{ s.class_name }}</span>
+              <span><i class="bi bi-person"></i>{{ s.learner_count }} learners</span>
+            </div>
+          </div>
+          <div class="session-status">
+            <span class="badge">Scheduled</span>
+          </div>
+        </div>
+      {% empty %}
+        <div class="empty">
+          <i class="bi bi-calendar-x"></i>
+          <p>No sessions yet.</p>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}

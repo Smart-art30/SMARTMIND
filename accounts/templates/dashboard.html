@@ -1,0 +1,545 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Attendance Dashboard · SmartMind{% endblock %}
+
+{% block content %}
+
+<style>
+  /* =========================================================
+     TOKENS — monochrome, X-style
+  ========================================================= */
+  .attendance-page {
+    --at-bg: #ffffff;
+    --at-surface: #ffffff;
+    --at-surface-alt: #f7f9f9;
+    --at-text: #0f1419;
+    --at-muted: #536471;
+    --at-soft: #71767b;
+    --at-border: #eff3f4;
+    --at-border-strong: #e1e8ed;
+    --at-primary: #0f1419;
+    --at-primary-hover: #000000;
+    --at-primary-soft: #eff3f4;
+    --at-radius: 16px;
+    --at-radius-sm: 12px;
+    --at-ease: cubic-bezier(.4, 0, .2, 1);
+
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px 20px 60px;
+    color: var(--at-text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                 Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  html[data-theme="dark"] .attendance-page {
+    --at-bg: #000000;
+    --at-surface: #000000;
+    --at-surface-alt: #16181c;
+    --at-text: #e7e9ea;
+    --at-muted: #71767b;
+    --at-soft: #71767b;
+    --at-border: #2f3336;
+    --at-border-strong: #2f3336;
+    --at-primary: #e7e9ea;
+    --at-primary-hover: #ffffff;
+    --at-primary-soft: #16181c;
+  }
+
+  /* =========================================================
+     HEADER
+  ========================================================= */
+  .attendance-page .page-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .attendance-page .page-head h3 {
+    margin: 0 0 4px;
+    font-size: 1.4rem;
+    font-weight: 800;
+    letter-spacing: -.02em;
+    color: var(--at-text);
+  }
+  .attendance-page .page-head .sub {
+    color: var(--at-muted);
+    font-size: .9rem;
+  }
+  .attendance-page .page-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  /* =========================================================
+     BUTTONS — pills, monochrome
+  ========================================================= */
+  .attendance-page .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 999px;
+    padding: 8px 16px;
+    font-weight: 700;
+    font-size: .85rem;
+    border: 1px solid var(--at-border-strong);
+    background: transparent;
+    color: var(--at-text);
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color .15s var(--at-ease),
+                border-color .15s var(--at-ease),
+                color .15s var(--at-ease),
+                opacity .15s var(--at-ease);
+    white-space: nowrap;
+    font-family: inherit;
+  }
+  .attendance-page .btn:hover {
+    background: var(--at-surface-alt);
+    border-color: var(--at-text);
+    color: var(--at-text);
+  }
+  .attendance-page .btn:active { opacity: .8; }
+  .attendance-page .btn-primary {
+    background: var(--at-text);
+    border-color: var(--at-text);
+    color: var(--at-bg);
+  }
+  .attendance-page .btn-primary:hover {
+    background: var(--at-primary-hover);
+    border-color: var(--at-primary-hover);
+    color: var(--at-bg);
+  }
+  .attendance-page .btn-sm {
+    padding: 6px 12px;
+    font-size: .78rem;
+  }
+
+  /* =========================================================
+     STAT CARDS
+  ========================================================= */
+  .attendance-page .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .attendance-page .stat {
+    background: var(--at-surface);
+    border: 1px solid var(--at-border);
+    border-radius: var(--at-radius-sm);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .attendance-page .stat .n {
+    font-size: 1.55rem;
+    font-weight: 800;
+    letter-spacing: -.02em;
+    color: var(--at-text);
+    line-height: 1.1;
+  }
+  .attendance-page .stat .l {
+    color: var(--at-muted);
+    font-size: .8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+  }
+  .attendance-page .stat .hint {
+    color: var(--at-soft);
+    font-size: .78rem;
+    margin-top: 2px;
+  }
+
+  /* =========================================================
+     SECTION
+  ========================================================= */
+  .attendance-page .section {
+    background: var(--at-surface);
+    border: 1px solid var(--at-border);
+    border-radius: var(--at-radius);
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+  .attendance-page .section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--at-border);
+  }
+  .attendance-page .section-head h4 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 800;
+    letter-spacing: -.02em;
+    color: var(--at-text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .attendance-page .section-head h4 i {
+    color: var(--at-text);
+    font-size: .95rem;
+  }
+  .attendance-page .section-head .count {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 9px;
+    border-radius: 999px;
+    font-size: .7rem;
+    font-weight: 700;
+    background: var(--at-text);
+    color: var(--at-bg);
+  }
+
+  /* =========================================================
+     TODAY'S SESSIONS LIST
+  ========================================================= */
+  .attendance-page .session-list {
+    display: flex;
+    flex-direction: column;
+  }
+  .attendance-page .session-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--at-border);
+    transition: background-color .15s var(--at-ease);
+  }
+  .attendance-page .session-item:last-child {
+    border-bottom: none;
+  }
+  .attendance-page .session-item:hover {
+    background: var(--at-surface-alt);
+  }
+  .attendance-page .session-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--at-surface-alt);
+    color: var(--at-text);
+    border: 1px solid var(--at-border-strong);
+    font-size: 1.05rem;
+    flex-shrink: 0;
+  }
+  .attendance-page .session-body {
+    flex: 1;
+    min-width: 0;
+  }
+  .attendance-page .session-title {
+    font-weight: 700;
+    font-size: .92rem;
+    color: var(--at-text);
+    margin: 0 0 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .attendance-page .session-meta {
+    color: var(--at-muted);
+    font-size: .78rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .attendance-page .session-meta i {
+    font-size: .78rem;
+    margin-right: 3px;
+  }
+  .attendance-page .session-status {
+    flex-shrink: 0;
+  }
+
+  /* =========================================================
+     BADGES — monochrome outline, only "active" inverts
+  ========================================================= */
+  .attendance-page .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: .72rem;
+    font-weight: 700;
+    line-height: 1;
+    border: 1px solid var(--at-border-strong);
+    background: transparent;
+    color: var(--at-muted);
+    white-space: nowrap;
+  }
+  .attendance-page .badge-solid {
+    background: var(--at-text);
+    color: var(--at-bg);
+    border-color: var(--at-text);
+  }
+
+  /* =========================================================
+     EMPTY STATE
+  ========================================================= */
+  .attendance-page .empty {
+    padding: 48px 20px;
+    text-align: center;
+    color: var(--at-muted);
+  }
+  .attendance-page .empty i {
+    font-size: 2rem;
+    display: block;
+    margin-bottom: 8px;
+    opacity: .7;
+  }
+  .attendance-page .empty p {
+    margin: 0 0 14px;
+    font-size: .9rem;
+  }
+
+  /* =========================================================
+     QUICK ACTIONS
+  ========================================================= */
+  .attendance-page .quick-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    padding: 18px;
+  }
+  .attendance-page .quick-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border: 1px solid var(--at-border);
+    border-radius: var(--at-radius-sm);
+    color: var(--at-text);
+    text-decoration: none;
+    transition: background-color .15s var(--at-ease),
+                border-color .15s var(--at-ease);
+  }
+  .attendance-page .quick-card:hover {
+    background: var(--at-surface-alt);
+    border-color: var(--at-text);
+    color: var(--at-text);
+  }
+  .attendance-page .quick-card .icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--at-surface-alt);
+    border: 1px solid var(--at-border-strong);
+    color: var(--at-text);
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+  .attendance-page .quick-card .body {
+    min-width: 0;
+  }
+  .attendance-page .quick-card .title {
+    font-weight: 700;
+    font-size: .88rem;
+    color: var(--at-text);
+  }
+  .attendance-page .quick-card .sub {
+    font-size: .74rem;
+    color: var(--at-muted);
+    margin-top: 2px;
+  }
+
+  /* =========================================================
+     RESPONSIVE
+  ========================================================= */
+  @media (max-width: 720px) {
+    .attendance-page { padding: 16px 14px 48px; }
+    .attendance-page .page-head h3 { font-size: 1.2rem; }
+    .attendance-page .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .attendance-page .stat .n { font-size: 1.3rem; }
+    .attendance-page .session-item { padding: 12px 14px; gap: 10px; }
+    .attendance-page .session-title { font-size: .85rem; }
+  }
+</style>
+
+
+<div class="attendance-page">
+
+  <!-- =========================================================
+       HEADER
+  ========================================================= -->
+  <div class="page-head">
+    <div>
+      <h3>Attendance Dashboard</h3>
+      <div class="sub">
+        {% if request.user.school %}
+          {{ request.user.school.name }} ·
+        {% endif %}
+        {{ today|date:"l, j M Y" }}
+      </div>
+    </div>
+
+    <div class="page-actions">
+      <a href="{% url 'school_admin_dashboard' %}" class="btn btn-sm">
+        <i class="bi bi-arrow-left"></i> Dashboard
+      </a>
+      <a href="{% url 'attendance_mark' %}" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus-lg"></i> Mark Attendance
+      </a>
+    </div>
+  </div>
+
+
+  <!-- =========================================================
+       STATS
+  ========================================================= -->
+  <div class="stats">
+    <div class="stat">
+      <div class="n">{{ stats.total_students|default:0 }}</div>
+      <div class="l">Total students</div>
+    </div>
+    <div class="stat">
+      <div class="n">{{ stats.present_today|default:0 }}</div>
+      <div class="l">Present today</div>
+      <div class="hint">
+        {% if stats.attendance_rate %}
+          {{ stats.attendance_rate }}% attendance
+        {% else %}
+          Awaiting data
+        {% endif %}
+      </div>
+    </div>
+    <div class="stat">
+      <div class="n">{{ stats.absent_today|default:0 }}</div>
+      <div class="l">Absent today</div>
+    </div>
+    <div class="stat">
+      <div class="n">{{ stats.late_today|default:0 }}</div>
+      <div class="l">Late today</div>
+    </div>
+  </div>
+
+
+  <!-- =========================================================
+       TODAY'S SESSIONS
+  ========================================================= -->
+  <div class="section">
+    <div class="section-head">
+      <h4>
+        <i class="bi bi-calendar-check"></i>
+        Today's Sessions
+        <span class="count">{{ sessions|length|default:0 }}</span>
+      </h4>
+      <a href="{% url 'attendance_session_list' %}" class="btn btn-sm">View all</a>
+    </div>
+
+    {% if sessions %}
+      <div class="session-list">
+        {% for s in sessions %}
+          <div class="session-item">
+            <div class="session-icon">
+              <i class="bi bi-people"></i>
+            </div>
+            <div class="session-body">
+              <p class="session-title">{{ s.name }}</p>
+              <div class="session-meta">
+                {% if s.class_name %}
+                  <span>
+                    <i class="bi bi-building"></i>{{ s.class_name }}
+                  </span>
+                {% endif %}
+                {% if s.start_time %}
+                  <span>
+                    <i class="bi bi-clock"></i>{{ s.start_time }}
+                  </span>
+                {% endif %}
+                {% if s.teacher %}
+                  <span>
+                    <i class="bi bi-person"></i>{{ s.teacher }}
+                  </span>
+                {% endif %}
+              </div>
+            </div>
+            <div class="session-status">
+              {% if s.status == "done" %}
+                <span class="badge badge-solid">Completed</span>
+              {% elif s.status == "ongoing" %}
+                <span class="badge badge-solid">In progress</span>
+              {% elif s.status == "cancelled" %}
+                <span class="badge">Cancelled</span>
+              {% else %}
+                <span class="badge">Scheduled</span>
+              {% endif %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty">
+        <i class="bi bi-calendar-x"></i>
+        <p>No attendance sessions scheduled for today.</p>
+        <a href="{% url 'attendance_mark' %}" class="btn btn-primary btn-sm">
+          <i class="bi bi-plus-lg"></i> Create a session
+        </a>
+      </div>
+    {% endif %}
+  </div>
+
+
+  <!-- =========================================================
+       QUICK ACTIONS
+  ========================================================= -->
+  <div class="section">
+    <div class="section-head">
+      <h4>
+        <i class="bi bi-lightning-charge"></i>
+        Quick Actions
+      </h4>
+    </div>
+
+    <div class="quick-grid">
+      <a href="{% url 'attendance_mark' %}" class="quick-card">
+        <div class="icon"><i class="bi bi-check2-square"></i></div>
+        <div class="body">
+          <div class="title">Mark attendance</div>
+          <div class="sub">Record today's roll</div>
+        </div>
+      </a>
+      <a href="{% url 'attendance_reports' %}" class="quick-card">
+        <div class="icon"><i class="bi bi-graph-up"></i></div>
+        <div class="body">
+          <div class="title">View reports</div>
+          <div class="sub">Trends &amp; summaries</div>
+        </div>
+      </a>
+      <a href="{% url 'student_list' %}" class="quick-card">
+        <div class="icon"><i class="bi bi-people"></i></div>
+        <div class="body">
+          <div class="title">Students</div>
+          <div class="sub">Manage learners</div>
+        </div>
+      </a>
+      <a href="{% url 'attendance_calendar' %}" class="quick-card">
+        <div class="icon"><i class="bi bi-calendar3"></i></div>
+        <div class="body">
+          <div class="title">Attendance calendar</div>
+          <div class="sub">Month view</div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}

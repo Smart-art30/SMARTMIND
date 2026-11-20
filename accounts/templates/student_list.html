@@ -8,40 +8,42 @@ Students | {{ request.user.school.name }}
 {% block content %}
 
 <style>
+/* =========================================================
+   TOKENS — monochrome, X-style
+========================================================= */
 :root {
-    --bg: #f4f6fb;
+    --bg: #ffffff;
     --surface: #ffffff;
-    --text: #0f172a;
-    --muted: #64748b;
-    --border: #e2e8f0;
-    --primary: #2f6fed;
-    --primary-soft: #eaf1ff;
-    --success: #16a34a;
-    --success-soft: #e8f8ee;
-    --warning: #d97706;
-    --warning-soft: #fff5e6;
-    --danger: #dc2626;
-    --danger-soft: #fdecec;
-    --shadow-sm: 0 2px 8px rgba(15, 23, 42, .06);
-    --shadow-md: 0 8px 24px rgba(15, 23, 42, .08);
+    --surface-alt: #f7f9f9;
+    --text: #0f1419;
+    --muted: #536471;
+    --soft: #71767b;
+    --border: #eff3f4;
+    --border-strong: #e1e8ed;
+    --primary: #0f1419;
+    --primary-hover: #000000;
+    --primary-soft: #eff3f4;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, .03);
+    --shadow-md: 0 1px 3px rgba(0, 0, 0, .05);
     --radius: 16px;
-    --radius-sm: 10px;
-    --transition: .25s cubic-bezier(.4, 0, .2, 1);
+    --radius-sm: 12px;
+    --transition: .15s cubic-bezier(.4, 0, .2, 1);
 }
 
 html[data-theme="dark"] {
-    --bg: #0b1220;
-    --surface: #121a2b;
-    --text: #e6edf7;
-    --muted: #94a3b8;
-    --border: #1e293b;
-    --primary: #4f86ff;
-    --primary-soft: #16233f;
-    --success-soft: #12291d;
-    --warning-soft: #2a1f0e;
-    --danger-soft: #2a1212;
-    --shadow-sm: 0 2px 8px rgba(0, 0, 0, .35);
-    --shadow-md: 0 8px 24px rgba(0, 0, 0, .45);
+    --bg: #000000;
+    --surface: #000000;
+    --surface-alt: #16181c;
+    --text: #e7e9ea;
+    --muted: #71767b;
+    --soft: #71767b;
+    --border: #2f3336;
+    --border-strong: #2f3336;
+    --primary: #e7e9ea;
+    --primary-hover: #ffffff;
+    --primary-soft: #16181c;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, .6);
+    --shadow-md: 0 1px 3px rgba(0, 0, 0, .8);
 }
 
 * { box-sizing: border-box; }
@@ -50,6 +52,9 @@ body {
     background: var(--bg);
     color: var(--text);
     transition: background var(--transition), color var(--transition);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                 Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
 }
 
 .page {
@@ -73,6 +78,7 @@ body {
     margin: 0 0 4px;
     font-weight: 800;
     letter-spacing: -.02em;
+    font-size: 1.4rem;
 }
 .page-header .sub {
     color: var(--muted);
@@ -96,28 +102,29 @@ body {
     border: 1px solid var(--border);
     border-radius: var(--radius);
     padding: 14px;
-    box-shadow: var(--shadow-sm);
     margin-bottom: 18px;
 }
 .toolbar input[type="search"],
 .toolbar select {
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 9px 12px;
-    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    padding: 9px 16px;
+    background: transparent;
     color: var(--text);
     font-size: .92rem;
-    transition: var(--transition);
+    transition: border-color var(--transition);
     min-width: 0;
+    font-family: inherit;
 }
 .toolbar input[type="search"] { flex: 1 1 260px; }
 .toolbar select { flex: 0 1 200px; }
 .toolbar input:focus,
 .toolbar select:focus {
     outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px var(--primary-soft);
+    border-color: var(--text);
+    box-shadow: none;
 }
+.toolbar input::placeholder { color: var(--soft); }
 
 /* =========================
    STATS ROW
@@ -132,13 +139,13 @@ body {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
-    padding: 14px 16px;
-    box-shadow: var(--shadow-sm);
+    padding: 16px;
 }
 .stat .n {
-    font-size: 1.5rem;
+    font-size: 1.55rem;
     font-weight: 800;
     letter-spacing: -.02em;
+    color: var(--text);
 }
 .stat .l {
     color: var(--muted);
@@ -159,7 +166,6 @@ body {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    box-shadow: var(--shadow-sm);
     overflow: hidden;
 }
 
@@ -170,7 +176,7 @@ body {
     flex-wrap: wrap;
     gap: 10px;
     padding: 14px 18px;
-    background: linear-gradient(135deg, var(--primary-soft), transparent);
+    background: var(--surface);
     border-bottom: 1px solid var(--border);
 }
 
@@ -182,6 +188,7 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
+    color: var(--text);
 }
 
 .class-card-head .count {
@@ -191,8 +198,8 @@ body {
     border-radius: 999px;
     font-size: .72rem;
     font-weight: 700;
-    background: var(--primary);
-    color: #fff;
+    background: var(--text);
+    color: var(--bg);
 }
 
 .class-card-head .head-meta {
@@ -216,8 +223,8 @@ table.students thead th {
     text-align: left;
     padding: 12px 16px;
     font-weight: 600;
-    font-size: .78rem;
-    letter-spacing: .05em;
+    font-size: .74rem;
+    letter-spacing: .06em;
     text-transform: uppercase;
     color: var(--muted);
     background: var(--surface);
@@ -228,9 +235,11 @@ table.students tbody td {
     padding: 14px 16px;
     border-bottom: 1px solid var(--border);
     vertical-align: middle;
+    color: var(--text);
 }
 table.students tbody tr:last-child td { border-bottom: none; }
-table.students tbody tr:hover { background: var(--primary-soft); }
+table.students tbody tr { transition: background var(--transition); }
+table.students tbody tr:hover { background: var(--surface-alt); }
 
 .name-cell {
     display: flex;
@@ -241,20 +250,21 @@ table.students tbody tr:hover { background: var(--primary-soft); }
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background: var(--primary-soft);
-    color: var(--primary);
+    background: var(--surface-alt);
+    color: var(--text);
     display: inline-flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
     font-size: .85rem;
     flex-shrink: 0;
+    border: 1px solid var(--border-strong);
 }
-.name-cell .full { font-weight: 600; color: var(--text); }
+.name-cell .full { font-weight: 700; color: var(--text); }
 .name-cell .username { color: var(--muted); font-size: .8rem; }
 
 /* =========================
-   BADGES
+   BADGES — monochrome outline pills
 ========================= */
 .badge {
     display: inline-flex;
@@ -262,15 +272,33 @@ table.students tbody tr:hover { background: var(--primary-soft); }
     gap: 4px;
     padding: 4px 10px;
     border-radius: 999px;
-    font-size: .75rem;
+    font-size: .74rem;
     font-weight: 600;
     line-height: 1;
     white-space: nowrap;
+    border: 1px solid var(--border-strong);
+    background: transparent;
+    color: var(--muted);
 }
-.badge-active   { background: var(--success-soft); color: var(--success); }
-.badge-pending  { background: var(--warning-soft); color: var(--warning); }
-.badge-inactive { background: var(--danger-soft);  color: var(--danger); }
-.badge-neutral  { background: var(--primary-soft); color: var(--primary); }
+
+/* All statuses share the same monochrome treatment —
+   the label itself carries the meaning. */
+.badge-active,
+.badge-pending,
+.badge-inactive,
+.badge-neutral {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border-strong);
+}
+
+/* Only the "pending" state inverts to a solid pill —
+   this makes the actionable state stand out, X-style. */
+.badge-pending {
+    background: var(--text);
+    color: var(--bg);
+    border-color: var(--text);
+}
 
 /* =========================
    BUTTONS
@@ -279,47 +307,74 @@ table.students tbody tr:hover { background: var(--primary-soft); }
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    border-radius: var(--radius-sm);
-    padding: 8px 14px;
-    font-weight: 600;
+    border-radius: 999px;
+    padding: 8px 16px;
+    font-weight: 700;
     font-size: .85rem;
     text-decoration: none;
-    border: 1px solid transparent;
+    border: 1px solid var(--border-strong);
     cursor: pointer;
-    transition: var(--transition);
+    transition: background var(--transition),
+                color var(--transition),
+                border-color var(--transition);
     white-space: nowrap;
+    background: transparent;
+    color: var(--text);
+    font-family: inherit;
 }
-.btn:hover { transform: translateY(-1px); }
-.btn:active { transform: scale(.98); }
+.btn:hover {
+    background: var(--surface-alt);
+    border-color: var(--text);
+}
+.btn:active { opacity: .8; }
+
 .btn-primary {
-    background: linear-gradient(135deg, var(--primary), #5b8bff);
-    color: #fff;
-    box-shadow: 0 4px 12px rgba(47, 111, 237, .25);
+    background: var(--text);
+    border-color: var(--text);
+    color: var(--bg);
 }
+.btn-primary:hover {
+    background: var(--primary-hover);
+    border-color: var(--primary-hover);
+    color: var(--bg);
+}
+
 .btn-outline {
     background: transparent;
-    border-color: var(--border);
+    border-color: var(--border-strong);
     color: var(--text);
 }
 .btn-outline:hover {
-    border-color: var(--primary);
-    color: var(--primary);
+    background: var(--surface-alt);
+    border-color: var(--text);
 }
-.btn-sm { padding: 6px 10px; font-size: .8rem; }
-.row-actions { display: flex; gap: 6px; justify-content: flex-end; }
+
+.btn-sm {
+    padding: 6px 12px;
+    font-size: .78rem;
+}
+.row-actions {
+    display: flex;
+    gap: 6px;
+    justify-content: flex-end;
+}
 
 /* =========================
    EMPTY / NO RESULTS
 ========================= */
 .empty {
-    padding: 50px 20px;
+    padding: 56px 20px;
     text-align: center;
     color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
 }
 .empty .icon {
-    font-size: 2.2rem;
+    font-size: 2rem;
     margin-bottom: 8px;
     display: block;
+    opacity: .8;
 }
 
 /* =========================
@@ -330,34 +385,37 @@ table.students tbody tr:hover { background: var(--primary-soft); }
     justify-content: center;
     align-items: center;
     gap: 6px;
-    padding: 16px;
+    padding: 14px;
     margin-top: 18px;
     border: 1px solid var(--border);
     border-radius: var(--radius);
     background: var(--surface);
-    box-shadow: var(--shadow-sm);
 }
 .pager a,
 .pager span {
     min-width: 34px;
     height: 34px;
-    padding: 0 10px;
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--border);
-    background: var(--surface);
+    padding: 0 12px;
+    border-radius: 999px;
+    border: 1px solid var(--border-strong);
+    background: transparent;
     color: var(--text);
     text-decoration: none;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: .85rem;
-    font-weight: 600;
+    font-size: .82rem;
+    font-weight: 700;
+    transition: background var(--transition), border-color var(--transition);
 }
-.pager a:hover { border-color: var(--primary); color: var(--primary); }
+.pager a:hover {
+    background: var(--surface-alt);
+    border-color: var(--text);
+}
 .pager .current {
-    background: var(--primary);
-    color: #fff;
-    border-color: var(--primary);
+    background: var(--text);
+    color: var(--bg);
+    border-color: var(--text);
 }
 .pager .disabled { opacity: .4; pointer-events: none; }
 
@@ -372,15 +430,18 @@ table.students tbody tr:hover { background: var(--primary-soft); }
 }
 .msg {
     padding: 12px 16px;
-    border-radius: var(--radius-sm);
-    border-left: 4px solid var(--primary);
-    background: var(--surface);
-    box-shadow: var(--shadow-sm);
+    border-radius: 12px;
+    border: 1px solid var(--border-strong);
+    background: var(--surface-alt);
+    color: var(--text);
     font-size: .9rem;
 }
-.msg.success { border-color: var(--success); }
-.msg.warning { border-color: var(--warning); }
-.msg.error   { border-color: var(--danger); }
+/* Monochrome alerts — no color stripes, just left rail in text color */
+.msg.success,
+.msg.warning,
+.msg.error {
+    border-left: 3px solid var(--text);
+}
 
 /* =========================
    RESPONSIVE
@@ -388,6 +449,7 @@ table.students tbody tr:hover { background: var(--primary-soft); }
 @media (max-width: 720px) {
     .page { padding: 16px; }
     .page-header { text-align: left; }
+    .page-header h3 { font-size: 1.2rem; }
     .toolbar { flex-direction: column; align-items: stretch; }
     .toolbar input, .toolbar select { flex: 1 1 auto; width: 100%; }
 
@@ -400,6 +462,7 @@ table.students tbody tr:hover { background: var(--primary-soft); }
     table.students tbody td {
         display: flex;
         justify-content: space-between;
+        align-items: center;
         padding: 6px 0;
         border: none;
     }
@@ -407,7 +470,7 @@ table.students tbody tr:hover { background: var(--primary-soft); }
         content: attr(data-label);
         font-weight: 600;
         color: var(--muted);
-        font-size: .78rem;
+        font-size: .74rem;
         text-transform: uppercase;
         letter-spacing: .04em;
         margin-right: 12px;
@@ -415,6 +478,9 @@ table.students tbody tr:hover { background: var(--primary-soft); }
     .row-actions { justify-content: flex-start; width: 100%; margin-top: 6px; }
     .name-cell { width: 100%; }
     .class-card-head { flex-direction: column; align-items: flex-start; }
+
+    .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .stat .n { font-size: 1.3rem; }
 }
 </style>
 
@@ -424,7 +490,7 @@ table.students tbody tr:hover { background: var(--primary-soft); }
     <!-- HEADER -->
     <div class="page-header">
         <div>
-            <h3>👨‍🎓 Students</h3>
+            <h3>Students</h3>
             <div class="sub">
                 {{ request.user.school.name }} ·
                 Grouped per class
@@ -433,13 +499,15 @@ table.students tbody tr:hover { background: var(--primary-soft); }
 
         <div class="page-actions">
             <a href="{% url 'enrollment_review_list' %}" class="btn btn-outline">
-                🕓 Enrollment Approvals
+                <i class="bi bi-clock-history"></i>
+                Enrollment Approvals
                 {% if pending_count %}
                     <span class="badge badge-pending">{{ pending_count }}</span>
                 {% endif %}
             </a>
             <a href="{% url 'school_admin_dashboard' %}" class="btn btn-outline">
-                ← Dashboard
+                <i class="bi bi-arrow-left"></i>
+                Dashboard
             </a>
         </div>
     </div>
@@ -520,10 +588,11 @@ table.students tbody tr:hover { background: var(--primary-soft); }
 
                     <div class="class-card-head">
                         <h4>
+                            <i class="bi bi-building"></i>
                             {% if school_class %}
-                                🏫 {{ school_class.name }}
+                                {{ school_class.name }}
                             {% else %}
-                                📭 Unassigned
+                                Unassigned
                             {% endif %}
                             <span class="count">{{ students_in_class|length }}</span>
                         </h4>
@@ -618,7 +687,7 @@ table.students tbody tr:hover { background: var(--primary-soft); }
     {% else %}
 
         <div class="empty">
-            <span class="icon">🔍</span>
+            <span class="icon"><i class="bi bi-search"></i></span>
             {% if q or class_filter or status_filter %}
                 <p>No students match your filters.</p>
                 <a href="{% url 'student_list' %}" class="btn btn-outline">

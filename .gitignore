@@ -1,2 +1,7 @@
 .env
 hub/
+
+# Local secrets and Python cache
+.env.save
+__pycache__/
+*.py[cod]

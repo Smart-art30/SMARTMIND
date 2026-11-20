@@ -186,4 +186,10 @@ urlpatterns = [
         ),
         name="password_reset_complete",
     ),
+    path("attendance/",                      views.attendance_dashboard,      name="attendance_dashboard"),
+    path("attendance/mark/",                 views.attendance_mark,           name="attendance_mark"),
+    path("attendance/mark/<int:class_id>/",  views.attendance_class_mark,     name="attendance_class_mark"),
+    path("attendance/reports/",              views.attendance_reports,        name="attendance_reports"),
+    path("attendance/calendar/",             views.attendance_calendar,       name="attendance_calendar"),
+    path("attendance/sessions/",             views.attendance_session_list,   name="attendance_session_list"),
 ]

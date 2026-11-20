@@ -352,6 +352,55 @@
                 {% endfor %}
             </div>
 
+            <!-- ============================================= -->
+            <!-- MONETIZATION                                  -->
+            <!-- ============================================= -->
+            <div class="form-section">
+                <div class="section-title">
+                    <span><i class="bi bi-cash-coin"></i> Monetization</span>
+                </div>
+
+                <div class="form-check mb-3">
+                    {{ form.is_monetized }}
+                    <label class="form-check-label" for="{{ form.is_monetized.id_for_label }}">
+                        Charge for attachments
+                    </label>
+                </div>
+
+                <small class="help-text d-block mb-3">
+                    When enabled, users must pay once to unlock all downloadable
+                    attachments on this post. Free attachments can still be
+                    marked individually in the Documents section.
+                </small>
+
+                <div id="priceFields" style="display:none;">
+
+                    <label for="{{ form.attachment_price.id_for_label }}">
+                        Price per unlock
+                    </label>
+                    {{ form.attachment_price }}
+                    <small class="help-text">
+                        One-time payment per user for this post.
+                    </small>
+                    {% for error in form.attachment_price.errors %}
+                        <div class="field-error">{{ error }}</div>
+                    {% endfor %}
+
+                    <label for="{{ form.attachment_currency.id_for_label }}" style="margin-top:14px;">
+                        Currency
+                    </label>
+                    {{ form.attachment_currency }}
+                    {% for error in form.attachment_currency.errors %}
+                        <div class="field-error">{{ error }}</div>
+                    {% endfor %}
+
+                </div>
+
+                {% for error in form.is_monetized.errors %}
+                    <div class="field-error">{{ error }}</div>
+                {% endfor %}
+            </div>
+
             <!-- FOOTER -->
             <div class="form-footer">
                 <a href="javascript:history.back()" class="cancel-button">Cancel</a>
@@ -1403,7 +1452,7 @@
 }
 
 /* ============================================================
-   FORM CHECK (Visibility)
+   FORM CHECK (Visibility + Monetization)
 ============================================================ */
 .form-check {
     padding-left: 0;
@@ -2208,6 +2257,23 @@ document.addEventListener("DOMContentLoaded", function () {
         attributes: true,
         attributeFilter: ['data-theme'],
     });
+
+    /* =====================================================
+       MONETIZATION TOGGLE
+    ===================================================== */
+    (function initMonetizationToggle() {
+        const checkbox    = document.getElementById("id_is_monetized");
+        const priceFields = document.getElementById("priceFields");
+
+        if (!checkbox || !priceFields) return;
+
+        function sync() {
+            priceFields.style.display = checkbox.checked ? "block" : "none";
+        }
+
+        sync();
+        checkbox.addEventListener("change", sync);
+    })();
 
     /* =====================================================
        INITIALIZE

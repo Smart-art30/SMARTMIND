@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Attendance calendar · SmartMind{% endblock %}
+{% block content %}
+{% include "_base_styles.html" %}
+<div class="attendance-page">
+
+  <div class="page-head">
+    <div>
+      <h3>{{ month_name }} {{ year }}</h3>
+      <div class="sub">Month view</div>
+    </div>
+    <div class="page-actions">
+      <a href="?year={{ prev_year }}&month={{ prev_month }}" class="btn btn-sm">
+        <i class="bi bi-chevron-left"></i> Prev
+      </a>
+      <a href="?year={{ next_year }}&month={{ next_month }}" class="btn btn-sm">
+        Next <i class="bi bi-chevron-right"></i>
+      </a>
+    </div>
+  </div>
+
+  <div class="section">
+    <table style="width:100%;border-collapse:collapse;">
+      <thead>
+        <tr>
+          <th style="text-align:left;padding:10px;color:var(--at-muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;">Mon</th>
+          <th style="text-align:left;padding:10px;color:var(--at-muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;">Tue</th>
+          <th style="text-align:left;padding:10px;color:var(--at-muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;">Wed</th>
+          <th style="text-align:left;padding:10px;color:var(--at-muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;">Thu</th>
+          <th style="text-align:left;padding:10px;color:var(--at-muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;">Fri</th>
+          <th style="text-align:left;padding:10px;color:var(--at-muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;">Sat</th>
+          <th style="text-align:left;padding:10px;color:var(--at-muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;">Sun</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for week in weeks %}
+          <tr>
+            {% for d in week %}
+              <td style="padding:12px;border-top:1px solid var(--at-border);vertical-align:top;">
+                <div style="font-weight:700;font-size:.85rem;
+                  {% if d == today %}color:var(--at-bg);background:var(--at-text);
+                    border-radius:999px;display:inline-block;padding:2px 8px;{% endif %}">
+                  {{ d.day }}
+                </div>
+              </td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+{% endblock %}

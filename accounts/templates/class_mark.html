@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Mark {{ class.name }} · SmartMind{% endblock %}
+{% block content %}
+{% include "_base_styles.html" %}
+<div class="attendance-page">
+
+  <div class="page-head">
+    <div>
+      <h3>{{ class.name }} — attendance</h3>
+      <div class="sub">{{ today|date:"l, j M Y" }}</div>
+    </div>
+    <a href="{% url 'attendance_mark' %}" class="btn btn-sm">
+      <i class="bi bi-arrow-left"></i> Back
+    </a>
+  </div>
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="section">
+      <div class="session-list">
+        {% for s in students %}
+          <div class="session-item">
+            <div class="session-body">
+              <p class="session-title">{{ s.get_full_name|default:s.username }}</p>
+              <div class="session-meta">
+                <span><i class="bi bi-person-badge"></i>{{ s.username }}</span>
+              </div>
+            </div>
+            <div class="session-status" style="display:flex;gap:6px;">
+              <label class="badge" style="cursor:pointer;">
+                <input type="radio" name="status_{{ s.id }}" value="present" checked> Present
+              </label>
+              <label class="badge" style="cursor:pointer;">
+                <input type="radio" name="status_{{ s.id }}" value="absent"> Absent
+              </label>
+              <label class="badge" style="cursor:pointer;">
+                <input type="radio" name="status_{{ s.id }}" value="late"> Late
+              </label>
+            </div>
+          </div>
+        {% empty %}
+          <div class="empty">
+            <i class="bi bi-people"></i>
+            <p>No active learners in this class.</p>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    {% if students %}
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-check2-square"></i> Submit attendance
+      </button>
+    {% endif %}
+  </form>
+
+</div>
+{% endblock %}

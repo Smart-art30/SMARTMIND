@@ -1,3 +1,4 @@
+
 from cloudinary_storage.storage import RawMediaCloudinaryStorage
 
 
@@ -10,5 +11,7 @@ class PostDocumentStorage(RawMediaCloudinaryStorage):
     def get_object_parameters(self, name):
         params = super().get_object_parameters(name) or {}
         params["folder"] = "posts/attachments"
+        params["type"] = "authenticated"
         params.pop("tags", None)
         return params
+ 

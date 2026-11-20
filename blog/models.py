@@ -7,6 +7,8 @@ import uuid
 import os
 from .storage import PostDocumentStorage
 from cloudinary.models import CloudinaryField
+from django.db.models import Q
+from django.core.exceptions import ValidationError
 
 
 User = get_user_model()
@@ -73,7 +75,6 @@ class Tag(models.Model):
         return self.name
 
 
-
 class Post(models.Model):
 
     STATUS_CHOICES = [
@@ -138,23 +139,21 @@ class Post(models.Model):
         default=False
     )
 
-    
-
     video = CloudinaryField(
-    resource_type='video',
-    folder='videos/',
-    blank=True,
-    null=True,
-)
+        resource_type='video',
+        folder='videos/',
+        blank=True,
+        null=True,
+    )
     youtube_url = models.URLField(
         blank=True,
         null=True
     )
 
     view_count = models.PositiveIntegerField(
-    default=0,
-    editable=False,
-)
+        default=0,
+        editable=False,
+    )
 
     likes = models.ManyToManyField(
         User,
@@ -179,6 +178,18 @@ class Post(models.Model):
     visible_to_all = models.BooleanField(
         default=False
     )
+    is_monetized = models.BooleanField(
+        default=False,
+        help_text="If enabled, attachments require payment before download."
+    )
+    attachment_price = models.DecimalField(
+        max_digits=8, decimal_places=2, default=0.00,
+        help_text="Price to unlock all attachments on this post."
+    )
+    attachment_currency = models.CharField(
+        max_length=3, default="USD",
+        help_text="ISO currency code (USD, KES, NGN, etc.)"
+    )
 
     class Meta:
         ordering = ["-created_at"]
@@ -192,6 +203,16 @@ class Post(models.Model):
             ),
         ]
 
+        constraints = [
+            # A monetized post MUST have a positive price.
+            # Closes the "is_monetized=True, price=0" loophole where
+            # user_has_paid_for_post() returned True for everyone.
+            models.CheckConstraint(
+    condition=Q(is_monetized=False) | Q(attachment_price__gt=0),
+    name="post_monetized_requires_positive_price",
+)
+        ]
+
     def __str__(self):
         return self.title
 
@@ -200,6 +221,16 @@ class Post(models.Model):
             "blog:post_detail",
             kwargs={"slug": self.slug}
         )
+
+    def clean(self):
+        super().clean()
+        if self.is_monetized and (
+            self.attachment_price is None or self.attachment_price <= 0
+        ):
+            raise ValidationError({
+                "attachment_price":
+                    "Monetized posts must have a price greater than 0."
+            })
 
     def save(self, *args, **kwargs):
 
@@ -211,6 +242,16 @@ class Post(models.Model):
                 f"{base_slug}-"
                 f"{uuid.uuid4().hex[:6]}"
             )
+
+        # Enforce the invariant on every write — admin, shell,
+        # fixtures, and data migrations all go through save().
+        if self.is_monetized and (
+            not self.attachment_price or self.attachment_price <= 0
+        ):
+            raise ValidationError({
+                "attachment_price":
+                    "Monetized posts must have a price greater than 0."
+            })
 
         super().save(*args, **kwargs)
 
@@ -235,6 +276,7 @@ class PostImage(models.Model):
     created_at = models.DateTimeField(
         auto_now_add=True
     )
+   
 
     class Meta:
 
@@ -277,6 +319,10 @@ class PostAttachment(models.Model):
 
     created_at = models.DateTimeField(
         auto_now_add=True
+    )
+    is_free = models.BooleanField(
+        default=False,
+        help_text="Always free, even on a monetized post."
     )
 
     class Meta:
@@ -373,6 +419,45 @@ class PostAttachment(models.Model):
             return f"{size / 1024:.1f} KB"
 
         return f"{size / (1024 * 1024):.2f} MB"
+
+class AttachmentPurchase(models.Model):
+
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE,
+        related_name="attachment_purchases"
+    )
+    post = models.ForeignKey(
+        Post, on_delete=models.CASCADE,
+        related_name="attachment_purchases"
+    )
+
+    # THE GATE — do not remove.
+    paid = models.BooleanField(
+        default=False,
+        help_text="True only after the payment gateway confirms the charge."
+    )
+
+    amount_paid = models.DecimalField(max_digits=8, decimal_places=2)
+    currency = models.CharField(max_length=3, default="USD")
+    payment_reference = models.CharField(
+        max_length=128, unique=True, blank=True
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ("user", "post")
+        indexes = [
+            # The access check filters on all three of these.
+            models.Index(fields=["user", "post", "paid"]),
+        ]
+
+    def __str__(self):
+        status = "PAID" if self.paid else "PENDING"
+        return (
+            f"{self.user} → {self.post} "
+            f"({self.amount_paid} {self.currency}, {status})"
+        )
 
 
 class Comment(models.Model):
@@ -499,3 +584,85 @@ class PostReaction(models.Model):
 
     def __str__(self):
         return f"{self.user} → {self.reaction} on {self.post}"
+
+
+class MpesaTransaction(models.Model):
+    STATUS_CHOICES = [
+        ("pending", "Pending"),
+        ("success", "Success"),
+        ("failed", "Failed"),
+    ]
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="mpesa_transactions",
+    )
+
+    post = models.ForeignKey(
+        Post,
+        on_delete=models.CASCADE,
+        related_name="mpesa_transactions",
+    )
+
+    phone_number = models.CharField(max_length=15)
+
+    amount = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+    )
+
+    currency = models.CharField(max_length=3, default="KES")
+
+    merchant_request_id = models.CharField(
+        max_length=100,
+        blank=True,
+    )
+
+    checkout_request_id = models.CharField(
+        max_length=100,
+        unique=True,
+    )
+
+    mpesa_receipt_number = models.CharField(
+        max_length=30,
+        blank=True,
+    )
+
+    result_code = models.CharField(
+        max_length=10,
+        blank=True,
+    )
+
+    result_description = models.TextField(
+        blank=True,
+    )
+
+    status = models.CharField(
+        max_length=10,
+        choices=STATUS_CHOICES,
+        default="pending",
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    updated_at = models.DateTimeField(
+        auto_now=True,
+    )
+
+    class Meta:
+        ordering = ["-created_at"]
+
+        indexes = [
+            models.Index(
+                fields=["user", "post", "status"],
+            ),
+        ]
+
+    def __str__(self):
+        return (
+            f"M-Pesa {self.checkout_request_id} "
+            f"({self.status})"
+        )

@@ -2,16 +2,201 @@
 {% block title %}{{ student.get_full_name|default:student.username }}{% endblock %}
 
 {% block content %}
-<div class="container py-4" style="max-width:960px;">
+
+<style>
+/* =========================================================
+   TOKENS — monochrome, X-style
+========================================================= */
+.student-detail-page {
+    --sd-bg: #ffffff;
+    --sd-surface: #ffffff;
+    --sd-surface-alt: #f7f9f9;
+    --sd-text: #0f1419;
+    --sd-muted: #536471;
+    --sd-soft: #71767b;
+    --sd-border: #eff3f4;
+    --sd-border-strong: #e1e8ed;
+    --sd-primary: #0f1419;
+    --sd-primary-hover: #000000;
+    --sd-primary-soft: #eff3f4;
+    --sd-radius: 16px;
+    --sd-radius-sm: 12px;
+    --sd-ease: cubic-bezier(.4, 0, .2, 1);
+
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 24px 20px 60px;
+    color: var(--sd-text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                 Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+[data-theme="dark"] .student-detail-page {
+    --sd-bg: #000000;
+    --sd-surface: #000000;
+    --sd-surface-alt: #16181c;
+    --sd-text: #e7e9ea;
+    --sd-muted: #71767b;
+    --sd-soft: #71767b;
+    --sd-border: #2f3336;
+    --sd-border-strong: #2f3336;
+    --sd-primary: #e7e9ea;
+    --sd-primary-hover: #ffffff;
+    --sd-primary-soft: #16181c;
+}
+
+/* Scope all cards, alerts, badges inside this page */
+.student-detail-page .card {
+    background: var(--sd-surface) !important;
+    border: 1px solid var(--sd-border) !important;
+    border-radius: var(--sd-radius) !important;
+    box-shadow: none !important;
+    color: var(--sd-text) !important;
+}
+
+.student-detail-page .btn-outline-secondary {
+    border: 1px solid var(--sd-border-strong) !important;
+    background: transparent !important;
+    color: var(--sd-text) !important;
+    border-radius: 999px !important;
+    font-weight: 700 !important;
+    font-size: .82rem !important;
+    padding: 6px 14px !important;
+    transition: background .15s var(--sd-ease),
+                border-color .15s var(--sd-ease),
+                color .15s var(--sd-ease) !important;
+}
+
+.student-detail-page .btn-outline-secondary:hover {
+    background: var(--sd-surface-alt) !important;
+    border-color: var(--sd-text) !important;
+    color: var(--sd-text) !important;
+}
+
+/* Avatar — monochrome inverted */
+.student-detail-page .avatar-circle {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--sd-text);
+    color: var(--sd-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+}
+
+/* Muted text */
+.student-detail-page .text-muted {
+    color: var(--sd-muted) !important;
+}
+
+.student-detail-page .fw-bold {
+    color: var(--sd-text) !important;
+}
+
+/* Meta stat cards */
+.student-detail-page .stat-card {
+    background: var(--sd-surface);
+    border: 1px solid var(--sd-border);
+    border-radius: var(--sd-radius-sm);
+    padding: 14px 16px;
+}
+.student-detail-page .stat-card .text-muted {
+    font-size: .78rem;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    font-weight: 600;
+}
+.student-detail-page .stat-card .fw-bold {
+    font-size: .98rem;
+    font-weight: 700;
+}
+
+/* Enrollment list */
+.student-detail-page .list-group {
+    border-radius: var(--sd-radius-sm);
+    overflow: hidden;
+}
+.student-detail-page .list-group-item {
+    background: transparent !important;
+    border: 1px solid var(--sd-border) !important;
+    color: var(--sd-text) !important;
+    padding: 14px 16px !important;
+    border-left: none !important;
+    border-right: none !important;
+}
+.student-detail-page .list-group-item:first-child {
+    border-top: none !important;
+}
+.student-detail-page .list-group-item:last-child {
+    border-bottom: none !important;
+}
+.student-detail-page .list-group-item strong {
+    color: var(--sd-text);
+    font-weight: 700;
+}
+
+/* Badges — monochrome outline; only "pending" inverts to solid */
+.student-detail-page .badge.bg-secondary {
+    background: transparent !important;
+    color: var(--sd-muted) !important;
+    border: 1px solid var(--sd-border-strong) !important;
+    border-radius: 999px !important;
+    font-weight: 600 !important;
+    font-size: .74rem !important;
+    padding: 4px 10px !important;
+}
+
+.student-detail-page .alert.alert-secondary {
+    background: var(--sd-surface-alt) !important;
+    border: 1px solid var(--sd-border) !important;
+    border-radius: var(--sd-radius-sm) !important;
+    color: var(--sd-muted) !important;
+    font-size: .9rem;
+}
+
+.student-detail-page h4,
+.student-detail-page h5 {
+    color: var(--sd-text);
+    font-weight: 800;
+    letter-spacing: -.02em;
+}
+
+.student-detail-page h4 { font-size: 1.35rem; }
+.student-detail-page h5 { font-size: 1.05rem; }
+
+@media (max-width: 576px) {
+    .student-detail-page {
+        padding: 16px 14px 40px;
+    }
+    .student-detail-page h4 { font-size: 1.15rem; }
+    .student-detail-page .avatar-circle {
+        width: 54px;
+        height: 54px;
+        font-size: 1.2rem;
+    }
+    .student-detail-page .card.p-4 {
+        padding: 16px !important;
+    }
+}
+</style>
+
+
+<div class="student-detail-page">
 
     <a href="{% url 'student_list' %}" class="btn btn-sm btn-outline-secondary mb-3">
-        ← Back to students
+        <i class="bi bi-arrow-left"></i>
+        Back to students
     </a>
 
     <div class="card p-4 mb-4">
         <div class="d-flex align-items-center gap-3">
-            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center"
-                 style="width:64px;height:64px;font-weight:700;font-size:1.4rem;">
+            <div class="avatar-circle">
                 {{ student.first_name|first|default:student.username|first|upper }}
             </div>
             <div>
@@ -27,29 +212,29 @@
     </div>
 
     <div class="row g-3 mb-4">
-        <div class="col-md-3">
-            <div class="card p-3">
-                <div class="text-muted small">Admission no.</div>
+        <div class="col-md-3 col-6">
+            <div class="stat-card">
+                <div class="text-muted">Admission no.</div>
                 <div class="fw-bold">{{ student.admission_no|default:"—" }}</div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card p-3">
-                <div class="text-muted small">Class</div>
+        <div class="col-md-3 col-6">
+            <div class="stat-card">
+                <div class="text-muted">Class</div>
                 <div class="fw-bold">{{ student.school_class.name|default:"—" }}</div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card p-3">
-                <div class="text-muted small">Account</div>
+        <div class="col-md-3 col-6">
+            <div class="stat-card">
+                <div class="text-muted">Account</div>
                 <div class="fw-bold">
                     {% if student.is_active %}Active{% else %}Inactive{% endif %}
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card p-3">
-                <div class="text-muted small">Joined</div>
+        <div class="col-md-3 col-6">
+            <div class="stat-card">
+                <div class="text-muted">Joined</div>
                 <div class="fw-bold">{{ student.date_joined|date:"M d, Y" }}</div>
             </div>
         </div>

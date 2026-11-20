@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Mark attendance · SmartMind{% endblock %}
+{% block content %}
+{% include "_base_styles.html" %}
+<div class="attendance-page">
+
+  <div class="page-head">
+    <div>
+      <h3>Mark attendance</h3>
+      <div class="sub">Choose a class for {{ today|date:"l, j M Y" }}</div>
+    </div>
+    <a href="{% url 'attendance_dashboard' %}" class="btn btn-sm">
+      <i class="bi bi-arrow-left"></i> Back
+    </a>
+  </div>
+
+  {% if classes %}
+    <div class="section">
+      <div class="session-list">
+        {% for c in classes %}
+          <a href="{% url 'attendance_class_mark' c.id %}" class="session-item"
+             style="text-decoration:none;color:inherit;">
+            <div class="session-icon"><i class="bi bi-people"></i></div>
+            <div class="session-body">
+              <p class="session-title">{{ c.name }}</p>
+              <div class="session-meta">
+                <span><i class="bi bi-person"></i>{{ c.learner_count }} learners</span>
+              </div>
+            </div>
+            <div class="session-status">
+              <span class="badge">Open <i class="bi bi-arrow-right"></i></span>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+  {% else %}
+    <div class="section"><div class="empty">
+      <i class="bi bi-inbox"></i>
+      <p>No active classes yet.</p>
+    </div></div>
+  {% endif %}
+
+</div>
+{% endblock %}

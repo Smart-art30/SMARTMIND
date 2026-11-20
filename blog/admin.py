@@ -2,7 +2,7 @@ from django.contrib import admin
 from django import forms
 from django_ckeditor_5.widgets import CKEditor5Widget
 
-from .models import Post, Category, Tag
+from .models import Post, Category, Tag, AttachmentPurchase
 
 
 class PostAdminForm(forms.ModelForm):
@@ -60,3 +60,14 @@ class CategoryAdmin(admin.ModelAdmin):
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
     search_fields = ("name",)
+
+
+
+
+
+@admin.register(AttachmentPurchase)
+class AttachmentPurchaseAdmin(admin.ModelAdmin):
+    list_display = ("user", "post", "amount_paid", "currency", "created_at")
+    list_filter = ("currency", "created_at")
+    search_fields = ("user__username", "post__title", "payment_reference")
+    readonly_fields = ("created_at",)

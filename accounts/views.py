@@ -11,7 +11,7 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.text import slugify
 from django.core.paginator import Paginator
 from collections import OrderedDict
-
+from django.db.models import Avg, Count, Q
 from .models import (
     TeacherPermission,
     TeachingAssignment,
@@ -988,11 +988,84 @@ def class_delete(request, pk):
 # ============================================================
 # ATTENDANCE / PARENTS
 # ============================================================
-
 @login_required
 def attendance_dashboard(request):
-    return render(request, "attendance/dashboard.html")
+    user = request.user
+    today = timezone.localdate()
 
+    # ---- Scope everything to the user's school ----
+    if user.is_superuser:
+        school = None
+        student_qs = User.objects.filter(role="student")
+        class_qs = SchoolClass.objects.all()
+        enrollment_qs = Enrollment.objects.all()
+    else:
+        school = getattr(user, "school", None)
+        if not school:
+            raise PermissionDenied("No school assigned to this account.")
+        student_qs = User.objects.filter(role="student", school=school)
+        class_qs = SchoolClass.objects.filter(school=school)
+        enrollment_qs = Enrollment.objects.filter(school_class__school=school)
+
+    # ---- Stat counts (all sourced from existing models) ----
+    total_students = student_qs.count()
+    active_students = student_qs.filter(is_active=True).count()
+
+    # Pending enrollments — your closest proxy for "awaiting attendance setup"
+    pending_enrollments = enrollment_qs.filter(status="PENDING")
+    pending_count = pending_enrollments.count()
+
+    # Active enrollments = learners currently "in" a class
+    active_enrollments = enrollment_qs.filter(status="ACTIVE").count()
+
+    # Attendance rate is not yet measurable — but we can report
+    # the share of active students who have at least one active enrollment.
+    if total_students > 0:
+        coverage_rate = round(active_enrollments / total_students * 100, 1)
+    else:
+        coverage_rate = 0
+
+    # ---- Classes overview (as "sessions" placeholders) ----
+    classes = (
+        class_qs.filter(is_active=True)
+        .annotate(
+            learner_count=Count(
+                "enrollments",
+                filter=Q(enrollments__status="ACTIVE"),
+                distinct=True,
+            )
+        )
+        .order_by("order", "name")
+    )
+
+    sessions = []
+    for c in classes:
+        sessions.append({
+            "name": f"{c.name} attendance",
+            "class_name": c.name,
+            "start_time": "",                      # no time model yet
+            "teacher": str(getattr(c, "teacher", "") or ""),
+            "status": "scheduled",                 # all pending until you add Attendance
+            "learner_count": c.learner_count,
+        })
+
+    # ---- Quick actions context ----
+    context = {
+        "today": today,
+        "school": school,
+        "stats": {
+            "total_students": total_students,
+            "present_today": 0,        # placeholder — no Attendance model yet
+            "absent_today": 0,
+            "late_today": 0,
+            "attendance_rate": coverage_rate,
+            "active_students": active_students,
+            "pending_enrollments": pending_count,
+        },
+        "sessions": sessions,
+        "pending_enrollments_count": pending_count,
+    }
+    return render(request, "dashboard.html", context)
 
 @login_required
 def parent_list(request):
@@ -1003,3 +1076,202 @@ def parent_list(request):
     return render(
         request, "accounts/parent_list.html", {"parents": parents},
     )
+
+
+
+# ============================================================
+# ATTENDANCE — supporting views
+# ============================================================
+
+from django.db.models import Count, Q
+from django.utils import timezone
+
+
+@login_required
+def attendance_mark(request):
+    
+    user   = request.user
+    school = getattr(user, "school", None)
+    if not user.is_superuser and not school:
+        return HttpResponseForbidden("No school assigned.")
+
+    classes = (
+        SchoolClass.objects
+        .filter(school=school, is_active=True)
+        .annotate(
+            learner_count=Count(
+                "enrollments",
+                filter=Q(enrollments__status="ACTIVE"),
+                distinct=True,
+            )
+        )
+        .order_by("order", "name")
+    )
+
+    return render(request, "mark.html", {
+        "today":   timezone.localdate(),
+        "classes": classes,
+    })
+
+
+@login_required
+def attendance_class_mark(request, class_id):
+    """
+    Mark attendance for a single class.
+    GET  → list learners with present/absent/late radio buttons.
+    POST → (stub) save records once an Attendance model exists.
+    """
+    user   = request.user
+    school = getattr(user, "school", None)
+
+    klass = get_object_or_404(
+        SchoolClass, pk=class_id,
+        **({"school": school} if school and not user.is_superuser else {}),
+    )
+
+    students = (
+        User.objects
+        .filter(
+            role="student",
+            school=klass.school,
+            enrollments__school_class=klass,
+            enrollments__status="ACTIVE",
+        )
+        .order_by("first_name", "last_name", "username")
+        .distinct()
+    )
+
+    if request.method == "POST":
+        # No Attendance model yet — just acknowledge and redirect.
+        messages.success(
+            request,
+            f"Attendance submitted for {klass.name} "
+            f"({students.count()} learners). "
+            "Record storage will activate once the Attendance model is added.",
+        )
+        return redirect("attendance_dashboard")
+
+    return render(request, "class_mark.html", {
+        "today":    timezone.localdate(),
+        "class":    klass,
+        "students": students,
+    })
+
+
+@login_required
+def attendance_reports(request):
+    """
+    Reports landing page. Uses QuizAttempt performance as a stand-in
+    metric until attendance is modeled — genuinely useful data today.
+    """
+    user   = request.user
+    school = getattr(user, "school", None)
+
+    attempts_qs = QuizAttempt.objects.filter(
+        assignment__school_class__school=school
+    ) if school else QuizAttempt.objects.all()
+
+    # Performance per class
+    class_performance = (
+        SchoolClass.objects
+        .filter(school=school) if school else SchoolClass.objects.all()
+    ).annotate(
+        attempts_count=Count(
+            "assignments__quizattempt",
+            distinct=True,
+        ),
+    ).order_by("order", "name")
+
+    # Overall rate
+    agg = attempts_qs.aggregate(
+        avg_score=Avg("score"),
+        avg_total=Avg("total"),
+    )
+    avg_score = agg["avg_score"] or 0
+    avg_total = agg["avg_total"] or 0
+    overall_rate = (
+        round(avg_score / avg_total * 100, 1) if avg_total else 0
+    )
+
+    return render(request, "reports.html", {
+        "today":              timezone.localdate(),
+        "overall_rate":       overall_rate,
+        "attempts_count":     attempts_qs.count(),
+        "class_performance":  class_performance,
+    })
+
+
+@login_required
+def attendance_calendar(request):
+    """
+    Month-grid calendar. Today only highlights the current date;
+    once Attendance is modeled, real day states will populate it.
+    """
+    import calendar
+    from datetime import date
+
+    today = timezone.localdate()
+    year  = int(request.GET.get("year",  today.year))
+    month = int(request.GET.get("month", today.month))
+
+    cal = calendar.Calendar(firstweekday=0)  # Monday first
+    weeks = cal.monthdatescalendar(year, month)
+
+    # Placeholder per-day map — replace with real aggregates later.
+    day_summary = {}
+
+    prev_year, prev_month = (year - 1, 12) if month == 1 else (year, month - 1)
+    next_year, next_month = (year + 1, 1)  if month == 12 else (year, month + 1)
+
+    return render(request, "calendar.html", {
+        "today":       today,
+        "year":        year,
+        "month":       month,
+        "month_name":  calendar.month_name[month],
+        "weeks":       weeks,
+        "day_summary": day_summary,
+        "prev_year":   prev_year,
+        "prev_month":  prev_month,
+        "next_year":   next_year,
+        "next_month":  next_month,
+    })
+
+
+@login_required
+def attendance_session_list(request):
+    """
+    'View all' sessions page. Built from SchoolClass rows today;
+    swap to an AttendanceSession model when added.
+    """
+    user   = request.user
+    school = getattr(user, "school", None)
+
+    classes = (
+        SchoolClass.objects
+        .filter(school=school, is_active=True)
+        .annotate(
+            learner_count=Count(
+                "enrollments",
+                filter=Q(enrollments__status="ACTIVE"),
+                distinct=True,
+            )
+        )
+        .order_by("order", "name")
+    )
+
+    sessions = [
+        {
+            "name":          f"{c.name} attendance",
+            "class_name":    c.name,
+            "start_time":    "",
+            "teacher":       str(getattr(c, "teacher", "") or ""),
+            "status":        "scheduled",
+            "learner_count": c.learner_count,
+        }
+        for c in classes
+    ]
+
+    return render(request, "session_list.html", {
+        "today":    timezone.localdate(),
+        "sessions": sessions,
+    })

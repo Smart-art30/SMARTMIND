@@ -56,6 +56,27 @@ from django.core.paginator import Paginator
 from django.template.loader import render_to_string
 from django.http import FileResponse, Http404
 from .watermark import watermark_pdf
+from django.shortcuts import redirect, get_object_or_404
+from django.urls import reverse
+from django.contrib.auth.decorators import login_required
+from django.http import FileResponse
+from django.views.decorators.http import require_POST
+from django.utils.crypto import get_random_string
+from django.views.decorators.csrf import csrf_exempt
+from .models import Post, PostAttachment, AttachmentPurchase
+from .access import user_can_download, user_has_paid_for_post
+import requests
+from decimal import Decimal
+from django.conf import settings
+from django.views.decorators.http import require_POST
+import hmac
+import hashlib
+import json
+from .access import user_can_download, user_has_paid_for_post
+from .models import MpesaTransaction
+from .payments import initiate_stk_push
+from django.http import HttpResponse
+
 
 logger = logging.getLogger(__name__)
 
@@ -172,8 +193,27 @@ class MultipleFileField(forms.FileField):
 # ============================================================
 # POST FORM
 # ============================================================
-
 class PostForm(forms.ModelForm):
+
+    # ── Currency choices ──
+    CURRENCY_CHOICES = [
+        ("USD", "USD — US Dollar"),
+        ("KES", "KES — Kenyan Shilling"),
+        ("NGN", "NGN — Nigerian Naira"),
+        ("EUR", "EUR — Euro"),
+        ("GBP", "GBP — British Pound"),
+        ("ZAR", "ZAR — South African Rand"),
+    ]
+
+    # ── Override currency as a dropdown ──
+    attachment_currency = forms.ChoiceField(
+        choices=CURRENCY_CHOICES,
+        initial="USD",
+        required=False,
+        widget=forms.Select(
+            attrs={"class": "form-select", "id": "id_attachment_currency"}
+        ),
+    )
 
     images = MultipleFileField(
         widget=MultipleFileInput(
@@ -227,6 +267,10 @@ class PostForm(forms.ModelForm):
             "tags",
             "visible_to_all",
             "status",
+            # ── NEW: monetization ──
+            "is_monetized",
+            "attachment_price",
+            "attachment_currency",
         ]
         widgets = {
             "title": forms.TextInput(
@@ -272,6 +316,24 @@ class PostForm(forms.ModelForm):
                 attrs={"class": "form-check-input"}
             ),
             "status": forms.Select(attrs={"class": "form-select"}),
+            # ── NEW: monetization widgets ──
+            "is_monetized": forms.CheckboxInput(
+                attrs={
+                    "class": "form-check-input",
+                    "id": "id_is_monetized",
+                }
+            ),
+            "attachment_price": forms.NumberInput(
+                attrs={
+                    "class": "form-control",
+                    "min": "0",
+                    "step": "0.01",
+                    "placeholder": "0.00",
+                    "id": "id_attachment_price",
+                }
+            ),
+            # attachment_currency is defined as a ChoiceField above,
+            # so it doesn't need an entry in Meta.widgets.
         }
 
     def __init__(self, *args, **kwargs):
@@ -287,6 +349,45 @@ class PostForm(forms.ModelForm):
         for name in ("images", "attachments"):
             if name in self.fields:
                 self.fields[name].widget.attrs["multiple"] = "multiple"
+
+        # ── NEW: make price optional on the form level.
+        # The clean() method enforces "> 0 when monetized".
+        if "attachment_price" in self.fields:
+            self.fields["attachment_price"].required = False
+
+        # ── NEW: preserve saved currency when editing ──
+        if self.instance and self.instance.pk and self.instance.attachment_currency:
+            self.fields["attachment_currency"].initial = (
+                self.instance.attachment_currency
+            )
+
+    def clean(self):
+        cleaned = super().clean()
+
+        is_monetized = cleaned.get("is_monetized")
+        price = cleaned.get("attachment_price")
+        currency = cleaned.get("attachment_currency")
+
+        if is_monetized:
+            # Price must be > 0 for monetization to make sense
+            if price is None or price <= 0:
+                self.add_error(
+                    "attachment_price",
+                    "Set a price greater than 0 when monetization is enabled.",
+                )
+
+            # Currency must be chosen
+            if not currency:
+                self.add_error(
+                    "attachment_currency",
+                    "Choose a currency when monetization is enabled.",
+                )
+        else:
+            # When monetization is off, force sensible defaults
+            cleaned["attachment_price"] = 0
+            cleaned["attachment_currency"] = currency or "USD"
+
+        return cleaned
 
 
 # ============================================================
@@ -617,6 +718,15 @@ def post_detail(request, slug):
     # ---- Permissions ----
     can_edit = can_manage_post(request, post)
     can_delete = can_edit
+    attachments = [
+        {"doc": doc, "locked": not user_can_download(request.user, doc)}
+        for doc in post.attachments.all()
+    ]
+    attachments_locked = (
+        post.is_monetized
+        and post.attachment_price > 0
+        and not user_has_paid_for_post(request.user, post)
+    )
 
     context = {
         "post": post,
@@ -629,6 +739,8 @@ def post_detail(request, slug):
         "can_delete": can_delete,
         "comment_form": CommentForm(),
         "reaction_choices": CommentReaction.REACTION_CHOICES,
+        "attachments": attachments,
+        "attachments_locked": attachments_locked,
     }
 
     return render(request, "post_detail.html", context)
@@ -665,14 +777,14 @@ def _read_file_bytes(file_field, extension=""):
     return response.content
 
 
-@login_required
-def download_attachment(request, pk):
 
+@login_required
+def download_attachment(request, attachment_id):
+    # --- Fetch attachment ---
     doc = get_object_or_404(
         PostAttachment.objects.select_related("post"),
-        pk=pk,
+        pk=attachment_id,
     )
-
     post = doc.post
 
     # --- Permission check ---
@@ -683,12 +795,16 @@ def download_attachment(request, pk):
 
             allowed = (
                 is_staff_viewer
-                or post.target_classes.filter(
-                    students=request.user
-                ).exists()
+                or post.target_classes.filter(students=request.user).exists()
             )
             if not allowed:
                 raise Http404
+
+    # --- Paywall check ---
+    if not user_can_download(request.user, doc):
+        return redirect(
+            reverse("blog:paywall", kwargs={"slug": post.slug})
+        )
 
     ext = (doc.extension or "").lower()
     original = doc.original_name or f"document.{ext}"
@@ -696,9 +812,12 @@ def download_attachment(request, pk):
     # ---------- PDF: watermark ----------
     if ext == "pdf":
         pdf_bytes = _read_file_bytes(doc.file, extension=ext)
-
         label = f"SmartMind · {request.user.username}"
         marked = watermark_pdf(pdf_bytes, label=label)
+
+        # watermark_pdf already returns a BytesIO — don't wrap it again
+        if isinstance(marked, (bytes, bytearray)):
+            marked = io.BytesIO(marked)
 
         response = FileResponse(
             marked,
@@ -709,12 +828,13 @@ def download_attachment(request, pk):
         response["Cache-Control"] = "private, no-store"
         return response
 
+    # ---------- TXT: header injection ----------
     if ext == "txt":
         body_bytes = _read_file_bytes(doc.file, extension=ext)
         body = body_bytes.decode("utf-8", errors="ignore")
 
         header = (
-            f"----- Smarmind -----\n"
+            f"----- SmartMind -----\n"
             f"Downloaded by: {request.user.username}\n"
             f"Source: {post.title}\n"
             f"---------------------\n\n"
@@ -730,7 +850,20 @@ def download_attachment(request, pk):
         response["Cache-Control"] = "private, no-store"
         return response
 
-    return redirect(doc.file.url)
+    # ---------- Fallback: stream through Django (never expose storage URL) ----------
+    try:
+        file_handle = doc.file.open("rb")
+    except (FileNotFoundError, OSError):
+        raise Http404("File not available.")
+
+    response = FileResponse(
+        file_handle,
+        as_attachment=True,
+        filename=original,
+        content_type="application/octet-stream",
+    )
+    response["Cache-Control"] = "private, no-store"
+    return response
 
 
 # ============================================================
@@ -1709,3 +1842,242 @@ def trending(request):
         _increment_view_count(request, post)
 
     return render(request, "trending.html", {"page": page})
+
+@login_required
+def paywall(request, slug):
+    post = get_object_or_404(Post, slug=slug)
+
+    if user_has_paid_for_post(request.user, post):
+        return redirect("blog:post_detail", slug=post.slug)
+
+    return render(request, "paywall.html", {
+        "post": post,
+        "price": post.attachment_price,
+        "currency": post.attachment_currency,
+    })
+
+
+@login_required
+@require_POST
+def initialize_mpesa_payment(request, slug):
+    post = get_object_or_404(Post, slug=slug)
+
+    if user_has_paid_for_post(request.user, post):
+        return JsonResponse({"already_paid": True})
+
+    if not post.is_monetized or post.attachment_price <= 0:
+        return JsonResponse(
+            {"error": "This post is not for sale."},
+            status=400,
+        )
+
+    # M-Pesa Daraja accepts payments in Kenyan shillings.
+    if post.attachment_currency.upper() != "KES":
+        return JsonResponse(
+            {"error": "This attachment must be priced in KES to accept M-Pesa."},
+            status=400,
+        )
+
+    amount = Decimal(str(post.attachment_price))
+
+    if amount != amount.to_integral_value():
+        return JsonResponse(
+            {"error": "M-Pesa payments must be whole amounts in KES."},
+            status=400,
+        )
+
+    phone = request.POST.get("phone_number", "").strip()
+
+    callback_url = settings.MPESA_CALLBACK_URL
+
+    if not callback_url:
+        callback_url = request.build_absolute_uri(
+            reverse("blog:mpesa_callback")
+        )
+
+    result = initiate_stk_push(
+        phone=phone,
+        amount=amount,
+        account_reference=post.slug,
+        transaction_description="SmartMind attachment",
+        callback_url=callback_url,
+    )
+
+    if not result.get("success"):
+        return JsonResponse(
+            {"error": result.get("error", "Could not initiate payment.")},
+            status=400,
+        )
+
+    data = result["data"]
+
+    checkout_id = data.get("CheckoutRequestID")
+    merchant_id = data.get("MerchantRequestID")
+
+    if not checkout_id:
+        logger.error("M-Pesa response missing CheckoutRequestID: %s", data)
+        return JsonResponse(
+            {"error": "M-Pesa returned an invalid response."},
+            status=502,
+        )
+
+    from .payments import normalize_mpesa_phone
+
+    normalized_phone = normalize_mpesa_phone(phone)
+
+    MpesaTransaction.objects.create(
+        user=request.user,
+        post=post,
+        phone_number=normalized_phone,
+        amount=amount,
+        currency="KES",
+        merchant_request_id=merchant_id or "",
+        checkout_request_id=checkout_id,
+        status="pending",
+    )
+
+    return JsonResponse({
+        "success": True,
+        "message": "STK Push sent. Enter your M-Pesa PIN on your phone.",
+        "checkout_request_id": checkout_id,
+    })
+
+
+@csrf_exempt
+@require_POST
+def mpesa_callback(request):
+    """
+    Receive Daraja STK Push callback.
+
+    Only a successful callback with matching amount and phone
+    is allowed to unlock the purchased attachment.
+    """
+
+    try:
+        callback_data = json.loads(request.body)
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        logger.warning("Invalid M-Pesa callback JSON.")
+        return HttpResponse(status=200)
+
+    stk_callback = (
+        callback_data.get("Body", {})
+        .get("stkCallback", {})
+    )
+
+    checkout_id = stk_callback.get("CheckoutRequestID")
+    result_code = str(stk_callback.get("ResultCode", ""))
+    result_description = stk_callback.get("ResultDesc", "")
+
+    if not checkout_id:
+        logger.warning("M-Pesa callback missing CheckoutRequestID.")
+        return HttpResponse(status=200)
+
+    mpesa_transaction = MpesaTransaction.objects.filter(
+        checkout_request_id=checkout_id
+    ).first()
+
+    if not mpesa_transaction:
+        logger.warning(
+            "Unknown M-Pesa CheckoutRequestID: %s",
+            checkout_id,
+        )
+        return HttpResponse(status=200)
+
+    # Prevent processing the same callback more than once.
+    if mpesa_transaction.status != "pending":
+        return HttpResponse(status=200)
+
+    mpesa_transaction.result_code = result_code
+    mpesa_transaction.result_description = result_description
+
+    if result_code != "0":
+        mpesa_transaction.status = "failed"
+        mpesa_transaction.save()
+
+        logger.info(
+            "M-Pesa payment failed. CheckoutRequestID=%s ResultCode=%s",
+            checkout_id,
+            result_code,
+        )
+
+        return HttpResponse(status=200)
+
+    # Extract callback metadata.
+    metadata_items = (
+        stk_callback.get("CallbackMetadata", {})
+        .get("Item", [])
+    )
+
+    metadata = {}
+
+    for item in metadata_items:
+        name = item.get("Name")
+        value = item.get("Value")
+
+        if name:
+            metadata[name] = value
+
+    receipt = str(metadata.get("MpesaReceiptNumber", ""))
+    callback_amount = metadata.get("Amount")
+    callback_phone = metadata.get("PhoneNumber")
+
+    from .payments import normalize_mpesa_phone
+
+    normalized_callback_phone = normalize_mpesa_phone(
+        str(callback_phone or "")
+    )
+
+    # Verify the payment amount.
+    try:
+        received_amount = Decimal(str(callback_amount))
+    except (TypeError, ValueError):
+        received_amount = Decimal("0")
+
+    amount_matches = received_amount == mpesa_transaction.amount
+
+    # Verify the phone number.
+    phone_matches = (
+        normalized_callback_phone
+        == mpesa_transaction.phone_number
+    )
+
+    if not amount_matches or not phone_matches or not receipt:
+        mpesa_transaction.status = "failed"
+        mpesa_transaction.result_description = (
+            "Payment verification failed: amount, phone or receipt mismatch."
+        )
+        mpesa_transaction.save()
+
+        logger.error(
+            "M-Pesa verification mismatch. CheckoutRequestID=%s",
+            checkout_id,
+        )
+
+        return HttpResponse(status=200)
+
+    # Payment is verified. Unlock the attachment.
+    with transaction.atomic():
+        mpesa_transaction.status = "success"
+        mpesa_transaction.mpesa_receipt_number = receipt
+        mpesa_transaction.save()
+
+        AttachmentPurchase.objects.update_or_create(
+            user=mpesa_transaction.user,
+            post=mpesa_transaction.post,
+            defaults={
+                "paid": True,
+                "amount_paid": mpesa_transaction.amount,
+                "currency": "KES",
+                "payment_reference": receipt,
+            },
+        )
+
+    logger.info(
+        "M-Pesa payment verified and attachment unlocked. "
+        "Receipt=%s Post=%s User=%s",
+        receipt,
+        mpesa_transaction.post_id,
+        mpesa_transaction.user_id,
+    )
+
+    return HttpResponse(status=200)

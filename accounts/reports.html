@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Attendance reports · SmartMind{% endblock %}
+{% block content %}
+{% include "attendance/_base_styles.html" %}
+<div class="attendance-page">
+
+  <div class="page-head">
+    <div>
+      <h3>Attendance reports</h3>
+      <div class="sub">Overall performance · {{ today|date:"M Y" }}</div>
+    </div>
+    <a href="{% url 'attendance_dashboard' %}" class="btn btn-sm">
+      <i class="bi bi-arrow-left"></i> Back
+    </a>
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="n">{{ overall_rate }}%</div>
+      <div class="l">Overall rate</div>
+    </div>
+    <div class="stat">
+      <div class="n">{{ attempts_count }}</div>
+      <div class="l">Quiz attempts</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">
+      <h4><i class="bi bi-bar-chart"></i> Per-class snapshot</h4>
+    </div>
+    <div class="session-list">
+      {% for c in class_performance %}
+        <div class="session-item">
+          <div class="session-icon"><i class="bi bi-building"></i></div>
+          <div class="session-body">
+            <p class="session-title">{{ c.name }}</p>
+            <div class="session-meta">
+              <span><i class="bi bi-journal-check"></i>{{ c.attempts_count }} attempts</span>
+            </div>
+          </div>
+        </div>
+      {% empty %}
+        <div class="empty">
+          <i class="bi bi-bar-chart"></i>
+          <p>No data yet.</p>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}

@@ -32,49 +32,55 @@
 
     <style>
         /* =====================================================
-           Tokens — light (default)
+           Tokens — light (monochrome, X-style)
         ===================================================== */
         :root,
         [data-theme="light"] {
-            --bg: #f7f6f3;
-            --surface: rgba(255, 255, 255, 0.86);
+            --bg: #ffffff;
+            --surface: #ffffff;
             --surface-solid: #ffffff;
-            --surface-alt: #faf9f7;
-            --text: #1e242b;
-            --muted: #6b7280;
-            --primary: #2f6b7c;
-            --primary-2: #245462;
-            --primary-soft: #e6eef0;
-            --border: rgba(100, 110, 120, 0.16);
-            --border-solid: #e5e2dc;
-            --shadow: 0 10px 28px rgba(30, 36, 43, 0.07);
-            --shadow-sm: 0 3px 10px rgba(30, 36, 43, 0.05);
-            --navbar-bg: rgba(255, 255, 255, 0.82);
+            --surface-alt: #f7f9f9;
+            --text: #0f1419;
+            --muted: #536471;
+            --soft: #71767b;
+            --primary: #0f1419;        /* "accent" is just text color */
+            --primary-hover: #000000;
+            --primary-soft: #eff3f4;   /* gray wash for hover fills */
+            --border: #eff3f4;
+            --border-solid: #e1e8ed;
+            --hover: #f7f9f9;
+            --hover-strong: #eff3f4;
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.03);
+            --navbar-bg: rgba(255, 255, 255, 0.85);
             --radius: 16px;
             --navbar-h: 68px;
             --sidebar-w: 268px;
             --layout-pad: 20px;
-            --ease: ease;
+            --ease: cubic-bezier(.4, 0, .2, 1);
         }
 
         /* =====================================================
-           Tokens — dark
+           Tokens — dark (true black)
         ===================================================== */
         [data-theme="dark"] {
-            --bg: #14171c;
-            --surface: rgba(28, 32, 39, 0.88);
-            --surface-solid: #1c2027;
-            --surface-alt: #232830;
-            --text: #e7e4df;
-            --muted: #9aa0a8;
-            --primary: #7fa8b5;
-            --primary-2: #9dbfca;
-            --primary-soft: #223038;
-            --border: rgba(160, 170, 180, 0.12);
-            --border-solid: #2c323a;
-            --shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
-            --shadow-sm: 0 3px 10px rgba(0, 0, 0, 0.3);
-            --navbar-bg: rgba(20, 23, 28, 0.88);
+            --bg: #000000;
+            --surface: #000000;
+            --surface-solid: #000000;
+            --surface-alt: #16181c;
+            --text: #e7e9ea;
+            --muted: #71767b;
+            --soft: #71767b;
+            --primary: #e7e9ea;
+            --primary-hover: #ffffff;
+            --primary-soft: #16181c;
+            --border: #2f3336;
+            --border-solid: #2f3336;
+            --hover: #080808;
+            --hover-strong: #16181c;
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+            --navbar-bg: rgba(0, 0, 0, 0.85);
         }
 
         * { box-sizing: border-box; }
@@ -83,11 +89,13 @@
 
         body {
             margin: 0;
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                         Helvetica, Arial, sans-serif;
             background: var(--bg);
             color: var(--text);
             overflow-x: hidden;
             transition: background-color .2s var(--ease), color .2s var(--ease);
+            -webkit-font-smoothing: antialiased;
         }
 
         a { text-decoration: none; }
@@ -112,7 +120,8 @@
             -webkit-backdrop-filter: blur(14px);
             background: var(--navbar-bg);
             border-bottom: 1px solid var(--border);
-            transition: background-color .2s var(--ease), border-color .2s var(--ease);
+            transition: background-color .2s var(--ease),
+                        border-color .2s var(--ease);
         }
 
         .nav-inner {
@@ -129,10 +138,11 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            font-weight: 700;
+            font-weight: 800;
             color: var(--text);
             font-size: 1.08rem;
             white-space: nowrap;
+            letter-spacing: -0.02em;
         }
 
         .brand-badge {
@@ -141,28 +151,32 @@
             display: grid;
             place-items: center;
             border-radius: 10px;
-            background: var(--primary);
-            color: #fff;
+            background: var(--text);
+            color: var(--bg);
             font-size: .95rem;
+            transition: background-color .2s var(--ease),
+                        color .2s var(--ease);
         }
 
         .nav-links {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 22px;
             flex-wrap: wrap;
         }
 
         .nav-links a {
             color: var(--muted);
-            font-weight: 500;
+            font-weight: 600;
             font-size: .92rem;
             transition: color .15s var(--ease);
+            position: relative;
+            padding: 4px 0;
         }
 
         .nav-links a:hover,
         .nav-links a.active {
-            color: var(--primary);
+            color: var(--text);
         }
 
         .nav-actions {
@@ -177,23 +191,27 @@
             gap: 10px;
             color: var(--muted);
             font-size: .9rem;
+            font-weight: 500;
         }
 
         .btn-pill {
             border: 1px solid var(--border-solid);
-            background: var(--surface-solid);
+            background: transparent;
             color: var(--text);
-            padding: 7px 14px;
+            padding: 7px 16px;
             border-radius: 999px;
-            font-weight: 500;
+            font-weight: 700;
             font-size: .86rem;
-            transition: background .15s var(--ease), color .15s var(--ease), border-color .15s var(--ease);
+            cursor: pointer;
+            transition: background .15s var(--ease),
+                        color .15s var(--ease),
+                        border-color .15s var(--ease);
         }
 
         .btn-pill:hover {
-            background: var(--primary);
-            color: #fff;
-            border-color: var(--primary);
+            background: var(--text);
+            color: var(--bg);
+            border-color: var(--text);
         }
 
         /* =====================================================
@@ -204,21 +222,24 @@
             height: 36px;
             border-radius: 50%;
             border: 1px solid var(--border-solid);
-            background: var(--surface-solid);
+            background: transparent;
             color: var(--muted);
             cursor: pointer;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             font-size: 1rem;
-            transition: background .15s var(--ease), color .15s var(--ease), border-color .15s var(--ease);
+            transition: background .15s var(--ease),
+                        color .15s var(--ease),
+                        border-color .15s var(--ease);
             -webkit-tap-highlight-color: transparent;
             flex-shrink: 0;
             padding: 0;
         }
 
         .theme-toggle:hover {
-            color: var(--primary);
+            color: var(--text);
+            background: var(--hover-strong);
             border-color: var(--border-solid);
         }
 
@@ -234,16 +255,20 @@
             height: 36px;
             border-radius: 10px;
             border: 1px solid var(--border-solid);
-            background: var(--surface-solid);
+            background: transparent;
             color: var(--text);
             cursor: pointer;
             align-items: center;
             justify-content: center;
             font-size: 1.05rem;
             padding: 0;
+            transition: background .15s var(--ease), color .15s var(--ease);
         }
 
-        .sidebar-toggle:hover { color: var(--primary); }
+        .sidebar-toggle:hover {
+            color: var(--text);
+            background: var(--hover-strong);
+        }
 
         /* =====================================================
            Layout
@@ -269,7 +294,6 @@
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: var(--radius);
-            box-shadow: var(--shadow-sm);
             padding: 18px;
             z-index: 1040;
             transition: background-color .2s var(--ease),
@@ -285,8 +309,8 @@
 
         .sidebar h3 {
             margin: 0 0 10px;
-            font-size: .82rem;
-            font-weight: 600;
+            font-size: .78rem;
+            font-weight: 700;
             text-transform: uppercase;
             letter-spacing: .06em;
             color: var(--muted);
@@ -306,7 +330,9 @@
             border-radius: 10px;
             color: var(--text);
             font-size: .9rem;
-            transition: background .15s var(--ease), color .15s var(--ease);
+            font-weight: 500;
+            transition: background .15s var(--ease),
+                        color .15s var(--ease);
             background: none;
             border: none;
             width: 100%;
@@ -317,8 +343,8 @@
 
         .sidebar-links a:hover,
         .sidebar-link-btn:hover {
-            background: var(--primary-soft);
-            color: var(--primary);
+            background: var(--hover-strong);
+            color: var(--text);
         }
 
         .sidebar-links a i,
@@ -327,11 +353,12 @@
             font-size: .95rem;
             width: 18px;
             text-align: center;
+            transition: color .15s var(--ease);
         }
 
         .sidebar-links a:hover i,
         .sidebar-link-btn:hover i {
-            color: var(--primary);
+            color: var(--text);
         }
 
         /* Primary nav section — visible only in mobile drawer */
@@ -343,7 +370,7 @@
         .sidebar-backdrop {
             position: fixed;
             inset: 0;
-            background: rgba(20, 23, 28, .42);
+            background: rgba(0, 0, 0, .5);
             z-index: 1039;
             opacity: 0;
             visibility: hidden;
@@ -380,6 +407,7 @@
                 border-bottom: none;
                 transform: translateX(-100%);
                 box-shadow: var(--shadow);
+                background: var(--bg);
             }
 
             html[data-sidebar-open="true"] .sidebar {
