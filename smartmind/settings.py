@@ -104,13 +104,11 @@ WSGI_APPLICATION = 'smartmind.wsgi.application'
 
 
 
-# ==========================
-# DATABASE CONFIGURATION
-# ==========================
 
-USE_SQLITE = config("USE_SQLITE", default=True, cast=bool)
+USE_SQLITE = config("USE_SQLITE", default=False, cast=bool)
 
 if USE_SQLITE:
+    # Local development database
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
@@ -118,12 +116,15 @@ if USE_SQLITE:
         }
     }
 else:
+    # Production PostgreSQL database (Render)
     DATABASES = {
         "default": dj_database_url.config(
             conn_max_age=600,
             conn_health_checks=True,
+            ssl_require=True,
         )
     }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
