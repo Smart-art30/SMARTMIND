@@ -1,6 +1,22 @@
+import os
+import io
+import json
+import hmac
+import hashlib
+import logging
+import time
+import requests
+from decimal import Decimal, ROUND_HALF_UP
+from datetime import timedelta
+
 from django import forms
+from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
+from django.core.paginator import Paginator
+from django.db import transaction
+from django.db.models import Count, F, Q, Prefetch, Sum
 from django.forms import (
     ClearableFileInput,
     Select,
@@ -8,38 +24,28 @@ from django.forms import (
     TextInput,
     Textarea,
     URLInput,
+    FileInput,
     modelform_factory,
 )
-from django.contrib import messages
-from django.http import JsonResponse
-from django.shortcuts import (
-    get_object_or_404,
-    redirect,
-    render,
+from django.http import (
+    FileResponse,
+    Http404,
+    HttpResponse,
+    JsonResponse,
 )
+from django.shortcuts import get_object_or_404, redirect, render
+from django.template.loader import render_to_string
 from django.urls import reverse
+from django.utils import timezone
+from django.utils.crypto import get_random_string
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import (
     require_http_methods,
     require_POST,
 )
-from django.db import transaction
-from django.forms import FileInput
 from django_ckeditor_5.widgets import CKEditor5Widget
-from django.conf import settings
-from django.db.models import (
-    Count,
-    F,
-    Q,
-    Prefetch,
-)
 
-import os
-import io
-import logging
-import time
-
-import requests
-
+from .access import user_can_download, user_has_paid_for_post
 from .models import (
     Category,
     Comment,
@@ -48,36 +54,16 @@ from .models import (
     PostImage,
     PostAttachment,
     PostReaction,
+    AttachmentPurchase,
+    MpesaTransaction,
+    CreatorWallet,
+    CreatorSale,
+    WalletLedgerEntry,
+    CreatorPayout,
 )
-from datetime import timedelta
-from django.utils import timezone
-from .widgets import MultipleFileInput
-from django.core.paginator import Paginator
-from django.template.loader import render_to_string
-from django.http import FileResponse, Http404
-from .watermark import watermark_pdf
-from django.shortcuts import redirect, get_object_or_404
-from django.urls import reverse
-from django.contrib.auth.decorators import login_required
-from django.http import FileResponse
-from django.views.decorators.http import require_POST
-from django.utils.crypto import get_random_string
-from django.views.decorators.csrf import csrf_exempt
-from .models import Post, PostAttachment, AttachmentPurchase
-from .access import user_can_download, user_has_paid_for_post
-import requests
-from decimal import Decimal
-from django.conf import settings
-from django.views.decorators.http import require_POST
-import hmac
-import hashlib
-import json
-from .access import user_can_download, user_has_paid_for_post
-from .models import MpesaTransaction
 from .payments import initiate_stk_push
-from django.http import HttpResponse
-
-
+from .watermark import watermark_pdf
+from .widgets import MultipleFileInput
 logger = logging.getLogger(__name__)
 
 ALLOWED_DOC_EXTENSIONS = {
@@ -1944,17 +1930,23 @@ def initialize_mpesa_payment(request, slug):
 
 
 @csrf_exempt
-@require_POST
 def mpesa_callback(request):
     """
     Receive Daraja STK Push callback.
 
-    Only a successful callback with matching amount and phone
-    is allowed to unlock the purchased attachment.
+    A verified successful payment:
+    1. Unlocks the attachment.
+    2. Records the sale.
+    3. Credits 70% to the creator wallet.
+    4. Records 30% platform commission.
+    5. Creates a wallet ledger entry.
+
+    Duplicate callbacks cannot credit the wallet twice.
     """
 
     try:
         callback_data = json.loads(request.body)
+
     except (json.JSONDecodeError, UnicodeDecodeError):
         logger.warning("Invalid M-Pesa callback JSON.")
         return HttpResponse(status=200)
@@ -1983,16 +1975,23 @@ def mpesa_callback(request):
         )
         return HttpResponse(status=200)
 
-    # Prevent processing the same callback more than once.
+    # Ignore callbacks for transactions already processed.
     if mpesa_transaction.status != "pending":
         return HttpResponse(status=200)
 
-    mpesa_transaction.result_code = result_code
-    mpesa_transaction.result_description = result_description
-
+    # Record unsuccessful payment.
     if result_code != "0":
+
+        mpesa_transaction.result_code = result_code
+        mpesa_transaction.result_description = result_description
         mpesa_transaction.status = "failed"
-        mpesa_transaction.save()
+        mpesa_transaction.save(
+            update_fields=[
+                "result_code",
+                "result_description",
+                "status",
+            ]
+        )
 
         logger.info(
             "M-Pesa payment failed. CheckoutRequestID=%s ResultCode=%s",
@@ -2027,25 +2026,31 @@ def mpesa_callback(request):
         str(callback_phone or "")
     )
 
-    # Verify the payment amount.
     try:
         received_amount = Decimal(str(callback_amount))
+
     except (TypeError, ValueError):
         received_amount = Decimal("0")
 
-    amount_matches = received_amount == mpesa_transaction.amount
+    amount_matches = (
+        received_amount == mpesa_transaction.amount
+    )
 
-    # Verify the phone number.
     phone_matches = (
         normalized_callback_phone
         == mpesa_transaction.phone_number
     )
 
+    # Verify the payment before crediting anyone.
     if not amount_matches or not phone_matches or not receipt:
+
         mpesa_transaction.status = "failed"
+
         mpesa_transaction.result_description = (
-            "Payment verification failed: amount, phone or receipt mismatch."
+            "Payment verification failed: "
+            "amount, phone or receipt mismatch."
         )
+
         mpesa_transaction.save()
 
         logger.error(
@@ -2055,22 +2060,157 @@ def mpesa_callback(request):
 
         return HttpResponse(status=200)
 
-    # Payment is verified. Unlock the attachment.
-    with transaction.atomic():
-        mpesa_transaction.status = "success"
-        mpesa_transaction.mpesa_receipt_number = receipt
-        mpesa_transaction.save()
+    # Process everything together.
+    # If any operation fails, all changes are rolled back.
+    try:
 
-        AttachmentPurchase.objects.update_or_create(
-            user=mpesa_transaction.user,
-            post=mpesa_transaction.post,
-            defaults={
-                "paid": True,
-                "amount_paid": mpesa_transaction.amount,
-                "currency": "KES",
-                "payment_reference": receipt,
-            },
+        with transaction.atomic():
+
+            # Lock the transaction against duplicate callbacks.
+            mpesa_transaction = (
+                MpesaTransaction.objects
+                .select_for_update()
+                .get(checkout_request_id=checkout_id)
+            )
+
+            # Check again inside the lock.
+            if mpesa_transaction.status != "pending":
+                return HttpResponse(status=200)
+
+            # Prevent using the same receipt on another transaction.
+            duplicate_receipt = (
+                MpesaTransaction.objects
+                .filter(mpesa_receipt_number=receipt)
+                .exclude(pk=mpesa_transaction.pk)
+                .exists()
+            )
+
+            if duplicate_receipt:
+
+                mpesa_transaction.status = "failed"
+                mpesa_transaction.result_code = result_code
+                mpesa_transaction.result_description = (
+                    "Duplicate M-Pesa receipt detected."
+                )
+
+                mpesa_transaction.save()
+
+                logger.error(
+                    "Duplicate M-Pesa receipt detected: %s",
+                    receipt,
+                )
+
+                return HttpResponse(status=200)
+
+            # Mark payment successful.
+            mpesa_transaction.status = "success"
+            mpesa_transaction.result_code = result_code
+            mpesa_transaction.result_description = result_description
+            mpesa_transaction.mpesa_receipt_number = receipt
+
+            mpesa_transaction.save()
+
+            # Unlock the attachment for the learner.
+            AttachmentPurchase.objects.update_or_create(
+                user=mpesa_transaction.user,
+                post=mpesa_transaction.post,
+                defaults={
+                    "paid": True,
+                    "amount_paid": mpesa_transaction.amount,
+                    "currency": "KES",
+                    "payment_reference": receipt,
+                },
+            )
+
+            # Identify the creator of the purchased post.
+            creator = mpesa_transaction.post.author
+
+            gross_amount = mpesa_transaction.amount
+
+            # Prevent creators earning commission from
+            # purchasing their own content.
+            if creator.pk == mpesa_transaction.user_id:
+
+                creator_earning = Decimal("0.00")
+                platform_commission = Decimal("0.00")
+
+            else:
+
+                creator_earning = (
+                    gross_amount * Decimal("0.70")
+                ).quantize(
+                    Decimal("0.01"),
+                    rounding=ROUND_HALF_UP,
+                )
+
+                # The remainder guarantees that the total
+                # always equals the original payment.
+                platform_commission = (
+                    gross_amount - creator_earning
+                ).quantize(
+                    Decimal("0.01"),
+                    rounding=ROUND_HALF_UP,
+                )
+
+            # Record the sale.
+            creator_sale = CreatorSale.objects.create(
+                mpesa_transaction=mpesa_transaction,
+                creator=creator,
+                post=mpesa_transaction.post,
+                gross_amount=gross_amount,
+                platform_commission=platform_commission,
+                creator_earning=creator_earning,
+                commission_rate=Decimal("30.00"),
+            )
+
+            # Credit the creator only if there is an earning.
+            if creator_earning > 0:
+
+                wallet, created = CreatorWallet.objects.get_or_create(
+                    creator=creator
+                )
+
+                # Lock the wallet while updating its balances.
+                wallet = (
+                    CreatorWallet.objects
+                    .select_for_update()
+                    .get(pk=wallet.pk)
+                )
+
+                wallet.available_balance += creator_earning
+                wallet.total_earned += creator_earning
+
+                wallet.save(
+                    update_fields=[
+                        "available_balance",
+                        "total_earned",
+                        "updated_at",
+                    ]
+                )
+
+                # Record the credit in the wallet ledger.
+                WalletLedgerEntry.objects.create(
+                    wallet=wallet,
+                    sale=creator_sale,
+                    entry_type="sale",
+                    amount=creator_earning,
+                    description=(
+                        f"70% earnings from sale of "
+                        f"{mpesa_transaction.post.title}"
+                    ),
+                )
+
+    except Exception:
+
+        logger.exception(
+            "Error processing successful M-Pesa payment. "
+            "CheckoutRequestID=%s",
+            checkout_id,
         )
+
+        # Report failure so the payment can be investigated
+        # and processing can be retried if necessary.
+        return HttpResponse(status=500)
 
     logger.info(
         "M-Pesa payment verified and attachment unlocked. "
@@ -2081,3 +2221,167 @@ def mpesa_callback(request):
     )
 
     return HttpResponse(status=200)
+
+
+@login_required
+def creator_wallet_management(request):
+    """
+    Administrator dashboard for managing creator wallets.
+
+    Superadmin:
+        Views all teacher wallets.
+
+    School admin:
+        Views wallets belonging to teachers in their school only.
+    """
+
+    role = getattr(request.user, "role", None)
+
+    # Restrict access to superadmins and school administrators.
+    if not (
+        request.user.is_superuser
+        or role == "superadmin"
+        or role == "school_admin"
+    ):
+        raise PermissionDenied(
+            "You do not have permission to manage creator wallets."
+        )
+
+    # Base querysets: teachers only.
+    wallets = CreatorWallet.objects.filter(
+        creator__role="teacher"
+    ).select_related(
+        "creator",
+        "creator__school",
+    ).order_by(
+        "-total_earned"
+    )
+
+    sales = CreatorSale.objects.filter(
+        creator__role="teacher"
+    ).select_related(
+        "creator",
+        "post",
+        "mpesa_transaction",
+    ).order_by(
+        "-created_at"
+    )
+
+    payouts = CreatorPayout.objects.filter(
+        creator__role="teacher"
+    ).select_related(
+        "creator",
+        "wallet",
+    ).order_by(
+        "-requested_at"
+    )
+
+    # School administrators are restricted to their own school.
+    if role == "school_admin" and not request.user.is_superuser:
+
+        if not request.user.school_id:
+            raise PermissionDenied(
+                "Your administrator account is not assigned to a school."
+            )
+
+        wallets = wallets.filter(
+            creator__school_id=request.user.school_id
+        )
+
+        sales = sales.filter(
+            creator__school_id=request.user.school_id
+        )
+
+        payouts = payouts.filter(
+            creator__school_id=request.user.school_id
+        )
+
+    # Financial totals.
+    wallet_totals = wallets.aggregate(
+        total_available=Sum("available_balance"),
+        total_earned=Sum("total_earned"),
+        total_paid=Sum("total_paid"),
+    )
+
+    sales_totals = sales.aggregate(
+        total_gross=Sum("gross_amount"),
+        total_commission=Sum("platform_commission"),
+        total_creator_earnings=Sum("creator_earning"),
+    )
+
+    # Payout request counts.
+    payout_counts = {
+        "pending": payouts.filter(status="pending").count(),
+        "approved": payouts.filter(status="approved").count(),
+        "paid": payouts.filter(status="paid").count(),
+        "rejected": payouts.filter(status="rejected").count(),
+    }
+
+    context = {
+        "wallets": wallets,
+        "sales": sales[:50],
+        "payouts": payouts[:50],
+
+        "total_available": wallet_totals["total_available"] or Decimal("0.00"),
+        "total_earned": wallet_totals["total_earned"] or Decimal("0.00"),
+        "total_paid": wallet_totals["total_paid"] or Decimal("0.00"),
+
+        "total_gross": sales_totals["total_gross"] or Decimal("0.00"),
+        "total_commission": sales_totals["total_commission"] or Decimal("0.00"),
+        "total_creator_earnings": sales_totals["total_creator_earnings"] or Decimal("0.00"),
+
+        "payout_counts": payout_counts,
+        "wallet_count": wallets.count(),
+    }
+
+    return render(
+        request,
+        "creator_wallet_management.html",
+        context,
+    )
+
+
+@login_required
+def creator_wallet(request):
+    """Display the logged-in creator's wallet and earnings."""
+
+    # Only teachers can access the creator wallet.
+    if request.user.role != "teacher":
+        raise PermissionDenied(
+            "Only teachers can access the creator wallet."
+        )
+
+    wallet, created = CreatorWallet.objects.get_or_create(
+        creator=request.user
+    )
+
+    sales = (
+        CreatorSale.objects
+        .filter(creator=request.user)
+        .select_related("post", "mpesa_transaction")
+        .order_by("-created_at")
+    )
+
+    ledger_entries = (
+        WalletLedgerEntry.objects
+        .filter(wallet=wallet)
+        .select_related("sale", "payout")
+        .order_by("-created_at")
+    )
+
+    payouts = CreatorPayout.objects.filter(
+        creator=request.user
+    ).order_by("-requested_at")
+
+    context = {
+        "wallet": wallet,
+        "sales": sales[:10],
+        "ledger_entries": ledger_entries[:10],
+        "payouts": payouts[:10],
+    }
+
+    return render(
+        request,
+        "wallet.html",
+        context
+    )

@@ -1362,6 +1362,12 @@
                     <span>School Subjects</span>
                 </a>
             {% endif %}
+            {% if role == "teacher" %}
+    <a href="{% url 'blog:creator_wallet' %}" class="teacher-action">
+        <span>💰</span>
+        <span>My Wallet</span>
+    </a>
+{% endif %}
 
         </div>
 

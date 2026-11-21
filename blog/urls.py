@@ -42,4 +42,21 @@ urlpatterns = [
         "mpesa/callback/",
         views.mpesa_callback,
         name="mpesa_callback",
-    ),]
+    ),
+    path(
+        "mpesa/callback/",
+        views.mpesa_callback,
+        name="mpesa_callback",
+    ),
+    path(
+        "wallet/",
+        views.creator_wallet,
+        name="creator_wallet",
+    ),
+    path(
+    "wallet/management/",
+    views.creator_wallet_management,
+    name="creator_wallet_management",
+),
+    
+    ]

@@ -1,0 +1,617 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<style>
+    .wallet-admin {
+        padding: 20px 0;
+    }
+
+    .wallet-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+
+    .wallet-header h2 {
+        margin: 0;
+        font-weight: 800;
+    }
+
+    .wallet-header p {
+        color: var(--text-muted, #888);
+        margin: 5px 0 0;
+    }
+
+    .wallet-stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+        gap: 16px;
+        margin-bottom: 25px;
+    }
+
+    .wallet-stat-card {
+        border: 1px solid var(--border-color, #ddd);
+        background: var(--card-bg, #fff);
+        padding: 20px;
+        border-radius: 16px;
+        box-shadow: 0 3px 12px rgba(0,0,0,.04);
+    }
+
+    .wallet-stat-card .stat-icon {
+        width: 42px;
+        height: 42px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        background: rgba(13, 110, 253, .10);
+        color: #0d6efd;
+        font-size: 20px;
+        margin-bottom: 12px;
+    }
+
+    .wallet-stat-card .stat-label {
+        color: var(--text-muted, #777);
+        font-size: .88rem;
+        margin-bottom: 5px;
+    }
+
+    .wallet-stat-card .stat-value {
+        font-size: 1.45rem;
+        font-weight: 800;
+        overflow-wrap: anywhere;
+    }
+
+    .wallet-stat-card .stat-description {
+        font-size: .8rem;
+        color: var(--text-muted, #888);
+        margin-top: 5px;
+    }
+
+    .wallet-panel {
+        background: var(--card-bg, #fff);
+        border: 1px solid var(--border-color, #ddd);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 25px;
+        overflow: hidden;
+    }
+
+    .wallet-panel h3 {
+        font-size: 1.15rem;
+        font-weight: 750;
+        margin-bottom: 5px;
+    }
+
+    .wallet-panel .panel-description {
+        color: var(--text-muted, #888);
+        font-size: .85rem;
+        margin-bottom: 18px;
+    }
+
+    .wallet-table-wrapper {
+        overflow-x: auto;
+        width: 100%;
+    }
+
+    .wallet-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 750px;
+    }
+
+    .wallet-table th,
+    .wallet-table td {
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--border-color, #e5e5e5);
+        text-align: left;
+        vertical-align: middle;
+    }
+
+    .wallet-table th {
+        font-size: .78rem;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        color: var(--text-muted, #777);
+        white-space: nowrap;
+    }
+
+    .wallet-table td {
+        font-size: .9rem;
+    }
+
+    .wallet-table tbody tr:hover {
+        background: rgba(128,128,128,.05);
+    }
+
+    .wallet-creator {
+        font-weight: 700;
+    }
+
+    .wallet-subtext {
+        font-size: .78rem;
+        color: var(--text-muted, #888);
+        margin-top: 3px;
+    }
+
+    .wallet-amount {
+        font-weight: 750;
+        white-space: nowrap;
+    }
+
+    .wallet-status {
+        display: inline-block;
+        border-radius: 30px;
+        padding: 5px 10px;
+        font-size: .75rem;
+        font-weight: 700;
+        text-transform: capitalize;
+    }
+
+    .status-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .status-approved {
+        background: #cfe2ff;
+        color: #084298;
+    }
+
+    .status-paid {
+        background: #d1e7dd;
+        color: #0f5132;
+    }
+
+    .status-rejected {
+        background: #f8d7da;
+        color: #842029;
+    }
+
+    .wallet-empty {
+        text-align: center;
+        padding: 35px 15px;
+        color: var(--text-muted, #888);
+    }
+
+    .wallet-empty i {
+        display: block;
+        font-size: 35px;
+        margin-bottom: 10px;
+    }
+
+    .wallet-count {
+        display: inline-block;
+        background: rgba(13, 110, 253, .1);
+        color: #0d6efd;
+        border-radius: 30px;
+        padding: 5px 11px;
+        font-weight: 700;
+        font-size: .8rem;
+    }
+
+    @media (max-width: 600px) {
+        .wallet-admin {
+            padding: 12px 0;
+        }
+
+        .wallet-panel {
+            padding: 14px;
+        }
+
+        .wallet-header h2 {
+            font-size: 1.4rem;
+        }
+
+        .wallet-stat-card {
+            padding: 16px;
+        }
+
+        .wallet-stat-card .stat-value {
+            font-size: 1.2rem;
+        }
+    }
+</style>
+
+
+<div class="wallet-admin">
+
+    <!-- Header -->
+    <div class="wallet-header">
+        <div>
+            <h2>
+                <i class="bi bi-wallet2"></i>
+                Creator Wallet Management
+            </h2>
+            <p>Monitor creator earnings, sales, commissions and payouts.</p>
+        </div>
+
+        <span class="wallet-count">
+            {{ wallet_count }} Creator Wallet{{ wallet_count|pluralize }}
+        </span>
+    </div>
+
+
+    <!-- Financial Summary -->
+    <div class="wallet-stat-grid">
+
+        <div class="wallet-stat-card">
+            <div class="stat-icon">
+                <i class="bi bi-wallet2"></i>
+            </div>
+            <div class="stat-label">Available Balance</div>
+            <div class="stat-value">
+                KES {{ total_available|floatformat:2 }}
+            </div>
+            <div class="stat-description">
+                Money currently held in creator wallets
+            </div>
+        </div>
+
+
+        <div class="wallet-stat-card">
+            <div class="stat-icon">
+                <i class="bi bi-graph-up-arrow"></i>
+            </div>
+            <div class="stat-label">Total Creator Earnings</div>
+            <div class="stat-value">
+                KES {{ total_earned|floatformat:2 }}
+            </div>
+            <div class="stat-description">
+                Total earned by content creators
+            </div>
+        </div>
+
+
+        <div class="wallet-stat-card">
+            <div class="stat-icon">
+                <i class="bi bi-cash-stack"></i>
+            </div>
+            <div class="stat-label">Total Paid Out</div>
+            <div class="stat-value">
+                KES {{ total_paid|floatformat:2 }}
+            </div>
+            <div class="stat-description">
+                Total creator withdrawals paid
+            </div>
+        </div>
+
+
+        <div class="wallet-stat-card">
+            <div class="stat-icon">
+                <i class="bi bi-cart-check"></i>
+            </div>
+            <div class="stat-label">Gross Sales</div>
+            <div class="stat-value">
+                KES {{ total_gross|floatformat:2 }}
+            </div>
+            <div class="stat-description">
+                Total sales generated from paid content
+            </div>
+        </div>
+
+
+        <div class="wallet-stat-card">
+            <div class="stat-icon">
+                <i class="bi bi-building"></i>
+            </div>
+            <div class="stat-label">Platform Commission</div>
+            <div class="stat-value">
+                KES {{ total_commission|floatformat:2 }}
+            </div>
+            <div class="stat-description">
+                Revenue earned by the SmartMind platform
+            </div>
+        </div>
+
+
+        <div class="wallet-stat-card">
+            <div class="stat-icon">
+                <i class="bi bi-person-check"></i>
+            </div>
+            <div class="stat-label">Creator Share</div>
+            <div class="stat-value">
+                KES {{ total_creator_earnings|floatformat:2 }}
+            </div>
+            <div class="stat-description">
+                Total allocated to creators from sales
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- Payout Summary -->
+    <div class="wallet-panel">
+
+        <h3>
+            <i class="bi bi-send"></i>
+            Payout Requests
+        </h3>
+
+        <p class="panel-description">
+            Summary of creator withdrawal requests by status.
+        </p>
+
+        <div class="wallet-stat-grid">
+
+            <div class="wallet-stat-card">
+                <div class="stat-label">Pending</div>
+                <div class="stat-value">
+                    {{ payout_counts.pending }}
+                </div>
+            </div>
+
+            <div class="wallet-stat-card">
+                <div class="stat-label">Approved</div>
+                <div class="stat-value">
+                    {{ payout_counts.approved }}
+                </div>
+            </div>
+
+            <div class="wallet-stat-card">
+                <div class="stat-label">Paid</div>
+                <div class="stat-value">
+                    {{ payout_counts.paid }}
+                </div>
+            </div>
+
+            <div class="wallet-stat-card">
+                <div class="stat-label">Rejected</div>
+                <div class="stat-value">
+                    {{ payout_counts.rejected }}
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- Payout Requests Table -->
+        <div class="wallet-table-wrapper">
+
+            <table class="wallet-table">
+
+                <thead>
+                    <tr>
+                        <th>Creator</th>
+                        <th>Amount</th>
+                        <th>Phone Number</th>
+                        <th>Status</th>
+                        <th>M-Pesa Reference</th>
+                        <th>Requested</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for payout in payouts %}
+
+                        <tr>
+                            <td>
+                                <div class="wallet-creator">
+                                    {{ payout.creator.username }}
+                                </div>
+                                <div class="wallet-subtext">
+                                    {{ payout.creator.school.name|default:"No school assigned" }}
+                                </div>
+                            </td>
+
+                            <td class="wallet-amount">
+                                KES {{ payout.amount|floatformat:2 }}
+                            </td>
+
+                            <td>
+                                {{ payout.phone_number|default:"—" }}
+                            </td>
+
+                            <td>
+                                <span class="wallet-status status-{{ payout.status }}">
+                                    {{ payout.status }}
+                                </span>
+                            </td>
+
+                            <td>
+                                {{ payout.mpesa_reference|default:"—" }}
+                            </td>
+
+                            <td>
+                                {{ payout.requested_at|date:"d M Y, H:i" }}
+                            </td>
+                        </tr>
+
+                    {% empty %}
+
+                        <tr>
+                            <td colspan="6">
+                                <div class="wallet-empty">
+                                    <i class="bi bi-inbox"></i>
+                                    No payout requests have been received.
+                                </div>
+                            </td>
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+    <!-- Creator Wallets -->
+    <div class="wallet-panel">
+
+        <h3>
+            <i class="bi bi-people"></i>
+            Creator Wallets
+        </h3>
+
+        <p class="panel-description">
+            Wallet balances and earnings for registered content creators.
+        </p>
+
+        <div class="wallet-table-wrapper">
+
+            <table class="wallet-table">
+
+                <thead>
+                    <tr>
+                        <th>Creator</th>
+                        <th>School</th>
+                        <th>Available Balance</th>
+                        <th>Total Earned</th>
+                        <th>Total Paid</th>
+                        <th>Currency</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for wallet in wallets %}
+
+                        <tr>
+                            <td>
+                                <div class="wallet-creator">
+                                    {{ wallet.creator.username }}
+                                </div>
+                                <div class="wallet-subtext">
+                                    {{ wallet.creator.email|default:"" }}
+                                </div>
+                            </td>
+
+                            <td>
+                                {{ wallet.creator.school.name|default:"—" }}
+                            </td>
+
+                            <td class="wallet-amount">
+                                {{ wallet.currency }}
+                                {{ wallet.available_balance|floatformat:2 }}
+                            </td>
+
+                            <td class="wallet-amount">
+                                {{ wallet.currency }}
+                                {{ wallet.total_earned|floatformat:2 }}
+                            </td>
+
+                            <td class="wallet-amount">
+                                {{ wallet.currency }}
+                                {{ wallet.total_paid|floatformat:2 }}
+                            </td>
+
+                            <td>
+                                {{ wallet.currency }}
+                            </td>
+                        </tr>
+
+                    {% empty %}
+
+                        <tr>
+                            <td colspan="6">
+                                <div class="wallet-empty">
+                                    <i class="bi bi-wallet"></i>
+                                    No creator wallets found.
+                                </div>
+                            </td>
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+    <!-- Recent Sales -->
+    <div class="wallet-panel">
+
+        <h3>
+            <i class="bi bi-receipt"></i>
+            Recent Creator Sales
+        </h3>
+
+        <p class="panel-description">
+            The latest transactions from paid content.
+        </p>
+
+        <div class="wallet-table-wrapper">
+
+            <table class="wallet-table">
+
+                <thead>
+                    <tr>
+                        <th>Creator</th>
+                        <th>Content</th>
+                        <th>Gross Amount</th>
+                        <th>Commission</th>
+                        <th>Creator Earnings</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for sale in sales %}
+
+                        <tr>
+                            <td>
+                                <div class="wallet-creator">
+                                    {{ sale.creator.username }}
+                                </div>
+                            </td>
+
+                            <td>
+                                {{ sale.post.title|default:"Content" }}
+                            </td>
+
+                            <td class="wallet-amount">
+                                KES {{ sale.gross_amount|floatformat:2 }}
+                            </td>
+
+                            <td class="wallet-amount">
+                                KES {{ sale.platform_commission|floatformat:2 }}
+                            </td>
+
+                            <td class="wallet-amount">
+                                KES {{ sale.creator_earning|floatformat:2 }}
+                            </td>
+
+                            <td>
+                                {{ sale.created_at|date:"d M Y, H:i" }}
+                            </td>
+                        </tr>
+
+                    {% empty %}
+
+                        <tr>
+                            <td colspan="6">
+                                <div class="wallet-empty">
+                                    <i class="bi bi-receipt"></i>
+                                    No sales recorded yet.
+                                </div>
+                            </td>
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

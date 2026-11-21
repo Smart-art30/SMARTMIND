@@ -1,0 +1,185 @@
+
+{% extends "base.html" %}
+
+{% block title %}Creator Wallet | SmartMind{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">My Creator Wallet</h2>
+            <p class="text-muted mb-0">
+                Track your earnings and payment activity.
+            </p>
+        </div>
+        <a href="{% url 'blog:home' %}" class="btn btn-outline-dark">
+            <i class="bi bi-arrow-left"></i> Back to Blog
+        </a>
+    </div>
+
+    <!-- WALLET SUMMARY -->
+    <div class="row g-3 mb-4">
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <p class="text-muted mb-2">Available Balance</p>
+                    <h3 class="fw-bold">
+                        KSh {{ wallet.available_balance|floatformat:2 }}
+                    </h3>
+                    <small class="text-success">
+                        <i class="bi bi-wallet2"></i> Available for withdrawal
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <p class="text-muted mb-2">Total Earnings</p>
+                    <h3 class="fw-bold">
+                        KSh {{ wallet.total_earned|floatformat:2 }}
+                    </h3>
+                    <small class="text-muted">Lifetime creator earnings</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <p class="text-muted mb-2">Total Paid Out</p>
+                    <h3 class="fw-bold">
+                        KSh {{ wallet.total_paid|floatformat:2 }}
+                    </h3>
+                    <small class="text-muted">Completed withdrawals</small>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- SALES HISTORY -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <h5 class="fw-bold mb-3">Recent Sales</h5>
+
+            {% if sales %}
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Post</th>
+                                <th>Gross Amount</th>
+                                <th>Commission</th>
+                                <th>Your Earnings</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for sale in sales %}
+                            <tr>
+                                <td>{{ sale.post.title }}</td>
+                                <td>KSh {{ sale.gross_amount|floatformat:2 }}</td>
+                                <td>KSh {{ sale.platform_commission|floatformat:2 }}</td>
+                                <td class="fw-bold text-success">
+                                    KSh {{ sale.creator_earning|floatformat:2 }}
+                                </td>
+                                <td>{{ sale.created_at|date:"d M Y" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted mb-0">You have no sales yet.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- WALLET TRANSACTIONS -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <h5 class="fw-bold mb-3">Wallet Transactions</h5>
+
+            {% if ledger_entries %}
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Transaction</th>
+                                <th>Description</th>
+                                <th>Amount</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for entry in ledger_entries %}
+                            <tr>
+                                <td>{{ entry.get_entry_type_display }}</td>
+                                <td>{{ entry.description|default:"—" }}</td>
+                                <td class="fw-bold">
+                                    KSh {{ entry.amount|floatformat:2 }}
+                                </td>
+                                <td>{{ entry.created_at|date:"d M Y" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted mb-0">No wallet transactions yet.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- WITHDRAWAL HISTORY -->
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <h5 class="fw-bold mb-3">Withdrawal Requests</h5>
+
+            {% if payouts %}
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Amount</th>
+                                <th>M-Pesa Number</th>
+                                <th>Status</th>
+                                <th>Date Requested</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for payout in payouts %}
+                            <tr>
+                                <td>KSh {{ payout.amount|floatformat:2 }}</td>
+                                <td>{{ payout.phone_number }}</td>
+                                <td>
+                                    {% if payout.status == "paid" %}
+                                        <span class="badge bg-success">Paid</span>
+                                    {% elif payout.status == "approved" %}
+                                        <span class="badge bg-primary">Approved</span>
+                                    {% elif payout.status == "rejected" %}
+                                        <span class="badge bg-danger">Rejected</span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark">Pending</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ payout.requested_at|date:"d M Y" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted mb-0">
+                    You have not made any withdrawal requests.
+                </p>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}
