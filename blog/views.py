@@ -1928,6 +1928,19 @@ def initialize_mpesa_payment(request, slug):
         "checkout_request_id": checkout_id,
     })
 
+import json
+import logging
+from decimal import Decimal, ROUND_HALF_UP
+
+from django.db import transaction
+from django.http import HttpResponse
+from django.views.decorators.csrf import csrf_exempt
+
+# ... your existing imports (MpesaTransaction, AttachmentPurchase,
+#     CreatorSale, CreatorWallet, WalletLedgerEntry, etc.)
+
+logger = logging.getLogger(__name__)
+
 
 @csrf_exempt
 def mpesa_callback(request):
@@ -1944,11 +1957,15 @@ def mpesa_callback(request):
     Duplicate callbacks cannot credit the wallet twice.
     """
 
+    # --- DIAGNOSTIC 1: log the raw body before anything else ---
+    raw_body = request.body.decode("utf-8", errors="replace")
+    logger.info("M-Pesa callback raw body: %s", raw_body)
+
     try:
-        callback_data = json.loads(request.body)
+        callback_data = json.loads(raw_body)
 
     except (json.JSONDecodeError, UnicodeDecodeError):
-        logger.warning("Invalid M-Pesa callback JSON.")
+        logger.warning("Invalid M-Pesa callback JSON: %r", raw_body)
         return HttpResponse(status=200)
 
     stk_callback = (
@@ -1960,8 +1977,21 @@ def mpesa_callback(request):
     result_code = str(stk_callback.get("ResultCode", ""))
     result_description = stk_callback.get("ResultDesc", "")
 
+    # --- DIAGNOSTIC 2: log parsed key fields ---
+    logger.info(
+        "M-Pesa callback parsed: CheckoutRequestID=%s ResultCode=%s ResultDesc=%s",
+        checkout_id,
+        result_code,
+        result_description,
+    )
+
     if not checkout_id:
-        logger.warning("M-Pesa callback missing CheckoutRequestID.")
+        # Branch A: payload shape doesn't match Body.stkCallback.*
+        logger.warning(
+            "M-Pesa callback missing CheckoutRequestID. "
+            "Payload keys: %s",
+            list(callback_data.keys()),
+        )
         return HttpResponse(status=200)
 
     mpesa_transaction = MpesaTransaction.objects.filter(
@@ -1969,19 +1999,25 @@ def mpesa_callback(request):
     ).first()
 
     if not mpesa_transaction:
+        # Branch B: transaction row not found (race or wrong ID saved)
         logger.warning(
-            "Unknown M-Pesa CheckoutRequestID: %s",
+            "Unknown M-Pesa CheckoutRequestID: %s (no matching MpesaTransaction row)",
             checkout_id,
         )
         return HttpResponse(status=200)
 
     # Ignore callbacks for transactions already processed.
     if mpesa_transaction.status != "pending":
+        # Branch C: duplicate / already-processed callback
+        logger.info(
+            "Ignoring callback for non-pending MpesaTransaction %s (status=%s)",
+            checkout_id,
+            mpesa_transaction.status,
+        )
         return HttpResponse(status=200)
 
     # Record unsuccessful payment.
     if result_code != "0":
-
         mpesa_transaction.result_code = result_code
         mpesa_transaction.result_description = result_description
         mpesa_transaction.status = "failed"
@@ -2043,6 +2079,22 @@ def mpesa_callback(request):
 
     # Verify the payment before crediting anyone.
     if not amount_matches or not phone_matches or not receipt:
+        # Branch D: verification mismatch
+        logger.error(
+            "M-Pesa verification mismatch. CheckoutRequestID=%s "
+            "expected_amount=%s got_amount=%s "
+            "expected_phone=%s got_phone=%s receipt=%r "
+            "amount_matches=%s phone_matches=%s receipt_present=%s",
+            checkout_id,
+            mpesa_transaction.amount,
+            received_amount,
+            mpesa_transaction.phone_number,
+            normalized_callback_phone,
+            receipt,
+            amount_matches,
+            phone_matches,
+            bool(receipt),
+        )
 
         mpesa_transaction.status = "failed"
 
@@ -2052,11 +2104,6 @@ def mpesa_callback(request):
         )
 
         mpesa_transaction.save()
-
-        logger.error(
-            "M-Pesa verification mismatch. CheckoutRequestID=%s",
-            checkout_id,
-        )
 
         return HttpResponse(status=200)
 
@@ -2075,6 +2122,11 @@ def mpesa_callback(request):
 
             # Check again inside the lock.
             if mpesa_transaction.status != "pending":
+                logger.info(
+                    "Callback re-entered non-pending MpesaTransaction %s inside lock (status=%s)",
+                    checkout_id,
+                    mpesa_transaction.status,
+                )
                 return HttpResponse(status=200)
 
             # Prevent using the same receipt on another transaction.

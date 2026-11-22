@@ -393,7 +393,7 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 SITE_URL = os.environ.get("SITE_URL", "http://localhost:8000")
 
 # ==========================
-# M-PESA DARAJA CONFIGURATION
+# M-PESA DARAJA CONFIGURATIONa
 # ==========================
 
 MPESA_ENVIRONMENT = config("MPESA_ENVIRONMENT", default="production")
