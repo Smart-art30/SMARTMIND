@@ -105,7 +105,7 @@ WSGI_APPLICATION = 'smartmind.wsgi.application'
 
 
 
-USE_SQLITE = config("USE_SQLITE", default=True, cast=bool)
+USE_SQLITE = config("USE_SQLITE", default=False, cast=bool)
 
 if USE_SQLITE:
     # Local development database
