@@ -395,16 +395,20 @@ SITE_URL = os.environ.get("SITE_URL", "http://localhost:8000")
 # ==========================
 # M-PESA DARAJA CONFIGURATIONa
 # ==========================
-
 MPESA_ENVIRONMENT = config("MPESA_ENVIRONMENT", default="production")
 
-MPESA_CONSUMER_KEY = config("MPESA_CONSUMER_KEY")
+MPESA_CONSUMER_KEY = config("MPESA_CONSUMER_KEY").strip()
+MPESA_CONSUMER_SECRET = config("MPESA_CONSUMER_SECRET").strip()
+MPESA_PASSKEY = config("MPESA_PASSKEY").strip()
 
-MPESA_CONSUMER_SECRET = config("MPESA_CONSUMER_SECRET")
+MPESA_SHORTCODE = config("MPESA_SHORTCODE", default="1463552").strip()
 
-MPESA_PASSKEY = config("MPESA_PASSKEY")
+MPESA_TILL_NUMBER = config("MPESA_TILL_NUMBER", default="").strip()
 
-MPESA_SHORTCODE = config("MPESA_SHORTCODE", default="1463552")
+MPESA_TRANSACTION_TYPE = config(
+    "MPESA_TRANSACTION_TYPE",
+    default="CustomerBuyGoodsOnline",
+).strip()
 
 MPESA_CALLBACK_URL = config(
     "MPESA_CALLBACK_URL",
@@ -415,8 +419,6 @@ if MPESA_ENVIRONMENT == "sandbox":
     MPESA_BASE_URL = "https://sandbox.safaricom.co.ke"
 else:
     MPESA_BASE_URL = "https://api.safaricom.co.ke"
-
-
 
 
 LOGGING = {

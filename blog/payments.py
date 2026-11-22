@@ -111,9 +111,14 @@ def initiate_stk_push(
 
     Supports two modes, selected by MPESA_TRANSACTION_TYPE in settings:
 
-    - "CustomerPayBillOnline"  -> Paybill (PartyB == BusinessShortCode)
     - "CustomerBuyGoodsOnline" -> Buy Goods / Till
-                                  (PartyB == MPESA_TILL_NUMBER)
+                                  (BusinessShortCode = Store Number,
+                                   PartyB = Till Number)
+    - "CustomerPayBillOnline"  -> Paybill
+                                  (BusinessShortCode = PartyB = Paybill)
+
+    Default is "CustomerBuyGoodsOnline" because the current
+    MPESA_SHORTCODE (1463552) is a Store Number for a Till.
 
     This only initiates a payment request.
     It does NOT confirm that payment has been made.
@@ -141,6 +146,57 @@ def initiate_stk_push(
             "error": "A publicly accessible HTTPS callback URL is required.",
         }
 
+    # --- Resolve transaction mode and PartyB up front, before any
+    #     network calls, so misconfiguration fails fast and clearly. ---
+
+    business_shortcode = str(settings.MPESA_SHORTCODE).strip()
+
+    if not business_shortcode:
+        return {
+            "success": False,
+            "error": "M-Pesa is not configured: MPESA_SHORTCODE is missing.",
+        }
+
+    transaction_type = str(
+        getattr(
+            settings,
+            "MPESA_TRANSACTION_TYPE",
+            "CustomerBuyGoodsOnline",
+        )
+    ).strip()
+
+    if transaction_type not in (
+        "CustomerBuyGoodsOnline",
+        "CustomerPayBillOnline",
+    ):
+        return {
+            "success": False,
+            "error": (
+                "M-Pesa is misconfigured: MPESA_TRANSACTION_TYPE must be "
+                "'CustomerBuyGoodsOnline' or 'CustomerPayBillOnline'."
+            ),
+        }
+
+    if transaction_type == "CustomerBuyGoodsOnline":
+        till_number = str(
+            getattr(settings, "MPESA_TILL_NUMBER", "") or ""
+        ).strip()
+
+        if not till_number:
+            # Do NOT silently fall back to BusinessShortCode here —
+            # that is exactly what produced ResultCode 2029/4999.
+            return {
+                "success": False,
+                "error": (
+                    "M-Pesa is misconfigured: MPESA_TILL_NUMBER is required "
+                    "for CustomerBuyGoodsOnline (Till) payments."
+                ),
+            }
+
+        party_b = till_number
+    else:
+        party_b = business_shortcode
+
     access_token = get_mpesa_access_token()
 
     if not access_token:
@@ -150,23 +206,6 @@ def initiate_stk_push(
         }
 
     password, timestamp = generate_mpesa_password()
-
-    business_shortcode = str(settings.MPESA_SHORTCODE)
-    transaction_type = getattr(
-        settings,
-        "MPESA_TRANSACTION_TYPE",
-        "CustomerPayBillOnline",
-    )
-
-    # For Buy Goods, PartyB is the Till Number.
-    # For Paybill, PartyB is the same as BusinessShortCode.
-    if transaction_type == "CustomerBuyGoodsOnline":
-        party_b = str(
-            getattr(settings, "MPESA_TILL_NUMBER", "")
-            or business_shortcode
-        )
-    else:
-        party_b = business_shortcode
 
     url = (
         f"{settings.MPESA_BASE_URL}"
