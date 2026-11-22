@@ -9,6 +9,10 @@ import requests
 from decimal import Decimal, ROUND_HALF_UP
 from datetime import timedelta
 
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from django.contrib.auth.decorators import login_required
+from .models import Post, MpesaTransaction, AttachmentPurchase
 from django import forms
 from django.conf import settings
 from django.contrib import messages
@@ -2437,3 +2441,80 @@ def creator_wallet(request):
         "wallet.html",
         context
     )
+
+
+
+
+@login_required
+def mpesa_payment_status(request, slug):
+    """
+    Polled by the paywall page after STK Push.
+    Reports the state of the user's *most recent* M-Pesa attempt
+    for this post, and whether the AttachmentPurchase gate is open.
+    """
+    post = get_object_or_404(Post, slug=slug)
+
+    # Gate first — if the purchase row is already paid, we're done.
+    purchase = AttachmentPurchase.objects.filter(
+        user=request.user, post=post, paid=True,
+    ).first()
+    if purchase:
+        return JsonResponse({
+            "paid": True,
+            "status": "success",
+            "receipt": purchase.payment_reference,
+        })
+
+    txn = (
+        MpesaTransaction.objects
+        .filter(user=request.user, post=post)
+        .order_by("-created_at")
+        .first()
+    )
+
+    if not txn:
+        return JsonResponse({"paid": False, "status": "none"})
+
+    return JsonResponse({
+        "paid": False,
+        "status": txn.status,                       # pending | success | failed
+        "receipt": txn.mpesa_receipt_number or "",
+        "result_description": txn.result_description or "",
+    })
+
+
+@login_required
+def post_attachments(request, slug):
+    """The page users land on after payment. Server-side gate enforced."""
+    post = get_object_or_404(
+        Post.objects
+        .select_related("author", "category", "school")
+        .prefetch_related("attachments"),
+        slug=slug,
+    )
+
+    # Same access rules as post_detail, plus the paywall gate.
+    if not post.visible_to_all:
+        if not request.user.is_superuser:
+            role = getattr(request.user, "role", None)
+            is_staff_viewer = role in ("school_admin", "teacher")
+            allowed = (
+                is_staff_viewer
+                or post.target_classes.filter(students=request.user).exists()
+            )
+            if not allowed:
+                raise Http404
+
+    if post.is_monetized and not user_has_paid_for_post(request.user, post):
+        return redirect("blog:paywall", slug=post.slug)
+
+    attachments = [
+        {"doc": doc, "locked": not user_can_download(request.user, doc)}
+        for doc in post.attachments.all()
+    ]
+
+    return render(request, "post_attachments.html", {
+        "post": post,
+        "attachments": attachments,
+        "just_paid": request.GET.get("paid") == "1",
+    })

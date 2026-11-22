@@ -30,7 +30,14 @@ urlpatterns = [
     path("post/<slug:slug>/paywall/", views.paywall, name="paywall"),
     path("paywall/<slug:slug>/initialize/", views.initialize_mpesa_payment, name="initialize_mpesa_payment"),
     path("mpesa/callback/", views.mpesa_callback, name="mpesa_callback"),
-
+    path("post/<slug:slug>/mpesa-status/",views.mpesa_payment_status,
+    name="mpesa_payment_status",
+),
+    path(
+    "post/<slug:slug>/attachments/",
+    views.post_attachments,
+    name="post_attachments",
+),
     # Wallet
     path("wallet/", views.creator_wallet, name="creator_wallet"),
     path("wallet/management/", views.creator_wallet_management, name="creator_wallet_management"),
