@@ -73,7 +73,12 @@ def generate_mpesa_password():
     """
     Generate the Daraja STK Push password.
 
-    Password = Base64(Shortcode + Passkey + Timestamp)
+    Password = Base64(BusinessShortCode + Passkey + Timestamp)
+
+    NOTE: The password must be built from the SAME shortcode that is
+    sent as BusinessShortCode in the STK request. For Buy Goods (Till)
+    payments, that is the Head Office / Store Number bound at Go Live,
+    NOT the Till Number itself.
     """
 
     shortcode = str(settings.MPESA_SHORTCODE)
@@ -103,6 +108,12 @@ def initiate_stk_push(
 ):
     """
     Initiate an M-Pesa STK Push.
+
+    Supports two modes, selected by MPESA_TRANSACTION_TYPE in settings:
+
+    - "CustomerPayBillOnline"  -> Paybill (PartyB == BusinessShortCode)
+    - "CustomerBuyGoodsOnline" -> Buy Goods / Till
+                                  (PartyB == MPESA_TILL_NUMBER)
 
     This only initiates a payment request.
     It does NOT confirm that payment has been made.
@@ -140,7 +151,22 @@ def initiate_stk_push(
 
     password, timestamp = generate_mpesa_password()
 
-    shortcode = str(settings.MPESA_SHORTCODE)
+    business_shortcode = str(settings.MPESA_SHORTCODE)
+    transaction_type = getattr(
+        settings,
+        "MPESA_TRANSACTION_TYPE",
+        "CustomerPayBillOnline",
+    )
+
+    # For Buy Goods, PartyB is the Till Number.
+    # For Paybill, PartyB is the same as BusinessShortCode.
+    if transaction_type == "CustomerBuyGoodsOnline":
+        party_b = str(
+            getattr(settings, "MPESA_TILL_NUMBER", "")
+            or business_shortcode
+        )
+    else:
+        party_b = business_shortcode
 
     url = (
         f"{settings.MPESA_BASE_URL}"
@@ -148,18 +174,28 @@ def initiate_stk_push(
     )
 
     payload = {
-        "BusinessShortCode": shortcode,
+        "BusinessShortCode": business_shortcode,
         "Password": password,
         "Timestamp": timestamp,
-        "TransactionType": "CustomerPayBillOnline",
+        "TransactionType": transaction_type,
         "Amount": int(amount),
         "PartyA": phone,
-        "PartyB": shortcode,
+        "PartyB": party_b,
         "PhoneNumber": phone,
         "CallBackURL": callback_url,
         "AccountReference": str(account_reference)[:12],
         "TransactionDesc": str(transaction_description)[:20],
     }
+
+    logger.info(
+        "STK Push payload: BusinessShortCode=%s PartyB=%s "
+        "TransactionType=%s Amount=%s Phone=%s",
+        business_shortcode,
+        party_b,
+        transaction_type,
+        int(amount),
+        phone,
+    )
 
     headers = {
         "Authorization": f"Bearer {access_token}",
@@ -177,6 +213,10 @@ def initiate_stk_push(
         response.raise_for_status()
 
         data = response.json()
+
+        # Log the full Daraja response so we can see exactly what it said,
+        # even when it queues the request but dispatches nothing.
+        logger.info("STK Push raw Daraja response: %s", data)
 
         if data.get("ResponseCode") == "0":
             logger.info(
@@ -203,8 +243,16 @@ def initiate_stk_push(
             "data": data,
         }
 
-    except requests.RequestException:
+    except requests.RequestException as exc:
         logger.exception("M-Pesa STK Push request failed.")
+
+        # If Daraja returned an HTTP error, log its body so we can see why.
+        response = getattr(exc, "response", None)
+        if response is not None:
+            logger.error(
+                "Daraja STK Push HTTP error body: %s",
+                response.text,
+            )
 
         return {
             "success": False,

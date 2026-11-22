@@ -24,39 +24,14 @@ urlpatterns = [
     path("comment/<int:comment_id>/delete/", views.comment_delete, name="comment_delete"),
     path("images/<int:image_id>/remove/", views.remove_image, name="remove_image"),
     path("documents/<int:pk>/remove/", views.remove_document, name="remove_document"),
-    path("attachment/<int:attachment_id>/download/", views.download_attachment,
-        name="download_attachment",
-    ),
-        # M-Pesa Daraja payments
-    path(
-        "post/<slug:slug>/paywall/",
-        views.paywall,
-        name="paywall",
-    ),
-    path(
-        "paywall/<slug:slug>/initialize/",
-        views.initialize_mpesa_payment,
-        name="initialize_mpesa_payment",
-    ),
-    path(
-        "mpesa/callback/",
-        views.mpesa_callback,
-        name="mpesa_callback",
-    ),
-    path(
-        "mpesa/callback/",
-        views.mpesa_callback,
-        name="mpesa_callback",
-    ),
-    path(
-        "wallet/",
-        views.creator_wallet,
-        name="creator_wallet",
-    ),
-    path(
-    "wallet/management/",
-    views.creator_wallet_management,
-    name="creator_wallet_management",
-),
-    
-    ]
+    path("attachment/<int:attachment_id>/download/", views.download_attachment, name="download_attachment"),
+
+    # M-Pesa Daraja payments
+    path("post/<slug:slug>/paywall/", views.paywall, name="paywall"),
+    path("paywall/<slug:slug>/initialize/", views.initialize_mpesa_payment, name="initialize_mpesa_payment"),
+    path("mpesa/callback/", views.mpesa_callback, name="mpesa_callback"),
+
+    # Wallet
+    path("wallet/", views.creator_wallet, name="creator_wallet"),
+    path("wallet/management/", views.creator_wallet_management, name="creator_wallet_management"),
+]
