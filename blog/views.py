@@ -6,9 +6,8 @@ import hashlib
 import logging
 import time
 import requests
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import Decimal, ROUND_HALF_UP, InvalidOperation
 from datetime import timedelta
-
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -2260,7 +2259,7 @@ def mpesa_callback(request):
     return HttpResponse(status=200)
 
 
-    
+
 @login_required
 def creator_wallet_management(request):
     """
@@ -2377,6 +2376,338 @@ def creator_wallet_management(request):
         "creator_wallet_management.html",
         context,
     )
+
+
+
+
+# ============================================================
+# CREATOR WITHDRAWAL REQUESTS
+# ============================================================
+
+@login_required
+@require_POST
+def creator_wallet_withdrawal(request):
+    """
+    Allow a teacher to request withdrawal of available earnings.
+
+    The requested amount is immediately reserved by reducing
+    available_balance. A rejected request restores the amount.
+    """
+
+    if getattr(request.user, "role", None) != "teacher":
+        raise PermissionDenied(
+            "Only teachers can request wallet withdrawals."
+        )
+
+    raw_amount = request.POST.get("amount", "").strip()
+    raw_phone = request.POST.get("phone_number", "").strip()
+
+    try:
+        amount = Decimal(raw_amount).quantize(Decimal("0.01"))
+    except (InvalidOperation, ValueError, TypeError):
+        messages.error(request, "Enter a valid withdrawal amount.")
+        return redirect("blog:creator_wallet")
+
+    if amount <= Decimal("0.00"):
+        messages.error(request, "Withdrawal amount must be greater than zero.")
+        return redirect("blog:creator_wallet")
+
+    # Normalize Kenyan mobile numbers.
+    phone = "".join(char for char in raw_phone if char.isdigit())
+
+    if len(phone) == 10 and phone.startswith(("07", "01")):
+        phone = "254" + phone[1:]
+
+    if not (
+        len(phone) == 12
+        and phone.startswith(("2547", "2541"))
+    ):
+        messages.error(
+            request,
+            "Enter a valid Kenyan M-Pesa number, e.g. 0712345678."
+        )
+        return redirect("blog:creator_wallet")
+
+    try:
+        with transaction.atomic():
+
+            wallet = (
+                CreatorWallet.objects
+                .select_for_update()
+                .get(creator=request.user)
+            )
+
+            if amount > wallet.available_balance:
+                raise ValueError(
+                    "Your withdrawal amount exceeds your available balance."
+                )
+
+            # Reserve the funds immediately.
+            wallet.available_balance -= amount
+            wallet.save(
+                update_fields=["available_balance", "updated_at"]
+            )
+
+            payout = CreatorPayout.objects.create(
+                creator=request.user,
+                wallet=wallet,
+                amount=amount,
+                phone_number=phone,
+                status="pending",
+            )
+
+            # Record the reserved withdrawal in the ledger.
+            WalletLedgerEntry.objects.create(
+                wallet=wallet,
+                payout=payout,
+                entry_type="payout",
+                amount=amount,
+                description="Withdrawal requested; funds reserved pending review.",
+            )
+
+        messages.success(
+            request,
+            "Your withdrawal request has been submitted successfully."
+        )
+
+    except ValueError as exc:
+        messages.error(request, str(exc))
+
+    except Exception:
+        logger.exception(
+            "Error submitting creator withdrawal. User=%s",
+            request.user.pk,
+        )
+        messages.error(
+            request,
+            "Unable to submit your withdrawal request. Please try again."
+        )
+
+    return redirect("blog:creator_wallet")
+
+
+# ============================================================
+# ADMINISTRATOR PAYOUT ACCESS
+# ============================================================
+
+def _manageable_creator_payouts(user):
+    """
+    Superadmins manage all teacher payouts.
+    School admins manage teacher payouts in their own school.
+    """
+
+    role = getattr(user, "role", None)
+
+    if not (
+        user.is_superuser
+        or role == "superadmin"
+        or role == "school_admin"
+    ):
+        raise PermissionDenied(
+            "You cannot manage creator payouts."
+        )
+
+    payouts = CreatorPayout.objects.filter(
+        creator__role="teacher"
+    )
+
+    if role == "school_admin" and not user.is_superuser:
+        if not user.school_id:
+            raise PermissionDenied(
+                "Your administrator account is not assigned to a school."
+            )
+
+        payouts = payouts.filter(
+            creator__school_id=user.school_id
+        )
+
+    return payouts
+
+
+# ============================================================
+# APPROVE CREATOR PAYOUT
+# ============================================================
+
+@login_required
+@require_POST
+def creator_payout_approve(request, payout_id):
+
+    with transaction.atomic():
+
+        payout = get_object_or_404(
+            _manageable_creator_payouts(request.user)
+            .select_for_update(),
+            pk=payout_id,
+        )
+
+        if payout.status != "pending":
+            messages.error(
+                request,
+                "Only pending withdrawal requests can be approved."
+            )
+        else:
+            payout.status = "approved"
+            payout.admin_notes = (
+                request.POST.get("admin_notes", "").strip()
+            )
+            payout.save(
+                update_fields=["status", "admin_notes"]
+            )
+
+            messages.success(
+                request,
+                "Withdrawal request approved. Payment is still pending."
+            )
+
+    return redirect("blog:creator_wallet_management")
+
+
+# ============================================================
+# REJECT CREATOR PAYOUT
+# ============================================================
+
+@login_required
+@require_POST
+def creator_payout_reject(request, payout_id):
+
+    with transaction.atomic():
+
+        payout = get_object_or_404(
+            _manageable_creator_payouts(request.user)
+            .select_for_update(),
+            pk=payout_id,
+        )
+
+        if payout.status not in ("pending", "approved"):
+            messages.error(
+                request,
+                "This withdrawal request cannot be rejected."
+            )
+        else:
+            wallet = (
+                CreatorWallet.objects
+                .select_for_update()
+                .get(pk=payout.wallet_id)
+            )
+
+            # Restore the reserved funds only if this request
+            # has a corresponding reservation ledger entry.
+            reservation_exists = WalletLedgerEntry.objects.filter(
+                payout=payout,
+                entry_type="payout",
+            ).exists()
+
+            if reservation_exists:
+                wallet.available_balance += payout.amount
+                wallet.save(
+                    update_fields=["available_balance", "updated_at"]
+                )
+
+                WalletLedgerEntry.objects.create(
+                    wallet=wallet,
+                    entry_type="refund",
+                    amount=payout.amount,
+                    description=(
+                        f"Refund of rejected withdrawal request #{payout.pk}"
+                    ),
+                )
+
+            payout.status = "rejected"
+            payout.admin_notes = (
+                request.POST.get("admin_notes", "").strip()
+            )
+            payout.processed_at = timezone.now()
+            payout.save(
+                update_fields=[
+                    "status",
+                    "admin_notes",
+                    "processed_at",
+                ]
+            )
+
+            messages.success(
+                request,
+                "Withdrawal rejected. Reserved funds have been restored."
+            )
+
+    return redirect("blog:creator_wallet_management")
+
+
+# ============================================================
+# RECORD COMPLETED M-PESA PAYMENT
+# ============================================================
+
+@login_required
+@require_POST
+def creator_payout_mark_paid(request, payout_id):
+    """
+    Mark a payout as paid only after the actual M-Pesa
+    transfer has been completed.
+    """
+
+    reference = request.POST.get(
+        "mpesa_reference", ""
+    ).strip().upper()
+
+    if not reference:
+        messages.error(
+            request,
+            "Enter the M-Pesa transaction reference."
+        )
+        return redirect("blog:creator_wallet_management")
+
+    if len(reference) > 50:
+        messages.error(
+            request,
+            "The M-Pesa reference is too long."
+        )
+        return redirect("blog:creator_wallet_management")
+
+    with transaction.atomic():
+
+        payout = get_object_or_404(
+            _manageable_creator_payouts(request.user)
+            .select_for_update(),
+            pk=payout_id,
+        )
+
+        if payout.status != "approved":
+            messages.error(
+                request,
+                "Only approved requests can be marked as paid."
+            )
+        else:
+            wallet = (
+                CreatorWallet.objects
+                .select_for_update()
+                .get(pk=payout.wallet_id)
+            )
+
+            # Update paid totals. The available balance was
+            # already reduced when the request was submitted.
+            wallet.total_paid += payout.amount
+            wallet.save(
+                update_fields=["total_paid", "updated_at"]
+            )
+
+            payout.status = "paid"
+            payout.mpesa_reference = reference
+            payout.processed_at = timezone.now()
+            payout.save(
+                update_fields=[
+                    "status",
+                    "mpesa_reference",
+                    "processed_at",
+                ]
+            )
+
+            messages.success(
+                request,
+                "Payout successfully recorded as paid."
+            )
+
+    return redirect("blog:creator_wallet_management")
+
 
 
 @login_required

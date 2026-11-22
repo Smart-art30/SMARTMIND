@@ -1,4 +1,3 @@
-
 {% extends "base.html" %}
 
 {% block title %}Creator Wallet Management | SmartMind{% endblock %}
@@ -352,6 +351,42 @@ html[data-theme="dark"] .wallet-admin .wallet-table tbody tr:hover td {
     margin-top: 3px;
 }
 
+/* FORM FIELDS */
+.wallet-admin .form-control {
+    background-color: var(--wa-surface);
+    color: var(--wa-text);
+    border-color: var(--wa-border);
+}
+
+.wallet-admin .form-control::placeholder {
+    color: var(--wa-muted);
+    opacity: .8;
+}
+
+.wallet-admin .form-control:focus {
+    background-color: var(--wa-surface);
+    color: var(--wa-text);
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .15);
+}
+
+html[data-theme="dark"] .wallet-admin .form-control {
+    background-color: #16181c !important;
+    color: #e7e9ea !important;
+    border-color: #3a3f44 !important;
+    color-scheme: dark;
+}
+
+html[data-theme="dark"] .wallet-admin .form-control::placeholder {
+    color: #a0a6ac !important;
+}
+
+html[data-theme="dark"] .wallet-admin .form-control:focus {
+    background-color: #16181c !important;
+    color: #ffffff !important;
+    border-color: #5599ee !important;
+}
+
 /* STATUS BADGES */
 .wallet-admin .wallet-status {
     display: inline-flex;
@@ -434,6 +469,15 @@ html[data-theme="dark"] .wallet-admin .status-rejected {
     border-radius: 9px;
     font-weight: 650;
     font-size: 13px;
+}
+
+/* ACTION FORMS */
+.wallet-admin .wallet-action-form {
+    min-width: 125px;
+}
+
+.wallet-admin .wallet-action-form .btn {
+    white-space: nowrap;
 }
 
 /* =====================================================
@@ -594,6 +638,10 @@ html[data-theme="dark"] .wallet-admin .status-rejected {
 
     .wallet-admin .wallet-table tbody td {
         font-size: 12px;
+    }
+
+    .wallet-admin .wallet-action-form {
+        min-width: 130px;
     }
 }
 
@@ -790,6 +838,7 @@ html[data-theme="dark"] .wallet-admin .status-rejected {
                         <th>Status</th>
                         <th>M-Pesa Reference</th>
                         <th>Requested At</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
 
@@ -798,6 +847,9 @@ html[data-theme="dark"] .wallet-admin .status-rejected {
                     <tr>
                         <td>
                             <strong>{{ payout.creator.username }}</strong>
+                            <span class="wallet-email">
+                                {{ payout.creator.email|default:"" }}
+                            </span>
                         </td>
 
                         <td>
@@ -812,11 +864,13 @@ html[data-theme="dark"] .wallet-admin .status-rejected {
 
                         <td>
                             <span class="wallet-status status-{{ payout.status|lower }}">
-                                {{ payout.status }}
+                                {{ payout.get_status_display }}
                             </span>
                         </td>
 
-                        <td>{{ payout.mpesa_reference|default:"—" }}</td>
+                        <td>
+                            {{ payout.mpesa_reference|default:"—" }}
+                        </td>
 
                         <td>
                             {% if payout.requested_at %}
@@ -825,11 +879,81 @@ html[data-theme="dark"] .wallet-admin .status-rejected {
                                 —
                             {% endif %}
                         </td>
+
+                        <td>
+                            {% if payout.status == "pending" %}
+
+                                <div class="d-flex flex-wrap gap-2">
+
+                                    <form method="POST"
+                                          class="wallet-action-form"
+                                          action="{% url 'blog:creator_payout_approve' payout.id %}">
+                                        {% csrf_token %}
+
+                                        <button type="submit"
+                                                class="btn btn-success btn-sm">
+                                            Approve
+                                        </button>
+                                    </form>
+
+                                    <form method="POST"
+                                          class="wallet-action-form"
+                                          action="{% url 'blog:creator_payout_reject' payout.id %}">
+                                        {% csrf_token %}
+
+                                        <button type="submit"
+                                                class="btn btn-danger btn-sm"
+                                                onclick="return confirm('Reject this withdrawal and restore the reserved funds?');">
+                                            Reject
+                                        </button>
+                                    </form>
+
+                                </div>
+
+                            {% elif payout.status == "approved" %}
+
+                                <form method="POST"
+                                      class="wallet-action-form"
+                                      action="{% url 'blog:creator_payout_mark_paid' payout.id %}">
+                                    {% csrf_token %}
+
+                                    <input
+                                        type="text"
+                                        name="mpesa_reference"
+                                        class="form-control form-control-sm mb-2"
+                                        placeholder="M-Pesa reference"
+                                        maxlength="50"
+                                        required
+                                    >
+
+                                    <button type="submit"
+                                            class="btn btn-primary btn-sm"
+                                            onclick="return confirm('Confirm that this M-Pesa payment has actually been sent?');">
+                                        Mark as Paid
+                                    </button>
+                                </form>
+
+                            {% elif payout.status == "paid" %}
+
+                                <span class="wallet-muted">
+                                    <i class="bi bi-check-circle me-1"></i>
+                                    Payment completed
+                                </span>
+
+                            {% elif payout.status == "rejected" %}
+
+                                <span class="wallet-muted">
+                                    <i class="bi bi-x-circle me-1"></i>
+                                    Request rejected
+                                </span>
+
+                            {% endif %}
+                        </td>
                     </tr>
 
                     {% empty %}
                     <tr>
-                        <td colspan="7">
+                        <td colspan="8">
                             <div class="wallet-empty">
                                 <i class="bi bi-inbox"></i>
                                 No payout requests found.

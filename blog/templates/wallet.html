@@ -552,6 +552,85 @@ html[data-theme="dark"] .wallet-page .wallet-table tbody tr:hover td {
 
     </div>
 
+<!-- WITHDRAWAL REQUEST FORM -->
+<div class="card wallet-card wallet-table-panel mb-4">
+    <div class="card-body">
+
+        <h5 class="wallet-section-title">
+            <i class="bi bi-cash-stack me-2"></i>
+            Request Withdrawal
+        </h5>
+
+        <p class="wallet-muted">
+            Request payment of your available creator earnings
+            directly to your M-Pesa number.
+        </p>
+
+        <form method="POST"
+              action="{% url 'blog:creator_wallet_withdrawal' %}">
+
+            {% csrf_token %}
+
+            <div class="row g-3">
+
+                <div class="col-md-6">
+                    <label for="withdrawAmount" class="form-label">
+                        Withdrawal Amount (KES)
+                    </label>
+
+                    <input
+                        type="number"
+                        name="amount"
+                        id="withdrawAmount"
+                        class="form-control"
+                        min="0.01"
+                        max="{{ wallet.available_balance }}"
+                        step="0.01"
+                        required
+                        placeholder="Enter amount"
+                    >
+                </div>
+
+                <div class="col-md-6">
+                    <label for="withdrawPhone" class="form-label">
+                        M-Pesa Phone Number
+                    </label>
+
+                    <input
+                        type="tel"
+                        name="phone_number"
+                        id="withdrawPhone"
+                        class="form-control"
+                        required
+                        placeholder="0712345678"
+                        maxlength="15"
+                    >
+                </div>
+
+            </div>
+
+            <div class="mt-3">
+                <button
+                    type="submit"
+                    class="btn btn-primary"
+                    {% if wallet.available_balance <= 0 %}disabled{% endif %}
+                >
+                    <i class="bi bi-send me-1"></i>
+                    Submit Withdrawal Request
+                </button>
+            </div>
+
+            <small class="wallet-muted d-block mt-2">
+                Available balance: KSh
+                {{ wallet.available_balance|floatformat:2 }}.
+                Requests are subject to administrator approval.
+            </small>
+
+        </form>
+
+    </div>
+</div>
+
 
     <!-- SALES HISTORY -->
     <div class="card wallet-card wallet-table-panel mb-4">

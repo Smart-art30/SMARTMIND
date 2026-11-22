@@ -41,4 +41,33 @@ urlpatterns = [
     # Wallet
     path("wallet/", views.creator_wallet, name="creator_wallet"),
     path("wallet/management/", views.creator_wallet_management, name="creator_wallet_management"),
+
+    # Wallet
+    path("wallet/", views.creator_wallet, name="creator_wallet"),
+    path(
+        "wallet/withdraw/",
+        views.creator_wallet_withdrawal,
+        name="creator_wallet_withdrawal",
+    ),
+    path(
+        "wallet/management/",
+        views.creator_wallet_management,
+        name="creator_wallet_management",
+    ),
+    path(
+        "wallet/management/<int:payout_id>/approve/",
+        views.creator_payout_approve,
+        name="creator_payout_approve",
+    ),
+    path(
+        "wallet/management/<int:payout_id>/reject/",
+        views.creator_payout_reject,
+        name="creator_payout_reject",
+    ),
+    path(
+        "wallet/management/<int:payout_id>/paid/",
+        views.creator_payout_mark_paid,
+        name="creator_payout_mark_paid",
+    ),
 ]
+
