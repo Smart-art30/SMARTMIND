@@ -1,613 +1,981 @@
+
 {% extends "base.html" %}
+
+{% block title %}Creator Wallet Management | SmartMind{% endblock %}
 
 {% block content %}
 
 <style>
+/* =====================================================
+   SMARTMIND CREATOR WALLET MANAGEMENT
+   Responsive + Light/Dark Theme
+===================================================== */
+
+.wallet-admin {
+    --wa-surface: var(--surface, #ffffff);
+    --wa-alt: var(--surface-alt, #f7f9f9);
+    --wa-text: var(--text, #0f1419);
+    --wa-muted: var(--muted, #536471);
+    --wa-border: var(--border-solid, #e1e8ed);
+    --wa-hover: var(--hover, #f7f9f9);
+    --wa-shadow: var(--shadow, 0 1px 3px rgba(0,0,0,.04));
+
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    padding: 20px 0 40px;
+    color: var(--wa-text);
+    overflow-x: hidden;
+    box-sizing: border-box;
+}
+
+.wallet-admin *,
+.wallet-admin *::before,
+.wallet-admin *::after {
+    box-sizing: border-box;
+}
+
+/* DARK MODE */
+html[data-theme="dark"] .wallet-admin {
+    --wa-surface: #000000;
+    --wa-alt: #16181c;
+    --wa-text: #e7e9ea;
+    --wa-muted: #a0a6ac;
+    --wa-border: #2f3336;
+    --wa-hover: #16181c;
+    --wa-shadow: 0 1px 3px rgba(0,0,0,.5);
+
+    color-scheme: dark;
+}
+
+/* PAGE HEADER */
+.wallet-admin .wallet-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 24px;
+}
+
+.wallet-admin .wallet-header h1 {
+    color: var(--wa-text);
+    font-size: clamp(22px, 3vw, 29px);
+    font-weight: 800;
+    margin: 0 0 5px;
+}
+
+.wallet-admin .wallet-header p {
+    color: var(--wa-muted);
+    margin: 0;
+    font-size: 14px;
+}
+
+.wallet-admin .wallet-header-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--wa-alt);
+    color: var(--wa-text);
+    font-size: 22px;
+    flex-shrink: 0;
+}
+
+/* SECTION HEADINGS */
+.wallet-admin .wallet-section-title {
+    color: var(--wa-text);
+    font-size: 18px;
+    font-weight: 750;
+    margin: 0 0 15px;
+}
+
+/* FINANCIAL OVERVIEW */
+.wallet-admin .wallet-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 15px;
+    margin-bottom: 28px;
+}
+
+.wallet-admin .wallet-stat-card {
+    min-width: 0;
+    padding: 18px;
+    border: 1px solid var(--wa-border);
+    border-radius: 14px;
+    background: var(--wa-surface);
+    box-shadow: var(--wa-shadow);
+    overflow-wrap: anywhere;
+    transition: background .2s ease, border-color .2s ease;
+}
+
+.wallet-admin .wallet-stat-card:hover {
+    border-color: var(--wa-muted);
+}
+
+.wallet-admin .wallet-stat-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.wallet-admin .wallet-stat-label {
+    color: var(--wa-muted);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.wallet-admin .wallet-stat-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--wa-alt);
+    color: var(--wa-text);
+    font-size: 17px;
+    flex-shrink: 0;
+}
+
+.wallet-admin .wallet-stat-value {
+    color: var(--wa-text);
+    font-size: clamp(18px, 2vw, 25px);
+    font-weight: 800;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+}
+
+.wallet-admin .wallet-stat-description {
+    color: var(--wa-muted);
+    font-size: 12px;
+    margin-top: 6px;
+}
+
+/* PAYOUT SUMMARY */
+.wallet-admin .wallet-summary {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 15px;
+    margin-bottom: 28px;
+}
+
+.wallet-admin .wallet-summary-card {
+    min-width: 0;
+    padding: 16px;
+    border: 1px solid var(--wa-border);
+    border-radius: 13px;
+    background: var(--wa-surface);
+    box-shadow: var(--wa-shadow);
+}
+
+.wallet-admin .wallet-summary-label {
+    color: var(--wa-muted);
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.wallet-admin .wallet-summary-value {
+    color: var(--wa-text);
+    font-size: 25px;
+    font-weight: 800;
+}
+
+/* PANELS */
+.wallet-admin .wallet-panel {
+    width: 100%;
+    min-width: 0;
+    margin-bottom: 25px;
+    border: 1px solid var(--wa-border);
+    border-radius: 15px;
+    background: var(--wa-surface);
+    box-shadow: var(--wa-shadow);
+    overflow: hidden;
+}
+
+.wallet-admin .wallet-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--wa-border);
+    background: var(--wa-surface);
+}
+
+.wallet-admin .wallet-panel-header h2 {
+    color: var(--wa-text);
+    font-size: 17px;
+    font-weight: 750;
+    margin: 0;
+}
+
+.wallet-admin .wallet-panel-header p {
+    color: var(--wa-muted);
+    font-size: 12px;
+    margin: 4px 0 0;
+}
+
+.wallet-admin .wallet-panel-body {
+    padding: 18px 20px;
+    min-width: 0;
+}
+
+/* TABLE WRAPPER */
+.wallet-admin .wallet-table-wrap {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: var(--wa-muted) var(--wa-alt);
+}
+
+/* TABLES */
+.wallet-admin .wallet-table {
+    width: 100%;
+    min-width: 760px;
+    margin: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+    color: var(--wa-text) !important;
+    background: var(--wa-surface) !important;
+
+    --bs-table-bg: var(--wa-surface);
+    --bs-table-color: var(--wa-text);
+    --bs-table-border-color: var(--wa-border);
+    --bs-table-striped-bg: var(--wa-alt);
+    --bs-table-striped-color: var(--wa-text);
+    --bs-table-hover-bg: var(--wa-hover);
+    --bs-table-hover-color: var(--wa-text);
+    --bs-table-active-bg: var(--wa-hover);
+    --bs-table-active-color: var(--wa-text);
+}
+
+.wallet-admin .wallet-table > :not(caption) > * > * {
+    background-color: var(--wa-surface) !important;
+    background-image: none !important;
+    box-shadow: none !important;
+    color: var(--wa-text) !important;
+    border-bottom: 1px solid var(--wa-border) !important;
+    padding: 13px 15px;
+    vertical-align: middle;
+}
+
+.wallet-admin .wallet-table thead th {
+    background: var(--wa-alt) !important;
+    background-color: var(--wa-alt) !important;
+    color: var(--wa-muted) !important;
+    font-size: 11px;
+    font-weight: 750;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    white-space: nowrap;
+    border-bottom: 1px solid var(--wa-border) !important;
+}
+
+.wallet-admin .wallet-table tbody td {
+    background: var(--wa-surface) !important;
+    background-color: var(--wa-surface) !important;
+    color: var(--wa-text) !important;
+    font-size: 13px;
+}
+
+.wallet-admin .wallet-table tbody tr:hover td {
+    background: var(--wa-hover) !important;
+    background-color: var(--wa-hover) !important;
+}
+
+.wallet-admin .wallet-table tbody tr:last-child td {
+    border-bottom: 0 !important;
+}
+
+/* EXPLICIT DARK TABLE COLORS */
+html[data-theme="dark"] .wallet-admin .wallet-table {
+    --bs-table-bg: #000000;
+    --bs-table-color: #e7e9ea;
+    --bs-table-border-color: #2f3336;
+    --bs-table-striped-bg: #16181c;
+    --bs-table-striped-color: #e7e9ea;
+    --bs-table-hover-bg: #16181c;
+    --bs-table-hover-color: #e7e9ea;
+    --bs-table-active-bg: #16181c;
+    --bs-table-active-color: #e7e9ea;
+
+    background: #000000 !important;
+    color: #e7e9ea !important;
+}
+
+html[data-theme="dark"] .wallet-admin .wallet-table > :not(caption) > * > * {
+    background: #000000 !important;
+    background-color: #000000 !important;
+    background-image: none !important;
+    box-shadow: none !important;
+    color: #e7e9ea !important;
+    border-color: #2f3336 !important;
+}
+
+html[data-theme="dark"] .wallet-admin .wallet-table thead th {
+    background: #16181c !important;
+    background-color: #16181c !important;
+    color: #e7e9ea !important;
+}
+
+html[data-theme="dark"] .wallet-admin .wallet-table tbody tr:hover td {
+    background: #16181c !important;
+    background-color: #16181c !important;
+    color: #e7e9ea !important;
+}
+
+/* TABLE TEXT */
+.wallet-admin .wallet-table strong {
+    color: var(--wa-text);
+    font-weight: 700;
+}
+
+.wallet-admin .wallet-muted {
+    color: var(--wa-muted) !important;
+}
+
+.wallet-admin .wallet-email {
+    color: var(--wa-muted);
+    font-size: 12px;
+    display: block;
+    margin-top: 3px;
+}
+
+/* STATUS BADGES */
+.wallet-admin .wallet-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px 9px;
+    border-radius: 30px;
+    font-size: 11px;
+    font-weight: 750;
+    text-transform: capitalize;
+    white-space: nowrap;
+    background: var(--wa-alt);
+    color: var(--wa-text);
+    border: 1px solid var(--wa-border);
+}
+
+.wallet-admin .status-pending {
+    background: #fff4d6;
+    color: #805600;
+    border-color: #f0d99b;
+}
+
+.wallet-admin .status-approved {
+    background: #e5f2ff;
+    color: #14518a;
+    border-color: #bfdcff;
+}
+
+.wallet-admin .status-paid {
+    background: #e2f7e9;
+    color: #176534;
+    border-color: #b8e8c7;
+}
+
+.wallet-admin .status-rejected {
+    background: #fde8e8;
+    color: #a32121;
+    border-color: #f4c2c2;
+}
+
+html[data-theme="dark"] .wallet-admin .status-pending {
+    background: #33280e;
+    color: #ffd875;
+    border-color: #66501d;
+}
+
+html[data-theme="dark"] .wallet-admin .status-approved {
+    background: #102a40;
+    color: #8ccaff;
+    border-color: #234d70;
+}
+
+html[data-theme="dark"] .wallet-admin .status-paid {
+    background: #102d1b;
+    color: #8be0a6;
+    border-color: #245a38;
+}
+
+html[data-theme="dark"] .wallet-admin .status-rejected {
+    background: #381919;
+    color: #ffaaaa;
+    border-color: #703030;
+}
+
+/* EMPTY STATES */
+.wallet-admin .wallet-empty {
+    text-align: center;
+    padding: 35px 15px;
+    color: var(--wa-muted);
+}
+
+.wallet-admin .wallet-empty i {
+    font-size: 28px;
+    display: block;
+    margin-bottom: 10px;
+}
+
+/* BUTTONS */
+.wallet-admin .btn {
+    border-radius: 9px;
+    font-weight: 650;
+    font-size: 13px;
+}
+
+/* =====================================================
+   RESPONSIVE LAYOUT
+===================================================== */
+
+/* Medium screens */
+@media (max-width: 1100px) {
+    .wallet-admin .wallet-stats,
+    .wallet-admin .wallet-summary {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+/* Tablets */
+@media (max-width: 768px) {
     .wallet-admin {
-        padding: 20px 0;
+        padding: 15px 0 30px;
     }
 
-    .wallet-header {
+    .wallet-admin .wallet-stats,
+    .wallet-admin .wallet-summary {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .wallet-admin .wallet-stat-card,
+    .wallet-admin .wallet-summary-card {
+        padding: 12px;
+    }
+
+    .wallet-admin .wallet-panel-header {
+        padding: 15px;
+    }
+
+    .wallet-admin .wallet-panel-body {
+        padding: 14px;
+    }
+}
+
+/* Phones */
+@media (max-width: 576px) {
+    .wallet-admin {
+        padding: 10px 0 25px;
+        font-size: 14px;
+    }
+
+    .wallet-admin .wallet-header {
         display: flex;
-        justify-content: space-between;
+        flex-direction: row;
         align-items: center;
-        flex-wrap: wrap;
-        gap: 15px;
-        margin-bottom: 25px;
+        gap: 10px;
+        margin-bottom: 20px;
     }
 
-    .wallet-header h2 {
-        margin: 0;
-        font-weight: 800;
+    .wallet-admin .wallet-header h1 {
+        font-size: 21px;
     }
 
-    .wallet-header p {
-        color: var(--text-muted, #888);
-        margin: 5px 0 0;
+    .wallet-admin .wallet-header p {
+        font-size: 12px;
+        line-height: 1.5;
     }
 
-    .wallet-stat-grid {
+    .wallet-admin .wallet-header-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+    }
+
+    .wallet-admin .wallet-section-title {
+        font-size: 16px;
+    }
+
+    /* THREE CARDS PER ROW ON PHONES */
+    .wallet-admin .wallet-stats,
+    .wallet-admin .wallet-summary {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-        gap: 16px;
-        margin-bottom: 25px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        margin-bottom: 22px;
     }
 
-    .wallet-stat-card {
-        border: 1px solid var(--border-color, #ddd);
-        background: var(--card-bg, #fff);
-        padding: 20px;
-        border-radius: 16px;
-        box-shadow: 0 3px 12px rgba(0,0,0,.04);
+    .wallet-admin .wallet-stat-card,
+    .wallet-admin .wallet-summary-card {
+        width: 100%;
+        min-width: 0;
+        padding: 10px 8px;
+        border-radius: 10px;
     }
 
-    .wallet-stat-card .stat-icon {
-        width: 42px;
-        height: 42px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 12px;
-        background: rgba(13, 110, 253, .10);
-        color: #0d6efd;
-        font-size: 20px;
-        margin-bottom: 12px;
+    .wallet-admin .wallet-stat-top {
+        flex-direction: column-reverse;
+        align-items: flex-start;
+        gap: 6px;
+        margin-bottom: 8px;
     }
 
-    .wallet-stat-card .stat-label {
-        color: var(--text-muted, #777);
-        font-size: .88rem;
-        margin-bottom: 5px;
+    .wallet-admin .wallet-stat-icon {
+        width: 28px;
+        height: 28px;
+        font-size: 14px;
+        border-radius: 8px;
     }
 
-    .wallet-stat-card .stat-value {
-        font-size: 1.45rem;
-        font-weight: 800;
+    .wallet-admin .wallet-stat-label,
+    .wallet-admin .wallet-summary-label {
+        font-size: 10px;
+        line-height: 1.3;
         overflow-wrap: anywhere;
     }
 
-    .wallet-stat-card .stat-description {
-        font-size: .8rem;
-        color: var(--text-muted, #888);
-        margin-top: 5px;
+    .wallet-admin .wallet-stat-value,
+    .wallet-admin .wallet-summary-value {
+        font-size: 14px;
+        line-height: 1.35;
+        overflow-wrap: anywhere;
     }
 
-    .wallet-panel {
-        background: var(--card-bg, #fff);
-        border: 1px solid var(--border-color, #ddd);
-        border-radius: 16px;
-        padding: 20px;
-        margin-bottom: 25px;
-        overflow: hidden;
+    .wallet-admin .wallet-stat-description {
+        font-size: 9px;
+        line-height: 1.3;
     }
 
-    .wallet-panel h3 {
-        font-size: 1.15rem;
-        font-weight: 750;
-        margin-bottom: 5px;
-    }
-
-    .wallet-panel .panel-description {
-        color: var(--text-muted, #888);
-        font-size: .85rem;
+    .wallet-admin .wallet-panel {
         margin-bottom: 18px;
+        border-radius: 12px;
     }
 
-    .wallet-table-wrapper {
-        overflow-x: auto;
-        width: 100%;
+    .wallet-admin .wallet-panel-header {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 6px;
+        padding: 13px;
     }
 
-    .wallet-table {
-        width: 100%;
-        border-collapse: collapse;
-        min-width: 750px;
+    .wallet-admin .wallet-panel-header h2 {
+        font-size: 15px;
     }
 
-    .wallet-table th,
-    .wallet-table td {
-        padding: 12px 14px;
-        border-bottom: 1px solid var(--border-color, #e5e5e5);
-        text-align: left;
-        vertical-align: middle;
+    .wallet-admin .wallet-panel-body {
+        padding: 10px;
     }
 
-    .wallet-table th {
-        font-size: .78rem;
-        text-transform: uppercase;
-        letter-spacing: .04em;
-        color: var(--text-muted, #777);
-        white-space: nowrap;
+    /* Tables scroll independently */
+    .wallet-admin .wallet-table {
+        min-width: 720px;
+        font-size: 12px;
     }
 
-    .wallet-table td {
-        font-size: .9rem;
+    .wallet-admin .wallet-table > :not(caption) > * > * {
+        padding: 10px;
     }
 
-    .wallet-table tbody tr:hover {
-        background: rgba(128,128,128,.05);
+    .wallet-admin .wallet-table thead th {
+        font-size: 10px;
     }
 
-    .wallet-creator {
-        font-weight: 700;
+    .wallet-admin .wallet-table tbody td {
+        font-size: 12px;
+    }
+}
+
+/* VERY SMALL PHONES */
+@media (max-width: 360px) {
+    .wallet-admin .wallet-header h1 {
+        font-size: 19px;
     }
 
-    .wallet-subtext {
-        font-size: .78rem;
-        color: var(--text-muted, #888);
-        margin-top: 3px;
+    .wallet-admin .wallet-stats,
+    .wallet-admin .wallet-summary {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 5px;
     }
 
-    .wallet-amount {
-        font-weight: 750;
-        white-space: nowrap;
+    .wallet-admin .wallet-stat-card,
+    .wallet-admin .wallet-summary-card {
+        padding: 8px 6px;
     }
 
-    .wallet-status {
-        display: inline-block;
-        border-radius: 30px;
-        padding: 5px 10px;
-        font-size: .75rem;
-        font-weight: 700;
-        text-transform: capitalize;
+    .wallet-admin .wallet-stat-label,
+    .wallet-admin .wallet-summary-label {
+        font-size: 9px;
     }
 
-    .status-pending {
-        background: #fff3cd;
-        color: #856404;
+    .wallet-admin .wallet-stat-value,
+    .wallet-admin .wallet-summary-value {
+        font-size: 12px;
     }
 
-    .status-approved {
-        background: #cfe2ff;
-        color: #084298;
+    .wallet-admin .wallet-panel-header {
+        padding: 11px;
     }
 
-    .status-paid {
-        background: #d1e7dd;
-        color: #0f5132;
+    .wallet-admin .wallet-panel-body {
+        padding: 8px;
     }
 
-    .status-rejected {
-        background: #f8d7da;
-        color: #842029;
+    .wallet-admin .wallet-table {
+        min-width: 680px;
     }
-
-    .wallet-empty {
-        text-align: center;
-        padding: 35px 15px;
-        color: var(--text-muted, #888);
-    }
-
-    .wallet-empty i {
-        display: block;
-        font-size: 35px;
-        margin-bottom: 10px;
-    }
-
-    .wallet-count {
-        display: inline-block;
-        background: rgba(13, 110, 253, .1);
-        color: #0d6efd;
-        border-radius: 30px;
-        padding: 5px 11px;
-        font-weight: 700;
-        font-size: .8rem;
-    }
-
-    @media (max-width: 600px) {
-        .wallet-admin {
-            padding: 12px 0;
-        }
-
-        .wallet-panel {
-            padding: 14px;
-        }
-
-        .wallet-header h2 {
-            font-size: 1.4rem;
-        }
-
-        .wallet-stat-card {
-            padding: 16px;
-        }
-
-        .wallet-stat-card .stat-value {
-            font-size: 1.2rem;
-        }
-    }
+}
 </style>
 
 
 <div class="wallet-admin">
 
-    <!-- Header -->
+    <!-- PAGE HEADER -->
     <div class="wallet-header">
-        <div>
-            <h2>
-                <i class="bi bi-wallet2"></i>
-                Creator Wallet Management
-            </h2>
-            <p>Monitor creator earnings, sales, commissions and payouts.</p>
-        </div>
-
-        <span class="wallet-count">
-            {{ wallet_count }} Creator Wallet{{ wallet_count|pluralize }}
-        </span>
-    </div>
-
-
-    <!-- Financial Summary -->
-    <div class="wallet-stat-grid">
-
-        <div class="wallet-stat-card">
-            <div class="stat-icon">
+        <div class="d-flex align-items-center gap-3">
+            <div class="wallet-header-icon">
                 <i class="bi bi-wallet2"></i>
             </div>
-            <div class="stat-label">Available Balance</div>
-            <div class="stat-value">
-                KES {{ total_available|floatformat:2 }}
+
+            <div>
+                <h1>Creator Wallet Management</h1>
+                <p>Monitor creator earnings, platform revenue and payout requests.</p>
             </div>
-            <div class="stat-description">
-                Money currently held in creator wallets
+        </div>
+    </div>
+
+
+    <!-- FINANCIAL OVERVIEW -->
+    <h2 class="wallet-section-title">
+        <i class="bi bi-bar-chart-line me-2"></i>
+        Financial Overview
+    </h2>
+
+    <div class="wallet-stats">
+
+        <div class="wallet-stat-card">
+            <div class="wallet-stat-top">
+                <span class="wallet-stat-label">Total Wallets</span>
+                <span class="wallet-stat-icon"><i class="bi bi-wallet"></i></span>
+            </div>
+            <div class="wallet-stat-value">{{ wallet_count|default:0 }}</div>
+            <div class="wallet-stat-description">Registered creator wallets</div>
+        </div>
+
+        <div class="wallet-stat-card">
+            <div class="wallet-stat-top">
+                <span class="wallet-stat-label">Available Balance</span>
+                <span class="wallet-stat-icon"><i class="bi bi-cash-stack"></i></span>
+            </div>
+            <div class="wallet-stat-value">KSh {{ total_available|default:0|floatformat:2 }}</div>
+            <div class="wallet-stat-description">Funds currently available</div>
+        </div>
+
+        <div class="wallet-stat-card">
+            <div class="wallet-stat-top">
+                <span class="wallet-stat-label">Total Earned</span>
+                <span class="wallet-stat-icon"><i class="bi bi-graph-up-arrow"></i></span>
+            </div>
+            <div class="wallet-stat-value">KSh {{ total_earned|default:0|floatformat:2 }}</div>
+            <div class="wallet-stat-description">Total creator earnings</div>
+        </div>
+
+        <div class="wallet-stat-card">
+            <div class="wallet-stat-top">
+                <span class="wallet-stat-label">Total Paid</span>
+                <span class="wallet-stat-icon"><i class="bi bi-check-circle"></i></span>
+            </div>
+            <div class="wallet-stat-value">KSh {{ total_paid|default:0|floatformat:2 }}</div>
+            <div class="wallet-stat-description">Completed creator payouts</div>
+        </div>
+
+        <div class="wallet-stat-card">
+            <div class="wallet-stat-top">
+                <span class="wallet-stat-label">Gross Sales</span>
+                <span class="wallet-stat-icon"><i class="bi bi-receipt"></i></span>
+            </div>
+            <div class="wallet-stat-value">KSh {{ total_gross|default:0|floatformat:2 }}</div>
+            <div class="wallet-stat-description">Total sales value</div>
+        </div>
+
+        <div class="wallet-stat-card">
+            <div class="wallet-stat-top">
+                <span class="wallet-stat-label">Platform Commission</span>
+                <span class="wallet-stat-icon"><i class="bi bi-building"></i></span>
+            </div>
+            <div class="wallet-stat-value">KSh {{ total_commission|default:0|floatformat:2 }}</div>
+            <div class="wallet-stat-description">Platform earnings from sales</div>
+        </div>
+
+        <div class="wallet-stat-card">
+            <div class="wallet-stat-top">
+                <span class="wallet-stat-label">Creator Earnings</span>
+                <span class="wallet-stat-icon"><i class="bi bi-person-check"></i></span>
+            </div>
+            <div class="wallet-stat-value">KSh {{ total_creator_earnings|default:0|floatformat:2 }}</div>
+            <div class="wallet-stat-description">Creators' share of sales</div>
+        </div>
+
+    </div>
+
+
+    <!-- PAYOUT SUMMARY -->
+    <h2 class="wallet-section-title">
+        <i class="bi bi-arrow-left-right me-2"></i>
+        Payout Summary
+    </h2>
+
+    <div class="wallet-summary">
+
+        <div class="wallet-summary-card">
+            <div class="wallet-summary-label">Pending Requests</div>
+            <div class="wallet-summary-value">
+                {{ payout_counts.pending|default:0 }}
             </div>
         </div>
 
-
-        <div class="wallet-stat-card">
-            <div class="stat-icon">
-                <i class="bi bi-graph-up-arrow"></i>
-            </div>
-            <div class="stat-label">Total Creator Earnings</div>
-            <div class="stat-value">
-                KES {{ total_earned|floatformat:2 }}
-            </div>
-            <div class="stat-description">
-                Total earned by content creators
+        <div class="wallet-summary-card">
+            <div class="wallet-summary-label">Approved Requests</div>
+            <div class="wallet-summary-value">
+                {{ payout_counts.approved|default:0 }}
             </div>
         </div>
 
-
-        <div class="wallet-stat-card">
-            <div class="stat-icon">
-                <i class="bi bi-cash-stack"></i>
-            </div>
-            <div class="stat-label">Total Paid Out</div>
-            <div class="stat-value">
-                KES {{ total_paid|floatformat:2 }}
-            </div>
-            <div class="stat-description">
-                Total creator withdrawals paid
+        <div class="wallet-summary-card">
+            <div class="wallet-summary-label">Paid Requests</div>
+            <div class="wallet-summary-value">
+                {{ payout_counts.paid|default:0 }}
             </div>
         </div>
 
-
-        <div class="wallet-stat-card">
-            <div class="stat-icon">
-                <i class="bi bi-cart-check"></i>
-            </div>
-            <div class="stat-label">Gross Sales</div>
-            <div class="stat-value">
-                KES {{ total_gross|floatformat:2 }}
-            </div>
-            <div class="stat-description">
-                Total sales generated from paid content
-            </div>
-        </div>
-
-
-        <div class="wallet-stat-card">
-            <div class="stat-icon">
-                <i class="bi bi-building"></i>
-            </div>
-            <div class="stat-label">Platform Commission</div>
-            <div class="stat-value">
-                KES {{ total_commission|floatformat:2 }}
-            </div>
-            <div class="stat-description">
-                Revenue earned by the SmartMind platform
-            </div>
-        </div>
-
-
-        <div class="wallet-stat-card">
-            <div class="stat-icon">
-                <i class="bi bi-person-check"></i>
-            </div>
-            <div class="stat-label">Creator Share</div>
-            <div class="stat-value">
-                KES {{ total_creator_earnings|floatformat:2 }}
-            </div>
-            <div class="stat-description">
-                Total allocated to creators from sales
+        <div class="wallet-summary-card">
+            <div class="wallet-summary-label">Rejected Requests</div>
+            <div class="wallet-summary-value">
+                {{ payout_counts.rejected|default:0 }}
             </div>
         </div>
 
     </div>
 
 
-    <!-- Payout Summary -->
+    <!-- PAYOUT REQUESTS -->
     <div class="wallet-panel">
 
-        <h3>
-            <i class="bi bi-send"></i>
-            Payout Requests
-        </h3>
-
-        <p class="panel-description">
-            Summary of creator withdrawal requests by status.
-        </p>
-
-        <div class="wallet-stat-grid">
-
-            <div class="wallet-stat-card">
-                <div class="stat-label">Pending</div>
-                <div class="stat-value">
-                    {{ payout_counts.pending }}
-                </div>
+        <div class="wallet-panel-header">
+            <div>
+                <h2><i class="bi bi-send me-2"></i>Payout Requests</h2>
+                <p>Review creator withdrawal requests and payment references.</p>
             </div>
-
-            <div class="wallet-stat-card">
-                <div class="stat-label">Approved</div>
-                <div class="stat-value">
-                    {{ payout_counts.approved }}
-                </div>
-            </div>
-
-            <div class="wallet-stat-card">
-                <div class="stat-label">Paid</div>
-                <div class="stat-value">
-                    {{ payout_counts.paid }}
-                </div>
-            </div>
-
-            <div class="wallet-stat-card">
-                <div class="stat-label">Rejected</div>
-                <div class="stat-value">
-                    {{ payout_counts.rejected }}
-                </div>
-            </div>
-
         </div>
 
-
-        <!-- Payout Requests Table -->
-        <div class="wallet-table-wrapper">
-
-            <table class="wallet-table">
-
-                <thead>
-                    <tr>
-                        <th>Creator</th>
-                        <th>Amount</th>
-                        <th>Phone Number</th>
-                        <th>Status</th>
-                        <th>M-Pesa Reference</th>
-                        <th>Requested</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-
-                    {% for payout in payouts %}
-
-                        <tr>
-                            <td>
-                                <div class="wallet-creator">
-                                    {{ payout.creator.username }}
-                                </div>
-                                <div class="wallet-subtext">
-                                    {{ payout.creator.school.name|default:"No school assigned" }}
-                                </div>
-                            </td>
-
-                            <td class="wallet-amount">
-                                KES {{ payout.amount|floatformat:2 }}
-                            </td>
-
-                            <td>
-                                {{ payout.phone_number|default:"—" }}
-                            </td>
-
-                            <td>
-                                <span class="wallet-status status-{{ payout.status }}">
-                                    {{ payout.status }}
-                                </span>
-                            </td>
-
-                            <td>
-                                {{ payout.mpesa_reference|default:"—" }}
-                            </td>
-
-                            <td>
-                                {{ payout.requested_at|date:"d M Y, H:i" }}
-                            </td>
-                        </tr>
-
-                    {% empty %}
-
-                        <tr>
-                            <td colspan="6">
-                                <div class="wallet-empty">
-                                    <i class="bi bi-inbox"></i>
-                                    No payout requests have been received.
-                                </div>
-                            </td>
-                        </tr>
-
-                    {% endfor %}
-
-                </tbody>
-
-            </table>
-
-        </div>
-
-    </div>
-
-
-    <!-- Creator Wallets -->
-    <div class="wallet-panel">
-
-        <h3>
-            <i class="bi bi-people"></i>
-            Creator Wallets
-        </h3>
-
-        <p class="panel-description">
-            Wallet balances and earnings for registered content creators.
-        </p>
-
-        <div class="wallet-table-wrapper">
-
-            <table class="wallet-table">
-
+        <div class="wallet-table-wrap">
+            <table class="table wallet-table">
                 <thead>
                     <tr>
                         <th>Creator</th>
                         <th>School</th>
-                        <th>Available Balance</th>
-                        <th>Total Earned</th>
-                        <th>Total Paid</th>
-                        <th>Currency</th>
+                        <th>Amount</th>
+                        <th>Phone Number</th>
+                        <th>Status</th>
+                        <th>M-Pesa Reference</th>
+                        <th>Requested At</th>
                     </tr>
                 </thead>
 
                 <tbody>
+                    {% for payout in payouts %}
+                    <tr>
+                        <td>
+                            <strong>{{ payout.creator.username }}</strong>
+                        </td>
 
-                    {% for wallet in wallets %}
+                        <td>
+                            {{ payout.creator.school.name|default:"—" }}
+                        </td>
 
-                        <tr>
-                            <td>
-                                <div class="wallet-creator">
-                                    {{ wallet.creator.username }}
-                                </div>
-                                <div class="wallet-subtext">
-                                    {{ wallet.creator.email|default:"" }}
-                                </div>
-                            </td>
+                        <td>
+                            <strong>KSh {{ payout.amount|floatformat:2 }}</strong>
+                        </td>
 
-                            <td>
-                                {{ wallet.creator.school.name|default:"—" }}
-                            </td>
+                        <td>{{ payout.phone_number|default:"—" }}</td>
 
-                            <td class="wallet-amount">
-                                {{ wallet.currency }}
-                                {{ wallet.available_balance|floatformat:2 }}
-                            </td>
+                        <td>
+                            <span class="wallet-status status-{{ payout.status|lower }}">
+                                {{ payout.status }}
+                            </span>
+                        </td>
 
-                            <td class="wallet-amount">
-                                {{ wallet.currency }}
-                                {{ wallet.total_earned|floatformat:2 }}
-                            </td>
+                        <td>{{ payout.mpesa_reference|default:"—" }}</td>
 
-                            <td class="wallet-amount">
-                                {{ wallet.currency }}
-                                {{ wallet.total_paid|floatformat:2 }}
-                            </td>
-
-                            <td>
-                                {{ wallet.currency }}
-                            </td>
-                        </tr>
+                        <td>
+                            {% if payout.requested_at %}
+                                {{ payout.requested_at|date:"d M Y, H:i" }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+                    </tr>
 
                     {% empty %}
-
-                        <tr>
-                            <td colspan="6">
-                                <div class="wallet-empty">
-                                    <i class="bi bi-wallet"></i>
-                                    No creator wallets found.
-                                </div>
-                            </td>
-                        </tr>
-
+                    <tr>
+                        <td colspan="7">
+                            <div class="wallet-empty">
+                                <i class="bi bi-inbox"></i>
+                                No payout requests found.
+                            </div>
+                        </td>
+                    </tr>
                     {% endfor %}
-
                 </tbody>
-
             </table>
-
         </div>
 
     </div>
 
 
-    <!-- Recent Sales -->
+    <!-- CREATOR WALLETS -->
     <div class="wallet-panel">
 
-        <h3>
-            <i class="bi bi-receipt"></i>
-            Recent Creator Sales
-        </h3>
+        <div class="wallet-panel-header">
+            <div>
+                <h2><i class="bi bi-people me-2"></i>Creator Wallets</h2>
+                <p>Overview of individual creator wallet balances.</p>
+            </div>
+        </div>
 
-        <p class="panel-description">
-            The latest transactions from paid content.
-        </p>
-
-        <div class="wallet-table-wrapper">
-
-            <table class="wallet-table">
-
+        <div class="wallet-table-wrap">
+            <table class="table wallet-table">
                 <thead>
                     <tr>
                         <th>Creator</th>
-                        <th>Content</th>
+                        <th>Email</th>
+                        <th>School</th>
+                        <th>Currency</th>
+                        <th>Available Balance</th>
+                        <th>Total Earned</th>
+                        <th>Total Paid</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for wallet in wallets %}
+                    <tr>
+                        <td>
+                            <strong>{{ wallet.creator.username }}</strong>
+                        </td>
+
+                        <td>{{ wallet.creator.email|default:"—" }}</td>
+
+                        <td>
+                            {{ wallet.creator.school.name|default:"—" }}
+                        </td>
+
+                        <td>{{ wallet.currency|default:"KES" }}</td>
+
+                        <td>
+                            <strong>{{ wallet.available_balance|floatformat:2 }}</strong>
+                        </td>
+
+                        <td>{{ wallet.total_earned|floatformat:2 }}</td>
+
+                        <td>{{ wallet.total_paid|floatformat:2 }}</td>
+                    </tr>
+
+                    {% empty %}
+                    <tr>
+                        <td colspan="7">
+                            <div class="wallet-empty">
+                                <i class="bi bi-wallet2"></i>
+                                No creator wallets found.
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+
+    <!-- RECENT CREATOR SALES -->
+    <div class="wallet-panel">
+
+        <div class="wallet-panel-header">
+            <div>
+                <h2><i class="bi bi-cart-check me-2"></i>Recent Creator Sales</h2>
+                <p>Review sales, platform commission and creator earnings.</p>
+            </div>
+        </div>
+
+        <div class="wallet-table-wrap">
+            <table class="table wallet-table">
+                <thead>
+                    <tr>
+                        <th>Creator</th>
+                        <th>Post / Product</th>
                         <th>Gross Amount</th>
-                        <th>Commission</th>
+                        <th>Platform Commission</th>
                         <th>Creator Earnings</th>
                         <th>Date</th>
                     </tr>
                 </thead>
 
                 <tbody>
-
                     {% for sale in sales %}
+                    <tr>
+                        <td>
+                            <strong>{{ sale.creator.username }}</strong>
+                        </td>
 
-                        <tr>
-                            <td>
-                                <div class="wallet-creator">
-                                    {{ sale.creator.username }}
-                                </div>
-                            </td>
+                        <td>
+                            {{ sale.post.title|default:"—" }}
+                        </td>
 
-                            <td>
-                                {{ sale.post.title|default:"Content" }}
-                            </td>
+                        <td>
+                            KSh {{ sale.gross_amount|floatformat:2 }}
+                        </td>
 
-                            <td class="wallet-amount">
-                                KES {{ sale.gross_amount|floatformat:2 }}
-                            </td>
+                        <td>
+                            KSh {{ sale.platform_commission|floatformat:2 }}
+                        </td>
 
-                            <td class="wallet-amount">
-                                KES {{ sale.platform_commission|floatformat:2 }}
-                            </td>
+                        <td>
+                            <strong>KSh {{ sale.creator_earning|floatformat:2 }}</strong>
+                        </td>
 
-                            <td class="wallet-amount">
-                                KES {{ sale.creator_earning|floatformat:2 }}
-                            </td>
-
-                            <td>
+                        <td>
+                            {% if sale.created_at %}
                                 {{ sale.created_at|date:"d M Y, H:i" }}
-                            </td>
-                        </tr>
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+                    </tr>
 
                     {% empty %}
-
-                        <tr>
-                            <td colspan="6">
-                                <div class="wallet-empty">
-                                    <i class="bi bi-receipt"></i>
-                                    No sales recorded yet.
-                                </div>
-                            </td>
-                        </tr>
-
+                    <tr>
+                        <td colspan="6">
+                            <div class="wallet-empty">
+                                <i class="bi bi-receipt"></i>
+                                No sales records found.
+                            </div>
+                        </td>
+                    </tr>
                     {% endfor %}
-
                 </tbody>
-
             </table>
-
         </div>
 
     </div>

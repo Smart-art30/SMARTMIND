@@ -1945,29 +1945,20 @@ from django.views.decorators.csrf import csrf_exempt
 
 logger = logging.getLogger(__name__)
 
-
 @csrf_exempt
 def mpesa_callback(request):
     """
     Receive Daraja STK Push callback.
 
-    A verified successful payment:
-    1. Unlocks the attachment.
-    2. Records the sale.
-    3. Credits 70% to the creator wallet.
-    4. Records 30% platform commission.
-    5. Creates a wallet ledger entry.
-
-    Duplicate callbacks cannot credit the wallet twice.
+    Idempotent: retries cannot double-credit the creator or
+    create duplicate CreatorSale / WalletLedgerEntry rows.
     """
 
-    # --- DIAGNOSTIC 1: log the raw body before anything else ---
     raw_body = request.body.decode("utf-8", errors="replace")
     logger.info("M-Pesa callback raw body: %s", raw_body)
 
     try:
         callback_data = json.loads(raw_body)
-
     except (json.JSONDecodeError, UnicodeDecodeError):
         logger.warning("Invalid M-Pesa callback JSON: %r", raw_body)
         return HttpResponse(status=200)
@@ -1981,7 +1972,6 @@ def mpesa_callback(request):
     result_code = str(stk_callback.get("ResultCode", ""))
     result_description = stk_callback.get("ResultDesc", "")
 
-    # --- DIAGNOSTIC 2: log parsed key fields ---
     logger.info(
         "M-Pesa callback parsed: CheckoutRequestID=%s ResultCode=%s ResultDesc=%s",
         checkout_id,
@@ -1990,10 +1980,8 @@ def mpesa_callback(request):
     )
 
     if not checkout_id:
-        # Branch A: payload shape doesn't match Body.stkCallback.*
         logger.warning(
-            "M-Pesa callback missing CheckoutRequestID. "
-            "Payload keys: %s",
+            "M-Pesa callback missing CheckoutRequestID. Payload keys: %s",
             list(callback_data.keys()),
         )
         return HttpResponse(status=200)
@@ -2003,16 +1991,34 @@ def mpesa_callback(request):
     ).first()
 
     if not mpesa_transaction:
-        # Branch B: transaction row not found (race or wrong ID saved)
         logger.warning(
             "Unknown M-Pesa CheckoutRequestID: %s (no matching MpesaTransaction row)",
             checkout_id,
         )
         return HttpResponse(status=200)
 
-    # Ignore callbacks for transactions already processed.
-    if mpesa_transaction.status != "pending":
-        # Branch C: duplicate / already-processed callback
+    # ------------------------------------------------------------
+    # Idempotency guard — only skip if we KNOW processing finished.
+    # ------------------------------------------------------------
+    if mpesa_transaction.status == "success":
+        # Was the sale actually written? If not, finish the job.
+        if CreatorSale.objects.filter(
+            mpesa_transaction=mpesa_transaction
+        ).exists():
+            logger.info(
+                "Callback re-entered fully-processed MpesaTransaction %s — ignoring.",
+                checkout_id,
+            )
+            return HttpResponse(status=200)
+
+        logger.warning(
+            "MpesaTransaction %s is 'success' but CreatorSale is missing — "
+            "finishing missing records.",
+            checkout_id,
+        )
+        # fall through and finish the job idempotently
+
+    elif mpesa_transaction.status != "pending":
         logger.info(
             "Ignoring callback for non-pending MpesaTransaction %s (status=%s)",
             checkout_id,
@@ -2020,7 +2026,9 @@ def mpesa_callback(request):
         )
         return HttpResponse(status=200)
 
+    # ------------------------------------------------------------
     # Record unsuccessful payment.
+    # ------------------------------------------------------------
     if result_code != "0":
         mpesa_transaction.result_code = result_code
         mpesa_transaction.result_description = result_description
@@ -2032,31 +2040,28 @@ def mpesa_callback(request):
                 "status",
             ]
         )
-
         logger.info(
             "M-Pesa payment failed. CheckoutRequestID=%s ResultCode=%s",
             checkout_id,
             result_code,
         )
-
         return HttpResponse(status=200)
 
+    # ------------------------------------------------------------
     # Extract callback metadata.
+    # ------------------------------------------------------------
     metadata_items = (
         stk_callback.get("CallbackMetadata", {})
         .get("Item", [])
     )
 
-    metadata = {}
+    metadata = {
+        item.get("Name"): item.get("Value")
+        for item in metadata_items
+        if item.get("Name")
+    }
 
-    for item in metadata_items:
-        name = item.get("Name")
-        value = item.get("Value")
-
-        if name:
-            metadata[name] = value
-
-    receipt = str(metadata.get("MpesaReceiptNumber", ""))
+    receipt = str(metadata.get("MpesaReceiptNumber", "") or "")
     callback_amount = metadata.get("Amount")
     callback_phone = metadata.get("PhoneNumber")
 
@@ -2068,22 +2073,16 @@ def mpesa_callback(request):
 
     try:
         received_amount = Decimal(str(callback_amount))
-
     except (TypeError, ValueError):
         received_amount = Decimal("0")
 
-    amount_matches = (
-        received_amount == mpesa_transaction.amount
-    )
+    amount_matches = received_amount == mpesa_transaction.amount
+    phone_matches = normalized_callback_phone == mpesa_transaction.phone_number
 
-    phone_matches = (
-        normalized_callback_phone
-        == mpesa_transaction.phone_number
-    )
-
-    # Verify the payment before crediting anyone.
+    # ------------------------------------------------------------
+    # Verification — reject if anything is off.
+    # ------------------------------------------------------------
     if not amount_matches or not phone_matches or not receipt:
-        # Branch D: verification mismatch
         logger.error(
             "M-Pesa verification mismatch. CheckoutRequestID=%s "
             "expected_amount=%s got_amount=%s "
@@ -2101,31 +2100,36 @@ def mpesa_callback(request):
         )
 
         mpesa_transaction.status = "failed"
-
         mpesa_transaction.result_description = (
-            "Payment verification failed: "
-            "amount, phone or receipt mismatch."
+            "Payment verification failed: amount, phone or receipt mismatch."
         )
-
         mpesa_transaction.save()
-
         return HttpResponse(status=200)
 
-    # Process everything together.
-    # If any operation fails, all changes are rolled back.
+    # ------------------------------------------------------------
+    # Success path — everything atomic and idempotent.
+    # ------------------------------------------------------------
     try:
-
         with transaction.atomic():
 
-            # Lock the transaction against duplicate callbacks.
             mpesa_transaction = (
                 MpesaTransaction.objects
                 .select_for_update()
                 .get(checkout_request_id=checkout_id)
             )
 
-            # Check again inside the lock.
-            if mpesa_transaction.status != "pending":
+            # Re-check inside the lock.
+            if mpesa_transaction.status == "success" and \
+               CreatorSale.objects.filter(
+                   mpesa_transaction=mpesa_transaction
+               ).exists():
+                logger.info(
+                    "Callback re-entered fully-processed MpesaTransaction %s inside lock.",
+                    checkout_id,
+                )
+                return HttpResponse(status=200)
+
+            if mpesa_transaction.status not in ("pending", "success"):
                 logger.info(
                     "Callback re-entered non-pending MpesaTransaction %s inside lock (status=%s)",
                     checkout_id,
@@ -2133,7 +2137,7 @@ def mpesa_callback(request):
                 )
                 return HttpResponse(status=200)
 
-            # Prevent using the same receipt on another transaction.
+            # Prevent receipt reuse on another transaction.
             duplicate_receipt = (
                 MpesaTransaction.objects
                 .filter(mpesa_receipt_number=receipt)
@@ -2142,20 +2146,15 @@ def mpesa_callback(request):
             )
 
             if duplicate_receipt:
-
                 mpesa_transaction.status = "failed"
                 mpesa_transaction.result_code = result_code
                 mpesa_transaction.result_description = (
                     "Duplicate M-Pesa receipt detected."
                 )
-
                 mpesa_transaction.save()
-
                 logger.error(
-                    "Duplicate M-Pesa receipt detected: %s",
-                    receipt,
+                    "Duplicate M-Pesa receipt detected: %s", receipt
                 )
-
                 return HttpResponse(status=200)
 
             # Mark payment successful.
@@ -2163,10 +2162,9 @@ def mpesa_callback(request):
             mpesa_transaction.result_code = result_code
             mpesa_transaction.result_description = result_description
             mpesa_transaction.mpesa_receipt_number = receipt
-
             mpesa_transaction.save()
 
-            # Unlock the attachment for the learner.
+            # Unlock attachment (idempotent).
             AttachmentPurchase.objects.update_or_create(
                 user=mpesa_transaction.user,
                 post=mpesa_transaction.post,
@@ -2178,94 +2176,77 @@ def mpesa_callback(request):
                 },
             )
 
-            # Identify the creator of the purchased post.
+            # Determine creator + split.
             creator = mpesa_transaction.post.author
-
             gross_amount = mpesa_transaction.amount
 
-            # Prevent creators earning commission from
-            # purchasing their own content.
             if creator.pk == mpesa_transaction.user_id:
-
+                # Self-purchase: no earning, no commission.
                 creator_earning = Decimal("0.00")
                 platform_commission = Decimal("0.00")
-
             else:
-
                 creator_earning = (
                     gross_amount * Decimal("0.70")
-                ).quantize(
-                    Decimal("0.01"),
-                    rounding=ROUND_HALF_UP,
-                )
-
-                # The remainder guarantees that the total
-                # always equals the original payment.
+                ).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
                 platform_commission = (
                     gross_amount - creator_earning
-                ).quantize(
-                    Decimal("0.01"),
-                    rounding=ROUND_HALF_UP,
-                )
+                ).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
-            # Record the sale.
-            creator_sale = CreatorSale.objects.create(
+            # Record sale — idempotent.
+            creator_sale, sale_created = CreatorSale.objects.get_or_create(
                 mpesa_transaction=mpesa_transaction,
-                creator=creator,
-                post=mpesa_transaction.post,
-                gross_amount=gross_amount,
-                platform_commission=platform_commission,
-                creator_earning=creator_earning,
-                commission_rate=Decimal("30.00"),
+                defaults={
+                    "creator": creator,
+                    "post": mpesa_transaction.post,
+                    "gross_amount": gross_amount,
+                    "platform_commission": platform_commission,
+                    "creator_earning": creator_earning,
+                    "commission_rate": Decimal("30.00"),
+                },
             )
 
-            # Credit the creator only if there is an earning.
+            # Credit wallet only when there's an earning.
             if creator_earning > 0:
-
-                wallet, created = CreatorWallet.objects.get_or_create(
+                wallet, _ = CreatorWallet.objects.get_or_create(
                     creator=creator
                 )
-
-                # Lock the wallet while updating its balances.
                 wallet = (
                     CreatorWallet.objects
                     .select_for_update()
                     .get(pk=wallet.pk)
                 )
 
-                wallet.available_balance += creator_earning
-                wallet.total_earned += creator_earning
-
-                wallet.save(
-                    update_fields=[
-                        "available_balance",
-                        "total_earned",
-                        "updated_at",
-                    ]
+                ledger_entry, ledger_created = (
+                    WalletLedgerEntry.objects.get_or_create(
+                        wallet=wallet,
+                        sale=creator_sale,
+                        entry_type="sale",
+                        defaults={
+                            "amount": creator_earning,
+                            "description": (
+                                f"70% earnings from sale of "
+                                f"{mpesa_transaction.post.title}"
+                            ),
+                        },
+                    )
                 )
 
-                # Record the credit in the wallet ledger.
-                WalletLedgerEntry.objects.create(
-                    wallet=wallet,
-                    sale=creator_sale,
-                    entry_type="sale",
-                    amount=creator_earning,
-                    description=(
-                        f"70% earnings from sale of "
-                        f"{mpesa_transaction.post.title}"
-                    ),
-                )
+                if ledger_created:
+                    wallet.available_balance += creator_earning
+                    wallet.total_earned += creator_earning
+                    wallet.save(
+                        update_fields=[
+                            "available_balance",
+                            "total_earned",
+                            "updated_at",
+                        ]
+                    )
 
     except Exception:
-
         logger.exception(
-            "Error processing successful M-Pesa payment. "
-            "CheckoutRequestID=%s",
+            "Error processing successful M-Pesa payment. CheckoutRequestID=%s",
             checkout_id,
         )
-
-        # Report failure so the payment can be investigated
-        # and processing can be retried if necessary.
         return HttpResponse(status=500)
 
     logger.info(
@@ -2279,6 +2260,7 @@ def mpesa_callback(request):
     return HttpResponse(status=200)
 
 
+    
 @login_required
 def creator_wallet_management(request):
     """

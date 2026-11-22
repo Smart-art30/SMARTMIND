@@ -4,71 +4,571 @@
 {% block title %}Creator Wallet | SmartMind{% endblock %}
 
 {% block content %}
-<div class="container py-4">
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<style>
+/* =====================================================
+   SMARTMIND CREATOR WALLET
+   RESPONSIVE + LIGHT/DARK THEME
+===================================================== */
+
+.wallet-page {
+    --wp-surface: var(--surface, #ffffff);
+    --wp-alt: var(--surface-alt, #f7f9f9);
+    --wp-text: var(--text, #0f1419);
+    --wp-muted: var(--muted, #536471);
+    --wp-border: var(--border-solid, #e1e8ed);
+    --wp-hover: var(--hover-strong, #eff3f4);
+    --wp-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,.03));
+
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    color: var(--wp-text) !important;
+    box-sizing: border-box;
+    overflow-x: hidden;
+}
+
+.wallet-page *,
+.wallet-page *::before,
+.wallet-page *::after {
+    box-sizing: border-box;
+}
+
+/* DARK MODE */
+html[data-theme="dark"] .wallet-page {
+    --wp-surface: #000000;
+    --wp-alt: #16181c;
+    --wp-text: #e7e9ea;
+    --wp-muted: #a0a6ac;
+    --wp-border: #2f3336;
+    --wp-hover: #16181c;
+    --wp-shadow: 0 1px 3px rgba(0,0,0,.5);
+
+    color-scheme: dark;
+}
+
+/* PAGE HEADER */
+.wallet-page .wallet-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    margin-bottom: 24px;
+}
+
+.wallet-page .wallet-title,
+.wallet-page .wallet-section-title,
+.wallet-page .wallet-balance {
+    color: var(--wp-text) !important;
+}
+
+.wallet-page .wallet-title {
+    font-size: clamp(22px, 3vw, 28px);
+    font-weight: 800;
+}
+
+.wallet-page .wallet-section-title {
+    font-weight: 750;
+    font-size: 18px;
+}
+
+.wallet-page .wallet-muted {
+    color: var(--wp-muted) !important;
+}
+
+/* BACK BUTTON */
+.wallet-page .wallet-back-btn {
+    color: var(--wp-text) !important;
+    background: transparent !important;
+    border: 1px solid var(--wp-border) !important;
+    border-radius: 9px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.wallet-page .wallet-back-btn:hover {
+    background: var(--wp-hover) !important;
+    color: var(--wp-text) !important;
+}
+
+/* WALLET SUMMARY GRID */
+.wallet-page .wallet-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+/* WALLET CARDS */
+.wallet-page .wallet-card {
+    min-width: 0;
+    background: var(--wp-surface) !important;
+    color: var(--wp-text) !important;
+    border: 1px solid var(--wp-border) !important;
+    border-radius: 16px;
+    box-shadow: var(--wp-shadow) !important;
+    transition: background .2s ease, color .2s ease;
+    overflow: hidden;
+}
+
+.wallet-page .wallet-card .card-body {
+    min-width: 0;
+    background: var(--wp-surface) !important;
+    color: var(--wp-text) !important;
+    padding: 1.4rem;
+}
+
+.wallet-page .wallet-balance {
+    font-size: clamp(19px, 2vw, 27px);
+    font-weight: 800;
+    overflow-wrap: anywhere;
+    line-height: 1.3;
+}
+
+.wallet-page .wallet-earning {
+    color: #198754 !important;
+}
+
+html[data-theme="dark"] .wallet-page .wallet-earning {
+    color: #75d9a2 !important;
+}
+
+/* TABLE PANELS */
+.wallet-page .wallet-table-panel {
+    width: 100%;
+    min-width: 0;
+    margin-bottom: 22px;
+    border: 1px solid var(--wp-border) !important;
+    border-radius: 14px;
+    overflow: hidden;
+    background: var(--wp-surface) !important;
+    box-shadow: var(--wp-shadow);
+}
+
+.wallet-page .wallet-table-panel .card-body {
+    min-width: 0;
+    padding: 1.4rem;
+    background: var(--wp-surface) !important;
+    color: var(--wp-text) !important;
+}
+
+.wallet-page .wallet-section-title {
+    margin-bottom: 18px;
+}
+
+/* TABLE SCROLLING */
+.wallet-page .table-responsive {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 8px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--wp-muted) var(--wp-alt);
+}
+
+/* TABLES */
+.wallet-page .wallet-table {
+    width: 100%;
+    min-width: 650px;
+    margin-bottom: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+
+    --bs-table-color: var(--wp-text);
+    --bs-table-bg: var(--wp-surface);
+    --bs-table-border-color: var(--wp-border);
+    --bs-table-striped-color: var(--wp-text);
+    --bs-table-striped-bg: var(--wp-alt);
+    --bs-table-hover-color: var(--wp-text);
+    --bs-table-hover-bg: var(--wp-hover);
+    --bs-table-active-color: var(--wp-text);
+    --bs-table-active-bg: var(--wp-hover);
+
+    color: var(--wp-text) !important;
+    background: var(--wp-surface) !important;
+    border-color: var(--wp-border) !important;
+}
+
+/* ALL TABLE CELLS */
+.wallet-page .wallet-table > :not(caption) > * > * {
+    background-color: var(--wp-surface) !important;
+    background-image: none !important;
+    box-shadow: none !important;
+    color: var(--wp-text) !important;
+    border-bottom: 1px solid var(--wp-border) !important;
+    padding: 13px 15px;
+    vertical-align: middle;
+}
+
+/* TABLE HEADINGS */
+.wallet-page .wallet-table thead th {
+    background: var(--wp-alt) !important;
+    background-color: var(--wp-alt) !important;
+    color: var(--wp-text) !important;
+    font-weight: 750;
+    font-size: 12px;
+    white-space: nowrap;
+    border-color: var(--wp-border) !important;
+}
+
+/* TABLE DATA */
+.wallet-page .wallet-table tbody td {
+    background: var(--wp-surface) !important;
+    color: var(--wp-text) !important;
+    border-color: var(--wp-border) !important;
+    vertical-align: middle;
+    font-size: 13px;
+}
+
+.wallet-page .wallet-table tbody tr:hover td {
+    background: var(--wp-hover) !important;
+    color: var(--wp-text) !important;
+}
+
+.wallet-page .wallet-table td:first-child {
+    font-weight: 500;
+}
+
+/* EXPLICIT DARK MODE TABLE FIX */
+html[data-theme="dark"] .wallet-page .wallet-table {
+    --bs-table-bg: #000000;
+    --bs-table-color: #e7e9ea;
+    --bs-table-border-color: #2f3336;
+    --bs-table-striped-bg: #16181c;
+    --bs-table-striped-color: #e7e9ea;
+    --bs-table-hover-bg: #16181c;
+    --bs-table-hover-color: #e7e9ea;
+    --bs-table-active-bg: #16181c;
+    --bs-table-active-color: #e7e9ea;
+
+    background: #000000 !important;
+    color: #e7e9ea !important;
+}
+
+html[data-theme="dark"] .wallet-page .wallet-table > :not(caption) > * > * {
+    background: #000000 !important;
+    background-color: #000000 !important;
+    background-image: none !important;
+    box-shadow: none !important;
+    color: #e7e9ea !important;
+    border-color: #2f3336 !important;
+}
+
+html[data-theme="dark"] .wallet-page .wallet-table thead th {
+    background: #16181c !important;
+    background-color: #16181c !important;
+    color: #e7e9ea !important;
+}
+
+html[data-theme="dark"] .wallet-page .wallet-table tbody tr:hover td {
+    background: #16181c !important;
+    background-color: #16181c !important;
+    color: #e7e9ea !important;
+}
+
+/* EMPTY STATES */
+.wallet-page .wallet-empty {
+    background: var(--wp-alt) !important;
+    color: var(--wp-text) !important;
+    border: 1px solid var(--wp-border);
+    border-radius: 10px;
+    padding: 15px;
+}
+
+/* STATUS BADGES */
+.wallet-page .badge {
+    font-weight: 650;
+    padding: 6px 9px;
+    white-space: nowrap;
+}
+
+.wallet-page .badge.bg-warning {
+    color: #212529 !important;
+}
+
+/* =====================================================
+   RESPONSIVE DESIGN
+===================================================== */
+
+/* Tablets and medium screens */
+@media (max-width: 768px) {
+    .wallet-page {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    .wallet-page .wallet-summary-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .wallet-page .wallet-card .card-body {
+        padding: 1rem;
+    }
+
+    .wallet-page .wallet-balance {
+        font-size: 21px;
+    }
+
+    .wallet-page .wallet-table-panel .card-body {
+        padding: 1rem;
+    }
+}
+
+/* Phones */
+@media (max-width: 576px) {
+
+    .wallet-page {
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+
+    .wallet-page .wallet-header {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .wallet-page .wallet-title {
+        font-size: 21px;
+    }
+
+    .wallet-page .wallet-header p {
+        font-size: 12px;
+        line-height: 1.5;
+    }
+
+    .wallet-page .wallet-header .btn {
+        width: auto;
+        font-size: 12px;
+        padding: 8px 12px;
+    }
+
+    /* THREE SUMMARY CARDS PER ROW */
+    .wallet-page .wallet-summary-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        margin-bottom: 20px;
+    }
+
+    .wallet-page .wallet-summary-grid > div {
+        min-width: 0;
+        width: 100%;
+    }
+
+    .wallet-page .wallet-card {
+        border-radius: 11px;
+    }
+
+    .wallet-page .wallet-card .card-body {
+        padding: 10px 8px;
+    }
+
+    .wallet-page .wallet-summary-grid .wallet-muted {
+        font-size: 10px;
+        line-height: 1.35;
+    }
+
+    .wallet-page .wallet-balance {
+        font-size: 14px;
+        line-height: 1.4;
+        overflow-wrap: anywhere;
+    }
+
+    .wallet-page .wallet-earning {
+        font-size: 9px;
+        line-height: 1.3;
+        display: inline-block;
+    }
+
+    .wallet-page .wallet-section-title {
+        font-size: 16px;
+        margin-bottom: 13px;
+    }
+
+    .wallet-page .wallet-table-panel {
+        margin-bottom: 16px;
+        border-radius: 11px;
+    }
+
+    .wallet-page .wallet-table-panel .card-body {
+        padding: 11px;
+    }
+
+    .wallet-page .table-responsive {
+        font-size: 12px;
+    }
+
+    .wallet-page .wallet-table {
+        min-width: 620px;
+        font-size: 12px;
+    }
+
+    .wallet-page .wallet-table th,
+    .wallet-page .wallet-table td {
+        padding: 10px;
+        white-space: nowrap;
+    }
+
+    .wallet-page .wallet-empty {
+        padding: 12px;
+        font-size: 12px;
+    }
+}
+
+/* Very small phones */
+@media (max-width: 360px) {
+
+    .wallet-page {
+        padding-left: 3px;
+        padding-right: 3px;
+    }
+
+    .wallet-page .wallet-summary-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 5px;
+    }
+
+    .wallet-page .wallet-card .card-body {
+        padding: 8px 6px;
+    }
+
+    .wallet-page .wallet-summary-grid .wallet-muted {
+        font-size: 9px;
+    }
+
+    .wallet-page .wallet-balance {
+        font-size: 12px;
+    }
+
+    .wallet-page .wallet-earning {
+        font-size: 8px;
+    }
+
+    .wallet-page .wallet-table-panel .card-body {
+        padding: 8px;
+    }
+
+    .wallet-page .wallet-table {
+        min-width: 600px;
+    }
+}
+</style>
+
+
+<div class="container py-4 wallet-page">
+
+    <!-- PAGE HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4 wallet-header">
+
         <div>
-            <h2 class="fw-bold mb-1">My Creator Wallet</h2>
-            <p class="text-muted mb-0">
+            <h2 class="fw-bold mb-1 wallet-title">
+                My Creator Wallet
+            </h2>
+
+            <p class="wallet-muted mb-0">
                 Track your earnings and payment activity.
             </p>
         </div>
-        <a href="{% url 'blog:home' %}" class="btn btn-outline-dark">
-            <i class="bi bi-arrow-left"></i> Back to Blog
+
+        <a href="{% url 'blog:home' %}" class="btn wallet-back-btn">
+            <i class="bi bi-arrow-left"></i>
+            Back to Blog
         </a>
+
     </div>
+
 
     <!-- WALLET SUMMARY -->
-    <div class="row g-3 mb-4">
+    <div class="wallet-summary-grid">
 
-        <div class="col-md-4">
-            <div class="card shadow-sm border-0 h-100">
+        <div>
+            <div class="card wallet-card h-100">
                 <div class="card-body">
-                    <p class="text-muted mb-2">Available Balance</p>
-                    <h3 class="fw-bold">
+
+                    <p class="wallet-muted mb-2">
+                        Available Balance
+                    </p>
+
+                    <h3 class="wallet-balance">
                         KSh {{ wallet.available_balance|floatformat:2 }}
                     </h3>
-                    <small class="text-success">
-                        <i class="bi bi-wallet2"></i> Available for withdrawal
+
+                    <small class="wallet-earning">
+                        <i class="bi bi-wallet2"></i>
+                        Available for withdrawal
                     </small>
+
                 </div>
             </div>
         </div>
 
-        <div class="col-md-4">
-            <div class="card shadow-sm border-0 h-100">
+
+        <div>
+            <div class="card wallet-card h-100">
                 <div class="card-body">
-                    <p class="text-muted mb-2">Total Earnings</p>
-                    <h3 class="fw-bold">
+
+                    <p class="wallet-muted mb-2">
+                        Total Earnings
+                    </p>
+
+                    <h3 class="wallet-balance">
                         KSh {{ wallet.total_earned|floatformat:2 }}
                     </h3>
-                    <small class="text-muted">Lifetime creator earnings</small>
+
+                    <small class="wallet-muted">
+                        Lifetime creator earnings
+                    </small>
+
                 </div>
             </div>
         </div>
 
-        <div class="col-md-4">
-            <div class="card shadow-sm border-0 h-100">
+
+        <div>
+            <div class="card wallet-card h-100">
                 <div class="card-body">
-                    <p class="text-muted mb-2">Total Paid Out</p>
-                    <h3 class="fw-bold">
+
+                    <p class="wallet-muted mb-2">
+                        Total Paid Out
+                    </p>
+
+                    <h3 class="wallet-balance">
                         KSh {{ wallet.total_paid|floatformat:2 }}
                     </h3>
-                    <small class="text-muted">Completed withdrawals</small>
+
+                    <small class="wallet-muted">
+                        Completed withdrawals
+                    </small>
+
                 </div>
             </div>
         </div>
 
     </div>
 
+
     <!-- SALES HISTORY -->
-    <div class="card shadow-sm border-0 mb-4">
+    <div class="card wallet-card wallet-table-panel mb-4">
+
         <div class="card-body">
-            <h5 class="fw-bold mb-3">Recent Sales</h5>
+
+            <h5 class="wallet-section-title">
+                <i class="bi bi-graph-up-arrow me-2"></i>
+                Recent Sales
+            </h5>
 
             {% if sales %}
+
                 <div class="table-responsive">
-                    <table class="table align-middle">
+
+                    <table class="table wallet-table align-middle">
+
                         <thead>
                             <tr>
                                 <th>Post</th>
@@ -78,35 +578,66 @@
                                 <th>Date</th>
                             </tr>
                         </thead>
+
                         <tbody>
                             {% for sale in sales %}
                             <tr>
+
                                 <td>{{ sale.post.title }}</td>
-                                <td>KSh {{ sale.gross_amount|floatformat:2 }}</td>
-                                <td>KSh {{ sale.platform_commission|floatformat:2 }}</td>
-                                <td class="fw-bold text-success">
+
+                                <td>
+                                    KSh {{ sale.gross_amount|floatformat:2 }}
+                                </td>
+
+                                <td>
+                                    KSh {{ sale.platform_commission|floatformat:2 }}
+                                </td>
+
+                                <td class="fw-bold wallet-earning">
                                     KSh {{ sale.creator_earning|floatformat:2 }}
                                 </td>
-                                <td>{{ sale.created_at|date:"d M Y" }}</td>
+
+                                <td>
+                                    {{ sale.created_at|date:"d M Y" }}
+                                </td>
+
                             </tr>
                             {% endfor %}
                         </tbody>
+
                     </table>
+
                 </div>
+
             {% else %}
-                <p class="text-muted mb-0">You have no sales yet.</p>
+
+                <div class="wallet-empty">
+                    <i class="bi bi-receipt me-2"></i>
+                    You have no sales yet.
+                </div>
+
             {% endif %}
+
         </div>
     </div>
 
+
     <!-- WALLET TRANSACTIONS -->
-    <div class="card shadow-sm border-0 mb-4">
+    <div class="card wallet-card wallet-table-panel mb-4">
+
         <div class="card-body">
-            <h5 class="fw-bold mb-3">Wallet Transactions</h5>
+
+            <h5 class="wallet-section-title">
+                <i class="bi bi-arrow-left-right me-2"></i>
+                Wallet Transactions
+            </h5>
 
             {% if ledger_entries %}
+
                 <div class="table-responsive">
-                    <table class="table align-middle">
+
+                    <table class="table wallet-table align-middle">
+
                         <thead>
                             <tr>
                                 <th>Transaction</th>
@@ -115,34 +646,64 @@
                                 <th>Date</th>
                             </tr>
                         </thead>
+
                         <tbody>
                             {% for entry in ledger_entries %}
                             <tr>
-                                <td>{{ entry.get_entry_type_display }}</td>
-                                <td>{{ entry.description|default:"—" }}</td>
+
+                                <td>
+                                    {{ entry.get_entry_type_display }}
+                                </td>
+
+                                <td>
+                                    {{ entry.description|default:"—" }}
+                                </td>
+
                                 <td class="fw-bold">
                                     KSh {{ entry.amount|floatformat:2 }}
                                 </td>
-                                <td>{{ entry.created_at|date:"d M Y" }}</td>
+
+                                <td>
+                                    {{ entry.created_at|date:"d M Y" }}
+                                </td>
+
                             </tr>
                             {% endfor %}
                         </tbody>
+
                     </table>
+
                 </div>
+
             {% else %}
-                <p class="text-muted mb-0">No wallet transactions yet.</p>
+
+                <div class="wallet-empty">
+                    <i class="bi bi-wallet me-2"></i>
+                    No wallet transactions yet.
+                </div>
+
             {% endif %}
+
         </div>
     </div>
 
+
     <!-- WITHDRAWAL HISTORY -->
-    <div class="card shadow-sm border-0">
+    <div class="card wallet-card wallet-table-panel">
+
         <div class="card-body">
-            <h5 class="fw-bold mb-3">Withdrawal Requests</h5>
+
+            <h5 class="wallet-section-title">
+                <i class="bi bi-cash-stack me-2"></i>
+                Withdrawal Requests
+            </h5>
 
             {% if payouts %}
+
                 <div class="table-responsive">
-                    <table class="table align-middle">
+
+                    <table class="table wallet-table align-middle">
+
                         <thead>
                             <tr>
                                 <th>Amount</th>
@@ -151,35 +712,73 @@
                                 <th>Date Requested</th>
                             </tr>
                         </thead>
+
                         <tbody>
                             {% for payout in payouts %}
                             <tr>
-                                <td>KSh {{ payout.amount|floatformat:2 }}</td>
-                                <td>{{ payout.phone_number }}</td>
+
                                 <td>
-                                    {% if payout.status == "paid" %}
-                                        <span class="badge bg-success">Paid</span>
-                                    {% elif payout.status == "approved" %}
-                                        <span class="badge bg-primary">Approved</span>
-                                    {% elif payout.status == "rejected" %}
-                                        <span class="badge bg-danger">Rejected</span>
-                                    {% else %}
-                                        <span class="badge bg-warning text-dark">Pending</span>
-                                    {% endif %}
+                                    KSh {{ payout.amount|floatformat:2 }}
                                 </td>
-                                <td>{{ payout.requested_at|date:"d M Y" }}</td>
+
+                                <td>
+                                    {{ payout.phone_number }}
+                                </td>
+
+                                <td>
+
+                                    {% if payout.status == "paid" %}
+
+                                        <span class="badge bg-success">
+                                            Paid
+                                        </span>
+
+                                    {% elif payout.status == "approved" %}
+
+                                        <span class="badge bg-primary">
+                                            Approved
+                                        </span>
+
+                                    {% elif payout.status == "rejected" %}
+
+                                        <span class="badge bg-danger">
+                                            Rejected
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="badge bg-warning text-dark">
+                                            Pending
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+                                <td>
+                                    {{ payout.requested_at|date:"d M Y" }}
+                                </td>
+
                             </tr>
                             {% endfor %}
                         </tbody>
+
                     </table>
+
                 </div>
+
             {% else %}
-                <p class="text-muted mb-0">
+
+                <div class="wallet-empty">
+                    <i class="bi bi-cash me-2"></i>
                     You have not made any withdrawal requests.
-                </p>
+                </div>
+
             {% endif %}
+
         </div>
     </div>
 
 </div>
+
 {% endblock %}

@@ -3,7 +3,7 @@
 import base64
 import logging
 from datetime import datetime
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 import requests
 from django.conf import settings
@@ -11,9 +11,14 @@ from django.conf import settings
 logger = logging.getLogger(__name__)
 
 
+# ============================================================
+# MPESA ACCESS TOKEN
+# ============================================================
+
 def get_mpesa_access_token():
     """
     Obtain an OAuth access token from Safaricom Daraja.
+    Returns the token string, or None on failure.
     """
 
     url = (
@@ -34,40 +39,78 @@ def get_mpesa_access_token():
         response.raise_for_status()
 
         data = response.json()
-        return data.get("access_token")
+        token = data.get("access_token")
+
+        if not token:
+            logger.error(
+                "M-Pesa auth response missing access_token: %s", data
+            )
+            return None
+
+        return token
 
     except requests.RequestException:
         logger.exception("Failed to obtain M-Pesa access token.")
         return None
 
 
+# ============================================================
+# PHONE NORMALIZATION
+# ============================================================
+
 def normalize_mpesa_phone(phone):
     """
     Convert Kenyan phone numbers into Safaricom-compatible format:
     2547XXXXXXXX or 2541XXXXXXXX.
+
+    Idempotent: same output for every valid input form.
+
+    Handles:
+        0712345678          -> 254712345678
+        +254712345678       -> 254712345678
+        254712345678        -> 254712345678
+        712345678           -> 254712345678
+        254712345678 (int)  -> 254712345678
+        254712345678.0      -> 254712345678   (Daraja sometimes sends float)
+        00254712345678      -> 254712345678
+        "0712 345 678"      -> 254712345678
+        "0712-345-678"      -> 254712345678
+
+    Returns "" for invalid input — never None.
+    (Returning None previously caused the callback's phone check to
+     silently fail and reject every real payment.)
     """
 
-    phone = str(phone).strip().replace(" ", "").replace("-", "")
+    digits = "".join(ch for ch in str(phone or "") if ch.isdigit())
 
-    if phone.startswith("+254"):
-        phone = phone[1:]
+    if not digits:
+        return ""
 
-    elif phone.startswith("0"):
-        phone = "254" + phone[1:]
+    # Strip international prefix 00254 -> 254
+    if digits.startswith("00254"):
+        digits = digits[2:]
 
-    elif len(phone) == 9:
-        phone = "254" + phone
+    # Already canonical: 2547XXXXXXXX / 2541XXXXXXXX
+    if digits.startswith("254") and len(digits) == 12:
+        return digits
 
-    if (
-        len(phone) != 12
-        or not phone.startswith("254")
-        or phone[3] not in ("7", "1")
-        or not phone.isdigit()
+    # Local 10-digit: 07XXXXXXXX / 01XXXXXXXX
+    if digits.startswith("0") and len(digits) == 10:
+        return "254" + digits[1:]
+
+    # Bare 9-digit: 7XXXXXXXX / 1XXXXXXXX
+    if len(digits) == 9 and (
+        digits.startswith("7") or digits.startswith("1")
     ):
-        return None
+        return "254" + digits
 
-    return phone
+    # Anything else — best-effort, do not return None
+    return digits
 
+
+# ============================================================
+# PASSWORD GENERATION
+# ============================================================
 
 def generate_mpesa_password():
     """
@@ -98,6 +141,10 @@ def generate_mpesa_password():
     return password, timestamp
 
 
+# ============================================================
+# STK PUSH
+# ============================================================
+
 def initiate_stk_push(
     *,
     phone,
@@ -117,22 +164,27 @@ def initiate_stk_push(
     - "CustomerPayBillOnline"  -> Paybill
                                   (BusinessShortCode = PartyB = Paybill)
 
-    Default is "CustomerBuyGoodsOnline" because the current
-    MPESA_SHORTCODE (1463552) is a Store Number for a Till.
-
     This only initiates a payment request.
     It does NOT confirm that payment has been made.
     """
 
-    phone = normalize_mpesa_phone(phone)
+    # --- Normalize phone ---
+    normalized_phone = normalize_mpesa_phone(phone)
 
-    if not phone:
+    if not normalized_phone or len(normalized_phone) != 12:
         return {
             "success": False,
             "error": "Invalid Kenyan phone number.",
         }
 
-    amount = Decimal(str(amount))
+    # --- Validate amount ---
+    try:
+        amount = Decimal(str(amount))
+    except (InvalidOperation, TypeError, ValueError):
+        return {
+            "success": False,
+            "error": "Invalid payment amount.",
+        }
 
     if amount <= 0 or amount != amount.to_integral_value():
         return {
@@ -140,15 +192,14 @@ def initiate_stk_push(
             "error": "Payment amount must be a positive whole number.",
         }
 
-    if not callback_url.startswith("https://"):
+    # --- Validate callback URL ---
+    if not callback_url or not str(callback_url).startswith("https://"):
         return {
             "success": False,
             "error": "A publicly accessible HTTPS callback URL is required.",
         }
 
-    # --- Resolve transaction mode and PartyB up front, before any
-    #     network calls, so misconfiguration fails fast and clearly. ---
-
+    # --- Resolve transaction mode and PartyB up front ---
     business_shortcode = str(settings.MPESA_SHORTCODE).strip()
 
     if not business_shortcode:
@@ -183,8 +234,6 @@ def initiate_stk_push(
         ).strip()
 
         if not till_number:
-            # Do NOT silently fall back to BusinessShortCode here —
-            # that is exactly what produced ResultCode 2029/4999.
             return {
                 "success": False,
                 "error": (
@@ -197,6 +246,7 @@ def initiate_stk_push(
     else:
         party_b = business_shortcode
 
+    # --- Authenticate ---
     access_token = get_mpesa_access_token()
 
     if not access_token:
@@ -218,9 +268,9 @@ def initiate_stk_push(
         "Timestamp": timestamp,
         "TransactionType": transaction_type,
         "Amount": int(amount),
-        "PartyA": phone,
+        "PartyA": normalized_phone,
         "PartyB": party_b,
-        "PhoneNumber": phone,
+        "PhoneNumber": normalized_phone,
         "CallBackURL": callback_url,
         "AccountReference": str(account_reference)[:12],
         "TransactionDesc": str(transaction_description)[:20],
@@ -233,7 +283,7 @@ def initiate_stk_push(
         party_b,
         transaction_type,
         int(amount),
-        phone,
+        normalized_phone,
     )
 
     headers = {
@@ -253,8 +303,6 @@ def initiate_stk_push(
 
         data = response.json()
 
-        # Log the full Daraja response so we can see exactly what it said,
-        # even when it queues the request but dispatches nothing.
         logger.info("STK Push raw Daraja response: %s", data)
 
         if data.get("ResponseCode") == "0":
@@ -268,16 +316,16 @@ def initiate_stk_push(
                 "data": data,
             }
 
-        logger.warning(
-            "STK Push rejected: %s",
-            data,
-        )
+        logger.warning("STK Push rejected: %s", data)
 
         return {
             "success": False,
             "error": data.get(
                 "errorMessage",
-                data.get("ResponseDescription", "STK Push failed."),
+                data.get(
+                    "ResponseDescription",
+                    "STK Push failed.",
+                ),
             ),
             "data": data,
         }
@@ -285,7 +333,6 @@ def initiate_stk_push(
     except requests.RequestException as exc:
         logger.exception("M-Pesa STK Push request failed.")
 
-        # If Daraja returned an HTTP error, log its body so we can see why.
         response = getattr(exc, "response", None)
         if response is not None:
             logger.error(
