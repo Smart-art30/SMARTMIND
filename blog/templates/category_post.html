@@ -9,43 +9,26 @@
 
 <div class="category-page">
 
-    <!-- =====================================================
-         CATEGORY HEADER
-    ====================================================== -->
-
+    <!-- CATEGORY HEADER -->
     <header class="category-header">
-
         <div class="category-header-inner">
-
             <div class="category-title">
-
                 <div class="category-icon">
                     <i class="bi bi-folder2-open"></i>
                 </div>
 
                 <div class="category-heading">
-
                     <h1>{{ category.name }}</h1>
-
                     <p>Posts and learning resources in this category.</p>
-
                 </div>
-
             </div>
-
         </div>
-
     </header>
 
 
-    <!-- =====================================================
-         CATEGORY NAVIGATION
-    ====================================================== -->
-
+    <!-- CATEGORY NAVIGATION -->
     {% if categories %}
-
         <section class="categories-section">
-
             <div class="categories-inner">
 
                 <div class="section-label">
@@ -56,7 +39,6 @@
                 <nav class="categories" aria-label="Browse categories">
 
                     {% for cat in categories %}
-
                         <a
                             href="{% url 'blog:category_post' cat.slug %}"
                             class="category-chip {% if cat.id == category.id %}active{% endif %}"
@@ -64,22 +46,60 @@
                             <i class="bi bi-folder"></i>
                             <span>{{ cat.name }}</span>
                         </a>
-
                     {% endfor %}
 
                 </nav>
-
             </div>
-
         </section>
-
     {% endif %}
 
 
-    <!-- =====================================================
-         POSTS
-    ====================================================== -->
+    <!-- CLASS SELECTION CARDS -->
+    <section class="class-filter-section">
+        <div class="class-filter-inner">
 
+            <div class="class-filter-heading">
+                <i class="bi bi-mortarboard"></i>
+                <span>Select your class</span>
+            </div>
+
+            <div class="class-cards">
+
+                {% for school_class in class_choices %}
+
+                    <a
+                        href="{% url 'blog:category_post' category.slug %}?class={{ school_class.pk }}"
+                        class="class-card {% if selected_class == school_class.pk|stringformat:'s' %}active{% endif %}"
+                    >
+
+                        <span class="class-card-name">
+                            {{ school_class.name }}
+                        </span>
+
+                        {% if selected_class == school_class.pk|stringformat:'s' %}
+
+                            <span class="class-card-check">
+                                <i class="bi bi-check-circle-fill"></i>
+                            </span>
+
+                        {% else %}
+
+                            <span class="class-card-arrow">
+                                <i class="bi bi-arrow-right"></i>
+                            </span>
+
+                        {% endif %}
+
+                    </a>
+
+                {% endfor %}
+
+            </div>
+        </div>
+    </section>
+
+
+    <!-- POSTS -->
     <main class="posts-container">
 
         {% if posts %}
@@ -90,14 +110,10 @@
 
                     <article class="post" data-post-id="{{ post.id }}">
 
-                        <!-- =====================================
-                             POST IMAGE
-                        ====================================== -->
-
+                        <!-- POST IMAGE -->
                         {% with first_image=post.images.all|first %}
 
                             {% if first_image %}
-
                                 <div class="post-image-container">
 
                                     <img
@@ -109,63 +125,58 @@
                                     >
 
                                 </div>
-
                             {% endif %}
 
                         {% endwith %}
 
 
-                        <!-- =====================================
-                             POST BODY
-                        ====================================== -->
-
+                        <!-- POST BODY -->
                         <div class="post-body">
 
                             <div class="post-header">
-
                                 <span class="post-title">
                                     {{ post.title }}
                                 </span>
-
                             </div>
 
 
                             <div class="post-content">
 
+                                <!-- EXCERPT -->
                                 {% if post.excerpt %}
-
                                     <p class="excerpt">
                                         {{ post.excerpt }}
                                     </p>
-
                                 {% endif %}
 
 
-                                <!-- =========================
-                                     POST STATS
-                                ========================== -->
-
+                                <!-- POST STATISTICS -->
                                 <div class="post-statistics">
 
                                     <span class="post-stat">
                                         <i class="bi bi-eye"></i>
                                         {{ post.views_count }}
-                                        {% if post.views_count == 1 %}view{% else %}views{% endif %}
+                                        {% if post.views_count == 1 %}
+                                            view
+                                        {% else %}
+                                            views
+                                        {% endif %}
                                     </span>
 
                                     <span class="post-stat">
                                         <i class="bi bi-chat"></i>
                                         {{ post.comments_count }}
-                                        {% if post.comments_count == 1 %}comment{% else %}comments{% endif %}
+                                        {% if post.comments_count == 1 %}
+                                            comment
+                                        {% else %}
+                                            comments
+                                        {% endif %}
                                     </span>
 
                                 </div>
 
 
-                                <!-- =========================
-                                     META
-                                ========================== -->
-
+                                <!-- META -->
                                 <div class="meta">
 
                                     {% if post.author %}
@@ -185,19 +196,13 @@
                                 </div>
 
 
-                                <!-- =========================
-                                     POST REACTIONS
-                                ========================== -->
-
+                                <!-- POST REACTIONS -->
                                 <div class="post-reactions-wrap">
                                     {% include "blog/partials/_post_reactions.html" with post=post %}
                                 </div>
 
 
-                                <!-- =========================
-                                     POST ACTIONS
-                                ========================== -->
-
+                                <!-- POST ACTIONS -->
                                 <div class="post-actions">
 
                                     <a
@@ -209,7 +214,6 @@
                                     </a>
 
                                     {% if post.can_edit %}
-
                                         <a
                                             href="{% url 'blog:edit_post' post.pk %}"
                                             class="btn btn-quiet"
@@ -217,11 +221,9 @@
                                             <i class="bi bi-pencil"></i>
                                             Edit
                                         </a>
-
                                     {% endif %}
 
                                     {% if post.can_delete %}
-
                                         <form
                                             method="post"
                                             action="{% url 'blog:delete_post' post.pk %}"
@@ -229,6 +231,7 @@
                                             onsubmit="return confirm('Are you sure you want to delete this post?');"
                                         >
                                             {% csrf_token %}
+
                                             <button
                                                 type="submit"
                                                 class="btn btn-quiet-danger"
@@ -237,13 +240,11 @@
                                                 Delete
                                             </button>
                                         </form>
-
                                     {% endif %}
 
                                 </div>
 
                             </div>
-
                         </div>
 
                     </article>
@@ -255,18 +256,34 @@
 
         {% else %}
 
+            <!-- EMPTY STATE -->
             <div class="empty">
 
                 <div class="empty-icon">
                     <i class="bi bi-folder-x"></i>
                 </div>
 
-                <h3>No posts yet</h3>
+                {% if not selected_class %}
 
-                <p>
-                    There are currently no posts under
-                    <strong>{{ category.name }}</strong>.
-                </p>
+                    <h3>Select your class</h3>
+
+                    <p>
+                        Tap a class above to view
+                        <strong>{{ category.name }}</strong>
+                        learning resources.
+                    </p>
+
+                {% else %}
+
+                    <h3>No posts for this class yet</h3>
+
+                    <p>
+                        There are currently no posts under
+                        <strong>{{ category.name }}</strong>
+                        for the selected class.
+                    </p>
+
+                {% endif %}
 
             </div>
 
@@ -280,16 +297,18 @@
 <style>
 
 /* =========================================================
-   DESIGN TOKENS — monochrome, X-style
+   DESIGN TOKENS
 ========================================================= */
 
 .category-page {
     --cp-bg: #ffffff;
     --cp-surface: #ffffff;
     --cp-surface-alt: #f7f9f9;
+
     --cp-text: #0f1419;
     --cp-text-muted: #536471;
     --cp-text-soft: #71767b;
+
     --cp-border: #eff3f4;
     --cp-border-soft: #e1e8ed;
 
@@ -307,9 +326,11 @@
     --cp-bg: #000000;
     --cp-surface: #000000;
     --cp-surface-alt: #16181c;
+
     --cp-text: #e7e9ea;
     --cp-text-muted: #71767b;
     --cp-text-soft: #71767b;
+
     --cp-border: #2f3336;
     --cp-border-soft: #2f3336;
 
@@ -319,7 +340,7 @@
 
 
 /* =========================================================
-   GLOBAL RESET (scoped to page)
+   GLOBAL RESET
 ========================================================= */
 
 .category-page,
@@ -332,18 +353,31 @@
 .category-page {
     width: 100%;
     max-width: 100%;
+    min-width: 0;
+    min-height: 100vh;
+
     margin: 0;
     padding: 0;
+
     overflow-x: hidden;
+
     background: var(--cp-bg);
     color: var(--cp-text);
-    transition: background-color .2s var(--cp-ease),
-                color .2s var(--cp-ease);
-    min-height: 100vh;
-    min-width: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-                 Helvetica, Arial, sans-serif;
+
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        Helvetica,
+        Arial,
+        sans-serif;
+
     -webkit-font-smoothing: antialiased;
+
+    transition:
+        background-color .2s var(--cp-ease),
+        color .2s var(--cp-ease);
 }
 
 
@@ -354,10 +388,13 @@
 .category-header {
     width: 100%;
     padding: 40px 24px 28px;
+
     background: var(--cp-bg);
     border-bottom: 1px solid var(--cp-border);
-    transition: background-color .2s var(--cp-ease),
-                border-color .2s var(--cp-ease);
+
+    transition:
+        background-color .2s var(--cp-ease),
+        border-color .2s var(--cp-ease);
 }
 
 .category-header-inner {
@@ -371,6 +408,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
+
     gap: 12px;
     text-align: center;
 }
@@ -378,15 +416,18 @@
 .category-icon {
     width: 52px;
     height: 52px;
+
     display: flex;
     align-items: center;
     justify-content: center;
+
     border-radius: 50%;
+
     background: var(--cp-hover-strong);
     color: var(--cp-text);
+
     font-size: 22px;
     flex-shrink: 0;
-    transition: background-color .2s var(--cp-ease);
 }
 
 .category-heading {
@@ -396,15 +437,19 @@
 
 .category-header h1 {
     margin: 0 0 8px;
+
     font-size: clamp(1.35rem, 3vw, 1.85rem);
     line-height: 1.25;
+
     color: var(--cp-text);
+
     font-weight: 800;
     letter-spacing: -0.02em;
 }
 
 .category-header p {
     margin: 0;
+
     color: var(--cp-text-muted);
     font-size: .9rem;
     line-height: 1.5;
@@ -418,10 +463,9 @@
 .categories-section {
     width: 100%;
     padding: 18px 24px;
+
     background: var(--cp-bg);
     border-bottom: 1px solid var(--cp-border);
-    transition: background-color .2s var(--cp-ease),
-                border-color .2s var(--cp-ease);
 }
 
 .categories-inner {
@@ -434,10 +478,14 @@
     display: flex;
     align-items: center;
     gap: 8px;
+
     margin-bottom: 12px;
+
     font-size: .72rem;
     font-weight: 700;
+
     color: var(--cp-text-muted);
+
     text-transform: uppercase;
     letter-spacing: .06em;
 }
@@ -449,6 +497,7 @@
 
 .categories {
     width: 100%;
+
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
@@ -458,25 +507,32 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
+
     padding: 7px 14px;
+
     border-radius: 999px;
     border: 1px solid var(--cp-border);
+
     background: transparent;
     color: var(--cp-text-muted);
+
     text-decoration: none;
+
     font-size: .82rem;
     font-weight: 600;
     white-space: nowrap;
-    transition: background-color .15s var(--cp-ease),
-                color .15s var(--cp-ease),
-                border-color .15s var(--cp-ease);
+
+    transition:
+        background-color .15s var(--cp-ease),
+        color .15s var(--cp-ease),
+        border-color .15s var(--cp-ease);
+
     -webkit-tap-highlight-color: transparent;
 }
 
 .category-chip i {
     font-size: .85rem;
     color: var(--cp-text-muted);
-    transition: color .15s var(--cp-ease);
 }
 
 .category-chip:hover {
@@ -504,54 +560,149 @@
     border-color: var(--cp-border);
 }
 
-@media (max-width: 768px) {
-    .categories {
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: .4rem;
-        flex-wrap: nowrap;
-    }
 
-    .category-chip {
-        width: 100%;
-        justify-content: center;
-        padding: .5rem .25rem;
-        gap: .25rem;
-        font-size: .68rem;
-        border-radius: 8px;
-        overflow: hidden;
-        min-width: 0;
-    }
+/* =========================================================
+   CLASS SELECTION SECTION
+========================================================= */
 
-    .category-chip i {
-        font-size: .72rem;
-        flex-shrink: 0;
-    }
+.class-filter-section {
+    width: 100%;
+    padding: 18px 24px;
 
-    .category-chip span {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        min-width: 0;
-        max-width: 100%;
-    }
+    background: var(--cp-bg);
+    border-bottom: 1px solid var(--cp-border);
 }
 
-@media (max-width: 420px) {
-    .categories {
-        gap: .35rem;
-    }
+.class-filter-inner {
+    width: 100%;
+    max-width: 1600px;
+    margin: 0 auto;
+}
 
-    .category-chip {
-        padding: .45rem .2rem;
-        font-size: .62rem;
-        gap: .2rem;
-        border-radius: 7px;
-    }
+.class-filter-heading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 
-    .category-chip i {
-        font-size: .66rem;
-    }
+    margin-bottom: 14px;
+
+    color: var(--cp-text-muted);
+
+    font-size: .72rem;
+    font-weight: 700;
+
+    text-transform: uppercase;
+    letter-spacing: .06em;
+}
+
+.class-filter-heading i {
+    font-size: .95rem;
+}
+
+
+/* CLASS CARD GRID */
+
+.class-cards {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 10px;
+}
+
+
+/* INDIVIDUAL CLASS CARD */
+
+.class-card {
+    position: relative;
+
+    min-width: 0;
+    min-height: 54px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+
+    padding: 12px 14px;
+
+    background: var(--cp-surface);
+    border: 1px solid var(--cp-border-soft);
+    border-radius: 10px;
+
+    color: var(--cp-text);
+    text-decoration: none;
+
+    font-size: .85rem;
+    font-weight: 700;
+
+    transition:
+        background-color .18s ease,
+        border-color .18s ease,
+        color .18s ease,
+        transform .18s ease;
+
+    -webkit-tap-highlight-color: transparent;
+}
+
+.class-card:hover {
+    background: var(--cp-hover);
+    border-color: var(--cp-text-muted);
+    transform: translateY(-2px);
+}
+
+.class-card:active {
+    transform: scale(.98);
+}
+
+
+/* CLASS NAME */
+
+.class-card-name {
+    min-width: 0;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+/* UNSELECTED ARROW */
+
+.class-card-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: var(--cp-text-muted);
+    font-size: .8rem;
+
+    flex-shrink: 0;
+}
+
+
+/* SELECTED CHECKMARK */
+
+.class-card-check {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: var(--cp-bg);
+    font-size: .9rem;
+
+    flex-shrink: 0;
+}
+
+
+/* SELECTED CARD */
+
+.class-card.active {
+    background: var(--cp-text);
+    border-color: var(--cp-text);
+    color: var(--cp-bg);
+}
+
+.class-card.active:hover {
+    opacity: .9;
 }
 
 
@@ -562,21 +713,25 @@
 .posts-container {
     width: 100%;
     max-width: 1600px;
+
     margin: 0 auto;
     padding: 28px 24px 64px;
+
     min-width: 0;
 }
 
 
 /* =========================================================
-   POSTS GRID — 5 PER ROW ON DESKTOP
+   POSTS GRID
 ========================================================= */
 
 .posts {
     width: 100%;
     min-width: 0;
+
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));
+
     gap: 16px;
     align-items: stretch;
 }
@@ -589,12 +744,18 @@
 .post {
     width: 100%;
     min-width: 0;
+
     background: var(--cp-surface);
+
     border-radius: var(--cp-radius);
     overflow: hidden;
+
     border: 1px solid var(--cp-border);
-    transition: background-color .15s var(--cp-ease),
-                border-color .15s var(--cp-ease);
+
+    transition:
+        background-color .15s var(--cp-ease),
+        border-color .15s var(--cp-ease);
+
     display: flex;
     flex-direction: column;
 }
@@ -616,21 +777,28 @@
 
 .post-image-container {
     width: 100%;
+
     display: flex;
     justify-content: center;
     align-items: center;
+
     background: var(--cp-surface-alt);
     overflow: hidden;
+
     border-bottom: 1px solid var(--cp-border);
 }
 
 .post-image {
     display: block;
+
     width: 100%;
     height: 150px;
+
     object-fit: cover;
     object-position: center;
+
     margin: 0 auto;
+
     transition: opacity .15s var(--cp-ease);
 }
 
@@ -649,9 +817,12 @@
 
 .post-body {
     width: 100%;
+
     padding: 14px 14px 16px;
+
     display: flex;
     flex-direction: column;
+
     flex: 1 1 auto;
 }
 
@@ -669,15 +840,20 @@
 .post-title {
     flex: 1;
     min-width: 0;
+
     color: var(--cp-text);
+
     font-size: .95rem;
     font-weight: 700;
     line-height: 1.3;
     letter-spacing: -0.01em;
+
     overflow-wrap: anywhere;
+
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
+
     overflow: hidden;
 }
 
@@ -688,12 +864,17 @@
 
 .post-content {
     width: 100%;
+
     padding-top: 8px;
+
     color: var(--cp-text-muted);
+
     line-height: 1.5;
     font-size: .84rem;
+
     display: flex;
     flex-direction: column;
+
     flex: 1 1 auto;
 }
 
@@ -705,14 +886,19 @@
 .excerpt {
     margin: 0 0 10px;
     padding: 0;
+
     background: transparent;
     border: none;
+
     color: var(--cp-text-muted);
+
     line-height: 1.5;
     font-size: .82rem;
+
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
+
     overflow: hidden;
 }
 
@@ -725,17 +911,20 @@
     display: flex;
     flex-wrap: wrap;
     gap: 14px;
+
     margin-top: 4px;
     padding: 8px 0;
+
     border-top: 1px solid var(--cp-border);
-    transition: border-color .2s var(--cp-ease);
 }
 
 .post-stat {
     display: inline-flex;
     align-items: center;
     gap: 4px;
+
     color: var(--cp-text-muted);
+
     font-size: .72rem;
     font-weight: 500;
 }
@@ -747,14 +936,14 @@
 
 
 /* =========================================================
-   POST REACTIONS WRAP
+   POST REACTIONS
 ========================================================= */
 
 .post-reactions-wrap {
     margin-top: 6px;
     padding: 6px 0;
+
     border-top: 1px solid var(--cp-border);
-    transition: border-color .2s var(--cp-ease);
 }
 
 
@@ -767,8 +956,11 @@
     flex-wrap: wrap;
     align-items: center;
     gap: 12px;
+
     margin-top: 6px;
+
     color: var(--cp-text-muted);
+
     font-size: .72rem;
     font-weight: 500;
 }
@@ -777,7 +969,9 @@
     display: inline-flex;
     align-items: center;
     gap: 4px;
+
     min-width: 0;
+
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -798,16 +992,22 @@
     display: inline-flex;
     align-items: center;
     gap: 4px;
+
     color: var(--cp-text);
+
     font-weight: 600;
     font-size: .78rem;
+
     text-decoration: none;
+
     padding: 4px 0;
+
     transition: opacity .15s var(--cp-ease);
 }
 
 .read-more-link i {
     font-size: .72rem;
+
     transition: transform .15s var(--cp-ease);
 }
 
@@ -829,10 +1029,13 @@
     flex-wrap: nowrap;
     align-items: center;
     gap: 6px;
+
     margin-top: auto;
     padding-top: 12px;
+
     min-width: 0;
     overflow-x: auto;
+
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
 }
@@ -843,33 +1046,45 @@
 
 .delete-form {
     margin: 0;
+
     display: inline-flex;
+
     min-width: 0;
     flex: 0 0 auto;
 }
 
 
 /* =========================================================
-   BUTTONS — quiet, monochrome
+   BUTTONS
 ========================================================= */
 
 .btn {
     display: inline-flex;
     align-items: center;
     gap: 5px;
+
     padding: 5px 11px;
+
     border-radius: 999px;
+
     font-weight: 600;
     font-size: .72rem;
+
     text-decoration: none;
     cursor: pointer;
+
     border: 1px solid var(--cp-border);
-    transition: background-color .15s var(--cp-ease),
-                color .15s var(--cp-ease),
-                border-color .15s var(--cp-ease);
+
+    transition:
+        background-color .15s var(--cp-ease),
+        color .15s var(--cp-ease),
+        border-color .15s var(--cp-ease);
+
     -webkit-tap-highlight-color: transparent;
+
     white-space: nowrap;
     flex: 0 0 auto;
+
     background: transparent;
     color: var(--cp-text-muted);
 }
@@ -878,12 +1093,7 @@
     font-size: .74rem;
 }
 
-.btn-quiet:hover {
-    background: var(--cp-hover-strong);
-    color: var(--cp-text);
-    border-color: var(--cp-border-soft);
-}
-
+.btn-quiet:hover,
 .btn-quiet-danger:hover {
     background: var(--cp-hover-strong);
     color: var(--cp-text);
@@ -908,161 +1118,239 @@
 
 .empty {
     background: var(--cp-surface);
+
     padding: 56px 24px;
+
     text-align: center;
+
     border-radius: var(--cp-radius-lg);
     border: 1px solid var(--cp-border);
+
     color: var(--cp-text-muted);
-    transition: background-color .2s var(--cp-ease),
-                border-color .2s var(--cp-ease);
 }
 
 .empty-icon {
     width: 56px;
     height: 56px;
+
     margin: 0 auto 16px;
+
     display: flex;
     align-items: center;
     justify-content: center;
+
     border-radius: 50%;
+
     background: var(--cp-hover-strong);
     color: var(--cp-text-muted);
+
     font-size: 24px;
-    transition: background-color .2s var(--cp-ease);
 }
 
 .empty h3 {
     margin: 0 0 6px;
+
     color: var(--cp-text);
+
     font-size: 1.05rem;
     font-weight: 700;
 }
 
 .empty p {
     margin: 0;
+
     font-size: .88rem;
     line-height: 1.5;
 }
 
 
 /* =========================================================
-   LARGE TABLETS / SHRUNK DESKTOP — 4 PER ROW
+   LARGE DESKTOP / SMALL LAPTOP
 ========================================================= */
 
 @media (max-width: 1400px) {
+
     .posts {
         grid-template-columns: repeat(4, minmax(0, 1fr));
     }
+
     .post-image {
         height: 145px;
     }
+
 }
 
 
 /* =========================================================
-   TABLETS — 3 PER ROW
+   TABLETS
 ========================================================= */
 
 @media (max-width: 1100px) {
+
     .posts {
         grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 14px;
     }
+
     .post-image {
         height: 140px;
     }
+
     .post-title {
         font-size: .9rem;
     }
+
+    .class-cards {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
 }
 
 
 /* =========================================================
-   SMALL TABLETS / LARGE PHONES — 2 PER ROW
+   SMALL TABLETS
 ========================================================= */
 
 @media (max-width: 800px) {
+
     .category-header {
         padding: 28px 20px 22px;
     }
+
     .categories-section {
         padding: 16px 20px;
     }
+
+    .class-filter-section {
+        padding: 16px 20px;
+    }
+
     .posts-container {
         padding: 22px 20px 56px;
     }
+
     .posts {
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 12px;
     }
+
     .post-image {
         height: 160px;
     }
+
     .post-body {
         padding: 14px 14px 16px;
     }
+
     .post-title {
         font-size: .92rem;
     }
+
 }
 
 
 /* =========================================================
-   MOBILE — 2 PER ROW, COMPACT
+   MOBILE
 ========================================================= */
 
 @media (max-width: 600px) {
+
     .category-header {
         padding: 20px 14px 18px;
     }
+
     .category-icon {
         width: 44px;
         height: 44px;
         font-size: 20px;
     }
+
     .category-header h1 {
         font-size: 1.25rem;
     }
+
     .category-header p {
         font-size: .82rem;
     }
 
+
+    /* CATEGORY CHIPS */
+
     .categories-section {
-        padding: 12px 12px;
+        padding: 12px;
     }
+
     .section-label {
         font-size: .64rem;
         margin-bottom: 10px;
     }
+
     .categories {
         display: grid;
         grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: .4rem;
     }
+
     .category-chip {
         width: 100%;
+
         justify-content: center;
+
         padding: .5rem .25rem;
         gap: .25rem;
+
         font-size: .66rem;
         border-radius: 8px;
+
         min-width: 0;
         overflow: hidden;
     }
+
     .category-chip i {
         font-size: .7rem;
         flex-shrink: 0;
     }
+
     .category-chip span {
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+
         min-width: 0;
     }
+
+
+    /* CLASS CARDS */
+
+    .class-filter-section {
+        padding: 14px 12px;
+    }
+
+    .class-filter-heading {
+        font-size: .65rem;
+        margin-bottom: 10px;
+    }
+
+    .class-cards {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .class-card {
+        min-height: 46px;
+        padding: 10px 9px;
+
+        border-radius: 9px;
+        font-size: .75rem;
+    }
+
+
+    /* POSTS */
 
     .posts-container {
         padding: 16px 10px 48px;
     }
+
     .posts {
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: .6rem;
@@ -1071,43 +1359,55 @@
     .post {
         border-radius: 10px;
     }
+
     .post-image {
         height: 110px;
     }
+
     .post-body {
         padding: 10px 10px 12px;
     }
+
     .post-title {
         font-size: .78rem;
         line-height: 1.3;
+
         -webkit-line-clamp: 2;
     }
+
     .post-content {
         padding-top: 6px;
         font-size: .74rem;
         line-height: 1.5;
     }
+
     .excerpt {
         font-size: .7rem;
         margin-bottom: 8px;
+
         -webkit-line-clamp: 2;
     }
+
     .post-statistics {
         gap: 10px;
         padding: 6px 0;
     }
+
     .post-stat {
         font-size: .64rem;
         gap: 3px;
     }
+
     .post-stat i {
         font-size: .68rem;
     }
+
     .meta {
         gap: 8px;
         font-size: .62rem;
         margin-top: 4px;
     }
+
     .meta i {
         font-size: .66rem;
     }
@@ -1116,6 +1416,9 @@
         margin-top: 4px;
         padding: 4px 0;
     }
+
+
+    /* ACTIONS */
 
     .post-actions {
         gap: .3rem;
@@ -1127,8 +1430,10 @@
     .post-actions .delete-form .btn {
         width: auto;
         flex: 0 0 auto;
+
         white-space: nowrap;
         justify-content: center;
+
         font-size: .62rem;
         padding: 4px 8px;
         gap: 3px;
@@ -1142,6 +1447,7 @@
     .post-actions .btn i {
         font-size: .64rem;
     }
+
 }
 
 
@@ -1150,68 +1456,108 @@
 ========================================================= */
 
 @media (max-width: 380px) {
+
     .category-header {
         padding: 16px 12px 14px;
     }
+
     .category-icon {
         width: 40px;
         height: 40px;
         font-size: 18px;
     }
+
     .category-header h1 {
         font-size: 1.15rem;
     }
+
     .category-header p {
         font-size: .76rem;
     }
 
+
+    /* CATEGORY NAVIGATION */
+
     .categories-section {
-        padding: 10px 10px;
+        padding: 10px;
     }
+
     .categories {
         gap: .3rem;
     }
+
     .category-chip {
         padding: .45rem .2rem;
         font-size: .6rem;
         gap: .2rem;
         border-radius: 7px;
     }
+
     .category-chip i {
         font-size: .64rem;
     }
+
+
+    /* CLASS CARDS */
+
+    .class-filter-section {
+        padding: 12px 10px;
+    }
+
+    .class-cards {
+        gap: 6px;
+    }
+
+    .class-card {
+        min-height: 42px;
+        padding: 8px 7px;
+        font-size: .68rem;
+    }
+
+
+    /* POSTS */
 
     .posts-container {
         padding-left: 8px;
         padding-right: 8px;
     }
+
     .posts {
         gap: .5rem;
     }
+
     .post-image {
         height: 100px;
     }
+
     .post-body {
         padding: 9px 9px 11px;
     }
+
     .post-title {
         font-size: .72rem;
     }
+
     .post-content {
         font-size: .7rem;
     }
+
     .excerpt {
         font-size: .66rem;
     }
+
     .post-stat {
         font-size: .6rem;
     }
+
     .meta {
         font-size: .58rem;
     }
+
     .post-actions {
         gap: .25rem;
     }
+
     .post-actions .read-more-link,
     .post-actions .btn,
     .post-actions .delete-form .btn {
@@ -1219,10 +1565,12 @@
         padding: 3px 7px;
         gap: 3px;
     }
+
     .post-actions .read-more-link i,
     .post-actions .btn i {
         font-size: .6rem;
     }
+
 }
 
 
@@ -1231,12 +1579,14 @@
 ========================================================= */
 
 @media (prefers-reduced-motion: reduce) {
+
     .category-page *,
     .category-page *::before,
     .category-page *::after {
         transition: none !important;
         animation: none !important;
     }
+
 }
 
 </style>

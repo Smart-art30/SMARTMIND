@@ -873,10 +873,27 @@ def download_attachment(request, attachment_id):
 # ============================================================
 # CATEGORY POSTS
 # ============================================================
-
 def category_post(request, slug):
 
     category = get_object_or_404(Category, slug=slug)
+
+    # --------------------------------------------------
+    # GET THE CLASS MODEL FROM Post.target_classes
+    # --------------------------------------------------
+
+    class_model = Post._meta.get_field("target_classes").remote_field.model
+
+    class_choices = class_model.objects.all()
+
+    # --------------------------------------------------
+    # GET SELECTED CLASS FROM URL
+    # --------------------------------------------------
+
+    selected_class = request.GET.get("class", "").strip()
+
+    # --------------------------------------------------
+    # CATEGORY POSTS
+    # --------------------------------------------------
 
     posts_qs = (
         Post.objects
@@ -890,6 +907,35 @@ def category_post(request, slug):
         )
         .order_by("-created_at")
     )
+
+    # Initially show no posts until a class is selected.
+    if selected_class:
+
+        # Check that the selected class actually exists.
+        valid_class = class_model.objects.filter(
+            pk=selected_class
+        ).exists()
+
+        if valid_class:
+
+            posts_qs = (
+                posts_qs
+                .filter(target_classes__pk=selected_class)
+                .distinct()
+            )
+
+        else:
+
+            selected_class = ""
+            posts_qs = posts_qs.none()
+
+    else:
+
+        posts_qs = posts_qs.none()
+
+    # --------------------------------------------------
+    # PROCESS POSTS
+    # --------------------------------------------------
 
     posts = []
 
@@ -935,16 +981,26 @@ def category_post(request, slug):
 
         posts.append(post)
 
+    # --------------------------------------------------
+    # CATEGORIES
+    # --------------------------------------------------
+
     categories = (
         Category.objects
         .all()
         .order_by("name")
     )
 
+    # --------------------------------------------------
+    # CONTEXT
+    # --------------------------------------------------
+
     context = {
         "category": category,
         "posts": posts,
         "categories": categories,
+        "class_choices": class_choices,
+        "selected_class": selected_class,
         "reaction_choices": CommentReaction.REACTION_CHOICES,
     }
 
