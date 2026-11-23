@@ -677,7 +677,7 @@ def post_detail(request, slug):
             "likes",
         )
         .filter(
-            is_published=True,
+            status="published",
             # deleted_at__isnull=True,   # enable if you soft-delete
         ),
         slug=slug,
