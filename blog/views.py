@@ -254,7 +254,7 @@ class PostForm(forms.ModelForm):
             "video",
             "youtube_url",
             "tags",
-            "visible_to_all",
+            #"visible_to_all",
             "status",
             # ── NEW: monetization ──
             "is_monetized",
