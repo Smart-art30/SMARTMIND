@@ -661,7 +661,6 @@ def home(request):
 
     return render(request, "home.html", context)
 
-
 # ============================================================
 # POST DETAIL
 # ============================================================
@@ -676,6 +675,10 @@ def post_detail(request, slug):
             "images",
             "attachments",
             "likes",
+        )
+        .filter(
+            is_published=True,
+            # deleted_at__isnull=True,   # enable if you soft-delete
         ),
         slug=slug,
     )
@@ -693,12 +696,14 @@ def post_detail(request, slug):
     )
 
     # ---- Post likes ----
+    # Use the prefetched `likes` list instead of a fresh query.
+    prefetched_likes = list(post.likes.all())
     is_liked = (
         request.user.is_authenticated
-        and post.likes.filter(pk=request.user.pk).exists()
+        and any(like.pk == request.user.pk for like in prefetched_likes)
     )
 
-    likes_count = post.likes.count()
+    likes_count = len(prefetched_likes)
     views_count = post.view_count
 
     # ---- Post reactions ----
@@ -707,14 +712,36 @@ def post_detail(request, slug):
     # ---- Permissions ----
     can_edit = can_manage_post(request, post)
     can_delete = can_edit
+
+    # ---- Guest purchase access (anonymous users only) ----
+    guest_token = None
+    if not request.user.is_authenticated:
+        guest_token = _get_guest_purchase_token(
+            request,
+            post,
+            create=False,
+        )
+
     attachments = [
-        {"doc": doc, "locked": not user_can_download(request.user, doc)}
+        {
+            "doc": doc,
+            "locked": not user_can_download(
+                request.user,
+                doc,
+                guest_token=guest_token,
+            ),
+        }
         for doc in post.attachments.all()
     ]
+
     attachments_locked = (
         post.is_monetized
-        and post.attachment_price > 0
-        and not user_has_paid_for_post(request.user, post)
+        and (post.attachment_price or 0) > 0
+        and not user_has_paid_for_post(
+            request.user,
+            post,
+            guest_token=guest_token,
+        )
     )
 
     context = {
@@ -733,7 +760,6 @@ def post_detail(request, slug):
     }
 
     return render(request, "post_detail.html", context)
-
 
 # ============================================================
 # ATTACHMENT DOWNLOAD
@@ -765,17 +791,34 @@ def _read_file_bytes(file_field, extension=""):
     response.raise_for_status()
     return response.content
 
+from django.http import FileResponse, Http404
+from django.shortcuts import get_object_or_404, redirect
+from django.urls import reverse
+from django.utils.text import get_valid_filename
+import io
+
+
+def _finalize_download(response):
+    response["Cache-Control"] = "private, no-store"
+    response["X-Content-Type-Options"] = "nosniff"
+    response["Vary"] = "Cookie"
+    return response
+
 
 def download_attachment(request, attachment_id):
-    # --- Fetch attachment ---
+    # --- Fetch attachment (only for published, non-deleted posts) ---
     doc = get_object_or_404(
-        PostAttachment.objects.select_related("post"),
-        pk=attachment_id,
+    PostAttachment.objects.select_related("post").filter(
+        post__status="published",
+        # post__deleted_at__isnull=True,   # enable if you soft-delete
+    ),
+    pk=attachment_id,
+
     )
     post = doc.post
 
     # --- Permission check ---
-    # Private/class-restricted posts require authentication
+    # Private/class-restricted posts require authentication.
     if not post.visible_to_all:
         if not request.user.is_authenticated:
             raise Http404
@@ -792,15 +835,25 @@ def download_attachment(request, attachment_id):
             if not allowed:
                 raise Http404
 
-    # --- Paywall check ---
-    # Keep existing payment protection
-    if not user_can_download(request.user, doc):
+    # --- Paywall check (skip for superuser/staff viewers) ---
+    # Support both registered users and guest buyers.
+    guest_token = None
+    if not request.user.is_authenticated:
+        guest_token = _get_guest_purchase_token(request, post, create=False)
+
+    if not user_can_download(
+        request.user,
+        doc,
+        guest_token=guest_token,
+    ):
         return redirect(
             reverse("blog:paywall", kwargs={"slug": post.slug})
         )
 
     ext = (doc.extension or "").lower()
-    original = doc.original_name or f"document.{ext}"
+    safe_original = get_valid_filename(
+        doc.original_name or (f"document.{ext}" if ext else "document")
+    ) or "document"
 
     # Anonymous visitor watermark identification
     username = (
@@ -808,11 +861,18 @@ def download_attachment(request, attachment_id):
         if request.user.is_authenticated
         else "Champion"
     )
+    safe_username = (username or "Champion").strip()[:50] or "Champion"
+
+    # Cheap existence probe so all branches 404 cleanly if the file is gone.
+    try:
+        doc.file.open("rb").close()
+    except (FileNotFoundError, OSError):
+        raise Http404("File not available.")
 
     # ---------- PDF: watermark ----------
     if ext == "pdf":
         pdf_bytes = _read_file_bytes(doc.file, extension=ext)
-        label = f"SmartMind·{username}"
+        label = f"SmartMind·{safe_username}"
 
         marked = watermark_pdf(pdf_bytes, label=label)
 
@@ -822,21 +882,19 @@ def download_attachment(request, attachment_id):
         response = FileResponse(
             marked,
             as_attachment=True,
-            filename=original,
+            filename=safe_original,
             content_type="application/pdf",
         )
-
-        response["Cache-Control"] = "private, no-store"
-        return response
+        return _finalize_download(response)
 
     # ---------- TXT: header injection ----------
     if ext == "txt":
         body_bytes = _read_file_bytes(doc.file, extension=ext)
-        body = body_bytes.decode("utf-8", errors="ignore")
+        body = body_bytes.decode("utf-8", errors="replace")
 
         header = (
             f"----- SmartMind -----\n"
-            f"Downloaded by: {username}\n"
+            f"Downloaded by: {safe_username}\n"
             f"Source: {post.title}\n"
             f"---------------------\n\n"
         )
@@ -846,12 +904,10 @@ def download_attachment(request, attachment_id):
         response = FileResponse(
             io.BytesIO(data),
             as_attachment=True,
-            filename=original,
+            filename=safe_original,
             content_type="text/plain",
         )
-
-        response["Cache-Control"] = "private, no-store"
-        return response
+        return _finalize_download(response)
 
     # ---------- Fallback: stream through Django ----------
     try:
@@ -862,13 +918,10 @@ def download_attachment(request, attachment_id):
     response = FileResponse(
         file_handle,
         as_attachment=True,
-        filename=original,
+        filename=safe_original,
         content_type="application/octet-stream",
     )
-
-    response["Cache-Control"] = "private, no-store"
-    return response
-
+    return _finalize_download(response)
 
 # ============================================================
 # CATEGORY POSTS
@@ -1903,12 +1956,48 @@ def trending(request):
 
     return render(request, "trending.html", {"page": page})
 
-@login_required
+# ==========================================================
+# GUEST PURCHASE SESSION
+# ==========================================================
+
+def _get_guest_purchase_token(request, post, create=True):
+    """
+    Securely identify an anonymous buyer in their browser session.
+    Each post gets its own guest purchase token.
+    """
+
+    if request.user.is_authenticated:
+        return None
+
+    session_key = f"smartmind_guest_purchase_{post.pk}"
+
+    token = request.session.get(session_key)
+
+    if not token and create:
+        token = get_random_string(64)
+        request.session[session_key] = token
+
+    return token
+
+
+# ==========================================================
+# ATTACHMENT PAYWALL
+# ==========================================================
+
 def paywall(request, slug):
     post = get_object_or_404(Post, slug=slug)
 
-    if user_has_paid_for_post(request.user, post):
-        return redirect("blog:post_detail", slug=post.slug)
+    guest_token = _get_guest_purchase_token(request, post)
+
+    if user_has_paid_for_post(
+        request.user,
+        post,
+        guest_token=guest_token,
+    ):
+        return redirect(
+            "blog:post_attachments",
+            slug=post.slug,
+        )
 
     return render(request, "paywall.html", {
         "post": post,
@@ -1917,13 +2006,26 @@ def paywall(request, slug):
     })
 
 
-@login_required
+# ==========================================================
+# INITIALIZE M-PESA PAYMENT
+# ==========================================================
+
 @require_POST
 def initialize_mpesa_payment(request, slug):
+
     post = get_object_or_404(Post, slug=slug)
 
-    if user_has_paid_for_post(request.user, post):
-        return JsonResponse({"already_paid": True})
+    guest_token = _get_guest_purchase_token(request, post)
+
+    # Check whether this buyer has already paid.
+    if user_has_paid_for_post(
+        request.user,
+        post,
+        guest_token=guest_token,
+    ):
+        return JsonResponse({
+            "already_paid": True,
+        })
 
     if not post.is_monetized or post.attachment_price <= 0:
         return JsonResponse(
@@ -1931,10 +2033,15 @@ def initialize_mpesa_payment(request, slug):
             status=400,
         )
 
-    # M-Pesa Daraja accepts payments in Kenyan shillings.
+    # M-Pesa only accepts KES.
     if post.attachment_currency.upper() != "KES":
         return JsonResponse(
-            {"error": "This attachment must be priced in KES to accept M-Pesa."},
+            {
+                "error": (
+                    "This attachment must be priced in KES "
+                    "to accept M-Pesa."
+                )
+            },
             status=400,
         )
 
@@ -1942,7 +2049,11 @@ def initialize_mpesa_payment(request, slug):
 
     if amount != amount.to_integral_value():
         return JsonResponse(
-            {"error": "M-Pesa payments must be whole amounts in KES."},
+            {
+                "error": (
+                    "M-Pesa payments must be whole amounts in KES."
+                )
+            },
             status=400,
         )
 
@@ -1965,7 +2076,12 @@ def initialize_mpesa_payment(request, slug):
 
     if not result.get("success"):
         return JsonResponse(
-            {"error": result.get("error", "Could not initiate payment.")},
+            {
+                "error": result.get(
+                    "error",
+                    "Could not initiate payment.",
+                )
+            },
             status=400,
         )
 
@@ -1975,7 +2091,11 @@ def initialize_mpesa_payment(request, slug):
     merchant_id = data.get("MerchantRequestID")
 
     if not checkout_id:
-        logger.error("M-Pesa response missing CheckoutRequestID: %s", data)
+        logger.error(
+            "M-Pesa response missing CheckoutRequestID: %s",
+            data,
+        )
+
         return JsonResponse(
             {"error": "M-Pesa returned an invalid response."},
             status=502,
@@ -1985,8 +2105,15 @@ def initialize_mpesa_payment(request, slug):
 
     normalized_phone = normalize_mpesa_phone(phone)
 
+    # Registered users are linked to their account.
+    # Guests are linked to their session token.
     MpesaTransaction.objects.create(
-        user=request.user,
+        user=(
+            request.user
+            if request.user.is_authenticated
+            else None
+        ),
+        guest_token=guest_token,
         post=post,
         phone_number=normalized_phone,
         amount=amount,
@@ -1998,22 +2125,11 @@ def initialize_mpesa_payment(request, slug):
 
     return JsonResponse({
         "success": True,
-        "message": "STK Push sent. Enter your M-Pesa PIN on your phone.",
+        "message": (
+            "STK Push sent. Enter your M-Pesa PIN on your phone."
+        ),
         "checkout_request_id": checkout_id,
     })
-
-import json
-import logging
-from decimal import Decimal, ROUND_HALF_UP
-
-from django.db import transaction
-from django.http import HttpResponse
-from django.views.decorators.csrf import csrf_exempt
-
-# ... your existing imports (MpesaTransaction, AttachmentPurchase,
-#     CreatorSale, CreatorWallet, WalletLedgerEntry, etc.)
-
-logger = logging.getLogger(__name__)
 
 @csrf_exempt
 def mpesa_callback(request):
@@ -2021,7 +2137,7 @@ def mpesa_callback(request):
     Receive Daraja STK Push callback.
 
     Idempotent: retries cannot double-credit the creator or
-    create duplicate CreatorSale / WalletLedgerEntry rows.
+    create duplicate CreatorSale / WalletLedgerEntry / AttachmentPurchase rows.
     """
 
     raw_body = request.body.decode("utf-8", errors="replace")
@@ -2071,10 +2187,23 @@ def mpesa_callback(request):
     # Idempotency guard — only skip if we KNOW processing finished.
     # ------------------------------------------------------------
     if mpesa_transaction.status == "success":
-        # Was the sale actually written? If not, finish the job.
-        if CreatorSale.objects.filter(
+        # Was the sale AND the unlock actually written? If not, finish the job.
+        sale_exists = CreatorSale.objects.filter(
             mpesa_transaction=mpesa_transaction
-        ).exists():
+        ).exists()
+        purchase_exists = (
+            AttachmentPurchase.objects.filter(
+                **(
+                    {"user": mpesa_transaction.user,
+                     "post": mpesa_transaction.post}
+                    if mpesa_transaction.user_id
+                    else {"guest_token": mpesa_transaction.guest_token,
+                          "post": mpesa_transaction.post}
+                )
+            ).exists()
+        )
+
+        if sale_exists and purchase_exists:
             logger.info(
                 "Callback re-entered fully-processed MpesaTransaction %s — ignoring.",
                 checkout_id,
@@ -2082,9 +2211,11 @@ def mpesa_callback(request):
             return HttpResponse(status=200)
 
         logger.warning(
-            "MpesaTransaction %s is 'success' but CreatorSale is missing — "
-            "finishing missing records.",
+            "MpesaTransaction %s is 'success' but records are missing "
+            "(sale_exists=%s purchase_exists=%s) — finishing missing records.",
             checkout_id,
+            sale_exists,
+            purchase_exists,
         )
         # fall through and finish the job idempotently
 
@@ -2100,6 +2231,16 @@ def mpesa_callback(request):
     # Record unsuccessful payment.
     # ------------------------------------------------------------
     if result_code != "0":
+        # Never downgrade an already-successful transaction on retry.
+        if mpesa_transaction.status == "success":
+            logger.info(
+                "Ignoring failure callback for already-successful "
+                "MpesaTransaction %s (ResultCode=%s).",
+                checkout_id,
+                result_code,
+            )
+            return HttpResponse(status=200)
+
         mpesa_transaction.result_code = result_code
         mpesa_transaction.result_description = result_description
         mpesa_transaction.status = "failed"
@@ -2141,21 +2282,36 @@ def mpesa_callback(request):
         str(callback_phone or "")
     )
 
-    try:
-        received_amount = Decimal(str(callback_amount))
-    except (TypeError, ValueError):
-        received_amount = Decimal("0")
+    received_amount = None
+    if callback_amount is not None:
+        try:
+            received_amount = Decimal(str(callback_amount))
+        except (TypeError, ValueError, ArithmeticError):
+            logger.error(
+                "M-Pesa callback Amount could not be parsed. "
+                "CheckoutRequestID=%s raw_amount=%r",
+                checkout_id,
+                callback_amount,
+            )
+            received_amount = None
 
-    amount_matches = received_amount == mpesa_transaction.amount
-    phone_matches = normalized_callback_phone == mpesa_transaction.phone_number
+    amount_matches = (
+        received_amount is not None
+        and received_amount == mpesa_transaction.amount
+    )
+    phone_matches = (
+        normalized_callback_phone == mpesa_transaction.phone_number
+    )
 
     # ------------------------------------------------------------
     # Verification — reject if anything is off.
+    # Only downgrade when the transaction was still pending; never
+    # overwrite a transaction that already has a completed sale.
     # ------------------------------------------------------------
     if not amount_matches or not phone_matches or not receipt:
         logger.error(
             "M-Pesa verification mismatch. CheckoutRequestID=%s "
-            "expected_amount=%s got_amount=%s "
+            "expected_amount=%s got_amount=%r "
             "expected_phone=%s got_phone=%s receipt=%r "
             "amount_matches=%s phone_matches=%s receipt_present=%s",
             checkout_id,
@@ -2169,11 +2325,21 @@ def mpesa_callback(request):
             bool(receipt),
         )
 
-        mpesa_transaction.status = "failed"
-        mpesa_transaction.result_description = (
-            "Payment verification failed: amount, phone or receipt mismatch."
-        )
-        mpesa_transaction.save()
+        if mpesa_transaction.status == "pending":
+            mpesa_transaction.status = "failed"
+            mpesa_transaction.result_description = (
+                "Payment verification failed: amount, phone or receipt mismatch."
+            )
+            mpesa_transaction.save(
+                update_fields=["status", "result_description"]
+            )
+        else:
+            logger.warning(
+                "Not downgrading non-pending MpesaTransaction %s "
+                "(status=%s) after verification mismatch.",
+                checkout_id,
+                mpesa_transaction.status,
+            )
         return HttpResponse(status=200)
 
     # ------------------------------------------------------------
@@ -2193,8 +2359,31 @@ def mpesa_callback(request):
                CreatorSale.objects.filter(
                    mpesa_transaction=mpesa_transaction
                ).exists():
+                # Sale already written; still ensure the unlock exists.
+                if mpesa_transaction.user_id:
+                    purchase_lookup = {
+                        "user": mpesa_transaction.user,
+                        "post": mpesa_transaction.post,
+                    }
+                else:
+                    purchase_lookup = {
+                        "guest_token": mpesa_transaction.guest_token,
+                        "post": mpesa_transaction.post,
+                    }
+
+                AttachmentPurchase.objects.update_or_create(
+                    **purchase_lookup,
+                    defaults={
+                        "paid": True,
+                        "amount_paid": mpesa_transaction.amount,
+                        "currency": "KES",
+                        "payment_reference": receipt,
+                    },
+                )
+
                 logger.info(
-                    "Callback re-entered fully-processed MpesaTransaction %s inside lock.",
+                    "Callback re-entered fully-processed MpesaTransaction %s "
+                    "inside lock — ensured unlock.",
                     checkout_id,
                 )
                 return HttpResponse(status=200)
@@ -2208,6 +2397,8 @@ def mpesa_callback(request):
                 return HttpResponse(status=200)
 
             # Prevent receipt reuse on another transaction.
+            # (A DB-level unique constraint on mpesa_receipt_number is the
+            # real guard; this is a best-effort pre-check under the row lock.)
             duplicate_receipt = (
                 MpesaTransaction.objects
                 .filter(mpesa_receipt_number=receipt)
@@ -2221,7 +2412,13 @@ def mpesa_callback(request):
                 mpesa_transaction.result_description = (
                     "Duplicate M-Pesa receipt detected."
                 )
-                mpesa_transaction.save()
+                mpesa_transaction.save(
+                    update_fields=[
+                        "status",
+                        "result_code",
+                        "result_description",
+                    ]
+                )
                 logger.error(
                     "Duplicate M-Pesa receipt detected: %s", receipt
                 )
@@ -2234,10 +2431,21 @@ def mpesa_callback(request):
             mpesa_transaction.mpesa_receipt_number = receipt
             mpesa_transaction.save()
 
-            # Unlock attachment (idempotent).
+            # Unlock attachment for either a registered user or a guest.
+            # The purchase remains idempotent.
+            if mpesa_transaction.user_id:
+                purchase_lookup = {
+                    "user": mpesa_transaction.user,
+                    "post": mpesa_transaction.post,
+                }
+            else:
+                purchase_lookup = {
+                    "guest_token": mpesa_transaction.guest_token,
+                    "post": mpesa_transaction.post,
+                }
+
             AttachmentPurchase.objects.update_or_create(
-                user=mpesa_transaction.user,
-                post=mpesa_transaction.post,
+                **purchase_lookup,
                 defaults={
                     "paid": True,
                     "amount_paid": mpesa_transaction.amount,
@@ -2250,7 +2458,12 @@ def mpesa_callback(request):
             creator = mpesa_transaction.post.author
             gross_amount = mpesa_transaction.amount
 
-            if creator.pk == mpesa_transaction.user_id:
+            is_self_purchase = (
+                mpesa_transaction.user_id is not None
+                and creator.pk == mpesa_transaction.user_id
+            )
+
+            if is_self_purchase:
                 # Self-purchase: no earning, no commission.
                 creator_earning = Decimal("0.00")
                 platform_commission = Decimal("0.00")
@@ -2328,7 +2541,6 @@ def mpesa_callback(request):
     )
 
     return HttpResponse(status=200)
-
 
 
 @login_required
@@ -2826,22 +3038,32 @@ def creator_wallet(request):
         context
     )
 
-
-
-
-@login_required
 def mpesa_payment_status(request, slug):
-    """
-    Polled by the paywall page after STK Push.
-    Reports the state of the user's *most recent* M-Pesa attempt
-    for this post, and whether the AttachmentPurchase gate is open.
-    """
+
     post = get_object_or_404(Post, slug=slug)
 
-    # Gate first — if the purchase row is already paid, we're done.
-    purchase = AttachmentPurchase.objects.filter(
-        user=request.user, post=post, paid=True,
-    ).first()
+    guest_token = _get_guest_purchase_token(
+        request,
+        post,
+        create=False,
+    )
+
+    # Check confirmed purchase first.
+    if request.user.is_authenticated:
+        purchase = AttachmentPurchase.objects.filter(
+            user=request.user,
+            post=post,
+            paid=True,
+        ).first()
+    elif guest_token:
+        purchase = AttachmentPurchase.objects.filter(
+            guest_token=guest_token,
+            post=post,
+            paid=True,
+        ).first()
+    else:
+        purchase = None
+
     if purchase:
         return JsonResponse({
             "paid": True,
@@ -2849,27 +3071,49 @@ def mpesa_payment_status(request, slug):
             "receipt": purchase.payment_reference,
         })
 
-    txn = (
-        MpesaTransaction.objects
-        .filter(user=request.user, post=post)
-        .order_by("-created_at")
-        .first()
-    )
+    # Find the latest payment attempt for this buyer.
+    if request.user.is_authenticated:
+        txn = (
+            MpesaTransaction.objects
+            .filter(
+                user=request.user,
+                post=post,
+            )
+            .order_by("-created_at")
+            .first()
+        )
+
+    elif guest_token:
+        txn = (
+            MpesaTransaction.objects
+            .filter(
+                guest_token=guest_token,
+                post=post,
+            )
+            .order_by("-created_at")
+            .first()
+        )
+
+    else:
+        txn = None
 
     if not txn:
-        return JsonResponse({"paid": False, "status": "none"})
+        return JsonResponse({
+            "paid": False,
+            "status": "none",
+        })
 
     return JsonResponse({
         "paid": False,
-        "status": txn.status,                       # pending | success | failed
+        "status": txn.status,
         "receipt": txn.mpesa_receipt_number or "",
         "result_description": txn.result_description or "",
     })
 
-
-@login_required
 def post_attachments(request, slug):
-    """The page users land on after payment. Server-side gate enforced."""
+
+    """Display attachments after entitlement is verified."""
+
     post = get_object_or_404(
         Post.objects
         .select_related("author", "category", "school")
@@ -2877,28 +3121,66 @@ def post_attachments(request, slug):
         slug=slug,
     )
 
-    # Same access rules as post_detail, plus the paywall gate.
+    guest_token = _get_guest_purchase_token(
+        request,
+        post,
+        create=False,
+    )
+
+    # Private/class-restricted posts still require login.
     if not post.visible_to_all:
+
+        if not request.user.is_authenticated:
+            raise Http404
+
         if not request.user.is_superuser:
+
             role = getattr(request.user, "role", None)
-            is_staff_viewer = role in ("school_admin", "teacher")
+
+            is_staff_viewer = role in (
+                "school_admin",
+                "teacher",
+            )
+
             allowed = (
                 is_staff_viewer
-                or post.target_classes.filter(students=request.user).exists()
+                or post.target_classes.filter(
+                    students=request.user,
+                ).exists()
             )
+
             if not allowed:
                 raise Http404
 
-    if post.is_monetized and not user_has_paid_for_post(request.user, post):
-        return redirect("blog:paywall", slug=post.slug)
+    # Paid post requires a verified purchase.
+    if post.is_monetized and not user_has_paid_for_post(
+        request.user,
+        post,
+        guest_token=guest_token,
+    ):
+        return redirect(
+            "blog:paywall",
+            slug=post.slug,
+        )
 
     attachments = [
-        {"doc": doc, "locked": not user_can_download(request.user, doc)}
+        {
+            "doc": doc,
+            "locked": not user_can_download(
+                request.user,
+                doc,
+                guest_token=guest_token,
+            ),
+        }
         for doc in post.attachments.all()
     ]
 
-    return render(request, "post_attachments.html", {
-        "post": post,
-        "attachments": attachments,
-        "just_paid": request.GET.get("paid") == "1",
-    })
+    return render(
+        request,
+        "post_attachments.html",
+        {
+            "post": post,
+            "attachments": attachments,
+            "just_paid": request.GET.get("paid") == "1",
+        },
+    )

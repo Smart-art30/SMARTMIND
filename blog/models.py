@@ -225,39 +225,94 @@ class PostAttachment(models.Model):
             return f"{size / 1024:.1f} KB"
         return f"{size / (1024 * 1024):.2f} MB"
 
-
 # ==========================================================
 # ATTACHMENT PURCHASE
 # ==========================================================
 class AttachmentPurchase(models.Model):
+
+    # Registered buyers
     user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="attachment_purchases",
+        User,
+        on_delete=models.CASCADE,
+        related_name="attachment_purchases",
+        null=True,
+        blank=True,
     )
+
+    # Anonymous buyers are identified by their secure session token
+    guest_token = models.CharField(
+        max_length=128,
+        null=True,
+        blank=True,
+        db_index=True,
+    )
+
     post = models.ForeignKey(
-        Post, on_delete=models.CASCADE, related_name="attachment_purchases",
+        Post,
+        on_delete=models.CASCADE,
+        related_name="attachment_purchases",
     )
-    # THE GATE — do not remove.
+
+    # THE GATE — only verified payments unlock files
     paid = models.BooleanField(
         default=False,
         help_text="True only after the payment gateway confirms the charge.",
     )
-    amount_paid = models.DecimalField(max_digits=8, decimal_places=2)
-    currency = models.CharField(max_length=3, default="USD")
-    payment_reference = models.CharField(max_length=128, unique=True, blank=True)
+
+    amount_paid = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+    )
+
+    currency = models.CharField(
+        max_length=3,
+        default="KES",
+    )
+
+    payment_reference = models.CharField(
+        max_length=128,
+        unique=True,
+        blank=True,
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ("user", "post")
+
+        constraints = [
+            # A registered user can purchase a post only once.
+            models.UniqueConstraint(
+                fields=["user", "post"],
+                condition=Q(user__isnull=False),
+                name="unique_user_attachment_purchase",
+            ),
+
+            # A guest browser token can purchase a post only once.
+            models.UniqueConstraint(
+                fields=["guest_token", "post"],
+                condition=Q(guest_token__isnull=False),
+                name="unique_guest_attachment_purchase",
+            ),
+        ]
+
         indexes = [
-            # The access check filters on all three of these.
-            models.Index(fields=["user", "post", "paid"]),
+            models.Index(
+                fields=["user", "post", "paid"],
+            ),
+            models.Index(
+                fields=["guest_token", "post", "paid"],
+            ),
         ]
 
     def __str__(self):
+        buyer = self.user if self.user else "Guest"
         status = "PAID" if self.paid else "PENDING"
-        return f"{self.user} → {self.post} ({self.amount_paid} {self.currency}, {status})"
 
+        return (
+            f"{buyer} → {self.post} "
+            f"({self.amount_paid} {self.currency}, {status})"
+        )
 
 # ==========================================================
 # COMMENT
@@ -319,34 +374,102 @@ class PostReaction(models.Model):
     def __str__(self):
         return f"{self.user} → {self.reaction} on {self.post}"
 
-
 # ==========================================================
 # M-PESA TRANSACTION
 # ==========================================================
 class MpesaTransaction(models.Model):
-    STATUS_CHOICES = [("pending", "Pending"), ("success", "Success"), ("failed", "Failed")]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="mpesa_transactions")
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="mpesa_transactions")
+    STATUS_CHOICES = [
+        ("pending", "Pending"),
+        ("success", "Success"),
+        ("failed", "Failed"),
+    ]
+
+    # Registered buyer — nullable for guest purchases
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="mpesa_transactions",
+        null=True,
+        blank=True,
+    )
+
+    # Guest session identity
+    guest_token = models.CharField(
+        max_length=128,
+        null=True,
+        blank=True,
+        db_index=True,
+    )
+
+    post = models.ForeignKey(
+        Post,
+        on_delete=models.CASCADE,
+        related_name="mpesa_transactions",
+    )
+
     phone_number = models.CharField(max_length=15)
-    amount = models.DecimalField(max_digits=8, decimal_places=2)
-    currency = models.CharField(max_length=3, default="KES")
-    merchant_request_id = models.CharField(max_length=100, blank=True)
-    checkout_request_id = models.CharField(max_length=100, unique=True)
-    mpesa_receipt_number = models.CharField(max_length=30, blank=True)
-    result_code = models.CharField(max_length=10, blank=True)
+
+    amount = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+    )
+
+    currency = models.CharField(
+        max_length=3,
+        default="KES",
+    )
+
+    merchant_request_id = models.CharField(
+        max_length=100,
+        blank=True,
+    )
+
+    checkout_request_id = models.CharField(
+        max_length=100,
+        unique=True,
+    )
+
+    mpesa_receipt_number = models.CharField(
+        max_length=30,
+        blank=True,
+    )
+
+    result_code = models.CharField(
+        max_length=10,
+        blank=True,
+    )
+
     result_description = models.TextField(blank=True)
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="pending")
+
+    status = models.CharField(
+        max_length=10,
+        choices=STATUS_CHOICES,
+        default="pending",
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ["-created_at"]
-        indexes = [models.Index(fields=["user", "post", "status"])]
+
+        indexes = [
+            models.Index(
+                fields=["user", "post", "status"],
+            ),
+            models.Index(
+                fields=["guest_token", "post", "status"],
+            ),
+        ]
 
     def __str__(self):
-        return f"M-Pesa {self.checkout_request_id} ({self.status})"
+        buyer = self.user if self.user else "Guest"
 
+        return (
+            f"M-Pesa {self.checkout_request_id} "
+            f"({buyer}, {self.status})"
+        )
 
 # ==========================================================
 # CREATOR WALLETS
