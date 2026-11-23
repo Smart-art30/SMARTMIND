@@ -766,8 +766,6 @@ def _read_file_bytes(file_field, extension=""):
     return response.content
 
 
-
-@login_required
 def download_attachment(request, attachment_id):
     # --- Fetch attachment ---
     doc = get_object_or_404(
@@ -777,7 +775,11 @@ def download_attachment(request, attachment_id):
     post = doc.post
 
     # --- Permission check ---
+    # Private/class-restricted posts require authentication
     if not post.visible_to_all:
+        if not request.user.is_authenticated:
+            raise Http404
+
         if not request.user.is_superuser:
             role = getattr(request.user, "role", None)
             is_staff_viewer = role in ("school_admin", "teacher")
@@ -786,10 +788,12 @@ def download_attachment(request, attachment_id):
                 is_staff_viewer
                 or post.target_classes.filter(students=request.user).exists()
             )
+
             if not allowed:
                 raise Http404
 
     # --- Paywall check ---
+    # Keep existing payment protection
     if not user_can_download(request.user, doc):
         return redirect(
             reverse("blog:paywall", kwargs={"slug": post.slug})
@@ -798,13 +802,20 @@ def download_attachment(request, attachment_id):
     ext = (doc.extension or "").lower()
     original = doc.original_name or f"document.{ext}"
 
+    # Anonymous visitor watermark identification
+    username = (
+        request.user.username
+        if request.user.is_authenticated
+        else "Champion"
+    )
+
     # ---------- PDF: watermark ----------
     if ext == "pdf":
         pdf_bytes = _read_file_bytes(doc.file, extension=ext)
-        label = f"SmartMind · {request.user.username}"
+        label = f"SmartMind·{username}"
+
         marked = watermark_pdf(pdf_bytes, label=label)
 
-        # watermark_pdf already returns a BytesIO — don't wrap it again
         if isinstance(marked, (bytes, bytearray)):
             marked = io.BytesIO(marked)
 
@@ -814,6 +825,7 @@ def download_attachment(request, attachment_id):
             filename=original,
             content_type="application/pdf",
         )
+
         response["Cache-Control"] = "private, no-store"
         return response
 
@@ -824,10 +836,11 @@ def download_attachment(request, attachment_id):
 
         header = (
             f"----- SmartMind -----\n"
-            f"Downloaded by: {request.user.username}\n"
+            f"Downloaded by: {username}\n"
             f"Source: {post.title}\n"
             f"---------------------\n\n"
         )
+
         data = (header + body).encode("utf-8")
 
         response = FileResponse(
@@ -836,10 +849,11 @@ def download_attachment(request, attachment_id):
             filename=original,
             content_type="text/plain",
         )
+
         response["Cache-Control"] = "private, no-store"
         return response
 
-    # ---------- Fallback: stream through Django (never expose storage URL) ----------
+    # ---------- Fallback: stream through Django ----------
     try:
         file_handle = doc.file.open("rb")
     except (FileNotFoundError, OSError):
@@ -851,6 +865,7 @@ def download_attachment(request, attachment_id):
         filename=original,
         content_type="application/octet-stream",
     )
+
     response["Cache-Control"] = "private, no-store"
     return response
 

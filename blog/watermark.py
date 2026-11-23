@@ -26,7 +26,6 @@ def _make_watermark_page(text, width, height):
 
 
 def watermark_pdf(source, label="Smarmind"):
-    """Apply a diagonal watermark to every page of a PDF."""
     if isinstance(source, (bytes, bytearray)):
         reader = PdfReader(io.BytesIO(source))
     else:

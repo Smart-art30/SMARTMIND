@@ -3,16 +3,7 @@ from .models import AttachmentPurchase
 
 
 def user_has_paid_for_post(user, post) -> bool:
-    """
-    True if `user` is entitled to ALL paid attachments on `post`.
 
-    Entitlement rules (in order):
-      1. Post is not monetized, or has no positive price  → free for all.
-      2. Anonymous user                                    → not entitled.
-      3. Author / staff / superuser                        → entitled.
-      4. User has a VERIFIED (paid=True) purchase record   → entitled.
-      5. Otherwise                                         → not entitled.
-    """
     # 1. Free post → everyone entitled
     if not post.is_monetized or not post.attachment_price or post.attachment_price <= 0:
         return True
