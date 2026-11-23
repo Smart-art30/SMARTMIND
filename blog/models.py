@@ -74,7 +74,10 @@ class Post(models.Model):
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="draft")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    visible_to_all = models.BooleanField(default=False)
+    visible_to_all = models.BooleanField(
+    default=True,
+    help_text="When enabled, this post is publicly visible to everyone."
+)
     is_monetized = models.BooleanField(
         default=False,
         help_text="If enabled, attachments require payment before download.",
