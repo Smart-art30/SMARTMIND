@@ -5,3 +5,4 @@ hub/
 .env.save
 __pycache__/
 *.py[cod]
+.env.paystack-live-backup

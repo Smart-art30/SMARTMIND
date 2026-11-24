@@ -2536,7 +2536,7 @@ def paystack_callback(request):
             paystack_transaction = (
                 PaystackTransaction.objects
                 .select_for_update()
-                .select_related("post", "user")
+                #.select_related("post", "user")
                 .get(reference=reference)
             )
 
