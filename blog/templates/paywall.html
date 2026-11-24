@@ -4,13 +4,10 @@
 {% block title %}Unlock attachments | SmartMind{% endblock %}
 
 {% block content %}
-
 <div class="paywall-container">
-
   <div class="paywall-card">
 
     <div class="paywall-icon">🔐</div>
-
     <h1>Unlock attachments</h1>
 
     <p class="paywall-post-title">{{ post.title }}</p>
@@ -25,39 +22,47 @@
       <span class="info-icon">📎</span>
       <span>
         You are about to unlock all
-        <strong>{{ post.attachments.count }}
-        attachment{{ post.attachments.count|pluralize }}</strong>
+        <strong>
+          {{ post.attachments.count }}
+          attachment{{ post.attachments.count|pluralize }}
+        </strong>
         on this post.
       </span>
     </div>
 
-    <!-- M-Pesa phone number -->
-    <div class="phone-field">
-
-      <label for="phoneNumber">
-        M-Pesa phone number
+    <!-- Payment method selector -->
+    <div class="payment-methods">
+      <label class="method-option active" for="methodMpesa">
+        <input type="radio" name="payment_method" id="methodMpesa" value="mpesa" checked>
+        <span class="method-icon">📱</span>
+        <span class="method-name">M-Pesa</span>
+        <span class="method-description">STK Push</span>
       </label>
 
+      <label class="method-option" for="methodPaystack">
+        <input type="radio" name="payment_method" id="methodPaystack" value="paystack">
+        <span class="method-icon">💳</span>
+        <span class="method-name">Card / Paystack</span>
+        <span class="method-description">Card and other methods</span>
+      </label>
+    </div>
+
+    <!-- M-Pesa phone number -->
+    <div class="payment-fields" id="mpesaFields">
+      <label for="phoneNumber">M-Pesa phone number</label>
       <div class="phone-input-wrapper">
         <span class="phone-prefix">🇰🇪 +254</span>
-
-        <input
-          type="tel"
-          id="phoneNumber"
-          name="phone_number"
-          placeholder="0712345678"
-          autocomplete="tel"
-          inputmode="tel"
-          maxlength="13"
-          required
-        >
+        <input type="tel" id="phoneNumber" name="phone_number" placeholder="0712345678"
+               autocomplete="tel" inputmode="tel" maxlength="13">
       </div>
+      <small>Enter the phone number registered with M-Pesa. You will receive a payment request on your phone.</small>
+    </div>
 
-      <small>
-        Enter the phone number registered with M-Pesa.
-        You will receive a payment request on your phone.
-      </small>
-
+    <!-- Paystack email -->
+    <div class="payment-fields" id="paystackFields" hidden>
+      <label for="paystackEmail">Email address</label>
+      <input type="email" id="paystackEmail" name="email" placeholder="you@example.com" autocomplete="email">
+      <small>Enter your email address to continue to secure Paystack checkout.</small>
     </div>
 
     <button type="button" id="payBtn" class="btn-pay">
@@ -66,485 +71,510 @@
     </button>
 
     <p id="payStatus" class="paywall-status" aria-live="polite"></p>
-
-    <div class="secure-notice">
-      🔒 Secure M-Pesa payment
-    </div>
-
-    <a href="{% url 'blog:post_detail' post.slug %}" class="paywall-back">
-      ← Back to post
-    </a>
+    <div class="secure-notice">🔒 Secure payment</div>
+    <a href="{% url 'blog:post_detail' post.slug %}" class="paywall-back">← Back to post</a>
 
   </div>
-
 </div>
 
 <script>
 (function () {
-  const btn        = document.getElementById("payBtn");
-  const status     = document.getElementById("payStatus");
+  "use strict";
+
+  const btn = document.getElementById("payBtn");
+  const status = document.getElementById("payStatus");
   const phoneInput = document.getElementById("phoneNumber");
+  const emailInput = document.getElementById("paystackEmail");
+  const mpesaFields = document.getElementById("mpesaFields");
+  const paystackFields = document.getElementById("paystackFields");
+  const methodMpesa = document.getElementById("methodMpesa");
+  const methodPaystack = document.getElementById("methodPaystack");
 
-  if (!btn || !phoneInput || !status) return;
+  if (!btn || !status || !phoneInput || !emailInput || !mpesaFields ||
+      !paystackFields || !methodMpesa || !methodPaystack) return;
 
-  const STATUS_URL  = "{% url 'blog:mpesa_payment_status' post.slug %}";
-  const SUCCESS_URL = "{% url 'blog:post_attachments' post.slug %}?paid=1";
-  const PAY_LABEL   = "Pay {{ currency }} {{ price }}";
-
-  const POLL_MS   = 3000;   // check every 3 seconds
-  const MAX_TRIES = 40;     // give up after ~2 minutes
+  const MPESA_URL    = "{% url 'blog:initialize_mpesa_payment' post.slug %}";
+  const PAYSTACK_URL = "{% url 'blog:initialize_paystack_payment' post.slug %}";
+  const STATUS_URL   = "{% url 'blog:mpesa_payment_status' post.slug %}";
+  const SUCCESS_URL  = "{% url 'blog:post_attachments' post.slug %}?paid=1";
+  const PAY_LABEL    = "Pay {{ currency }} {{ price }}";
+  const POLL_MS      = 3000;
+  const MAX_TRIES    = 40;
 
   let pollTimer = null;
   let attempts  = 0;
 
-  function setStatus(msg, cls) {
-    status.textContent = msg;
-    status.className = "paywall-status " + (cls || "");
-  }
+  const userIsAuthenticated =
+    {% if request.user.is_authenticated %}true{% else %}false{% endif %};
 
-  function stopPolling() {
-    if (pollTimer) {
-      clearInterval(pollTimer);
-      pollTimer = null;
-    }
+  function setStatus(message, type) {
+    status.textContent = message;
+    status.className = "paywall-status " + (type || "");
   }
+  function setButtonLabel(label) {
+    btn.innerHTML = "";
+    const s = document.createElement("span");
+    s.textContent = label;
+    btn.appendChild(s);
+  }
+  function setButtonBusy(label) { btn.disabled = true; setButtonLabel(label); }
+  function enableButton(label)  { btn.disabled = false; setButtonLabel(label || PAY_LABEL); }
+  function stopPolling() { if (pollTimer) { clearInterval(pollTimer); pollTimer = null; } }
 
   function goToAttachments() {
     stopPolling();
     setStatus("Payment confirmed! Opening attachments…", "success");
-    btn.textContent = "Payment complete ✓";
-    // Small delay so the user actually sees the confirmation.
-    setTimeout(function () {
-      window.location.href = SUCCESS_URL;
-    }, 600);
+    setButtonBusy("Payment complete ✓");
+    setTimeout(function () { window.location.href = SUCCESS_URL; }, 600);
   }
+
+  function updatePaymentMethod() {
+    const useMpesa = methodMpesa.checked;
+    mpesaFields.hidden = !useMpesa;
+    paystackFields.hidden = useMpesa;
+    phoneInput.required = useMpesa;
+    emailInput.required = !useMpesa && !userIsAuthenticated;
+    document.querySelectorAll(".method-option").forEach(function (el) { el.classList.remove("active"); });
+    (useMpesa ? methodMpesa : methodPaystack).closest(".method-option").classList.add("active");
+    setStatus("", "");
+    enableButton(PAY_LABEL);
+  }
+  methodMpesa.addEventListener("change", updatePaymentMethod);
+  methodPaystack.addEventListener("change", updatePaymentMethod);
+  updatePaymentMethod();
 
   async function pollPaymentStatus() {
     attempts++;
-
     if (attempts > MAX_TRIES) {
       stopPolling();
-      setStatus(
-        "Payment is taking longer than usual. Check your M-Pesa SMS, " +
-        "then refresh this page — access unlocks automatically once confirmed.",
-        "error"
-      );
-      btn.disabled = false;
-      btn.textContent = "Retry payment";
+      setStatus("Payment is taking longer than usual. Check your M-Pesa SMS, then refresh this page. Access unlocks automatically once confirmed.", "error");
+      enableButton("Retry payment");
       return;
     }
-
     try {
-      const resp = await fetch(STATUS_URL, {
-        headers: { "X-Requested-With": "XMLHttpRequest" },
-        cache: "no-store",
-      });
-      const data = await resp.json();
-
-      // Gate is open → redirect immediately.
-      if (data.paid) {
-        goToAttachments();
-        return;
-      }
-
-      // Payment explicitly failed / cancelled.
+      const r = await fetch(STATUS_URL, { headers: { "X-Requested-With": "XMLHttpRequest" }, cache: "no-store" });
+      const data = await r.json();
+      if (data.paid) { goToAttachments(); return; }
       if (data.status === "failed") {
         stopPolling();
-        setStatus(
-          data.result_description ||
-            "Payment failed or was cancelled. Please try again.",
-          "error"
-        );
-        btn.disabled = false;
-        btn.textContent = PAY_LABEL;
+        setStatus(data.result_description || "Payment failed or was cancelled. Please try again.", "error");
+        enableButton(PAY_LABEL);
         return;
       }
-
-      // Callback landed but the purchase row is still catching up.
       if (data.status === "success" && !data.paid) {
         setStatus("Payment received — unlocking your attachments…", "loading");
         return;
       }
-
-      // Still pending — keep waiting.
-      setStatus(
-        "Waiting for M-Pesa confirmation… Enter your PIN on your phone.",
-        "loading"
-      );
-    } catch (_) {
-      // Transient network error — keep polling silently.
-    }
+      setStatus("Waiting for M-Pesa confirmation… Enter your PIN on your phone.", "loading");
+    } catch (e) { /* keep polling */ }
   }
 
-  btn.addEventListener("click", async function () {
-
+  async function startMpesaPayment() {
     const phone = phoneInput.value.trim();
-
-    if (!phone) {
-      setStatus("Please enter your M-Pesa phone number.", "error");
-      phoneInput.focus();
-      return;
-    }
-
+    if (!phone) { setStatus("Please enter your M-Pesa phone number.", "error"); phoneInput.focus(); return; }
     if (!/^(?:0[17]\d{8}|\+?254[17]\d{8})$/.test(phone)) {
       setStatus("Enter a valid Kenyan M-Pesa number, e.g. 0712345678.", "error");
       phoneInput.focus();
       return;
     }
-
-    btn.disabled = true;
+    setButtonBusy("Connecting to M-Pesa…");
     setStatus("Connecting to M-Pesa. Please wait…", "loading");
-
-    const formData = new FormData();
-    formData.append("phone_number", phone);
-
+    const fd = new FormData(); fd.append("phone_number", phone);
     try {
-      const resp = await fetch(
-        "{% url 'blog:initialize_mpesa_payment' post.slug %}",
-        {
-          method: "POST",
-          headers: {
-            "X-CSRFToken": "{{ csrf_token }}",
-            "X-Requested-With": "XMLHttpRequest",
-          },
-          body: formData,
-        }
-      );
-
-      const data = await resp.json();
-
-      // Already paid from a previous attempt → straight in.
-      if (data.already_paid) {
-        goToAttachments();
+      const r = await fetch(MPESA_URL, {
+        method: "POST",
+        headers: { "X-CSRFToken": "{{ csrf_token }}", "X-Requested-With": "XMLHttpRequest" },
+        body: fd
+      });
+      const data = await r.json();
+      if (data.already_paid) { goToAttachments(); return; }
+      if (!r.ok || !data.success) {
+        setStatus(data.error || "Could not initiate M-Pesa payment. Please try again.", "error");
+        enableButton(PAY_LABEL);
         return;
       }
-
-      if (!resp.ok || !data.success) {
-        setStatus(
-          data.error || "Could not initiate payment. Please try again.",
-          "error"
-        );
-        btn.disabled = false;
-        return;
-      }
-
-      setStatus(
-        "STK Push sent! Check your phone and enter your M-Pesa PIN.",
-        "success"
-      );
-      btn.textContent = "Waiting for payment…";
-
-      // ⬇️ START POLLING — this is what unlocks + redirects.
+      setStatus("STK Push sent! Check your phone and enter your M-Pesa PIN.", "success");
+      setButtonBusy("Waiting for payment…");
       attempts = 0;
       stopPolling();
       pollTimer = setInterval(pollPaymentStatus, POLL_MS);
-
-    } catch (error) {
-      setStatus(
-        "Network error. Please check your internet connection and try again.",
-        "error"
-      );
-      btn.disabled = false;
+    } catch (e) {
+      setStatus("Network error. Please check your internet connection and try again.", "error");
+      enableButton(PAY_LABEL);
     }
+  }
 
+  async function startPaystackPayment() {
+    const email = emailInput.value.trim();
+    if (!email && !userIsAuthenticated) { setStatus("Please enter your email address.", "error"); emailInput.focus(); return; }
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setStatus("Please enter a valid email address.", "error"); emailInput.focus(); return;
+    }
+    setButtonBusy("Connecting to Paystack…");
+    setStatus("Preparing secure Paystack checkout…", "loading");
+    const fd = new FormData(); fd.append("email", email);
+    try {
+      const r = await fetch(PAYSTACK_URL, {
+        method: "POST",
+        headers: { "X-CSRFToken": "{{ csrf_token }}", "X-Requested-With": "XMLHttpRequest" },
+        body: fd
+      });
+      const data = await r.json();
+      if (data.already_paid) { goToAttachments(); return; }
+      if (!r.ok || !data.success) {
+        setStatus(data.error || "Could not initialize Paystack payment. Please try again.", "error");
+        enableButton(PAY_LABEL);
+        return;
+      }
+      if (!data.authorization_url) {
+        setStatus("Paystack did not return a checkout link. Please try again.", "error");
+        enableButton(PAY_LABEL);
+        return;
+      }
+      setStatus("Redirecting to secure Paystack checkout…", "success");
+      window.location.href = data.authorization_url;
+    } catch (e) {
+      setStatus("Network error. Please check your internet connection and try again.", "error");
+      enableButton(PAY_LABEL);
+    }
+  }
+
+  btn.addEventListener("click", function () {
+    if (btn.disabled) return;
+    if (methodPaystack.checked) startPaystackPayment();
+    else startMpesaPayment();
   });
 
-  // Clean up if the user navigates away mid-wait.
   window.addEventListener("beforeunload", stopPolling);
-
 })();
 </script>
 
 <style>
+/* ============================================================
+   PAYWALL — inherits theme tokens from base.html.
+   Flips automatically when base toggles
+   <html data-theme="light|dark">.
+   ============================================================ */
 
-/* Main page */
 .paywall-container {
   width: 100%;
   max-width: 560px;
   margin: 45px auto;
   padding: 15px;
   box-sizing: border-box;
-  color: #111827;
+  color: var(--text);
 }
 
-/* Payment card */
+/* Card */
 .paywall-card {
-  background: #ffffff !important;
-  color: #111827 !important;
-  border: 1px solid #d1d5db;
-  border-radius: 18px;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border-solid);
+  border-radius: var(--radius, 16px);
   padding: 32px;
   text-align: center;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.09);
+  box-shadow: var(--shadow);
+  transition: background-color .2s var(--ease),
+              color .2s var(--ease),
+              border-color .2s var(--ease),
+              box-shadow .2s var(--ease);
 }
 
-/* Lock icon */
-.paywall-icon {
-  font-size: 42px;
-  margin-bottom: 12px;
-}
+.paywall-icon { font-size: 42px; margin-bottom: 12px; }
 
-/* Heading */
 .paywall-card h1 {
-  color: #111827 !important;
+  color: var(--text);
   font-size: 27px;
   font-weight: 800;
   margin: 0 0 14px;
 }
 
-/* Post title */
 .paywall-post-title {
-  color: #374151 !important;
+  color: var(--muted);
   font-size: 16px;
   font-weight: 600;
   margin-bottom: 25px;
   overflow-wrap: anywhere;
 }
 
-/* Price */
+/* Price box */
 .paywall-price {
-  background: #ecfdf5 !important;
-  border: 1px solid #86efac;
+  background: var(--surface-alt);
+  border: 1px solid var(--border-solid);
   border-radius: 14px;
   padding: 22px 15px;
   margin-bottom: 22px;
   display: flex;
   flex-direction: column;
   gap: 7px;
+  transition: background-color .2s var(--ease),
+              border-color .2s var(--ease);
 }
 
 .price-label {
-  color: #166534 !important;
+  color: var(--muted);
   font-size: 13px;
   font-weight: 800;
   letter-spacing: 1px;
 }
 
 .paywall-price .amount {
-  color: #14532d !important;
+  color: var(--text);
   font-size: 36px;
   font-weight: 900;
 }
 
 .payment-type {
-  color: #166534 !important;
+  color: var(--muted);
   font-size: 14px;
 }
 
-/* Information */
+/* Info banner */
 .paywall-info {
   display: flex;
   align-items: center;
   gap: 12px;
   text-align: left;
   padding: 15px;
-  background: #eff6ff !important;
-  border: 1px solid #bfdbfe;
+  background: var(--surface-alt);
+  border: 1px solid var(--border-solid);
   border-radius: 10px;
-  color: #1e3a8a !important;
+  color: var(--text);
   font-size: 14px;
   line-height: 1.6;
   margin-bottom: 25px;
+  transition: background-color .2s var(--ease),
+              border-color .2s var(--ease),
+              color .2s var(--ease);
 }
 
-.info-icon {
-  font-size: 25px;
+.info-icon { font-size: 25px; }
+
+/* Payment method selector */
+.payment-methods {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 24px;
 }
 
-/* Phone field */
-.phone-field {
+.method-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 15px 10px;
+  border: 2px solid var(--border-solid);
+  border-radius: 12px;
+  cursor: pointer;
+  background: var(--surface);
+  transition: border-color .2s var(--ease),
+              background-color .2s var(--ease),
+              color .2s var(--ease);
+}
+
+.method-option:hover {
+  border-color: var(--text);
+  background: var(--hover-strong);
+}
+
+.method-option.active {
+  border-color: var(--text);
+  background: var(--hover-strong);
+}
+
+.method-option input {
+  accent-color: var(--text);
+  margin: 0 0 3px;
+}
+
+.method-icon { font-size: 25px; }
+
+.method-name {
+  color: var(--text);
+  font-weight: 800;
+  font-size: 14px;
+}
+
+.method-description {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* Payment fields */
+.payment-fields {
   text-align: left;
   margin-bottom: 24px;
 }
 
-.phone-field label {
+.payment-fields[hidden] { display: none !important; }
+
+.payment-fields label {
   display: block;
-  color: #111827 !important;
+  color: var(--text);
   font-size: 16px;
   font-weight: 800;
   margin-bottom: 10px;
+  transition: color .2s var(--ease);
 }
 
-/* Phone input wrapper */
+.payment-fields small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+  margin-top: 9px;
+}
+
+/* Phone wrapper */
 .phone-input-wrapper {
   display: flex;
   align-items: center;
   width: 100%;
   min-height: 58px;
-  background: #ffffff !important;
-  border: 2px solid #6b7280;
+  background: var(--bg);
+  border: 2px solid var(--border-solid);
   border-radius: 10px;
   overflow: hidden;
   box-sizing: border-box;
+  transition: background-color .2s var(--ease),
+              border-color .2s var(--ease);
 }
 
 .phone-prefix {
-  color: #111827 !important;
-  background: #f3f4f6 !important;
+  color: var(--text);
+  background: var(--surface-alt);
   padding: 0 12px;
   height: 54px;
   display: flex;
   align-items: center;
   font-size: 15px;
   font-weight: 800;
-  border-right: 1px solid #d1d5db;
+  border-right: 1px solid var(--border-solid);
   white-space: nowrap;
+  transition: background-color .2s var(--ease),
+              color .2s var(--ease),
+              border-color .2s var(--ease);
 }
 
-.phone-field input {
-  display: block !important;
-  flex: 1;
+/* Inputs — scoped to beat global input rules from base/Bootstrap */
+.paywall-container .payment-fields input,
+.paywall-container .payment-fields .phone-input-wrapper input {
+  display: block;
   min-width: 0;
   width: 100%;
   height: 54px;
   padding: 12px;
   box-sizing: border-box;
-
-  background-color: #ffffff !important;
-  color: #111827 !important;
-  -webkit-text-fill-color: #111827 !important;
-
-  font-size: 19px !important;
-  font-weight: 700 !important;
-  letter-spacing: 1px;
-
-  border: none !important;
-  outline: none !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-  caret-color: #16a34a;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-text-fill-color: var(--text);
+  font-size: 17px;
+  font-weight: 600;
+  border: 2px solid var(--border-solid);
+  border-radius: 10px;
+  outline: none;
+  caret-color: var(--text);
+  transition: background-color .2s var(--ease),
+              color .2s var(--ease),
+              border-color .2s var(--ease),
+              box-shadow .2s var(--ease);
 }
 
-.phone-field input::placeholder {
-  color: #9ca3af !important;
-  -webkit-text-fill-color: #9ca3af !important;
+.phone-input-wrapper input {
+  flex: 1;
+  border: none;
+  border-radius: 0;
+  letter-spacing: 1px;
+}
+
+.payment-fields input::placeholder {
+  color: var(--soft, var(--muted));
+  -webkit-text-fill-color: var(--soft, var(--muted));
   opacity: 1;
   font-weight: 400;
 }
 
+.payment-fields input:focus,
 .phone-input-wrapper:focus-within {
-  border-color: #16a34a;
-  box-shadow: 0 0 0 3px rgba(22,163,74,0.15);
+  border-color: var(--text);
+  box-shadow: 0 0 0 3px var(--hover-strong);
 }
 
-.phone-field small {
-  display: block;
-  color: #374151 !important;
-  font-size: 13px;
-  line-height: 1.6;
-  margin-top: 9px;
-}
-
-/* Payment button */
+/* Pay button */
 .btn-pay {
+  width: 100%;
+  min-height: 56px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: 100%;
-  min-height: 56px;
-  padding: 15px 22px;
-
-  background: #15803d !important;
-  color: #ffffff !important;
-
-  border: 1px solid #15803d;
+  gap: 12px;
+  padding: 15px 20px;
+  border: 1px solid var(--text);
   border-radius: 10px;
-
+  background: var(--text);
+  color: var(--bg);
   font-size: 17px;
   font-weight: 800;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background-color .2s var(--ease),
+              color .2s var(--ease),
+              border-color .2s var(--ease),
+              opacity .2s var(--ease);
 }
 
 .btn-pay:hover:not(:disabled) {
-  background: #166534 !important;
+  background: var(--primary-hover);
+  border-color: var(--primary-hover);
 }
 
 .btn-pay:disabled {
-  background: #6b7280 !important;
-  opacity: 0.75;
+  opacity: 0.55;
   cursor: not-allowed;
 }
 
-/* Status messages */
 .paywall-status {
-  display: block;
-  min-height: 20px;
-  margin-top: 16px;
-  padding: 0;
+  min-height: 22px;
+  margin: 15px 0;
   font-size: 14px;
-  font-weight: 700;
-  line-height: 1.6;
-  overflow-wrap: anywhere;
+  line-height: 1.5;
 }
 
-.paywall-status.error {
-  color: #b91c1c !important;
-  background: #fef2f2;
-  padding: 12px;
-  border-radius: 8px;
-}
+.paywall-status.error   { color: #dc2626; }
+.paywall-status.success { color: #16a34a; }
+.paywall-status.loading { color: var(--muted); }
 
-.paywall-status.success {
-  color: #166534 !important;
-  background: #dcfce7;
-  padding: 12px;
-  border-radius: 8px;
-}
+[data-theme="dark"] .paywall-status.error   { color: #f87171; }
+[data-theme="dark"] .paywall-status.success { color: #4ade80; }
 
-.paywall-status.loading {
-  color: #1d4ed8 !important;
-}
-
-/* Security notice */
 .secure-notice {
-  color: #166534 !important;
+  color: var(--muted);
   font-size: 13px;
-  font-weight: 700;
-  margin-top: 20px;
+  margin-top: 18px;
 }
 
-/* Back link */
 .paywall-back {
   display: inline-block;
   margin-top: 22px;
-  color: #1d4ed8 !important;
+  color: var(--text);
   font-size: 14px;
-  font-weight: 700;
-  text-decoration: underline;
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color .2s var(--ease);
 }
 
-/* Mobile */
+.paywall-back:hover {
+  border-bottom-color: var(--text);
+}
+
 @media (max-width: 480px) {
-
-  .paywall-container {
-    margin: 15px auto;
-    padding: 10px;
-  }
-
-  .paywall-card {
-    padding: 22px 17px;
-  }
-
-  .paywall-card h1 {
-    font-size: 23px;
-  }
-
-  .paywall-price .amount {
-    font-size: 31px;
-  }
-
-  .phone-field input {
-    font-size: 17px !important;
-  }
-
-  .phone-prefix {
-    padding: 0 8px;
-    font-size: 13px;
-  }
-
+  .paywall-container { margin: 20px auto; padding: 10px; }
+  .paywall-card { padding: 22px 17px; }
+  .paywall-card h1 { font-size: 23px; }
+  .paywall-price .amount { font-size: 31px; }
+  .payment-methods { gap: 8px; }
+  .method-option { padding: 12px 6px; }
 }
-
 </style>
-
 {% endblock %}

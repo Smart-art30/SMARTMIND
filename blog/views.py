@@ -16,7 +16,8 @@ from django import forms
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
+from django.core.validators import validate_email
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Count, F, Q, Prefetch, Sum
@@ -45,6 +46,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import (
     require_http_methods,
     require_POST,
+    require_GET,
 )
 from django_ckeditor_5.widgets import CKEditor5Widget
 
@@ -59,12 +61,18 @@ from .models import (
     PostReaction,
     AttachmentPurchase,
     MpesaTransaction,
+    PaystackTransaction,
     CreatorWallet,
     CreatorSale,
     WalletLedgerEntry,
     CreatorPayout,
 )
-from .payments import initiate_stk_push
+from .payments import (
+    initiate_stk_push,
+    initiate_paystack_payment,
+    verify_paystack_payment,
+
+)
 from .watermark import watermark_pdf
 from .widgets import MultipleFileInput
 logger = logging.getLogger(__name__)
@@ -2025,6 +2033,7 @@ def initialize_mpesa_payment(request, slug):
     ):
         return JsonResponse({
             "already_paid": True,
+            "already_paid": True,
         })
 
     if not post.is_monetized or post.attachment_price <= 0:
@@ -2130,6 +2139,564 @@ def initialize_mpesa_payment(request, slug):
         ),
         "checkout_request_id": checkout_id,
     })
+
+
+
+# ==========================================================
+# INITIALIZE PAYSTACK PAYMENT
+# ==========================================================
+
+@require_POST
+def initialize_paystack_payment(request, slug):
+
+    post = get_object_or_404(Post, slug=slug)
+
+    guest_token = _get_guest_purchase_token(request, post)
+
+    # Check whether this buyer has already paid.
+    if user_has_paid_for_post(
+        request.user,
+        post,
+        guest_token=guest_token,
+    ):
+        return JsonResponse({
+            "already_paid": True,
+        })
+
+    if not post.is_monetized or post.attachment_price <= 0:
+        return JsonResponse(
+            {"error": "This post is not for sale."},
+            status=400,
+        )
+
+    # Paystack checkout is configured for KES.
+    if post.attachment_currency.upper() != "KES":
+        return JsonResponse(
+            {
+                "error": (
+                    "This attachment must be priced in KES "
+                    "to accept Paystack."
+                )
+            },
+            status=400,
+        )
+
+    amount = Decimal(str(post.attachment_price))
+
+    if not amount.is_finite() or amount < Decimal("3.00"):
+        return JsonResponse(
+            {
+                "error": (
+                    "Paystack payments must be at least KSh 3."
+                )
+            },
+            status=400,
+        )
+
+    # Registered users may use their account email.
+    # Guests must provide an email address.
+    email = request.POST.get("email", "").strip()
+
+    if request.user.is_authenticated and not email:
+        email = request.user.email.strip()
+
+    try:
+        validate_email(email)
+    except ValidationError:
+        return JsonResponse(
+            {
+                "error": "Please enter a valid email address.",
+            },
+            status=400,
+        )
+
+    # Generate a unique SmartMind payment reference.
+    reference = (
+        f"SM-{post.pk}-{get_random_string(24)}"
+    )
+
+    # Determine callback URL.
+    callback_url = settings.PAYSTACK_CALLBACK_URL
+
+    if not callback_url:
+        callback_url = request.build_absolute_uri(
+            reverse("blog:paystack_callback")
+        )
+
+    # Record the pending transaction before contacting Paystack.
+    paystack_transaction = PaystackTransaction.objects.create(
+        user=(
+            request.user
+            if request.user.is_authenticated
+            else None
+        ),
+        guest_token=guest_token,
+        post=post,
+        email=email,
+        reference=reference,
+        amount=amount,
+        currency="KES",
+        status="pending",
+    )
+
+    # Initialize hosted checkout.
+    result = initiate_paystack_payment(
+        email=email,
+        amount=amount,
+        reference=reference,
+        callback_url=callback_url,
+        metadata={
+            "smartmind_transaction_id": (
+                paystack_transaction.pk
+            ),
+            "post_id": post.pk,
+            "post_slug": post.slug,
+        },
+    )
+
+    if not result.get("success"):
+        paystack_transaction.status = "failed"
+        paystack_transaction.gateway_response = (
+            result.get("data") or {}
+        )
+        paystack_transaction.save(
+            update_fields=[
+                "status",
+                "gateway_response",
+                "updated_at",
+            ]
+        )
+
+        return JsonResponse(
+            {
+                "error": result.get(
+                    "error",
+                    "Could not initiate Paystack payment.",
+                )
+            },
+            status=400,
+        )
+
+    data = result["data"]
+
+    # Confirm Paystack returned our exact reference.
+    if data.get("reference") != reference:
+        logger.error(
+            "Paystack reference mismatch. Expected=%s Received=%s",
+            reference,
+            data.get("reference"),
+        )
+
+        paystack_transaction.status = "failed"
+        paystack_transaction.gateway_response = data
+        paystack_transaction.save(
+            update_fields=[
+                "status",
+                "gateway_response",
+                "updated_at",
+            ]
+        )
+
+        return JsonResponse(
+            {
+                "error": (
+                    "Paystack returned an invalid transaction reference."
+                )
+            },
+            status=502,
+        )
+
+    # Store checkout information.
+    paystack_transaction.access_code = (
+        data.get("access_code") or ""
+    )
+
+    paystack_transaction.authorization_url = (
+        data.get("authorization_url") or ""
+    )
+
+    paystack_transaction.gateway_transaction_id = str(
+        data.get("id") or ""
+    )
+
+    paystack_transaction.gateway_response = data
+
+    paystack_transaction.save(
+        update_fields=[
+            "access_code",
+            "authorization_url",
+            "gateway_transaction_id",
+            "gateway_response",
+            "updated_at",
+        ]
+    )
+
+    if not paystack_transaction.authorization_url:
+        logger.error(
+            "Paystack authorization URL missing. Reference=%s",
+            reference,
+        )
+
+        return JsonResponse(
+            {
+                "error": (
+                    "Paystack did not return a checkout URL."
+                )
+            },
+            status=502,
+        )
+
+    return JsonResponse({
+        "success": True,
+        "authorization_url": (
+            paystack_transaction.authorization_url
+        ),
+        "reference": reference,
+    })
+
+
+# ============================================================
+# CONSTANTS (module level — move these out of the view)
+# ============================================================
+
+CREATOR_SHARE = Decimal("0.70")
+COMMISSION_RATE_PERCENT = Decimal("30.00")
+PLATFORM_SHARE = Decimal("1.00") - CREATOR_SHARE  # keep in sync
+EXPECTED_CURRENCY = "KES"
+
+
+# ============================================================
+# PAYSTACK CALLBACK
+# ============================================================
+
+@require_GET
+def paystack_callback(request):
+    """
+    Receive Paystack checkout callback.
+
+    Verify directly with Paystack before delivering access.
+    Settlement is atomic and idempotent.
+
+    NOTE: This GET callback is for the user-facing redirect only.
+    Wallet crediting should ultimately be driven by a signature-
+    verified webhook. This view still verifies with Paystack and
+    settles idempotently, so repeat hits are safe.
+    """
+
+    reference = (
+        request.GET.get("reference")
+        or request.GET.get("trxref")
+        or ""
+    ).strip()
+
+    if not reference:
+        logger.warning("Paystack callback received without reference.")
+        return redirect("blog:home")
+
+    paystack_transaction = PaystackTransaction.objects.filter(
+        reference=reference
+    ).first()
+
+    if not paystack_transaction:
+        logger.warning(
+            "Unknown Paystack reference: %s",
+            reference,
+        )
+        return redirect("blog:home")
+
+    post = paystack_transaction.post
+
+    attachments_url = reverse(
+        "blog:post_attachments",
+        kwargs={"slug": post.slug},
+    )
+
+    paywall_url = reverse(
+        "blog:paywall",
+        kwargs={"slug": post.slug},
+    )
+
+    # --------------------------------------------------------
+    # 0. Short-circuit: already settled.
+    # --------------------------------------------------------
+
+    if (
+        paystack_transaction.status == "success"
+        and paystack_transaction.paid_at
+    ):
+        logger.info(
+            "Paystack callback for already-settled reference=%s",
+            reference,
+        )
+        return redirect(f"{attachments_url}?paid=1")
+
+    # --------------------------------------------------------
+    # 1. Verify directly with Paystack.
+    # --------------------------------------------------------
+
+    verification = verify_paystack_payment(reference)
+
+    if not verification.get("success"):
+        logger.warning(
+            "Paystack verification failed. Reference=%s Error=%s",
+            reference,
+            verification.get("error"),
+        )
+        return redirect(paywall_url)
+
+    verified_data = verification.get("data", {})
+
+    verified_reference = str(verified_data.get("reference", ""))
+    verified_status = str(verified_data.get("status", "")).lower()
+    verified_currency = str(verified_data.get("currency", "")).upper()
+    verified_amount = verified_data.get("amount")
+
+    # --------------------------------------------------------
+    # 2. Validate transaction details.
+    # --------------------------------------------------------
+
+    # PaystackTransaction.amount is stored in major units (e.g. KES).
+    # Paystack reports amounts in minor units (cents). Convert once.
+    expected_amount_cents = (
+        paystack_transaction.amount * Decimal("100")
+    )
+
+    # Ensure stored amount is a whole number of cents.
+    amount_is_whole_cents = (
+        expected_amount_cents == expected_amount_cents.to_integral_value()
+    )
+
+    try:
+        received_amount_cents = Decimal(str(verified_amount))
+    except (InvalidOperation, TypeError, ValueError):
+        received_amount_cents = None
+
+    amount_matches = (
+        amount_is_whole_cents
+        and received_amount_cents is not None
+        and received_amount_cents == expected_amount_cents
+    )
+
+    reference_matches = (
+        verified_reference == paystack_transaction.reference
+    )
+
+    stored_currency = (paystack_transaction.currency or "").upper()
+    currency_matches = (
+        verified_currency == stored_currency == EXPECTED_CURRENCY
+    )
+
+    payment_successful = (verified_status == "success")
+
+    if not (
+        reference_matches
+        and amount_matches
+        and currency_matches
+        and payment_successful
+    ):
+        logger.error(
+            "Paystack verification mismatch. Reference=%s "
+            "reference_matches=%s amount_matches=%s "
+            "currency_matches=%s status=%s "
+            "expected_amount=%s received_amount=%s",
+            reference,
+            reference_matches,
+            amount_matches,
+            currency_matches,
+            verified_status,
+            expected_amount_cents,
+            verified_amount,
+        )
+
+        # If Paystack definitively reports a terminal failure,
+        # reflect that in our records. Only do this while pending.
+        if (
+            paystack_transaction.status == "pending"
+            and verified_status in ("failed", "abandoned", "reversed")
+        ):
+            paystack_transaction.status = "failed"
+            paystack_transaction.gateway_response = verified_data
+            paystack_transaction.save(
+                update_fields=[
+                    "status",
+                    "gateway_response",
+                    "updated_at",
+                ]
+            )
+
+        return redirect(paywall_url)
+
+    # --------------------------------------------------------
+    # 3. Atomic settlement.
+    # --------------------------------------------------------
+
+    try:
+        with transaction.atomic():
+
+            paystack_transaction = (
+                PaystackTransaction.objects
+                .select_for_update()
+                .select_related("post", "user")
+                .get(reference=reference)
+            )
+
+            # Re-check after acquiring the lock: another worker may
+            # have settled this between our read and now.
+            if paystack_transaction.status == "success":
+                logger.info(
+                    "Paystack transaction %s already settled.",
+                    reference,
+                )
+                return redirect(f"{attachments_url}?paid=1")
+
+            if paystack_transaction.status != "pending":
+                logger.warning(
+                    "Ignoring Paystack transaction %s with status=%s",
+                    reference,
+                    paystack_transaction.status,
+                )
+                return redirect(paywall_url)
+
+            # Identify buyer.
+            if paystack_transaction.user_id:
+                purchase_lookup = {
+                    "user": paystack_transaction.user,
+                    "post": paystack_transaction.post,
+                }
+            else:
+                purchase_lookup = {
+                    "guest_token": paystack_transaction.guest_token,
+                    "post": paystack_transaction.post,
+                }
+
+            # Mark successful.
+            paystack_transaction.status = "success"
+            paystack_transaction.gateway_response = verified_data
+            paystack_transaction.gateway_transaction_id = str(
+                verified_data.get("id") or ""
+            )
+            if not paystack_transaction.paid_at:
+                paystack_transaction.paid_at = timezone.now()
+
+            paystack_transaction.save(
+                update_fields=[
+                    "status",
+                    "gateway_response",
+                    "gateway_transaction_id",
+                    "paid_at",
+                    "updated_at",
+                ]
+            )
+
+            # Unlock attachment.
+            AttachmentPurchase.objects.update_or_create(
+                **purchase_lookup,
+                defaults={
+                    "paid": True,
+                    "amount_paid": paystack_transaction.amount,
+                    "currency": paystack_transaction.currency,
+                    "payment_reference": reference,
+                },
+            )
+
+            # Calculate creator earnings.
+            creator = paystack_transaction.post.author
+            gross_amount = paystack_transaction.amount
+
+            is_self_purchase = (
+                paystack_transaction.user_id is not None
+                and creator.pk == paystack_transaction.user_id
+            )
+
+            if is_self_purchase:
+                creator_earning = Decimal("0.00")
+                platform_commission = Decimal("0.00")
+                effective_commission_rate = Decimal("0.00")
+            else:
+                creator_earning = (
+                    gross_amount * CREATOR_SHARE
+                ).quantize(
+                    Decimal("0.01"),
+                    rounding=ROUND_HALF_UP,
+                )
+                platform_commission = (
+                    gross_amount - creator_earning
+                ).quantize(
+                    Decimal("0.01"),
+                    rounding=ROUND_HALF_UP,
+                )
+                effective_commission_rate = COMMISSION_RATE_PERCENT
+
+            # Record sale idempotently.
+            creator_sale, sale_created = (
+                CreatorSale.objects.get_or_create(
+                    paystack_transaction=paystack_transaction,
+                    defaults={
+                        "creator": creator,
+                        "post": paystack_transaction.post,
+                        "gross_amount": gross_amount,
+                        "platform_commission": platform_commission,
+                        "creator_earning": creator_earning,
+                        "commission_rate": effective_commission_rate,
+                    },
+                )
+            )
+
+            # Credit creator wallet exactly once.
+            if creator_sale.creator_earning > 0:
+
+                wallet, _ = CreatorWallet.objects.get_or_create(
+                    creator=creator,
+                )
+
+                wallet = (
+                    CreatorWallet.objects
+                    .select_for_update()
+                    .get(pk=wallet.pk)
+                )
+
+                ledger_entry, ledger_created = (
+                    WalletLedgerEntry.objects.get_or_create(
+                        wallet=wallet,
+                        sale=creator_sale,
+                        entry_type="sale",
+                        defaults={
+                            "amount": creator_sale.creator_earning,
+                            "description": (
+                                "70% earnings from Paystack sale of "
+                                f"{paystack_transaction.post.title}"
+                            ),
+                        },
+                    )
+                )
+
+                if ledger_created:
+                    wallet.available_balance += ledger_entry.amount
+                    wallet.total_earned += ledger_entry.amount
+                    wallet.save(
+                        update_fields=[
+                            "available_balance",
+                            "total_earned",
+                            "updated_at",
+                        ]
+                    )
+
+    except Exception:
+        logger.exception(
+            "Error settling Paystack payment. Reference=%s",
+            reference,
+        )
+        return redirect(paywall_url)
+
+    logger.info(
+        "Paystack payment verified and attachment unlocked. "
+        "Reference=%s Post=%s User=%s",
+        reference,
+        paystack_transaction.post_id,
+        paystack_transaction.user_id,
+    )
+
+    return redirect(f"{attachments_url}?paid=1")
 
 @csrf_exempt
 def mpesa_callback(request):

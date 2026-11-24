@@ -30,6 +30,17 @@ urlpatterns = [
     path("post/<slug:slug>/paywall/", views.paywall, name="paywall"),
     path("paywall/<slug:slug>/initialize/", views.initialize_mpesa_payment, name="initialize_mpesa_payment"),
     path("mpesa/callback/", views.mpesa_callback, name="mpesa_callback"),
+    # Paystack payments
+    path(
+    "paywall/<slug:slug>/initialize-paystack/",
+    views.initialize_paystack_payment,
+    name="initialize_paystack_payment",
+),
+    path(
+    "payments/paystack/callback/",
+    views.paystack_callback,
+    name="paystack_callback",
+),
     path("post/<slug:slug>/mpesa-status/",views.mpesa_payment_status,
     name="mpesa_payment_status",
 ),

@@ -420,7 +420,26 @@ if MPESA_ENVIRONMENT == "sandbox":
 else:
     MPESA_BASE_URL = "https://api.safaricom.co.ke"
 
+# ==========================
+# PAYSTACK CONFIGURATION
+# ==========================
 
+PAYSTACK_PUBLIC_KEY = config(
+    "PAYSTACK_PUBLIC_KEY",
+    default="",
+).strip()
+
+PAYSTACK_SECRET_KEY = config(
+    "PAYSTACK_SECRET_KEY",
+    default="",
+).strip()
+
+PAYSTACK_CALLBACK_URL = config(
+    "PAYSTACK_CALLBACK_URL",
+    default="",
+).strip()
+
+PAYSTACK_BASE_URL = "https://api.paystack.co"
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,

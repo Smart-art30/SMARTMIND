@@ -344,3 +344,315 @@ def initiate_stk_push(
             "success": False,
             "error": "Could not contact M-Pesa.",
         }
+
+
+
+# ============================================================
+# PAYSTACK TRANSACTION INITIALIZATION
+# ============================================================
+
+def initiate_paystack_payment(
+    *,
+    email,
+    amount,
+    reference,
+    callback_url=None,
+    metadata=None,
+):
+    """
+    Initialize a Paystack hosted checkout transaction.
+
+    Amount is supplied in KES, converted to cents.
+    This function initiates payment only.
+    It does NOT confirm payment or unlock attachments.
+    """
+
+    # --------------------------------------------------------
+    # 1. Check configuration
+    # --------------------------------------------------------
+
+    secret_key = getattr(
+        settings,
+        "PAYSTACK_SECRET_KEY",
+        "",
+    )
+
+    if not secret_key:
+        logger.error("Paystack secret key is not configured.")
+
+        return {
+            "success": False,
+            "error": "Paystack is not configured.",
+        }
+
+    # --------------------------------------------------------
+    # 2. Validate email
+    # --------------------------------------------------------
+
+    email = str(email or "").strip()
+
+    if not email:
+        return {
+            "success": False,
+            "error": "A valid customer email is required.",
+        }
+
+    # --------------------------------------------------------
+    # 3. Validate amount
+    # --------------------------------------------------------
+
+    try:
+        amount = Decimal(str(amount))
+
+    except (InvalidOperation, TypeError, ValueError):
+        return {
+            "success": False,
+            "error": "Invalid payment amount.",
+        }
+
+    if not amount.is_finite() or amount <= 0:
+        return {
+            "success": False,
+            "error": "Payment amount must be positive.",
+        }
+
+    # KES supports two decimal places.
+    amount_in_cents = amount * 100
+
+    if amount_in_cents != amount_in_cents.to_integral_value():
+        return {
+            "success": False,
+            "error": "Amount cannot exceed two decimal places.",
+        }
+
+    amount_in_cents = int(amount_in_cents)
+
+    if amount_in_cents < 300:
+        return {
+            "success": False,
+            "error": "Paystack payments must be at least KSh 3.",
+        }
+
+    # --------------------------------------------------------
+    # 4. Validate reference
+    # --------------------------------------------------------
+
+    reference = str(reference or "").strip()
+
+    if not reference:
+        return {
+            "success": False,
+            "error": "Transaction reference is required.",
+        }
+
+    # --------------------------------------------------------
+    # 5. Prepare request
+    # --------------------------------------------------------
+
+    url = (
+        f"{settings.PAYSTACK_BASE_URL}"
+        "/transaction/initialize"
+    )
+
+    payload = {
+        "email": email,
+        "amount": amount_in_cents,
+        "currency": "KES",
+        "reference": reference,
+        "metadata": metadata or {},
+    }
+
+    resolved_callback = (
+        callback_url
+        or getattr(settings, "PAYSTACK_CALLBACK_URL", "")
+    )
+
+    if resolved_callback:
+        payload["callback_url"] = resolved_callback
+
+    headers = {
+        "Authorization": f"Bearer {secret_key}",
+        "Content-Type": "application/json",
+    }
+
+    # --------------------------------------------------------
+    # 6. Send request
+    # --------------------------------------------------------
+
+    try:
+        response = requests.post(
+            url,
+            json=payload,
+            headers=headers,
+            timeout=30,
+        )
+
+        response.raise_for_status()
+
+        data = response.json()
+
+        # Paystack must explicitly confirm initialization.
+        if not data.get("status"):
+            logger.warning(
+                "Paystack initialization rejected. Reference=%s",
+                reference,
+            )
+
+            return {
+                "success": False,
+                "error": data.get(
+                    "message",
+                    "Paystack could not initialize payment.",
+                ),
+                "data": data,
+            }
+
+        transaction_data = data.get("data", {})
+
+        authorization_url = transaction_data.get(
+            "authorization_url"
+        )
+
+        returned_reference = transaction_data.get(
+            "reference"
+        )
+
+        if not authorization_url or not returned_reference:
+            logger.error(
+                "Paystack initialization response incomplete. "
+                "Reference=%s",
+                reference,
+            )
+
+            return {
+                "success": False,
+                "error": (
+                    "Paystack returned an incomplete "
+                    "checkout response."
+                ),
+            }
+
+        logger.info(
+            "Paystack checkout initialized. Reference=%s",
+            reference,
+        )
+
+        return {
+            "success": True,
+            "data": transaction_data,
+        }
+
+    except requests.RequestException:
+        logger.exception(
+            "Paystack initialization request failed. "
+            "Reference=%s",
+            reference,
+        )
+
+        return {
+            "success": False,
+            "error": "Could not contact Paystack.",
+        }
+
+def verify_paystack_payment(reference):
+    """
+    Verify a Paystack transaction using its reference.
+
+    This function only verifies the transaction.
+    It does NOT unlock attachments or credit wallets.
+    """
+
+    secret_key = getattr(settings, "PAYSTACK_SECRET_KEY", "")
+
+    if not secret_key:
+        logger.error("Paystack secret key is not configured.")
+
+        return {
+            "success": False,
+            "error": "Paystack is not configured.",
+        }
+
+    reference = str(reference or "").strip()
+
+    if not reference:
+        return {
+            "success": False,
+            "error": "Transaction reference is missing.",
+        }
+
+    url = (
+        f"{settings.PAYSTACK_BASE_URL}"
+        f"/transaction/verify/{reference}"
+    )
+
+    headers = {
+        "Authorization": f"Bearer {secret_key}",
+        "Content-Type": "application/json",
+    }
+
+    try:
+        response = requests.get(
+            url,
+            headers=headers,
+            timeout=30,
+        )
+
+        response.raise_for_status()
+
+        result = response.json()
+
+        if not result.get("status"):
+            logger.warning(
+                "Paystack verification unsuccessful. Reference=%s",
+                reference,
+            )
+
+            return {
+                "success": False,
+                "error": result.get(
+                    "message",
+                    "Transaction verification failed.",
+                ),
+                "data": result,
+            }
+
+        transaction_data = result.get("data", {})
+
+        if not isinstance(transaction_data, dict):
+            return {
+                "success": False,
+                "error": "Invalid Paystack verification response.",
+            }
+
+        logger.info(
+            "Paystack transaction verified. Reference=%s Status=%s",
+            reference,
+            transaction_data.get("status"),
+        )
+
+        return {
+            "success": True,
+            "data": transaction_data,
+        }
+
+    except requests.RequestException:
+        logger.exception(
+            "Paystack verification request failed. Reference=%s",
+            reference,
+        )
+
+        return {
+            "success": False,
+            "error": "Could not verify payment with Paystack.",
+        }
+
+    except (ValueError, TypeError):
+        logger.exception(
+            "Invalid Paystack verification response. Reference=%s",
+            reference,
+        )
+
+        return {
+            "success": False,
+            "error": "Invalid response from Paystack.",
+        }
